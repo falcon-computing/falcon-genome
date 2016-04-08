@@ -39,7 +39,7 @@ set -x
 
 if [[ "${do_stage["1"]}" == "1" ]]; then
   # Check if input file exist
-  if [ ! -f $fastq_dir/${sample_id}_1.fastq ] || [ ! -f $fastq_dir/${sample_id}_1.fastq ]; then
+  if [ ! -f $fastq_dir/${sample_id}_1.fastq ] || [ ! -f $fastq_dir/${sample_id}_2.fastq ]; then
     echo "Cannot find input fastq files"
     exit 1
   fi
