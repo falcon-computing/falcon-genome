@@ -136,7 +136,7 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   
   # - then recalibrate again to generate another report
   start_ts=$(date +%s)
-  $java_call -Xmx2g -jar $GATK \
+  $JAVA -d64 -Xmx2g -jar $GATK \
       -T BaseRecalibrator \
       -R $ref_genome \
       -I $bam_dir/${sample_id}.markdups.recal.bam \
@@ -152,9 +152,9 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   $JAVA -d64 -Xmx2g -jar $GATK \
       -T AnalyzeCovariates \
       -R $ref_genome \
-      -before $input_dir/$SampleID/${SampleID}.recalibration_report.grp \
-      -after $input_dir/$SampleID/${SampleID}.postrecalibration_report.grp \
-      -plots $input_dir/$SampleID/Plots/${SampleID}.recalibration_plot.pdf
+      -before $rpt_dir/${sample_id}.recalibration_report.grp \
+      -after  $rpt_dir/${sample_id}.postrecalibration_report.grp \
+      -plots  $rpt_dir/${sample_id}.recalibration_plot.pdf
   end_ts=$(date +%s)
   echo "#4-4 AnalyzeCovariates finishes in $((end_ts - start_ts))s"
   
