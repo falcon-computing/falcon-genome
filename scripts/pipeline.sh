@@ -125,7 +125,7 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   
   # - then use print reads to apply the calibration
   start_ts=$(date +%s)
-  $JAVA -Xmx2g -jar $GATK \
+  $JAVA -d64 -Xmx2g -jar $GATK \
       -T PrintReads \
       -R $ref_genome \
       -I $bam_dir/${sample_id}.markdups.bam \
@@ -174,18 +174,18 @@ if [[ "${do_stage["5"]}" == "1" ]]; then
   fi
   chr_list="$(seq 1 22) X Y MT"
   for chr in $chr_list; do
-  start_ts=$(date +%s)
-  $JAVA -Xmx2g -jar $GATK \
-      -T HaplotypeCaller \
-      -R $ref_genome \
-      -I $bam_dir/${sample_id}.markdups.recal.bam \
-      --emitRefConfidence GVCF \
-      --variant_index_type LINEAR \
-      --variant_index_parameter 128000 \
-      -L $chr \
-      -o $vcf_dir/${sample_id}_${chr}.gvcf
-  end_ts=$(date +%s)
-  echo "#5 HaplotypeCaller on CH:$chr finishes in $((end_ts - start_ts))s"
+    start_ts=$(date +%s)
+    $JAVA -d64 -Xmx8g -jar $GATK \
+        -T HaplotypeCaller \
+        -R $ref_genome \
+        -I $bam_dir/${sample_id}.markdups.recal.bam \
+        --emitRefConfidence GVCF \
+        --variant_index_type LINEAR \
+        --variant_index_parameter 128000 \
+        -L $chr \
+        -o $vcf_dir/${sample_id}_${chr}.gvcf
+    end_ts=$(date +%s)
+    echo "#5 HaplotypeCaller on CH:$chr finishes in $((end_ts - start_ts))s"
   done
 fi
 set +x
