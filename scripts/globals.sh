@@ -4,8 +4,8 @@ output_dir=/space/scratch/genome
 tools_dir=/space/common_mnt/tools
 
 # Directories setup
-fastq_dir=$data_dir/fastq
-ref_dir=$data_dir/ref
+fastq_dir=$input_dir/fastq
+ref_dir=$input_dir/ref
 sam_dir=$output_dir/sam
 bam_dir=$output_dir/bam
 rpt_dir=$output_dir/rpt
