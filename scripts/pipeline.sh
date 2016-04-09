@@ -63,6 +63,12 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
     exit 1
   fi
 
+  start_ts=$(date +%s)
+  # Indexing input if it is not indexed
+  if [ ! -f ${input}.bai ]; then
+    $SAMTOOLS index $input $chr
+  fi
+
   # Split BAM by chromosome
   chr_list="$(seq 1 22) X Y MT"
   for chr in $chr_list; do
@@ -71,6 +77,8 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
       $SAMTOOLS view -u -b -S $input $chr > $chr_bam
     fi
   done
+  end_ts=$(date +%s)
+  echo "Splitting BAM finishes in $((end_ts - start_ts))s"
   
   # Table storing all the pids for tasks within one stage
   declare -A pid_table

@@ -23,5 +23,5 @@ $JAVA -XX:+UseSerialGC -Xmx4g -jar $PICARD \
     METRICS_FILE=${output}.dups_stats \
     REMOVE_DUPLICATES=true ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT
 end_ts=$(date +%s)
-echo "Picard mark duplicate for $input $(basename $input) in $((end_ts - start_ts))s"
+echo "Picard mark duplicate for $(basename $input) in $((end_ts - start_ts))s"
 

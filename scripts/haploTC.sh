@@ -34,4 +34,4 @@ $JAVA -d64 -Xmx8g -jar $GATK \
     -o $output
 set +x
 end_ts=$(date +%s)
-echo "#5 HaplotypeCaller on CH:$chr of $(basename $input) finishes in $((end_ts - start_ts))s"
+echo "HaplotypeCaller on CH:$chr of $(basename $input) finishes in $((end_ts - start_ts))s"

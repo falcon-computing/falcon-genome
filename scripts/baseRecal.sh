@@ -18,7 +18,7 @@ if [ ! -f ${input}.bai ]; then
   start_ts=$(date +%s)
   $SAMTOOLS index $input
   end_ts=$(date +%s)
-  echo "#4 Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
+  echo "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
 fi
 
 start_ts=$(date +%s)
@@ -33,4 +33,4 @@ $JAVA -d64 -Xmx2g -jar $GATK \
     -o $output
 set +x
 end_ts=$(date +%s)
-echo "#4 BaseRecalibrator for $(basename $input) finishes in $((end_ts - start_ts))s"
+echo "BaseRecalibrator for $(basename $input) finishes in $((end_ts - start_ts))s"
