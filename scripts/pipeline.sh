@@ -6,7 +6,8 @@
 #!/bin/bash
 
 # Import global variables
-source globals.sh
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+source $DIR/globals.sh
 
 if [[ $# -lt 1 ]]; then
   echo "USAGE: $0 <sample id> [1..5]"
@@ -14,9 +15,6 @@ if [[ $# -lt 1 ]]; then
 fi
 
 sample_id=$1
-RG_ID=SEQ01
-platform=ILLUMINA
-library=HUMsgR2AQDCAAPE
 
 shift
 
@@ -31,161 +29,109 @@ else
   do_stage=( ["1"]="1" ["2"]="1" ["3"]="1" ["4"]="1" ["5"]="1" )
 fi
 
-set -x
-
 # Step 1: BWA alignment
-# - Input: pair_end fastq files: ${sample_id}_1.fastq.gz ${sample_id}_2.fastq.gz
-# - Output: ${sample_id}.sam
-
 if [[ "${do_stage["1"]}" == "1" ]]; then
-  # Check if input file exist
-  if [ ! -f $fastq_dir/${sample_id}_1.fastq ] || [ ! -f $fastq_dir/${sample_id}_1.fastq ]; then
-    echo "Cannot find input fastq files"
-    exit 1
-  fi
-  start_ts=$(date +%s)
-  $BWA mem -M -t 24 $ref_genome \
-      -R "@RG\tID:$RG_ID\tSM:$sample_id\tPL:$platform\tLB:$library" \
-      $fastq_dir/${sample_id}_1.fastq \
-      $fastq_dir/${sample_id}_2.fastq > $sam_dir/${sample_id}.sam
-  end_ts=$(date +%s)
-  echo "#1 BWA mem finishes in $((end_ts - start_ts))s"
+  fastq_1=$fastq_dir/${sample_id}_1.fastq
+  fastq_2=$fastq_dir/${sample_id}_2.fastq
+  output=$sam_dir/${sample_id}.sam
+  $DIR/align.sh $fastq_1 $fastq_2 $output 2> align.log
 fi
 
 # Step 2: Samtools Sort
-# - Input: ${sample_id}.sam
-# - Output: sorted ${sample_id}.bam
 if [[ "${do_stage["2"]}" == "1" ]]; then
-  if [ ! -f $sam_dir/${sample_id}.sam ]; then
-    echo "Cannot find $sam_dir/${sample_id}.sam"
-    exit 1
-  fi
-  start_ts=$(date +%s)
-  cat $sam_dir/${sample_id}.sam | $SAMTOOLS view -S -b -u - | $SAMTOOLS sort -o $bam_dir/${sample_id}.bam
-  end_ts=$(date +%s)
-  echo "#2 Samtools sort finishes in $((end_ts - start_ts))s"
+  input=$sam_dir/${sample_id}.sam
+  output=$bam_dir/${sample_id}.bam
+  $DIR/sort.sh $input $output 2> sort.log
 fi
-
-# These steps can be omitted
-# Step 3 (REMOVED): Check BAM file
-#echo "$SAMTOOL view -H $bam_dir/${sample_id}.bam > tmp.out"
-#rm -f tmp.out err
-
-# Step 4 (REMOVED): 
-#$BAMTOOL merge \
-#    -list $input_dir/$SampleID/Logs/list_BAMs_tomerge.txt \
-#    -out $input_dir/$SampleID/$SampleID.merged.bam
-
 
 # Step 3: Mark Duplicate
 # - Input: sorted ${sample_id}.bam
 # - Output: duplicates-removed ${sample_id}.markdups.bam
 if [[ "${do_stage["3"]}" == "1" ]]; then
-  if [ ! -f $bam_dir/${sample_id}.bam ]; then
-    echo "Cannot find $bam_dir/${sample_id}.bam"
-    exit 1
-  fi
-  start_ts=$(date +%s)
-  $JAVA -XX:+UseSerialGC -Xmx2g -jar $PICARD \
-      MarkDuplicates \
-      TMP_DIR=/tmp COMPRESSION_LEVEL=5 \
-      INPUT=$bam_dir/${sample_id}.bam \
-      OUTPUT=$bam_dir/${sample_id}.markdups.bam \
-      METRICS_FILE=$rpt_dir/${sample_id}.bam.dups_stats \
-      REMOVE_DUPLICATES=true ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT
-  end_ts=$(date +%s)
-  echo "#3-1 Picard mark duplicate finishes in $((end_ts - start_ts))s"
-
-  start_ts=$(date +%s)
-  $SAMTOOLS index $bam_dir/${sample_id}.markdups.bam
-  end_ts=$(date +%s)
-  echo "#3-2 Samtools index finishes in $((end_ts - start_ts))s"
+  input=$bam_dir/${sample_id}.bam
+  output=$bam_dir/${sample_id}.markdups.bam
+  $DIR/markDup.sh $input $output 2> markDup.log
 fi
 
 # Step 4: GATK BaseRecalibrate
 # - Input: ${sample_id}.markdups.bam
 # - Output: recalibrated ${sample_id}.markdups.recal.bam
 if [[ "${do_stage["4"]}" == "1" ]]; then
-  if [ ! -f $bam_dir/${sample_id}.markdups.bam ]; then
-    echo "Cannot find $bam_dir/${sample_id}.markdups.bam"
+  input=$bam_dir/${sample_id}.markdups.bam
+  if [ ! -f $input ]; then
+    echo "Cannot find $input"
     exit 1
   fi
-  # - first recalibrate the markdups.bam file and generate a report
+
   start_ts=$(date +%s)
-  $JAVA -d64 -Xmx2g -jar $GATK \
-      -T BaseRecalibrator \
-      -R $ref_genome \
-      -I $bam_dir/${sample_id}.markdups.bam \
-      -knownSites $g1000_indels \
-      -knownSites $g1000_gold_standard_indels \
-      -knownSites $db138_SNPs \
-      -o $rpt_dir/${sample_id}.recalibration_report.grp
+  # Indexing input if it is not indexed
+  if [ ! -f ${input}.bai ]; then
+    $SAMTOOLS index $input $chr
+  fi
+
+  # Split BAM by chromosome
+  chr_list="$(seq 1 22) X Y MT"
+  for chr in $chr_list; do
+    chr_bam=$bam_dir/${sample_id}.markdups.chr${chr}.bam
+    if [ ! -f $chr_bam ]; then
+      $SAMTOOLS view -u -b -S $input $chr > $chr_bam
+    fi
+  done
   end_ts=$(date +%s)
-  echo "#4-1 BaseRecalibrator finishes in $((end_ts - start_ts))s"
+  echo "Splitting BAM finishes in $((end_ts - start_ts))s"
   
-  # - then use print reads to apply the calibration
+  # Table storing all the pids for tasks within one stage
+  declare -A pid_table
+
   start_ts=$(date +%s)
-  $JAVA -Xmx2g -jar $GATK \
-      -T PrintReads \
-      -R $ref_genome \
-      -I $bam_dir/${sample_id}.markdups.bam \
-      -BQSR $rpt_dir/${sample_id}.recalibration_report.grp \
-      -o $bam_dir/${sample_id}.markdups.recal.bam
+  for chr in $chr_list; do
+    chr_bam=$bam_dir/${sample_id}.markdups.chr${chr}.bam
+    chr_rpt=$rpt_dir/${sample_id}.chr${chr}.recalibration_report.grp
+    $DIR/baseRecal.sh $chr_bam $chr_rpt 2> baseRecal_chr${chr}.log &
+    pid_table["$chr"]=$!
+  done
+  # Wait on all the tasks
+  for pid in ${pid_table[@]}; do
+    wait "${pid}"
+  done
   end_ts=$(date +%s)
-  echo "#4-2 PrintReads finishes in $((end_ts - start_ts))s"
-  
-  # - then recalibrate again to generate another report
+  echo "BaseRecalibrator stage finishes in $((end_ts - start_ts))s"
+
   start_ts=$(date +%s)
-  $JAVA -d64 -Xmx2g -jar $GATK \
-      -T BaseRecalibrator \
-      -R $ref_genome \
-      -I $bam_dir/${sample_id}.markdups.recal.bam \
-      -knownSites $g1000_indels \
-      -knownSites $g1000_gold_standard_indels \
-      -knownSites $db138_SNPs \
-      -o $rpt_dir/${sample_id}.postrecalibration_report.grp
+  for chr in $chr_list; do
+    chr_bam=$bam_dir/${sample_id}.markdups.chr${chr}.bam
+    chr_rpt=$rpt_dir/${sample_id}.chr${chr}.recalibration_report.grp
+    chr_recal_bam=$bam_dir/${sample_id}.recal.chr${chr}.bam
+    $DIR/printReads.sh $chr_bam $chr_rpt $chr_recal_bam 2> printReads_chr${chr}.log &
+    pid_table["$chr"]=$!
+  done
+  # Wait on all the tasks
+  for pid in ${pid_table[@]}; do
+    wait "${pid}"
+  done
   end_ts=$(date +%s)
-  echo "#4-3 BaseRecalibrator finishes in $((end_ts - start_ts))s"
-  
-  # - finally calculate a covariate report
-  start_ts=$(date +%s)
-  $JAVA -d64 -Xmx2g -jar $GATK \
-      -T AnalyzeCovariates \
-      -R $ref_genome \
-      -before $rpt_dir/${sample_id}.recalibration_report.grp \
-      -after  $rpt_dir/${sample_id}.postrecalibration_report.grp \
-      -plots  $rpt_dir/${sample_id}.recalibration_plot.pdf
-  end_ts=$(date +%s)
-  echo "#4-4 AnalyzeCovariates finishes in $((end_ts - start_ts))s"
-  
-  start_ts=$(date +%s)
-  $SAMTOOLS index $bam_dir/${sample_id}.markdups.recal.bam
-  end_ts=$(date +%s)
-  echo "#4-5 Samtools index finishes in $((end_ts - start_ts))s"
+  echo "PrintReads stage finishes in $((end_ts - start_ts))s"
 fi
 
 # Step 5: GATK HaplotypeCaller
 # - Input: ${sample_id}.markdups.recal.bam
 # - Output: per chromosome varients ${sample_id}_$chr.gvcf
 if [[ "${do_stage["5"]}" == "1" ]]; then
-  if [ ! -f $bam_dir/${sample_id}.markdups.recal.bam ]; then
-    echo "Cannot find $bam_dir/${sample_id}.markdups.recal.bam"
-    exit 1
-  fi
   chr_list="$(seq 1 22) X Y MT"
-  for chr in $chr_list; do
+  declare -A pid_table
+
   start_ts=$(date +%s)
-  $JAVA -Xmx2g -jar $GATK \
-      -T HaplotypeCaller \
-      -R $ref_genome \
-      -I $bam_dir/${sample_id}.markdups.recal.bam \
-      --emitRefConfidence GVCF \
-      --variant_index_type LINEAR \
-      --variant_index_parameter 128000 \
-      -L $chr \
-      -o $vcf_dir/${sample_id}_${chr}.gvcf
-  end_ts=$(date +%s)
-  echo "#5 HaplotypeCaller on CH:$chr finishes in $((end_ts - start_ts))s"
+  for chr in $chr_list; do
+    chr_bam=$bam_dir/${sample_id}.recal.chr${chr}.bam
+    chr_vcf=$vcf_dir/${sample_id}_chr${chr}.gvcf
+    $DIR/haploTC.sh $chr $chr_bam $chr_vcf 2> haplotypeCaller_chr${chr}.log &
+    pid_table["$chr"]=$!
   done
+
+  # Wait on all the tasks
+  for pid in ${pid_table[@]}; do
+    wait "${pid}"
+  done
+  end_ts=$(date +%s)
+  echo "HaplotypeCaller stage finishes in $((end_ts - start_ts))s"
 fi
-set +x
