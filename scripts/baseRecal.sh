@@ -23,7 +23,7 @@ fi
 
 start_ts=$(date +%s)
 set -x
-$JAVA -d64 -Xmx2g -jar $GATK \
+$JAVA -d64 -Xmx32g -jar $GATK \
     -T BaseRecalibrator \
     -R $ref_genome \
     -I $input \

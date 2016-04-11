@@ -68,7 +68,16 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   if [ ! -f ${input}.bai ]; then
     $SAMTOOLS index $input $chr
   fi
+  output_rpt=$rpt_dir/${sample_id}.recalibration_report.grp
+  if [ ! -f $output_rpt ]; then
+    $DIR/baseRecal.sh $input $output_rpt 2> baseRecal.log
+  else 
+    echo "WARNING: $output_rpt already exists, assuming BaseRecalibration already done"
+  fi
+  end_ts=$(date +%s)
+  echo "BaseRecalibrator stage finishes in $((end_ts - start_ts))s"
 
+  start_ts=$(date +%s)
   # Split BAM by chromosome
   chr_list="$(seq 1 22) X Y MT"
   for chr in $chr_list; do
@@ -86,21 +95,7 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   start_ts=$(date +%s)
   for chr in $chr_list; do
     chr_bam=$bam_dir/${sample_id}.markdups.chr${chr}.bam
-    chr_rpt=$rpt_dir/${sample_id}.chr${chr}.recalibration_report.grp
-    $DIR/baseRecal.sh $chr_bam $chr_rpt 2> baseRecal_chr${chr}.log &
-    pid_table["$chr"]=$!
-  done
-  # Wait on all the tasks
-  for pid in ${pid_table[@]}; do
-    wait "${pid}"
-  done
-  end_ts=$(date +%s)
-  echo "BaseRecalibrator stage finishes in $((end_ts - start_ts))s"
-
-  start_ts=$(date +%s)
-  for chr in $chr_list; do
-    chr_bam=$bam_dir/${sample_id}.markdups.chr${chr}.bam
-    chr_rpt=$rpt_dir/${sample_id}.chr${chr}.recalibration_report.grp
+    chr_rpt=$rpt_dir/${sample_id}.recalibration_report.grp
     chr_recal_bam=$bam_dir/${sample_id}.recal.chr${chr}.bam
     $DIR/printReads.sh $chr_bam $chr_rpt $chr_recal_bam 2> printReads_chr${chr}.log &
     pid_table["$chr"]=$!

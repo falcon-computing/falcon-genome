@@ -15,7 +15,7 @@ check_output $output
 check_output ${output}.dup_stats
 
 start_ts=$(date +%s)
-$JAVA -XX:+UseSerialGC -Xmx4g -jar $PICARD \
+$JAVA -XX:+UseSerialGC -Xmx32g -jar $PICARD \
     MarkDuplicates \
     TMP_DIR=/tmp COMPRESSION_LEVEL=5 \
     INPUT=$input \
