@@ -68,6 +68,10 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   if [ ! -f ${input}.bai ]; then
     $SAMTOOLS index $input $chr
   fi
+  end_ts=$(date +%s)
+  echo "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
+
+  start_ts=$(date +%s)
   output_rpt=$rpt_dir/${sample_id}.recalibration_report.grp
   if [ ! -f $output_rpt ]; then
     $DIR/baseRecal.sh $input $output_rpt 2> baseRecal.log
@@ -77,7 +81,6 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   end_ts=$(date +%s)
   echo "BaseRecalibrator stage finishes in $((end_ts - start_ts))s"
 
-  start_ts=$(date +%s)
   # Split BAM by chromosome
   chr_list="$(seq 1 22) X Y MT"
   for chr in $chr_list; do
@@ -86,8 +89,6 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
       $SAMTOOLS view -u -b -S $input $chr > $chr_bam
     fi
   done
-  end_ts=$(date +%s)
-  echo "Splitting BAM finishes in $((end_ts - start_ts))s"
   
   # Table storing all the pids for tasks within one stage
   declare -A pid_table

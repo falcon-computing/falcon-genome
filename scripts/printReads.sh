@@ -15,6 +15,14 @@ check_input $input
 check_input $BQSR
 check_output $output
 
+# check if index already exists
+if [ ! -f ${input}.bai ]; then
+  start_ts=$(date +%s)
+  $SAMTOOLS index $input
+  end_ts=$(date +%s)
+  echo "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
+fi
+
 start_ts=$(date +%s)
 $JAVA -d64 -Xmx4g -jar $GATK \
     -T PrintReads \
