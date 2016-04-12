@@ -21,6 +21,7 @@ g1000_gold_standard_indels=$ref_dir/Mills_and_1000G_gold_standard.indels.b37.vcf
 BWA=$tools_dir/bwa/bwa
 SAMTOOLS=$tools_dir/samtools-1.3/samtools
 GATK=$tools_dir/gatk-3.3/GenomeAnalysisTK.jar
+GATK_QUEUE=$tools_dir/gatk-3.5/Queue.jar
 PICARD=$tools_dir/picard-tools-1.141/picard.jar
 JAVA=/tools/jdk1.7.0_80/bin/java
 
