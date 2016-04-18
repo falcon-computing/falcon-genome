@@ -1,0 +1,16 @@
+htsjdk.iws
+.command_tmp
+classes
+testclasses
+javadoc
+dist
+contracts
+atlassian-ide-plugin.xml
+intellij.testclasses
+intellij.classes
+/htsjdk.version.properties
+/bin
+/test-output
+target
+.idea/libraries
+.idea/workspace.xml
