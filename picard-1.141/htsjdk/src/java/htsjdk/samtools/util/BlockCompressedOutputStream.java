@@ -28,8 +28,15 @@ import htsjdk.samtools.util.zip.DeflaterFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
+
 
 /**
  * Writer for a file that is a series of gzip blocks (BGZF format).  The caller just treats it as an
@@ -69,12 +76,20 @@ public class BlockCompressedOutputStream
     }
 
     private final BinaryCodec codec;
-    private final byte[] uncompressedBuffer = new byte[BlockCompressedStreamConstants.DEFAULT_UNCOMPRESSED_BLOCK_SIZE];
+    private static final int NOF_BLOCK = 16;
+    private static final int UNCOMPRESSED_BLOCK_SIZE =
+        BlockCompressedStreamConstants.DEFAULT_UNCOMPRESSED_BLOCK_SIZE;
+    private static final int COMPRESSED_BLOCK_SIZE =
+        BlockCompressedStreamConstants.MAX_COMPRESSED_BLOCK_SIZE -
+        BlockCompressedStreamConstants.BLOCK_HEADER_LENGTH;
+    private final byte[] uncompressedBuffer = new byte[UNCOMPRESSED_BLOCK_SIZE * NOF_BLOCK];
     private int numUncompressedBytes = 0;
-    private final byte[] compressedBuffer =
-            new byte[BlockCompressedStreamConstants.MAX_COMPRESSED_BLOCK_SIZE -
-                    BlockCompressedStreamConstants.BLOCK_HEADER_LENGTH];
-    private final Deflater deflater;
+    private final byte[] compressedBuffer = new byte[COMPRESSED_BLOCK_SIZE * NOF_BLOCK];
+    private final Deflater[] deflaters = new Deflater[NOF_BLOCK];
+    private final CRC32[] crc32s = new CRC32[NOF_BLOCK];
+    ExecutorService service = Executors.newFixedThreadPool(8);
+    private ArrayList<Future<Integer> > deflateFutures =
+        new ArrayList<Future<Integer> >();
 
     // A second deflater is created for the very unlikely case where the regular deflation actually makes
     // things bigger, and the compressed block is too big.  It should be possible to downshift the
@@ -89,7 +104,7 @@ public class BlockCompressedOutputStream
     // I assume (AW 29-Oct-2013) that there is no value in using hardware-assisted deflater for no-compression mode,
     // so just use JDK standard.
     private final Deflater noCompressionDeflater = new Deflater(Deflater.NO_COMPRESSION, true);
-    private final CRC32 crc32 = new CRC32();
+    //private final CRC32 crc32 = new CRC32();
     private File file = null;
     private long mBlockAddress = 0;
 
@@ -126,7 +141,10 @@ public class BlockCompressedOutputStream
     public BlockCompressedOutputStream(final File file, final int compressionLevel) {
         this.file = file;
         codec = new BinaryCodec(file, true);
-        deflater = DeflaterFactory.makeDeflater(compressionLevel, true);
+        for (int i = 0; i < NOF_BLOCK; ++i) {
+          crc32s[i] = new CRC32();
+          deflaters[i] = DeflaterFactory.makeDeflater(compressionLevel, true);
+        }
     }
 
     /**
@@ -143,7 +161,10 @@ public class BlockCompressedOutputStream
         if (file != null) {
             codec.setOutputFileName(file.getAbsolutePath());
         }
-        deflater = DeflaterFactory.makeDeflater(compressionLevel, true);
+        for (int i = 0; i < NOF_BLOCK; ++i) {
+          crc32s[i] = new CRC32();
+          deflaters[i] = DeflaterFactory.makeDeflater(compressionLevel, true);
+        }
     }
 
     /**
@@ -154,9 +175,9 @@ public class BlockCompressedOutputStream
      *         is a BCOS.
      */
     public static BlockCompressedOutputStream maybeBgzfWrapOutputStream(final File location, OutputStream output) {
-        if (!(output instanceof BlockCompressedOutputStream)) {
-                return new BlockCompressedOutputStream(output, location);
-        } else {
+      if (!(output instanceof BlockCompressedOutputStream)) {
+        return new BlockCompressedOutputStream(output, location);
+      } else {
         return (BlockCompressedOutputStream)output;
         }
     }
@@ -231,6 +252,7 @@ public class BlockCompressedOutputStream
                 BlockCompressedInputStream.FileTermination.HAS_TERMINATOR_BLOCK) {
             throw new IOException("Terminator block not found after closing BGZF file " + this.file);
         }
+        service.shutdown();
     }
 
     /**
@@ -250,7 +272,10 @@ public class BlockCompressedOutputStream
      * Lower 16 bits is the byte offset into the uncompressed stream inside the block.
      */
     public long getFilePointer(){
-        return BlockCompressedFilePointerUtil.makeFilePointer(mBlockAddress, numUncompressedBytes);
+      // TODO(mhhuang): this function no longer works in multi-threaded implementation.
+      assert(false);
+      return 0;
+      //return BlockCompressedFilePointerUtil.makeFilePointer(mBlockAddress, numUncompressedBytes);
     }
 
     @Override
@@ -265,43 +290,107 @@ public class BlockCompressedOutputStream
      * up in the next deflate event.
      * @return size of gzip block that was written.
      */
-    private int deflateBlock() {
-        if (numUncompressedBytes == 0) {
-            return 0;
-        }
-        final int bytesToCompress = numUncompressedBytes;
+
+    class deflateThread implements Callable<Integer> {
+      private final int ucBufferOffset;
+      private final int bytesToCompress;
+      private final int cBufferOffset;
+      private CRC32 crc32;
+      private final Deflater deflater;
+
+      deflateThread(final int ucBufferOffset, final int bytesToCompress,
+          final int cBufferOffset, final Deflater deflater, final CRC32 crc32) {
+        this.ucBufferOffset = ucBufferOffset;
+        this.bytesToCompress = bytesToCompress;
+        this.cBufferOffset = cBufferOffset;
+        this.deflater = deflater;
+        this.crc32 = crc32;
+      }
+
+      @Override
+      public Integer call() {
         // Compress the input
         deflater.reset();
-        deflater.setInput(uncompressedBuffer, 0, bytesToCompress);
+        deflater.setInput(uncompressedBuffer, ucBufferOffset, bytesToCompress);
         deflater.finish();
-        int compressedSize = deflater.deflate(compressedBuffer, 0, compressedBuffer.length);
+        int compressedSize = deflater.deflate(compressedBuffer, cBufferOffset, COMPRESSED_BLOCK_SIZE);
 
+        // This shouldn't be invoked if we are using compression level 0 at the first hand
         // If it didn't all fit in compressedBuffer.length, set compression level to NO_COMPRESSION
         // and try again.  This should always fit.
         if (!deflater.finished()) {
             noCompressionDeflater.reset();
             noCompressionDeflater.setInput(uncompressedBuffer, 0, bytesToCompress);
             noCompressionDeflater.finish();
-            compressedSize = noCompressionDeflater.deflate(compressedBuffer, 0, compressedBuffer.length);
+            compressedSize = noCompressionDeflater.deflate(compressedBuffer, cBufferOffset, COMPRESSED_BLOCK_SIZE);
             if (!noCompressionDeflater.finished()) {
                 throw new IllegalStateException("unpossible");
             }
         }
         // Data compressed small enough, so write it out.
         crc32.reset();
-        crc32.update(uncompressedBuffer, 0, bytesToCompress);
+        crc32.update(uncompressedBuffer, ucBufferOffset, bytesToCompress);
 
-        final int totalBlockSize = writeGzipBlock(compressedSize, bytesToCompress, crc32.getValue());
-        assert(bytesToCompress <= numUncompressedBytes);
+        return Integer.valueOf(compressedSize);
+      }
+    }
 
-        // Clear out from uncompressedBuffer the data that was written
-        if (bytesToCompress == numUncompressedBytes) {
-            numUncompressedBytes = 0;
-        } else {
-            System.arraycopy(uncompressedBuffer, bytesToCompress, uncompressedBuffer, 0,
-                    numUncompressedBytes - bytesToCompress);
-            numUncompressedBytes -= bytesToCompress;
+
+    /* Multi-threaded implementation */
+    private int deflateBlock() {
+        if (numUncompressedBytes == 0) {
+            return 0;
         }
+
+        // Set number of threads
+        deflateFutures.clear();
+        
+        int remainingBytes = numUncompressedBytes;
+        int ucBufferOffset = 0;
+        int cBufferOffset = 0;
+        int counter = 0;
+        while (remainingBytes > 0) {
+          final int bytesToCompress = Math.min(remainingBytes, UNCOMPRESSED_BLOCK_SIZE);
+          deflateFutures.add(service.submit(
+              new deflateThread(
+                  ucBufferOffset, bytesToCompress,
+                  cBufferOffset, deflaters[counter], crc32s[counter])));
+
+          ucBufferOffset += bytesToCompress;
+          cBufferOffset += COMPRESSED_BLOCK_SIZE;
+          counter++;
+
+          remainingBytes -= bytesToCompress;
+        }
+
+        int totalBlockSize = 0;
+        
+        // sequential part
+        remainingBytes = numUncompressedBytes;
+        counter = 0;
+        cBufferOffset = 0;
+        while (remainingBytes > 0) {
+          final int bytesToCompress = Math.min(remainingBytes, UNCOMPRESSED_BLOCK_SIZE);
+          int compressedSize = 0;
+          try {
+            compressedSize = deflateFutures.get(counter).get();
+          } catch (InterruptedException ie) {
+            System.err.println("InterruptedException in deflating blocks");
+            assert(false);
+          } catch (ExecutionException ee) {
+            System.err.println("ExecutionException in deflating blocks");
+            assert(false);
+          }
+
+          totalBlockSize += writeGzipBlock(
+              cBufferOffset, compressedSize, bytesToCompress, crc32s[counter].getValue());
+
+          cBufferOffset += COMPRESSED_BLOCK_SIZE;
+          remainingBytes -= bytesToCompress;
+          counter ++;
+        }
+        
+        numUncompressedBytes = 0;
         mBlockAddress += totalBlockSize;
         return totalBlockSize;
     }
@@ -310,7 +399,8 @@ public class BlockCompressedOutputStream
      * Writes the entire gzip block, assuming the compressed data is stored in compressedBuffer
      * @return  size of gzip block that was written.
      */
-    private int writeGzipBlock(final int compressedSize, final int uncompressedSize, final long crc) {
+    private int writeGzipBlock(final int compressedBufferOffset, final int compressedSize,
+        final int uncompressedSize, final long crc) {
         // Init gzip header
         codec.writeByte(BlockCompressedStreamConstants.GZIP_ID1);
         codec.writeByte(BlockCompressedStreamConstants.GZIP_ID2);
@@ -328,7 +418,7 @@ public class BlockCompressedOutputStream
 
         // I don't know why we store block size - 1, but that is what the spec says
         codec.writeShort((short)(totalBlockSize - 1));
-        codec.writeBytes(compressedBuffer, 0, compressedSize);
+        codec.writeBytes(compressedBuffer, compressedBufferOffset, compressedSize);
         codec.writeInt((int)crc);
         codec.writeInt(uncompressedSize);
         return totalBlockSize;
