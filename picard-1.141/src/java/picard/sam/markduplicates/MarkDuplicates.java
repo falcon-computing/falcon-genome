@@ -39,6 +39,7 @@ import htsjdk.samtools.util.SortingLongCollection;
 import picard.sam.markduplicates.util.AbstractMarkDuplicatesCommandLineProgram;
 import picard.sam.markduplicates.util.DiskBasedReadEndsForMarkDuplicatesMap;
 import picard.sam.markduplicates.util.LibraryIdGenerator;
+import picard.sam.markduplicates.util.MemoryBasedReadEndsForMarkDuplicatesMap;
 import picard.sam.markduplicates.util.ReadEnds;
 import picard.sam.markduplicates.util.ReadEndsForMarkDuplicates;
 import picard.sam.markduplicates.util.ReadEndsForMarkDuplicatesCodec;
@@ -668,8 +669,9 @@ public class MarkDuplicates extends AbstractMarkDuplicatesCommandLineProgram {
 
       final SamHeaderAndIterator headerAndIterator = openInputs();
       final SAMFileHeader header = headerAndIterator.header;
-      final ReadEndsForMarkDuplicatesMap tmp = new DiskBasedReadEndsForMarkDuplicatesMap(
-          MAX_FILE_HANDLES_FOR_READ_ENDS_MAP, diskCodec);
+      final ReadEndsForMarkDuplicatesMap tmp = new MemoryBasedReadEndsForMarkDuplicatesMap();
+      //final ReadEndsForMarkDuplicatesMap tmp = new DiskBasedReadEndsForMarkDuplicatesMap(
+      //    MAX_FILE_HANDLES_FOR_READ_ENDS_MAP, diskCodec);
       final CloseableIterator<SAMRecord> iterator = headerAndIterator.iterator;
 
       if (null == this.libraryIdGenerator) {
