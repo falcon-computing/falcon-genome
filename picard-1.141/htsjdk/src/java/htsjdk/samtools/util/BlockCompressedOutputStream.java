@@ -89,7 +89,7 @@ public class BlockCompressedOutputStream
     private final CRC32[] crc32s = new CRC32[NOF_BLOCK];
     ExecutorService service = Executors.newFixedThreadPool(8);
     private ArrayList<Future<Integer> > deflateFutures =
-        new ArrayList<Future<Integer> >();
+        new ArrayList<Future<Integer> >(16);
 
     // A second deflater is created for the very unlikely case where the regular deflation actually makes
     // things bigger, and the compressed block is too big.  It should be possible to downshift the
@@ -309,6 +309,7 @@ public class BlockCompressedOutputStream
 
       @Override
       public Integer call() {
+        // average time for this call 620,000 ns
         // Compress the input
         deflater.reset();
         deflater.setInput(uncompressedBuffer, ucBufferOffset, bytesToCompress);
@@ -342,7 +343,6 @@ public class BlockCompressedOutputStream
             return 0;
         }
 
-        // Set number of threads
         deflateFutures.clear();
         
         int remainingBytes = numUncompressedBytes;
