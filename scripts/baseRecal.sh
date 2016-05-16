@@ -23,14 +23,27 @@ fi
 
 start_ts=$(date +%s)
 set -x
-$JAVA -d64 -Xmx32g -jar $GATK \
-    -T BaseRecalibrator \
+$JAVA -Djava.io.tmpdir=/tmp -jar ${GATK_QUEUE} \
+    -S BaseRecalQueue.scala \
     -R $ref_genome \
     -I $input \
     -knownSites $g1000_indels \
     -knownSites $g1000_gold_standard_indels \
     -knownSites $db138_SNPs \
-    -o $output
+    -o $output \
+    -jobRunner ParallelShell \
+    -maxConcurrentRun 16 \
+    -scatterCount 32 \
+    -run
+#$JAVA -d64 -Xmx8g -jar $GATK \
+#    -T BaseRecalibrator \
+#    -R $ref_genome \
+#    -I $input \
+#    -knownSites $g1000_indels \
+#    -knownSites $g1000_gold_standard_indels \
+#    -knownSites $db138_SNPs \
+#    -nct 24 \
+#    -o $output
 set +x
 end_ts=$(date +%s)
 echo "BaseRecalibrator for $(basename $input) finishes in $((end_ts - start_ts))s"
