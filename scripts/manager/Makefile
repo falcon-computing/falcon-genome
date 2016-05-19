@@ -1,6 +1,6 @@
 include config.mk
 
-CFLAGS 	:= -g -std=c++0x -fPIC \
+CFLAGS 	:= -g -std=c++0x -fPIC -O1 -DNDEBUG\
 	   -Wno-deprecated-declarations
 
 INCLUDES:= -I. \

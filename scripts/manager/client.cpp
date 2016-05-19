@@ -29,60 +29,58 @@ int main(int argc, char** argv) {
   }
 
   try {
-    bool allocated = false;
-    while (!allocated) {
-      // Open message queue
-      boost::interprocess::message_queue msg_q(
-          boost::interprocess::open_only,
-          "fcs-req-queue");
+    // Open message queue
+    boost::interprocess::message_queue msg_q(
+        boost::interprocess::open_only,
+        "fcs-req-queue");
 
-      // Send own pid to message queue
-      msg_q.send(&pid, sizeof(pid), 0);
+    // Send own pid to message queue
+    msg_q.send(&pid, sizeof(pid), 0);
 
-      if (argc < 2) {
-        // Start waiting for allocated slot
-        while (true) {
-          try {
-            char host[1000];
-            unsigned int priority = 0;
-            boost::interprocess::message_queue::size_type recv_size;
+    if (argc < 2) {
+      // Wait incase client_q is not created yet
+      boost::this_thread::sleep_for(boost::chrono::microseconds(100));
 
-            DLOG(INFO) << "Opening queue " << std::to_string((long long) pid).c_str();
+      // Start waiting for allocated slot
+      while (true) {
+        try {
+          char host[1000];
+          unsigned int priority = 0;
+          boost::interprocess::message_queue::size_type recv_size;
 
-            boost::interprocess::message_queue client_q(
-                boost::interprocess::open_only,
-                std::to_string((long long)pid).c_str());
+          DLOG(INFO) << "Opening queue " << std::to_string((long long) pid).c_str();
 
-            DLOG(INFO) << "Opened queue " << std::to_string((long long) pid).c_str();
+          boost::interprocess::message_queue client_q(
+              boost::interprocess::open_only,
+              std::to_string((long long)pid).c_str());
 
-            client_q.receive(host, 1000, recv_size, priority);
+          DLOG(INFO) << "Opened queue " << std::to_string((long long) pid).c_str();
 
-            // Just to make sure char* is ended properly
-            host[recv_size] = '\0';
+          client_q.receive(host, 1000, recv_size, priority);
 
-            if (strcmp(host, "-")) {
-              // Slot is allocated
-              printf("%s %d\n", host, pid);
-              allocated = true;
-            }
-            else {
-              VLOG(1) << "No available slots at this point, retry later";
-              boost::this_thread::sleep_for(boost::chrono::seconds(1));
-            }
-            break;
+          // Just to make sure char* is ended properly
+          host[recv_size] = '\0';
+
+          if (strcmp(host, "-")) {
+            // Slot is allocated
+            printf("%s %d\n", host, pid);
           }
-          catch (boost::interprocess::interprocess_exception &e) {
-            DLOG(INFO) << "Queue is not established yet, wait for a while: " 
-              << e.what();
-            // Catch exception when client_q is not created yet
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
+          else {
+            VLOG(1) << "No available slots at this point, retry later";
+            boost::this_thread::sleep_for(boost::chrono::seconds(1));
           }
+          break;
+        }
+        catch (boost::interprocess::interprocess_exception &e) {
+          DLOG(INFO) << "Queue is not established yet, wait for a while: " 
+            << e.what();
+          // Catch exception when client_q is not created yet
+          boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
         }
       }
-      else {
-        VLOG(1) << "Freed slot for " << pid;
-        break;
-      }
+    }
+    else {
+      VLOG(1) << "Freed slot for " << pid;
     }
   }
   catch (boost::interprocess::interprocess_exception &e) {

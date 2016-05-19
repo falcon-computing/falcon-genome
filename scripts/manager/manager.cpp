@@ -23,10 +23,11 @@ int main(int argc, char** argv) {
   }
 
   // Build table for hosts and their slots
-  std::unordered_map<std::string, int> host_slots_table;
-  std::unordered_map<std::string, int> host_usage_table;
-  std::unordered_map<int, std::string> client_table;
-  std::queue<std::string> available_hosts;
+  std::unordered_map<std::string, int>  host_slots_table;
+  std::unordered_map<std::string, int>  host_usage_table;
+  std::unordered_map<int, std::string>  client_table;
+  std::queue<std::string>               available_hosts;
+  std::queue<std::string>               pending_requests;
 
   // Parse host file
   std::ifstream fin(argv[1]);
@@ -79,8 +80,29 @@ int main(int argc, char** argv) {
         // client is finished, remove it from host_usage_table
         std::string host = client_table[pid];
         int host_slots = host_usage_table[host];
-        if (host_slots > 0) {
+
+        bool freed = false;
+        if (!pending_requests.empty()) {
+
+          std::string pid_s = pending_requests.front();
+        
+          DLOG(INFO) << "Freed one slot in " << host
+            << ", re-allocate it for " << pid_s;
+
+          boost::interprocess::message_queue client_q(
+              boost::interprocess::open_only,
+              pid_s.c_str());
+
+          client_q.send(host.c_str(), host.size(), 0);
+
+          pending_requests.pop();
+
+          // Add pid to client_table
+          client_table[std::stoi(pid_s)] = host;
+        }
+        else {
           host_usage_table[host]--;
+          freed = true;
 
           DLOG(INFO) << "Freed one slot in " << host
             << ", currently there are " << host_slots-1 << " occupied";
@@ -91,7 +113,10 @@ int main(int argc, char** argv) {
 
         VLOG(1) << "Process " << pid << " is finished";
 
-        if (host_slots == host_slots_table[host]) {
+        // Remove the finished client
+        client_table.erase(pid);
+
+        if (host_slots == host_slots_table[host] && freed) {
           // This means the host previously is fully occupied.
           // After freeing one slot the host can be added back
           // to available_host
@@ -111,10 +136,8 @@ int main(int argc, char** argv) {
             1000*sizeof(char)); 
 
         if (available_hosts.empty()) {
-          const char* empty_sig = "-";
-          client_q.send(empty_sig, strlen(empty_sig), 0);
-
           VLOG(1) << "No more slots available";
+          pending_requests.push(std::to_string((long long) pid));
         }
         else {
           // Allocate host for current request
