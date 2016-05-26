@@ -29,6 +29,13 @@ else
   do_stage=( ["1"]="1" ["2"]="1" ["3"]="1" ["4"]="1" ["5"]="1" )
 fi
 
+# Table storing all the pids for tasks within one stage
+declare -A pid_table
+
+# Start manager
+$DIR/manager/manager --v=1 --log_dir=. host_file &
+manager_pid=$!
+
 # Step 1: BWA alignment
 if [[ "${do_stage["1"]}" == "1" ]]; then
   fastq_1=$fastq_dir/${sample_id}_1.fastq
@@ -74,7 +81,7 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   start_ts=$(date +%s)
   output_rpt=$rpt_dir/${sample_id}.recalibration_report.grp
   if [ ! -f $output_rpt ]; then
-    $DIR/baseRecal.sh $input $output_rpt 2> baseRecal.log
+    $DIR/baseRecal.sh $input $output_rpt &> baseRecal.log
   else 
     echo "WARNING: $output_rpt already exists, assuming BaseRecalibration already done"
   fi
@@ -82,23 +89,28 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   echo "BaseRecalibrator stage finishes in $((end_ts - start_ts))s"
 
   # Split BAM by chromosome
+  start_ts=$(date +%s)
   chr_list="$(seq 1 22) X Y MT"
   for chr in $chr_list; do
     chr_bam=$bam_dir/${sample_id}.markdups.chr${chr}.bam
     if [ ! -f $chr_bam ]; then
-      $SAMTOOLS view -u -b -S $input $chr > $chr_bam
+      $DIR/fcs-sh "$SAMTOOLS view -u -b -S $input $chr > $chr_bam" &
+      pid_table["$chr"]=$!
     fi
   done
+  # Wait on all the tasks
+  for pid in ${pid_table[@]}; do
+    wait "${pid}"
+  done
+  end_ts=$(date +%s)
+  echo "Split BAM by chromosomes finishes in $((end_ts - start_ts))s"
   
-  # Table storing all the pids for tasks within one stage
-  declare -A pid_table
-
   start_ts=$(date +%s)
   for chr in $chr_list; do
     chr_bam=$bam_dir/${sample_id}.markdups.chr${chr}.bam
     chr_rpt=$rpt_dir/${sample_id}.recalibration_report.grp
     chr_recal_bam=$bam_dir/${sample_id}.recal.chr${chr}.bam
-    $DIR/printReads.sh $chr_bam $chr_rpt $chr_recal_bam 2> printReads_chr${chr}.log &
+    $DIR/fcs-sh "$DIR/printReads.sh $chr_bam $chr_rpt $chr_recal_bam" &> printReads_chr${chr}.log &
     pid_table["$chr"]=$!
   done
   # Wait on all the tasks
@@ -120,7 +132,7 @@ if [[ "${do_stage["5"]}" == "1" ]]; then
   for chr in $chr_list; do
     chr_bam=$bam_dir/${sample_id}.recal.chr${chr}.bam
     chr_vcf=$vcf_dir/${sample_id}_chr${chr}.gvcf
-    $DIR/haploTC.sh $chr $chr_bam $chr_vcf 2> haplotypeCaller_chr${chr}.log &
+    $DIR/fcs-sh "$DIR/haploTC.sh $chr $chr_bam $chr_vcf" &> haplotypeCaller_chr${chr}.log &
     pid_table["$chr"]=$!
   done
 
@@ -131,3 +143,6 @@ if [[ "${do_stage["5"]}" == "1" ]]; then
   end_ts=$(date +%s)
   echo "HaplotypeCaller stage finishes in $((end_ts - start_ts))s"
 fi
+
+# Stop manager
+kill $manager_pid

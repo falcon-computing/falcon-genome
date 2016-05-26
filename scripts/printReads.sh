@@ -29,6 +29,7 @@ $JAVA -d64 -Xmx4g -jar $GATK \
     -R $ref_genome \
     -I $input \
     -BQSR $BQSR \
+    -nct 4 \
     -o $output
 end_ts=$(date +%s)
 echo "PrintReads for $(basename $input) finishes in $((end_ts - start_ts))s"

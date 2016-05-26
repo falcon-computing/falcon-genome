@@ -1,14 +1,16 @@
 # Modify the following paths accordingly
 input_dir=/space/scratch/genome
 output_dir=/space/scratch/genome
-tools_dir=/space/common_mnt/tools
+tools_dir=/fcs_common/merlin1/tools
 
 # Directories setup
 fastq_dir=$input_dir/fastq
 ref_dir=$input_dir/ref
 sam_dir=$output_dir/sam
-bam_dir=$output_dir/bam
-rpt_dir=$output_dir/rpt
+#bam_dir=$output_dir/bam
+#rpt_dir=$output_dir/rpt
+bam_dir=.
+rpt_dir=.
 vcf_dir=$output_dir/vcf
 
 # Reference Genome Info
@@ -21,9 +23,10 @@ g1000_gold_standard_indels=$ref_dir/Mills_and_1000G_gold_standard.indels.b37.vcf
 BWA=$tools_dir/bwa/bwa
 SAMTOOLS=$tools_dir/samtools-1.3/samtools
 GATK=$tools_dir/gatk-3.3/GenomeAnalysisTK.jar
-GATK_QUEUE=$tools_dir/gatk-3.5/Queue.jar
+#GATK_QUEUE=$tools_dir/gatk-3.5/Queue.jar
+GATK_QUEUE=/curr/diwu/prog/dnaseq/gatk/gatk-protected/protected/gatk-queue-package-distribution/target/gatk-queue-package-distribution-3.5.jar
 PICARD=$tools_dir/picard-tools-1.141/picard.jar
-JAVA=/tools/jdk1.7.0_80/bin/java
+JAVA=/curr/diwu/tools/jdk1.7.0_80/bin/java
 
 check_input() {
   filename=$1;

@@ -13,6 +13,8 @@ output=$2
 check_input $input
 check_output $output
 
+export PATH=$DIR/fcs-sh:$PATH
+
 # check if index already exists
 if [ ! -f ${input}.bai ]; then
   start_ts=$(date +%s)
@@ -32,8 +34,8 @@ $JAVA -Djava.io.tmpdir=/tmp -jar ${GATK_QUEUE} \
     -knownSites $db138_SNPs \
     -o $output \
     -jobRunner ParallelShell \
-    -maxConcurrentRun 16 \
-    -scatterCount 32 \
+    -maxConcurrentRun 8 \
+    -scatterCount 24 \
     -run
 #$JAVA -d64 -Xmx8g -jar $GATK \
 #    -T BaseRecalibrator \

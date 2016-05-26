@@ -31,6 +31,7 @@ $JAVA -d64 -Xmx8g -jar $GATK \
     --variant_index_type LINEAR \
     --variant_index_parameter 128000 \
     -L $chr \
+    -nct 4 \
     -o $output
 set +x
 end_ts=$(date +%s)

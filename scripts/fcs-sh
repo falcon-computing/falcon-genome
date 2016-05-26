@@ -1,11 +1,13 @@
 #!/bin/bash
 
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
 if [ "$#" -lt 1 ]; then
   echo "Missing command"
   exit -1;
 fi
 
-output=`manager/client`
+output=`$DIR/manager/client`
 output_arr=($output)
 host=${output_arr[0]}
 pid=${output_arr[1]}
@@ -19,4 +21,4 @@ else
 fi
 set +x
 
-manager/client $pid
+$DIR/manager/client $pid
