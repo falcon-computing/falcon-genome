@@ -37,6 +37,7 @@ import org.broadinstitute.gatk.utils.smithwaterman.SmithWaterman;
 
 import java.util.Arrays;
 import java.util.Stack;
+import org.apache.log4j.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -46,7 +47,13 @@ import java.util.Stack;
  * To change this template use File | Settings | File Templates.
  */
 public class CigarUtils {
-
+    private final static Logger logger = Logger.getLogger(CigarUtils.class);
+    private static long count_all = 0;
+    private static long count_cycles = 0;
+    private static int max_length_ref = 0;
+    private static int max_length_alt = 0;
+    private static int min_length_ref = 1000;
+    private static int min_length_alt = 1000;
     /**
      * Combines equal adjacent elements of a Cigar object
      *
@@ -183,6 +190,7 @@ public class CigarUtils {
      */
     public static Cigar calculateCigar(final byte[] refSeq, final byte[] altSeq) {
         if ( altSeq.length == 0 ) {
+            System.out.println("Find Best Path cycles, altSeq length = 0");
             // horrible edge case from the unit tests, where this path has no bases
             return new Cigar(Arrays.asList(new CigarElement(refSeq.length, CigarOperator.D)));
         }
@@ -191,6 +199,25 @@ public class CigarUtils {
 
         final String paddedRef = SW_PAD + new String(refSeq) + SW_PAD;
         final String paddedPath = SW_PAD + new String(altSeq) + SW_PAD;
+
+        int n = paddedRef.getBytes().length;
+        int m = paddedPath.getBytes().length;
+        //if(max_length_ref<n) max_length_ref=n;
+        //if(max_length_alt<m) max_length_alt=m;
+        //if(min_length_ref>n) min_length_ref=n;
+        //if(min_length_alt>m) min_length_alt=m;
+        //if(m != n) {
+        //  System.out.println("Find Best Path org, SmithWaterman reference.length org = " + n + ", alternate.length org = " + m+ "");
+        //}
+        //System.out.println("Find Best Path min, SmithWaterman reference.length min = " + min_length_ref + ", alternate.length min = " + min_length_alt + "");
+        //System.out.println("Find Best Path max, SmithWaterman reference.length max = " + max_length_ref + ", alternate.length max = " + max_length_alt + "");
+        count_cycles += m*n+m+n;
+        count_all += 1;
+        if(count_all % 10000 == 0) {
+            //System.out.println("Find Best Path cycles, SmithWaterman totcl cycles = " + count_cycles);
+            //logger.info("Total : Find Best Path cycles, SmithWaterman totcl cycles = " + count_cycles);
+        }
+
         final SmithWaterman alignment = new SWPairwiseAlignment( paddedRef.getBytes(), paddedPath.getBytes(), NEW_SW_PARAMETERS);
 
         if ( isSWFailure(alignment) ) {
@@ -209,6 +236,30 @@ public class CigarUtils {
 
         // finally, return the cigar with all indels left aligned
         return leftAlignCigarSequentially(nonStandard, refSeq, altSeq, 0, 0);
+    }
+    public static Cigar calculateCigar_new(final byte[] refSeq, final byte[] altSeq, final SmithWaterman alignment) {
+        final Cigar nonStandard;
+        final String paddedRef = SW_PAD + new String(refSeq) + SW_PAD;
+        final String paddedPath = SW_PAD + new String(altSeq) + SW_PAD;
+
+        if ( isSWFailure(alignment) ) {
+            return null;
+        }
+
+        // cut off the padding bases
+        final int baseStart = SW_PAD.length();
+        final int baseEnd = paddedPath.length() - SW_PAD.length() - 1; // -1 because it's inclusive
+        nonStandard = AlignmentUtils.trimCigarByBases(alignment.getCigar(), baseStart, baseEnd);
+
+        if ( nonStandard.getReferenceLength() != refSeq.length ) {
+            nonStandard.add(new CigarElement(refSeq.length - nonStandard.getReferenceLength(), CigarOperator.D));
+        }
+
+        // finally, return the cigar with all indels left aligned
+        return leftAlignCigarSequentially(nonStandard, refSeq, altSeq, 0, 0);
+    }
+    public static Cigar calculateCigar_filter(int length) {
+        return new Cigar(Arrays.asList(new CigarElement(length, CigarOperator.D)));
     }
 
     /**

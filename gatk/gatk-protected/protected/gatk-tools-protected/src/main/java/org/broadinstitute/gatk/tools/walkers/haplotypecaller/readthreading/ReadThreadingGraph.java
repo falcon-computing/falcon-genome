@@ -74,6 +74,8 @@ public class ReadThreadingGraph extends DanglingChainMergingGraph implements Kme
 
     /** for debugging info printing */
     private static int counter = 0;
+    private static int count_seq = 0;
+    private static int count_seq_all = 0;
 
     /**
      * Sequences added for read threading before we've actually built the graph
@@ -315,9 +317,12 @@ public class ReadThreadingGraph extends DanglingChainMergingGraph implements Kme
             logger.info("using " + kmerSize + " kmer size for this assembly with the following non-uniques");
         }
 
+        count_seq = 0;
         // go through the pending sequences, and add them to the graph
         for ( final List<SequenceForKmers> sequencesForSample : pending.values() ) {
             for ( final SequenceForKmers sequenceForKmers : sequencesForSample ) {
+                count_seq ++;
+                count_seq_all ++;
                 threadSequence(sequenceForKmers);
                 if ( WRITE_GRAPH ) printGraph(new File("threading." + counter++ + "." + sequenceForKmers.name.replace(" ", "_") + ".dot"), 0);
             }
@@ -325,6 +330,8 @@ public class ReadThreadingGraph extends DanglingChainMergingGraph implements Kme
             // flush the single sample edge values from the graph
             for ( final MultiSampleEdge e : edgeSet() ) e.flushSingleSampleMultiplicity();
         }
+        //System.out.println("BuildGraphIfNecessary, count_seq = " + count_seq);
+        //System.out.println("BuildGraphIfNecessary, count_seq_all = " + count_seq_all);
 
         // clear
         pending.clear();

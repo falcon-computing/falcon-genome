@@ -80,6 +80,58 @@ public final class AlignmentUtils {
      *
      * @return a GATKSAMRecord aligned to reference. Never {@code null}.
      */
+    public static GATKSAMRecord createReadAlignedToRef_new(final GATKSAMRecord originalRead,
+                                                       final Haplotype haplotype,
+                                                       final Haplotype refHaplotype,
+                                                       final int referenceStart,
+                                                       final boolean isInformative,
+                                                       final int alignment_offset,
+                                                       final Cigar orgCigar) {
+        if ( originalRead == null ) throw new IllegalArgumentException("originalRead cannot be null");
+        if ( haplotype == null ) throw new IllegalArgumentException("haplotype cannot be null");
+        if ( refHaplotype == null ) throw new IllegalArgumentException("ref haplotype cannot be null");
+        if ( haplotype.getCigar() == null ) throw new IllegalArgumentException("Haplotype cigar not set " + haplotype);
+        if ( referenceStart < 1 ) throw new IllegalArgumentException("reference start much be >= 1 but got " + referenceStart);
+
+        // compute the smith-waterman alignment of read -> haplotype
+//        final SWPairwiseAlignment swPairwiseAlignment = new SWPairwiseAlignment(haplotype.getBases(), originalRead.getReadBases(), CigarUtils.NEW_SW_PARAMETERS);
+        if ( alignment_offset == -1 )
+            // sw can fail (reasons not clear) so if it happens just don't realign the read
+            return originalRead;
+        final Cigar swCigar = consolidateCigar(orgCigar);
+
+        // since we're modifying the read we need to clone it
+        final GATKSAMRecord read = (GATKSAMRecord)originalRead.clone();
+
+        // only informative reads are given the haplotype tag to enhance visualization
+        if ( isInformative )
+            read.setAttribute(HAPLOTYPE_TAG, haplotype.hashCode());
+
+        // compute here the read starts w.r.t. the reference from the SW result and the hap -> ref cigar
+        final Cigar extendedHaplotypeCigar = haplotype.getConsolidatedPaddedCigar(1000);
+        final int readStartOnHaplotype = calcFirstBaseMatchingReferenceInCigar(extendedHaplotypeCigar, alignment_offset);
+        final int readStartOnReference = referenceStart + haplotype.getAlignmentStartHapwrtRef() + readStartOnHaplotype;
+        read.setAlignmentStart(readStartOnReference);
+        read.resetSoftStartAndEnd();
+
+        // compute the read -> ref alignment by mapping read -> hap -> ref from the
+        // SW of read -> hap mapped through the given by hap -> ref
+        final Cigar haplotypeToRef = trimCigarByBases(extendedHaplotypeCigar, alignment_offset, extendedHaplotypeCigar.getReadLength() - 1);
+        final Cigar readToRefCigarRaw = applyCigarToCigar(swCigar, haplotypeToRef);
+        final Cigar readToRefCigarClean = cleanUpCigar(readToRefCigarRaw);
+        final Cigar readToRefCigar = leftAlignIndel(readToRefCigarClean, refHaplotype.getBases(),
+                originalRead.getReadBases(), alignment_offset, 0, true);
+
+        read.setCigar(readToRefCigar);
+
+        if ( readToRefCigar.getReadLength() != read.getReadLength() )
+            throw new IllegalStateException("Cigar " + readToRefCigar + " with read length " + readToRefCigar.getReadLength()
+                    + " != read length " + read.getReadLength() + " for read " + read.format() + "\nhapToRef " + haplotypeToRef + " length " + haplotypeToRef.getReadLength() + "/" + haplotypeToRef.getReferenceLength()
+                    + "\nreadToHap " + swCigar + " length " + swCigar.getReadLength() + "/" + swCigar.getReferenceLength());
+
+        return read;
+    }
+
     public static GATKSAMRecord createReadAlignedToRef(final GATKSAMRecord originalRead,
                                                        final Haplotype haplotype,
                                                        final Haplotype refHaplotype,
@@ -129,7 +181,6 @@ public final class AlignmentUtils {
 
         return read;
     }
-
 
 
     /**
@@ -1018,7 +1069,7 @@ public final class AlignmentUtils {
     public static Cigar trimCigarByBases(final Cigar cigar, final int start, final int end) {
         if ( start < 0 ) throw new IllegalArgumentException("Start must be >= 0 but got " + start);
         if ( end < start ) throw new IllegalArgumentException("End " + end + " is < start = " + start);
-        if ( end > cigar.getReadLength() ) throw new IllegalArgumentException("End is beyond the cigar's read length " + end + " for cigar " + cigar );
+        if ( end > cigar.getReadLength() ) throw new IllegalArgumentException("End is beyond the cigar's read length " + end + " for cigar " + cigar + ", length = " + cigar.getReadLength());
 
         final Cigar result = trimCigar(cigar, start, end, false);
 
