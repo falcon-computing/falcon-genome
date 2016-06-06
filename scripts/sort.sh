@@ -16,7 +16,7 @@ if [ ! -d $input ]; then
   exit 1
 fi
 
-input_files=$(find -name part-* $input 2>/dev/null)
+input_files=$(find $input -name part-* 2>/dev/null)
 if [[ -z "$input_files" ]]; then
   echo "Input folder $input is empty"
   exit 1
