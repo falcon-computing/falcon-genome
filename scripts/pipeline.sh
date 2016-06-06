@@ -35,18 +35,22 @@ declare -A pid_table
 # Start manager
 $DIR/manager/manager --v=1 --log_dir=. host_file &
 manager_pid=$!
+if [[ $? -ne 0 ]]; then
+  echo "Failed to start manager, exiting..."
+  exit -1
+fi
 
 # Step 1: BWA alignment
 if [[ "${do_stage["1"]}" == "1" ]]; then
   fastq_1=$fastq_dir/${sample_id}_1.fastq
   fastq_2=$fastq_dir/${sample_id}_2.fastq
-  output=$sam_dir/${sample_id}.sam
-  $DIR/align.sh $fastq_1 $fastq_2 $output 2> align.log
+  output=$bam_dir/${sample_id}.parts
+  $DIR/align.sh $fastq_1 $fastq_2 $output 2> >(tee align.log >&2)
 fi
 
 # Step 2: Samtools Sort
 if [[ "${do_stage["2"]}" == "1" ]]; then
-  input=$sam_dir/${sample_id}.sam
+  input=$bam_dir/${sample_id}.parts
   output=$bam_dir/${sample_id}.bam
   $DIR/sort.sh $input $output 2> sort.log
 fi
@@ -73,7 +77,7 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   start_ts=$(date +%s)
   # Indexing input if it is not indexed
   if [ ! -f ${input}.bai ]; then
-    $SAMTOOLS index $input $chr
+    $SAMTOOLS index $input 
   fi
   end_ts=$(date +%s)
   echo "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"

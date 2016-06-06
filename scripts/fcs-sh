@@ -1,13 +1,24 @@
 #!/bin/bash
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 if [ "$#" -lt 1 ]; then
   echo "Missing command"
   exit -1;
 fi
 
-output=`$DIR/manager/client`
+source $SCRIPT_DIR/manager/config.mk
+LD_LIBRARY_PATH=$BOOST_LIB:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=$GLOG_DIR/lib:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=$GFLAGS_DIR/lib:$LD_LIBRARY_PATH
+
+output=`$SCRIPT_DIR/manager/client`
+
+if [ $? -ne 0 ]; then
+  echo "Cannot connect to manager, exiting..."
+  exit 1
+fi
+
 output_arr=($output)
 host=${output_arr[0]}
 pid=${output_arr[1]}
@@ -21,4 +32,4 @@ else
 fi
 set +x
 
-$DIR/manager/client $pid
+$SCRIPT_DIR/manager/client $pid

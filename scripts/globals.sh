@@ -1,31 +1,31 @@
 # Modify the following paths accordingly
-input_dir=/space/scratch/genome
-output_dir=/space/scratch/genome
+output_dir=$(pwd)
+input_dir=/pool/hdd1/diwu
 tools_dir=/fcs_common/merlin1/tools
 
 # Directories setup
 fastq_dir=$input_dir/fastq
-ref_dir=$input_dir/ref
+ref_dir=/space/scratch/genome/ref
 sam_dir=$output_dir/sam
-#bam_dir=$output_dir/bam
-#rpt_dir=$output_dir/rpt
-bam_dir=.
-rpt_dir=.
+bam_dir=$output_dir/bam
+rpt_dir=$output_dir/rpt
 vcf_dir=$output_dir/vcf
+log_dir=$output_dir/log
 
 # Reference Genome Info
-ref_genome=$ref_dir/human_g1k_v37.fasta
+ref_genome=$ref_dir/factor4/human_g1k_v37.fasta
 db138_SNPs=$ref_dir/dbsnp_138.b37.vcf
 g1000_indels=$ref_dir/1000G_phase1.indels.b37.vcf
 g1000_gold_standard_indels=$ref_dir/Mills_and_1000G_gold_standard.indels.b37.vcf
 
 # Tools
-BWA=$tools_dir/bwa/bwa
-SAMTOOLS=$tools_dir/samtools-1.3/samtools
-GATK=$tools_dir/gatk-3.3/GenomeAnalysisTK.jar
+#BWA=/curr/diwu/prog/bwa-flow/bin/run-bwa.sh
+BWA=$tools_dir/bwa-fcs/bwa
+SAMTOOLS=$tools_dir/fcs-samtools
+PICARD=$tools_dir/fcs-picard.jar
+GATK=$tools_dir/gatk-3.5/GenomeAnalysisTK.jar
 #GATK_QUEUE=$tools_dir/gatk-3.5/Queue.jar
-GATK_QUEUE=/curr/diwu/prog/dnaseq/gatk/gatk-protected/protected/gatk-queue-package-distribution/target/gatk-queue-package-distribution-3.5.jar
-PICARD=$tools_dir/picard-tools-1.141/picard.jar
+GATK_QUEUE=$tools_dir/fcs-gatk/Queue.jar
 JAVA=/curr/diwu/tools/jdk1.7.0_80/bin/java
 
 check_input() {
