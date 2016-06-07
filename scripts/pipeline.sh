@@ -33,6 +33,10 @@ fi
 declare -A pid_table
 
 # Start manager
+source $DIR/manager/config.mk
+LD_LIBRARY_PATH=$BOOST_LIB:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=$GLOG_DIR/lib:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=$GFLAGS_DIR/lib:$LD_LIBRARY_PATH
 $DIR/manager/manager --v=1 --log_dir=. host_file &
 manager_pid=$!
 if [[ $? -ne 0 ]]; then

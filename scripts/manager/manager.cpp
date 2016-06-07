@@ -4,9 +4,19 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <queue>
+#include <signal.h>
 #include <stdio.h>
 #include <string>
 #include <unordered_map>
+
+void sigint_handler(int s){
+  VLOG(1) << "Caught interrupt, removing queue";
+  
+  // Erase previous message queue
+  boost::interprocess::message_queue::remove("fcs-req-queue");
+
+  exit(0); 
+}
 
 int main(int argc, char** argv) {
 
@@ -21,6 +31,9 @@ int main(int argc, char** argv) {
     printf("Usage: %s host_file\n", argv[0]);
     return 1;
   }
+
+  signal(SIGINT, sigint_handler);
+  signal(SIGTERM, sigint_handler);
 
   // Build table for hosts and their slots
   std::unordered_map<std::string, int>  host_slots_table;
