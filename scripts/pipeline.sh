@@ -44,34 +44,29 @@ if [[ $? -ne 0 ]]; then
   exit -1
 fi
 
-# Step 1: BWA alignment
+# Step 1: BWA alignment and sort
 if [[ "${do_stage["1"]}" == "1" ]]; then
+  create_dir $bam_dir
+
   fastq_1=$fastq_dir/${sample_id}_1.fastq
   fastq_2=$fastq_dir/${sample_id}_2.fastq
-  output=$bam_dir/${sample_id}.parts
+  output=$bam_dir/${sample_id}.bam
   $DIR/align.sh $fastq_1 $fastq_2 $output 2> >(tee align.log >&2)
 fi
 
-# Step 2: Samtools Sort
-if [[ "${do_stage["2"]}" == "1" ]]; then
-  input=$bam_dir/${sample_id}.parts
-  output=$bam_dir/${sample_id}.bam
-  $DIR/sort.sh $input $output 2> sort.log
-fi
-
-# Step 3: Mark Duplicate
+# Step 2: Mark Duplicate
 # - Input: sorted ${sample_id}.bam
 # - Output: duplicates-removed ${sample_id}.markdups.bam
-if [[ "${do_stage["3"]}" == "1" ]]; then
+if [[ "${do_stage["2"]}" == "1" ]]; then
   input=$bam_dir/${sample_id}.bam
   output=$bam_dir/${sample_id}.markdups.bam
   $DIR/markDup.sh $input $output 2> markDup.log
 fi
 
-# Step 4: GATK BaseRecalibrate
+# Step 3: GATK BaseRecalibrate
 # - Input: ${sample_id}.markdups.bam
 # - Output: recalibrated ${sample_id}.markdups.recal.bam
-if [[ "${do_stage["4"]}" == "1" ]]; then
+if [[ "${do_stage["3"]}" == "1" ]]; then
   input=$bam_dir/${sample_id}.markdups.bam
   if [ ! -f $input ]; then
     echo "Cannot find $input"
@@ -129,10 +124,10 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   echo "PrintReads stage finishes in $((end_ts - start_ts))s"
 fi
 
-# Step 5: GATK HaplotypeCaller
+# Step 4: GATK HaplotypeCaller
 # - Input: ${sample_id}.markdups.recal.bam
 # - Output: per chromosome varients ${sample_id}_$chr.gvcf
-if [[ "${do_stage["5"]}" == "1" ]]; then
+if [[ "${do_stage["4"]}" == "1" ]]; then
   chr_list="$(seq 1 22) X Y MT"
   declare -A pid_table
 
