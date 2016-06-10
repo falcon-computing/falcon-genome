@@ -46,8 +46,6 @@ fi
 
 # Step 1: BWA alignment and sort
 if [[ "${do_stage["1"]}" == "1" ]]; then
-  create_dir $bam_dir
-
   fastq_1=$fastq_dir/${sample_id}_1.fastq
   fastq_2=$fastq_dir/${sample_id}_2.fastq
   output=$bam_dir/${sample_id}.bam

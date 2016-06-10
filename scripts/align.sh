@@ -16,7 +16,7 @@ check_input $fastq1
 check_input $fastq2
 check_output $output
 
-output_dir=$(dirname $output)/${output}.parts
+output_dir=$(dirname $output)/$(basename $output).parts
 
 # Use pseudo input for header
 sample_id=SEQ01
@@ -45,7 +45,8 @@ if [[ -z "$sort_files" ]]; then
 fi
 
 start_ts=$(date +%s)
-cat $output_dir/header $sort_files | $SAMTOOLS sort -m 16g -@ 10 -l 0 -o $output
+$SAMTOOLS merge -r -c -p -l 0 -@ 8 ${output} $sort_files
+#cat $output_dir/header $sort_files | $SAMTOOLS sort -m 16g -@ 10 -l 0 -o $output
 
 # Remove the partial files
 rm -r $output_dir
