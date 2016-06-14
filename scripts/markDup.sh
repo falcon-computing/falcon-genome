@@ -14,14 +14,10 @@ check_input $input
 check_output $output
 check_output ${output}.dup_stats
 
-start_ts=$(date +%s)
-$JAVA -XX:+UseSerialGC -Xmx32g -jar $PICARD \
+$JAVA -XX:+UseSerialGC -Xmx100g -jar $PICARD \
     MarkDuplicates \
-    TMP_DIR=/tmp COMPRESSION_LEVEL=5 \
+    TMP_DIR=/tmp COMPRESSION_LEVEL=1 \
     INPUT=$input \
     OUTPUT=$output \
     METRICS_FILE=${output}.dups_stats \
-    REMOVE_DUPLICATES=true ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT
-end_ts=$(date +%s)
-echo "Picard mark duplicate for $(basename $input) in $((end_ts - start_ts))s"
-
+    REMOVE_DUPLICATES=false ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT

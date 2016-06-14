@@ -33,9 +33,9 @@ class BaseRecalQueue extends QScript {
     br.knownSites = knownSites
     br.o = outFile
 
-    br.nct = 4
+    br.nct = 8
     br.scatterCount = scatterCount
-    br.memoryLimit = 4
+    br.memoryLimit = 16
 
     add(br)
   }

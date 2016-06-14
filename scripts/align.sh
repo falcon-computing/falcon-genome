@@ -4,19 +4,21 @@ SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $SCRIPT_DIR/globals.sh
 
 if [[ $# -lt 3 ]]; then
-  echo "USAGE: $0 <fastq_1> <fastq_2> <output>"
+  echo "USAGE: $0 <fastq_1> <fastq_2> <output> <tmp_dir>"
   exit 1;
 fi
 
 fastq1=$1
 fastq2=$2
 output=$3
+tmp_dir=$4
 
 check_input $fastq1
 check_input $fastq2
 check_output $output
+check_output_dir $tmp_dir
 
-output_dir=$(dirname $output)/$(basename $output).parts
+output_dir=$tmp_dir/$(basename $output).parts
 
 # Use pseudo input for header
 sample_id=SEQ01
@@ -24,9 +26,11 @@ RG_ID=SEQ01
 platform=ILLUMINA
 library=HUMsgR2AQDCAAPE
 
+echo "Started BWA alignment"
 start_ts=$(date +%s)
 $BWA mem -M \
     -R "@RG\tID:$RG_ID\tSM:$sample_id\tPL:$platform\tLB:$library" \
+    --log_dir=$log_dir \
     --output_dir=$output_dir \
     $ref_genome \
     $fastq1 \
@@ -45,8 +49,7 @@ if [[ -z "$sort_files" ]]; then
 fi
 
 start_ts=$(date +%s)
-$SAMTOOLS merge -r -c -p -l 0 -@ 8 ${output} $sort_files
-#cat $output_dir/header $sort_files | $SAMTOOLS sort -m 16g -@ 10 -l 0 -o $output
+$SAMTOOLS merge -r -c -p -l 1 -@ 10 ${output} $sort_files
 
 # Remove the partial files
 rm -r $output_dir
