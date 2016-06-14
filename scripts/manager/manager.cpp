@@ -10,7 +10,7 @@
 #include <unordered_map>
 
 void sigint_handler(int s){
-  VLOG(1) << "Caught interrupt, removing queue";
+  LOG(INFO) << "Caught interrupt, removing queue";
   
   // Erase previous message queue
   boost::interprocess::message_queue::remove("fcs-req-queue");
@@ -165,11 +165,16 @@ int main(int argc, char** argv) {
           client_table[pid] = host;
           host_usage_table[host]++;
 
+          available_hosts.pop();
           if (host_usage_table[host] == host_slots_table[host]) {
             // Slots for this host are full, remove from available host
-            available_hosts.pop();
             DLOG(INFO) << "Slots for " << host << " is full, remove from "
               << "available hosts";
+          }
+          else {
+            // If there are slots available, push the host back for
+            // round-robin allocation
+            available_hosts.push(host);
           }
         }
       }
