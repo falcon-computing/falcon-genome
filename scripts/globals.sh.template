@@ -1,14 +1,13 @@
 # Modify the following paths accordingly
-output_dir=
-input_dir=
+output_dir=$(pwd)
 tools_dir=
+tmp_dir[1]=
+tmp_dir[2]=
 
-fastq_dir=
 ref_dir=
+fastq_dir=
 sam_dir=
 bam_dir=
-rpt_dir=
-vcf_dir=
 log_dir=
 
 # Reference Genome Info

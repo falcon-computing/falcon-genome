@@ -2,7 +2,6 @@
 ## This script generates gVCF files from a specified in a input file 
 ## (c) Di Wu 04/07/2016
 #############################################################################################
-
 #!/bin/bash
 
 # Import global variables
@@ -47,8 +46,11 @@ fi
 
 # Preparation of output directories
 create_dir $log_dir
+create_dir $bam_dir
 create_dir ${tmp_dir[1]}
 create_dir ${tmp_dir[2]}
+
+chkpt_pid=
 
 # Step 1: BWA alignment and sort
 if [[ "${do_stage["1"]}" == "1" ]]; then
@@ -57,6 +59,10 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
   if [ ! -f $fastq_1 ]; then
     fastq_1=$fastq_dir/${sample_id}_1.fastq.gz
     fastq_2=$fastq_dir/${sample_id}_2.fastq.gz
+  fi
+  if [ ! -f $fastq_1 ]; then
+    fastq_1=$fastq_dir/${sample_id}_1.fq
+    fastq_2=$fastq_dir/${sample_id}_2.fq
   fi
   # Put output in tmp_dir[1]
   output=${tmp_dir[1]}/${sample_id}.bam
@@ -71,10 +77,17 @@ if [[ "${do_stage["2"]}" == "1" ]]; then
   input=${tmp_dir[1]}/${sample_id}.bam
   output=${tmp_dir[2]}/${sample_id}.markdups.bam
 
-  $DIR/markDup.sh $input $output 2> >(tee $log_dir/markDup.log >&2)
+  $DIR/markDup.sh $input $output ${tmp_dir[1]} 2> >(tee $log_dir/markDup.log >&2)
 
   end_ts=$(date +%s)
   echo "MarkDuplicate for $(basename $input) finishes in $((end_ts - start_ts))s"
+  
+  # Delete sorted bam file
+  rm $input 
+
+  # Checkpoint markdup bam file
+  cp $output $bam_dir &
+  chkpt_pid=$!
 fi
 
 # Step 3: GATK BaseRecalibrate
@@ -106,7 +119,7 @@ if [[ "${do_stage["3"]}" == "1" ]]; then
   if [ ! -f $output ]; then
     $DIR/baseRecal.sh $input $output 2> >(tee $log_dir/baseRecal.log >&2)
   else 
-    echo "WARNING: $output_rpt already exists, assuming BaseRecalibration already done"
+    echo "WARNING: $output already exists, assuming BaseRecalibration already done"
   fi
   end_ts=$(date +%s)
 
@@ -167,3 +180,11 @@ fi
 
 # Stop manager
 kill $manager_pid
+
+# Delete temp files
+if [[ "$chkpt_pid" != "" ]]; then
+  wait "${chkpt_pid}"
+fi
+
+rm -r ${tmp_dir[1]}
+rm -r ${tmp_dir[2]}

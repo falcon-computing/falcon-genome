@@ -33,7 +33,7 @@ if [[ $chr > 4 && $chr < 9 ]]; then
 fi
 
 start_ts=$(date +%s)
-$JAVA -d64 -Xmx16g -jar $GATK \
+$JAVA -d64 -Xmx12g -jar $GATK \
     -T PrintReads \
     -R $ref_genome \
     -I $input \
@@ -42,3 +42,7 @@ $JAVA -d64 -Xmx16g -jar $GATK \
     -o $output
 end_ts=$(date +%s)
 echo "PrintReads for $(basename $input) finishes in $((end_ts - start_ts))s"
+
+# Delete the uncalibrated input
+rm $input
+rm ${input}.bai

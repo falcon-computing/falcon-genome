@@ -21,9 +21,17 @@ if [[ "$chr_list" != *"$chr"* ]]; then
   exit 1;
 fi
 
+nthreads=8
+if [[ $chr > 0 && $chr < 5 ]]; then
+    nthreads=16
+fi
+if [[ $chr > 4 && $chr < 9 ]]; then
+    nthreads=12
+fi
+
 start_ts=$(date +%s)
 set -x
-$JAVA -d64 -Xmx32g -jar $GATK \
+$JAVA -d64 -Xmx12g -jar $GATK \
     -T HaplotypeCaller \
     -R $ref_genome \
     -I $input \
@@ -31,7 +39,7 @@ $JAVA -d64 -Xmx32g -jar $GATK \
     --variant_index_type LINEAR \
     --variant_index_parameter 128000 \
     -L $chr \
-    -nct 8 \
+    -nct $nthreads \
     -o $output
 set +x
 end_ts=$(date +%s)
