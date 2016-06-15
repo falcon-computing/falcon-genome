@@ -27,4 +27,3 @@ $JAVA -Djava.io.tmpdir=/tmp -jar ${GATK_QUEUE} \
     -maxConcurrentRun 16 \
     -scatterCount 32 \
     -run
-    -o $output
