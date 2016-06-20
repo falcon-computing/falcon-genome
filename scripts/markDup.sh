@@ -16,7 +16,7 @@ check_output $output
 check_output ${output}.dup_stats
 check_output_dir $tmp_dir
 
-$JAVA -XX:+UseSerialGC -Xmx100g -jar $PICARD \
+$JAVA -XX:+UseSerialGC -Xmx160g -jar $PICARD \
     MarkDuplicates \
     TMP_DIR=$tmp_dir COMPRESSION_LEVEL=1 \
     INPUT=$input \

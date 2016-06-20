@@ -21,7 +21,7 @@ if [[ "$chr_list" != *"$chr"* ]]; then
   exit 1;
 fi
 
-nthreads=4
+nthreads=6
 if [[ $chr > 0 && $chr < 3 ]]; then
     nthreads=12
 fi

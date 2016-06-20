@@ -26,11 +26,14 @@ fi
 
 nthreads=4
 if [[ $chr > 0 && $chr < 3 ]]; then
+    nthreads=8
+fi
+if [[ $chr > 4 && $chr < 9 ]]; then
     nthreads=6
 fi
 
 start_ts=$(date +%s)
-$JAVA -d64 -Xmx$((nthreads * 4))g -jar $GATK \
+$JAVA -d64 -Xmx$((nthreads * 2))g -jar $GATK \
     -T PrintReads \
     -R $ref_genome \
     -I $input \
