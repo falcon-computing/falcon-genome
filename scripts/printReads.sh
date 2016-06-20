@@ -24,16 +24,13 @@ if [ ! -f ${input}.bai ]; then
   echo "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
 fi
 
-nthreads=8
-if [[ $chr > 0 && $chr < 5 ]]; then
-    nthreads=16
-fi
-if [[ $chr > 4 && $chr < 9 ]]; then
-    nthreads=12
+nthreads=4
+if [[ $chr > 0 && $chr < 3 ]]; then
+    nthreads=6
 fi
 
 start_ts=$(date +%s)
-$JAVA -d64 -Xmx12g -jar $GATK \
+$JAVA -d64 -Xmx$((nthreads * 4))g -jar $GATK \
     -T PrintReads \
     -R $ref_genome \
     -I $input \
