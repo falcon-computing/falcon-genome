@@ -61,14 +61,6 @@ int main(int argc, char** argv) {
           // Just to make sure char* is ended properly
           host[recv_size] = '\0';
 
-          if (strcmp(host, "-")) {
-            // Slot is allocated
-            printf("%s %d\n", host, pid);
-          }
-          else {
-            VLOG(1) << "No available slots at this point, retry later";
-            boost::this_thread::sleep_for(boost::chrono::seconds(1));
-          }
           break;
         }
         catch (boost::interprocess::interprocess_exception &e) {
