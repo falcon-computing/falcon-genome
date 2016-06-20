@@ -28,15 +28,35 @@ else
   do_stage=( ["1"]="1" ["2"]="1" ["3"]="1" ["4"]="1" ["5"]="1" )
 fi
 
+# Check input data
+if [[ $INPUT_DIR != "" ]]; then
+  fastq_dir=$INPUT_DIR
+fi
+if [[ "${do_stage["2"]}" == "1" ]]; then
+  basename=$fastq_dir/${sample_id}_1
+  if [ -f "${basename}.fastq" -o -f "${basename}.fastq.gz" -o -f "${basename}.fq" ]; then
+    echo "Input file found"
+  else
+    echo "Cannot find input file in $fastq_dir" 
+    exit -1
+  fi
+fi
+
 # Table storing all the pids for tasks within one stage
 declare -A pid_table
 
 # Start manager
+if [ -e "host_file" ]; then
+  host_file=host_file
+else
+  host_file=$DIR/host_file
+fi
+echo "$DIR/manager/manager --v=1 --log_dir=. $host_file"
 source $DIR/manager/config.mk
-LD_LIBRARY_PATH=$BOOST_LIB:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=$BOOST_DIR/lib:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=$GLOG_DIR/lib:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=$GFLAGS_DIR/lib:$LD_LIBRARY_PATH
-$DIR/manager/manager --v=1 --log_dir=. $DIR/host_file &
+$DIR/manager/manager --v=1 --log_dir=. $host_file &
 manager_pid=$!
 sleep 1
 if [[ ! $(ps -p "$manager_pid" -o comm=) =~ "manager" ]]; then
@@ -186,5 +206,5 @@ if [[ "$chkpt_pid" != "" ]]; then
   wait "${chkpt_pid}"
 fi
 
-rm -r ${tmp_dir[1]}
-rm -r ${tmp_dir[2]}
+# rm -r ${tmp_dir[1]}
+# rm -r ${tmp_dir[2]}

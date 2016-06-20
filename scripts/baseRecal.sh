@@ -24,6 +24,6 @@ $JAVA -Djava.io.tmpdir=/tmp -jar ${GATK_QUEUE} \
     -knownSites $db138_SNPs \
     -o $output \
     -jobRunner ParallelShell \
-    -maxConcurrentRun 16 \
+    -maxConcurrentRun 32 \
     -scatterCount 32 \
     -run

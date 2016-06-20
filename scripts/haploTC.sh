@@ -21,17 +21,17 @@ if [[ "$chr_list" != *"$chr"* ]]; then
   exit 1;
 fi
 
-nthreads=8
-if [[ $chr > 0 && $chr < 5 ]]; then
-    nthreads=16
-fi
-if [[ $chr > 4 && $chr < 9 ]]; then
+nthreads=4
+if [[ $chr > 0 && $chr < 3 ]]; then
     nthreads=12
+fi
+if [[ $chr > 2 && $chr < 8 ]]; then
+    nthreads=8
 fi
 
 start_ts=$(date +%s)
 set -x
-$JAVA -d64 -Xmx12g -jar $GATK \
+$JAVA -d64 -Xmx$((nthreads * 2))g -jar $GATK \
     -T HaplotypeCaller \
     -R $ref_genome \
     -I $input \
