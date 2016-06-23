@@ -61,6 +61,8 @@ int main(int argc, char** argv) {
           // Just to make sure char* is ended properly
           host[recv_size] = '\0';
 
+          // Slot is allocated
+          printf("%s %d\n", host, pid);
           break;
         }
         catch (boost::interprocess::interprocess_exception &e) {
