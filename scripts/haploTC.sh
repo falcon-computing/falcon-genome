@@ -30,7 +30,6 @@ if [[ $chr > 2 && $chr < 8 ]]; then
 fi
 
 start_ts=$(date +%s)
-set -x
 $JAVA -d64 -Xmx$((nthreads * 2))g -jar $GATK \
     -T HaplotypeCaller \
     -R $ref_genome \
@@ -41,6 +40,11 @@ $JAVA -d64 -Xmx$((nthreads * 2))g -jar $GATK \
     -L $chr \
     -nct $nthreads \
     -o $output
-set +x
+if [ "$?" -ne "0" ]; then
+  echo "HaplotypeCaller for CH:$chr failed"
+  exit -1;
+fi
 end_ts=$(date +%s)
 echo "HaplotypeCaller on CH:$chr of $(basename $input) finishes in $((end_ts - start_ts))s"
+
+echo "done" > ${output}.done

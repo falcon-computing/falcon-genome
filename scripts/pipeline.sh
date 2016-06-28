@@ -32,7 +32,7 @@ fi
 if [[ $INPUT_DIR != "" ]]; then
   fastq_dir=$INPUT_DIR
 fi
-if [[ "${do_stage["2"]}" == "1" ]]; then
+if [[ "${do_stage["1"]}" == "1" ]]; then
   basename=$fastq_dir/${sample_id}_1
   if [ -f "${basename}.fastq" -o -f "${basename}.fastq.gz" -o -f "${basename}.fq" ]; then
     echo "Input file found"
@@ -87,6 +87,14 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
   # Put output in tmp_dir[1]
   output=${tmp_dir[1]}/${sample_id}.bam
   $DIR/align.sh $fastq_1 $fastq_2 $output ${tmp_dir[2]}
+
+  if [ "$?" -ne 0 ]; then
+    echo "Alignment failed"
+    exit 1;
+  fi
+
+  # checkpoint
+  cp $output $bam_dir
 fi
 
 # Step 2: Mark Duplicate
@@ -99,15 +107,21 @@ if [[ "${do_stage["2"]}" == "1" ]]; then
 
   $DIR/markDup.sh $input $output ${tmp_dir[1]} 2> >(tee $log_dir/markDup.log >&2)
 
+  if [ "$?" -ne 0 ]; then
+    echo "MarkDuplicate failed"
+    exit 2;
+  fi
+
   end_ts=$(date +%s)
   echo "MarkDuplicate for $(basename $input) finishes in $((end_ts - start_ts))s"
   
   # Delete sorted bam file
-  rm $input 
+  rm $input &
 
   # Checkpoint markdup bam file
-  cp $output $bam_dir &
-  chkpt_pid=$!
+  cp $output $bam_dir
+  cp ${output}.bai $bam_dir
+  cp ${output}.dup_stats $bam_dir
 fi
 
 # Step 3: GATK BaseRecalibrate
@@ -136,16 +150,22 @@ if [[ "${do_stage["3"]}" == "1" ]]; then
 
   start_ts=$(date +%s)
   output=$rpt_dir/${sample_id}.recalibration_report.grp
-  if [ ! -f $output ]; then
-    $DIR/baseRecal.sh $input $output 2> >(tee $log_dir/baseRecal.log >&2)
-  else 
-    echo "WARNING: $output already exists, assuming BaseRecalibration already done"
+
+  $DIR/baseRecal.sh $input $output 2> >(tee $log_dir/baseRecal.log >&2)
+  if [ "$?" -ne 0 ]; then
+    echo "BaseRecalibrator failed"
+    exit 3;
   fi
   end_ts=$(date +%s)
 
   # Wait for split to finish
   wait "${split_pid}"
   echo "BaseRecalibrator for $(basename $input) finishes in $((end_ts - start_ts))s"
+
+  if [[ "$chkpt_pid" != "" ]]; then
+    wait $chkpt_pid
+  fi
+  rm $input &
 fi
 
 # Step 4: GATK PrintRead
@@ -154,11 +174,10 @@ fi
 if [[ "${do_stage["4"]}" == "1" ]]; then
   start_ts=$(date +%s)
 
-  # The splited bams are in tmp_dir[1], the recalibrated bams should be in [2]
-
   rpt_dir=$output_dir/rpt
   chr_list="$(seq 1 22) X Y MT"
   for chr in $chr_list; do
+    # The splited bams are in tmp_dir[1], the recalibrated bams should be in [2]
     chr_bam=${tmp_dir[1]}/${sample_id}.markdups.chr${chr}.bam
     chr_rpt=$rpt_dir/${sample_id}.recalibration_report.grp
     chr_recal_bam=${tmp_dir[2]}/${sample_id}.recal.chr${chr}.bam
@@ -171,6 +190,18 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
     wait "${pid}"
   done
   end_ts=$(date +%s)
+
+  for chr in $chr_list; do
+    chr_bam=${tmp_dir[1]}/${sample_id}.markdups.chr${chr}.bam
+    chr_recal_bam=${tmp_dir[2]}/${sample_id}.recal.chr${chr}.bam
+    if [ ! -e ${chr_recal_bam}.done ]; then
+      exit 4;
+    fi
+    rm ${chr_recal_bam}.done
+    rm $chr_bam &
+    rm ${chr_bam}.bai &
+    cp $chr_recal_bam $bam_dir
+  done
   echo "PrintReads stage finishes in $((end_ts - start_ts))s"
 fi
 
@@ -195,16 +226,18 @@ if [[ "${do_stage["5"]}" == "1" ]]; then
     wait "${pid}"
   done
   end_ts=$(date +%s)
+
+  for chr in $chr_list; do
+    chr_bam=${tmp_dir[2]}/${sample_id}.recal.chr${chr}.bam
+    chr_vcf=$vcf_dir/${sample_id}_chr${chr}.gvcf
+    if [ ! -e ${chr_vcf}.done ]; then
+      exit 5;
+    fi
+    rm ${chr_vcf}.done
+    rm $chr_bam 
+  done
   echo "HaplotypeCaller stage finishes in $((end_ts - start_ts))s"
 fi
 
 # Stop manager
 kill $manager_pid
-
-# Delete temp files
-if [[ "$chkpt_pid" != "" ]]; then
-  wait "${chkpt_pid}"
-fi
-
-# rm -r ${tmp_dir[1]}
-# rm -r ${tmp_dir[2]}

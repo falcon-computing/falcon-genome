@@ -40,9 +40,12 @@ $JAVA -d64 -Xmx$((nthreads * 2))g -jar $GATK \
     -BQSR $BQSR \
     -nct $nthreads \
     -o $output
+
+if [ "$?" -ne "0" ]; then
+  echo "PrintReads for $(basename $input) failed"
+  exit -1;
+fi
 end_ts=$(date +%s)
 echo "PrintReads for $(basename $input) finishes in $((end_ts - start_ts))s"
 
-# Delete the uncalibrated input
-rm $input
-rm ${input}.bai
+echo "done" > ${output}.done
