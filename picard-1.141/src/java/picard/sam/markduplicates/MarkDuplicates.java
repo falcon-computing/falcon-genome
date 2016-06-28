@@ -548,6 +548,7 @@ public class MarkDuplicates extends AbstractMarkDuplicatesCommandLineProgram {
       public void run() {
       long startTime = System.currentTimeMillis();
         try{
+          HashMap<String, Short> readGroupIndex = buildReadGroupIndex(header);
           while (true) {
             // producer finished and no more elements in the queue
             SAMRecord rec = buffer.take();
@@ -556,7 +557,7 @@ public class MarkDuplicates extends AbstractMarkDuplicatesCommandLineProgram {
             if (rec.getReadUnmappedFlag()) {
               ;
             } else if (!rec.isSecondaryOrSupplementary()) {
-              final ReadEndsForMarkDuplicates fragmentEnd = buildReadEnds(header, index, rec, useBarcodes);
+              final ReadEndsForMarkDuplicates fragmentEnd = buildReadEnds(header, index, rec, useBarcodes, readGroupIndex);
               this.localFragSort.add(fragmentEnd);
 
               if (rec.getReadPairedFlag() && !rec.getMateUnmappedFlag()) {
@@ -565,7 +566,7 @@ public class MarkDuplicates extends AbstractMarkDuplicatesCommandLineProgram {
 
                 // See if we've already seen the first end or not
                 if (pairedEnds == null) {
-                  pairedEnds = buildReadEnds(header, index, rec, this.useBarcodes);
+                  pairedEnds = buildReadEnds(header, index, rec, this.useBarcodes, readGroupIndex);
                   tmp.put(pairedEnds.read2ReferenceIndex, key, pairedEnds);
                 } else {
                   final int sequence = fragmentEnd.read1ReferenceIndex;
@@ -752,6 +753,8 @@ public class MarkDuplicates extends AbstractMarkDuplicatesCommandLineProgram {
             this.libraryIdGenerator = new LibraryIdGenerator(header);
         }
 
+        HashMap<String, Short> readGroupIndex = buildReadGroupIndex(header);
+
         while (iterator.hasNext()) {
             final SAMRecord rec = iterator.next();
 
@@ -773,7 +776,7 @@ public class MarkDuplicates extends AbstractMarkDuplicatesCommandLineProgram {
                 }
                 // If this read is unmapped but sorted with the mapped reads, just skip it.
             } else if (!rec.isSecondaryOrSupplementary()) {
-                final ReadEndsForMarkDuplicates fragmentEnd = buildReadEnds(header, index, rec, useBarcodes);
+                final ReadEndsForMarkDuplicates fragmentEnd = buildReadEnds(header, index, rec, useBarcodes, readGroupIndex);
                 this.fragSort.add(fragmentEnd);
 
                 if (rec.getReadPairedFlag() && !rec.getMateUnmappedFlag()) {
@@ -782,7 +785,7 @@ public class MarkDuplicates extends AbstractMarkDuplicatesCommandLineProgram {
 
                     // See if we've already seen the first end or not
                     if (pairedEnds == null) {
-                        pairedEnds = buildReadEnds(header, index, rec, useBarcodes);
+                        pairedEnds = buildReadEnds(header, index, rec, useBarcodes, readGroupIndex);
                         tmp.put(pairedEnds.read2ReferenceIndex, key, pairedEnds);
                     } else {
                         final int sequence = fragmentEnd.read1ReferenceIndex;
@@ -840,9 +843,28 @@ public class MarkDuplicates extends AbstractMarkDuplicatesCommandLineProgram {
         this.fragSort.doneAdding();
     }
     /**/
+    
+    /** build a map that maps readGroupId (a string) to int */
+    private HashMap<String, Short> buildReadGroupIndex(final SAMFileHeader header) {
+      final List<SAMReadGroupRecord> readGroups = header.getReadGroups();
+      if (readGroups == null) return null;
+
+      HashMap<String, Short> readGroupIndex = new HashMap<String, Short>();
+      short i = 0;
+      for (final SAMReadGroupRecord readGroup : readGroups) {
+        String id = readGroup.getReadGroupId();
+        if (!readGroupIndex.containsKey(id)) {
+          readGroupIndex.put(id, i);
+        }
+        ++i;
+      }
+      return readGroupIndex;
+    }
+
 
     /** Builds a read ends object that represents a single read. */
-    private ReadEndsForMarkDuplicates buildReadEnds(final SAMFileHeader header, final long index, final SAMRecord rec, final boolean useBarcodes) {
+    private ReadEndsForMarkDuplicates buildReadEnds(final SAMFileHeader header, final long index, final SAMRecord rec, final boolean useBarcodes,
+        final HashMap<String, Short> readGroupIndex) {
         final ReadEndsForMarkDuplicates ends;
 
         if (useBarcodes) {
@@ -869,13 +891,11 @@ public class MarkDuplicates extends AbstractMarkDuplicatesCommandLineProgram {
             // calculate the RG number (nth in list)
             ends.readGroup = 0;
             final String rg = (String) rec.getAttribute("RG");
-            final List<SAMReadGroupRecord> readGroups = header.getReadGroups();
 
-            if (rg != null && readGroups != null) {
-                for (final SAMReadGroupRecord readGroup : readGroups) {
-                    if (readGroup.getReadGroupId().equals(rg)) break;
-                    else ends.readGroup++;
-                }
+            if (rg != null && readGroupIndex != null) {
+              if (readGroupIndex.containsKey(rg)) {
+                ends.readGroup = readGroupIndex.get(rg);
+              }
             }
         }
 
