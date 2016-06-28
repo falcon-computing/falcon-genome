@@ -120,8 +120,7 @@ if [[ "${do_stage["2"]}" == "1" ]]; then
 
   # Checkpoint markdup bam file
   cp $output $bam_dir
-  cp ${output}.bai $bam_dir
-  cp ${output}.dup_stats $bam_dir
+  cp ${output}.dups_stats $bam_dir
 fi
 
 # Step 3: GATK BaseRecalibrate
@@ -140,6 +139,7 @@ if [[ "${do_stage["3"]}" == "1" ]]; then
     $SAMTOOLS index $input 
   fi
   end_ts=$(date +%s)
+  cp ${input}.bai $bam_dir
   echo "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
 
   $DIR/split.sh $input ${tmp_dir[1]} &> $log_dir/split.log &
@@ -200,6 +200,7 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
     rm ${chr_recal_bam}.done
     rm $chr_bam &
     rm ${chr_bam}.bai &
+    rm ${chr_recal_bam}.bai &
     cp $chr_recal_bam $bam_dir
   done
   echo "PrintReads stage finishes in $((end_ts - start_ts))s"
