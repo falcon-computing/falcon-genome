@@ -30,6 +30,7 @@ $JAVA -d64 -Xmx8g -jar $GATK \
     --emitRefConfidence GVCF \
     --variant_index_type LINEAR \
     --variant_index_parameter 128000 \
+    -nct 4 \
     -L $chr \
     -o $output
 set +x

@@ -24,11 +24,12 @@ if [ ! -f ${input}.bai ]; then
 fi
 
 start_ts=$(date +%s)
-$JAVA -d64 -Xmx4g -jar $GATK \
+$JAVA -d64 -Xmx8g -jar $GATK \
     -T PrintReads \
     -R $ref_genome \
     -I $input \
     -BQSR $BQSR \
+    -nct 4 \
     -o $output
 end_ts=$(date +%s)
 echo "PrintReads for $(basename $input) finishes in $((end_ts - start_ts))s"

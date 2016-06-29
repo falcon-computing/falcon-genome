@@ -1,12 +1,9 @@
 # Modify the following paths accordingly
-input_dir=/space/scratch/genome
-output_dir=/space/scratch/genome
-tools_dir=/space/common_mnt/tools
+fastq_dir=/merlin_fs/merlin1/hdd1/diwu/fastq
+ref_dir=/space/scratch/genome/ref
+output_dir=$(pwd)
+tools_dir=/fcs_common/merlin1/tools
 
-# Directories setup
-fastq_dir=$input_dir/fastq
-ref_dir=$input_dir/ref
-sam_dir=$output_dir/sam
 bam_dir=$output_dir/bam
 rpt_dir=$output_dir/rpt
 vcf_dir=$output_dir/vcf
@@ -20,9 +17,9 @@ g1000_gold_standard_indels=$ref_dir/Mills_and_1000G_gold_standard.indels.b37.vcf
 # Tools
 BWA=$tools_dir/bwa/bwa
 SAMTOOLS=$tools_dir/samtools-1.3/samtools
-GATK=$tools_dir/gatk-3.3/GenomeAnalysisTK.jar
+GATK=$tools_dir/gatk-3.5/GenomeAnalysisTK.jar
 PICARD=$tools_dir/picard-tools-1.141/picard.jar
-JAVA=/tools/jdk1.7.0_80/bin/java
+JAVA=/curr/diwu/tools/jdk1.7.0_80/bin/java
 
 check_input() {
   filename=$1;
@@ -45,4 +42,16 @@ check_output() {
     exit 1;
   fi;
   rm $filename;
+}
+
+# create output dir if it does not exist 
+create_dir() {
+  dir=$1
+  if [[ ! -d "$dir" ]]; then
+    mkdir $dir &> /dev/null;
+    if [ $? -ne 0 ]; then
+      echo "Cannot create dir $dir";
+      exit 1;
+    fi
+  fi;
 }

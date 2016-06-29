@@ -30,6 +30,7 @@ $JAVA -d64 -Xmx32g -jar $GATK \
     -knownSites $g1000_indels \
     -knownSites $g1000_gold_standard_indels \
     -knownSites $db138_SNPs \
+    -nct 4 \
     -o $output
 set +x
 end_ts=$(date +%s)

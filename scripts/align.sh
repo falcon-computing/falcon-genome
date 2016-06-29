@@ -22,9 +22,9 @@ platform=ILLUMINA
 library=HUMsgR2AQDCAAPE
 
 start_ts=$(date +%s)
-$BWA mem -M -t 24 $ref_genome \
+$BWA mem -M -t 32 $ref_genome \
     -R "@RG\tID:$RG_ID\tSM:$sample_id\tPL:$platform\tLB:$library" \
     $fastq1 \
-    $fastq2 > $output
+    $fastq2 | $SAMTOOLS view -S -b -u - | $SAMTOOLS sort -m 16g -@ 10 -l 1 -o $output -o $output
 end_ts=$(date +%s)
 echo "BWA mem for $(basename $output) finishes in $((end_ts - start_ts))s"
