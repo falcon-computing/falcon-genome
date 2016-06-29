@@ -203,4 +203,11 @@ public class BAMRecordCodec implements SortingCollection.Codec<SAMRecord> {
         ret.setHeader(header); 
         return ret;
     }
+
+    /**
+     * Flush out the remaining bytes in the binaryCodex
+     */
+    public void flush() {
+      this.binaryCodec.writeFlush();
+    }
 }

@@ -133,6 +133,10 @@ class BAMFileWriter extends SAMFileWriterImpl {
     }
 
     protected void finish() {
+        // Note it is important to flush bamRecordCodec before closing outputBinaryCodec.
+        // Both these two recordCodec have access to the output file while outputBinaryCodec.close
+        // will close the output file entirely.
+        bamRecordCodec.flush();
         outputBinaryCodec.close();
             try {
                 if (bamIndexer != null) {
@@ -164,6 +168,9 @@ class BAMFileWriter extends SAMFileWriterImpl {
             outputBinaryCodec.writeString(sequenceRecord.getSequenceName(), true, true);
             outputBinaryCodec.writeInt(sequenceRecord.getSequenceLength());
         }
+        // It is necessary to writeFlush the binaryCodec here since both outputBinaryCodec and BAMRecordCodec
+        // will be writing to the same output file, and a writeFlush() here guarantees their writing order.
+        outputBinaryCodec.writeFlush();
     }
 
     /**
