@@ -13,24 +13,17 @@ output=$2
 check_input $input
 check_output $output
 
-# check if index already exists
-if [ ! -f ${input}.bai ]; then
-  start_ts=$(date +%s)
-  $SAMTOOLS index $input
-  end_ts=$(date +%s)
-  echo "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
-fi
+export PATH=$DIR:$PATH
 
-start_ts=$(date +%s)
-set -x
-$JAVA -d64 -Xmx32g -jar $GATK \
-    -T BaseRecalibrator \
+$JAVA -Djava.io.tmpdir=/tmp -jar ${GATK_QUEUE} \
+    -S $DIR/BaseRecalQueue.scala \
     -R $ref_genome \
     -I $input \
     -knownSites $g1000_indels \
     -knownSites $g1000_gold_standard_indels \
     -knownSites $db138_SNPs \
-    -o $output
-set +x
-end_ts=$(date +%s)
-echo "BaseRecalibrator for $(basename $input) finishes in $((end_ts - start_ts))s"
+    -o $output \
+    -jobRunner ParallelShell \
+    -maxConcurrentRun 32 \
+    -scatterCount 32 \
+    -run

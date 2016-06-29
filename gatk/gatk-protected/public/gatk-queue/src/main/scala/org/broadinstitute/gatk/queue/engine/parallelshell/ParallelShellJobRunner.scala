@@ -60,7 +60,7 @@ class ParallelShellJobRunner(val function: CommandLineFunction) extends CommandL
    * Runs the function on the local shell.
    */
   def start() {
-    val commandLine = Array("sh", jobScript.getAbsolutePath)
+    val commandLine = Array("fcs-sh", jobScript.getAbsolutePath)
     val stdoutSettings = new OutputStreamSettings
     val stderrSettings = new OutputStreamSettings
     val mergeError = function.jobErrorFile == null
