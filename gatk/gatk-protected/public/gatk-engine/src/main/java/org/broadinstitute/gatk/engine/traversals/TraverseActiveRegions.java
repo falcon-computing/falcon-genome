@@ -295,7 +295,6 @@ public final class TraverseActiveRegions<M, T> extends TraversalEngine<M,T,Activ
             // The data shard may carry a number of locations to process (due to being indexed together).
             // This value is just the interval we are processing within the entire provider
             currentWindow = dataProvider.getLocus();
-            //System.out.println("HanHu currentWindow, start = " + currentWindow.getStart() + ", stop = " + currentWindow.getStop() + ", length = " + (currentWindow.getStop()-currentWindow.getStart()));
             final int currentWindowPos = dataProvider.getShard().getGenomeLocs().indexOf(currentWindow);
             if ( currentWindowPos == -1 ) throw new IllegalStateException("Data provider " + dataProvider + " didn't have our current window in it " + currentWindow);
             processRemainingActiveRegions = currentWindowPos == dataProvider.getShard().getGenomeLocs().size() - 1;

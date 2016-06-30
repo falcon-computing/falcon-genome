@@ -65,9 +65,6 @@ import org.broadinstitute.gatk.utils.haplotype.Haplotype;
 import org.broadinstitute.gatk.utils.sam.CigarUtils;
 import org.broadinstitute.gatk.utils.sam.GATKSAMRecord;
 import htsjdk.variant.variantcontext.VariantContext;
-import org.broadinstitute.gatk.utils.smithwaterman.Parameters;
-import org.broadinstitute.gatk.utils.smithwaterman.SWPairwiseAlignment;
-import org.broadinstitute.gatk.utils.smithwaterman.SmithWaterman;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -81,7 +78,6 @@ import java.util.*;
  */
 public abstract class LocalAssemblyEngine {
     private final static Logger logger = Logger.getLogger(LocalAssemblyEngine.class);
-    private static int count_sw=0;
 
     /**
      * If false, we will only write out a region around the reference source
@@ -181,16 +177,13 @@ public abstract class LocalAssemblyEngine {
 
         }
 
-        count_sw = 0;
         findBestPaths (nonRefGraphs, refHaplotype, refLoc, activeRegionExtendedLocation, assemblyResultByGraph, resultSet);
-        //System.out.println("Find Best Path count, SmithWaterman count = " + count_sw);
 
         // print the graphs if the appropriate debug option has been turned on
         if ( graphWriter != null ) { printGraphs(nonRefGraphs); }
 
         return resultSet;
     }
-    public static final Parameters NEW_SW_PARAMETERS = new Parameters(200, -150, -260, -11);
 
     @Ensures({"result.contains(refHaplotype)"})
     protected List<Haplotype> findBestPaths(final List<SeqGraph> graphs, final Haplotype refHaplotype, final GenomeLoc refLoc, final GenomeLoc activeRegionWindow,
@@ -210,128 +203,38 @@ public abstract class LocalAssemblyEngine {
             finders.add(haplotypeFinder);
             final Iterator<KBestHaplotype> bestHaplotypes = haplotypeFinder.iterator(numBestHaplotypesPerGraph);
 
-            byte[] refSeq = refHaplotype.getBases();
-            List<Haplotype> hList = new ArrayList<Haplotype>();
-            List<byte[]> reflist = new ArrayList<byte[]>();
-            List<byte[]> altlist = new ArrayList<byte[]>();
-            List<byte[]> orgreflist = new ArrayList<byte[]>();
-            List<byte[]> orgaltlist = new ArrayList<byte[]>();
-            List<Integer> alignmentlist = new ArrayList<Integer>();
-            List<Cigar> Cigarlist = new ArrayList<Cigar>();
-            List<Cigar> Cigarlist_nobases = new ArrayList<Cigar>();
-            List<SmithWaterman> SWlist = new ArrayList<SmithWaterman>();
             while (bestHaplotypes.hasNext()) {
                 final KBestHaplotype kBestHaplotype = bestHaplotypes.next();
                 final Haplotype h = kBestHaplotype.haplotype();
                 if( !returnHaplotypes.contains(h) ) {
-                    returnHaplotypes.add(h);
-                    hList.add(h);
-                    byte[] altSeq = h.getBases();
-                    if (altSeq.length == 0) {
-                        // horrible edge case from the unit tests, where this path has no bases
-                        Cigar cigar = CigarUtils.calculateCigar_filter(refSeq.length);          //TODO, ingnore this, need to do last for-loop for this cigars?
-                        Cigarlist_nobases.add(cigar);
+                    final Cigar cigar = CigarUtils.calculateCigar(refHaplotype.getBases(),h.getBases());
+
+                    if ( cigar == null ) {
+                        failedCigars++; // couldn't produce a meaningful alignment of haplotype to reference, fail quietly
+                        continue;
+                    } else if( cigar.isEmpty() ) {
+                        throw new IllegalStateException("Smith-Waterman alignment failure. Cigar = " + cigar + " with reference length " + cigar.getReferenceLength() +
+                                " but expecting reference length of " + refHaplotype.getCigar().getReferenceLength());
+                    } else if ( pathIsTooDivergentFromReference(cigar) || cigar.getReferenceLength() < MIN_HAPLOTYPE_REFERENCE_LENGTH ) {
+                        // N cigar elements means that a bubble was too divergent from the reference so skip over this path
+                        continue;
+                    } else if( cigar.getReferenceLength() != refHaplotype.getCigar().getReferenceLength() ) { // SW failure
+                        throw new IllegalStateException("Smith-Waterman alignment failure. Cigar = " + cigar + " with reference length "
+                                + cigar.getReferenceLength() + " but expecting reference length of " + refHaplotype.getCigar().getReferenceLength()
+                                + " ref = " + refHaplotype + " path " + new String(h.getBases()));
                     }
 
-                    String SW_PAD = "NNNNNNNNNN";
-                    final String paddedRef = SW_PAD + new String(refSeq) + SW_PAD;
-                    final String paddedPath = SW_PAD + new String(altSeq) + SW_PAD;
+                    h.setCigar(cigar);
+                    h.setAlignmentStartHapwrtRef(activeRegionStart);
+                    h.setGenomeLocation(activeRegionWindow);
+                    returnHaplotypes.add(h);
+                    assemblyResultSet.add(h, assemblyResultByGraph.get(graph));
 
-                    orgreflist.add(refSeq);
-                    orgaltlist.add(altSeq);
-                    reflist.add(paddedRef.getBytes());
-                    altlist.add(paddedPath.getBytes());
-                    //final SmithWaterman alignment = new SWPairwiseAlignment( paddedRef.getBytes(), paddedPath.getBytes(), NEW_SW_PARAMETERS);
+                    if ( debug )
+                        logger.info("Adding haplotype " + h.getCigar() + " from graph with kmer " + graph.getKmerSize());
                 }
             }
-            for(int i=0; i<reflist.size(); i++) {
-                //System.out.println("Realignment best sequence = " + bestHaplotype.getBases() + ", org sequence = " + originalRead.getReadBases());
-                final SmithWaterman alignment = new SWPairwiseAlignment(reflist.get(i), altlist.get(i), CigarUtils.NEW_SW_PARAMETERS);
-                alignmentlist.add(alignment.getAlignmentStart2wrt1());
-                Cigarlist.add(alignment.getCigar());
-                SWlist.add(alignment);
-            }
-            for(int i=0; i<SWlist.size(); i++) {
-                final Cigar cigar = CigarUtils.calculateCigar_new(orgreflist.get(i), orgaltlist.get(i), SWlist.get(i));
-                if ( cigar == null ) {
-                    failedCigars++; // couldn't produce a meaningful alignment of haplotype to reference, fail quietly
-                    continue;
-                } else if( cigar.isEmpty() ) {
-                    throw new IllegalStateException("Smith-Waterman alignment failure. Cigar = " + cigar + " with reference length " + cigar.getReferenceLength() +
-                            " but expecting reference length of " + refHaplotype.getCigar().getReferenceLength());
-                } else if ( pathIsTooDivergentFromReference(cigar) || cigar.getReferenceLength() < MIN_HAPLOTYPE_REFERENCE_LENGTH ) {
-                    // N cigar elements means that a bubble was too divergent from the reference so skip over this path
-                    continue;
-                } else if( cigar.getReferenceLength() != refHaplotype.getCigar().getReferenceLength() ) { // SW failure
-                    throw new IllegalStateException("Smith-Waterman alignment failure. Cigar = " + cigar + " with reference length "
-                            + cigar.getReferenceLength() + " but expecting reference length of " + refHaplotype.getCigar().getReferenceLength()
-                            + " ref = " + refHaplotype + " path " + new String(hList.get(i).getBases()));
-                }
-
-                hList.get(i).setCigar(cigar);
-                hList.get(i).setAlignmentStartHapwrtRef(activeRegionStart);
-                hList.get(i).setGenomeLocation(activeRegionWindow);
-                assemblyResultSet.add(hList.get(i), assemblyResultByGraph.get(graph));
-            }
-            for(int i=0; i<Cigarlist_nobases.size(); i++) {
-                final Cigar cigar = Cigarlist_nobases.get(i);
-                if ( cigar == null ) {
-                    failedCigars++; // couldn't produce a meaningful alignment of haplotype to reference, fail quietly
-                    continue;
-                } else if( cigar.isEmpty() ) {
-                    throw new IllegalStateException("Smith-Waterman alignment failure. Cigar = " + cigar + " with reference length " + cigar.getReferenceLength() +
-                            " but expecting reference length of " + refHaplotype.getCigar().getReferenceLength());
-                } else if ( pathIsTooDivergentFromReference(cigar) || cigar.getReferenceLength() < MIN_HAPLOTYPE_REFERENCE_LENGTH ) {
-                    // N cigar elements means that a bubble was too divergent from the reference so skip over this path
-                    continue;
-                } else if( cigar.getReferenceLength() != refHaplotype.getCigar().getReferenceLength() ) { // SW failure
-                    throw new IllegalStateException("Smith-Waterman alignment failure. Cigar = " + cigar + " with reference length "
-                            + cigar.getReferenceLength() + " but expecting reference length of " + refHaplotype.getCigar().getReferenceLength()
-                            + " ref = " + refHaplotype + " path " + new String(hList.get(i).getBases()));
-                }
-
-                hList.get(i).setCigar(cigar);
-                hList.get(i).setAlignmentStartHapwrtRef(activeRegionStart);
-                hList.get(i).setGenomeLocation(activeRegionWindow);
-                assemblyResultSet.add(hList.get(i), assemblyResultByGraph.get(graph));
-            }
-
-            //while (bestHaplotypes.hasNext()) {
-            //    final KBestHaplotype kBestHaplotype = bestHaplotypes.next();
-            //    final Haplotype h = kBestHaplotype.haplotype();
-            //    if( !returnHaplotypes.contains(h) ) {
-            //        final Cigar cigar = CigarUtils.calculateCigar(refHaplotype.getBases(),h.getBases());
-            //        count_sw++;
-
-            //        if ( cigar == null ) {
-            //            failedCigars++; // couldn't produce a meaningful alignment of haplotype to reference, fail quietly
-            //            continue;
-            //        } else if( cigar.isEmpty() ) {
-            //            throw new IllegalStateException("Smith-Waterman alignment failure. Cigar = " + cigar + " with reference length " + cigar.getReferenceLength() +
-            //                    " but expecting reference length of " + refHaplotype.getCigar().getReferenceLength());
-            //        } else if ( pathIsTooDivergentFromReference(cigar) || cigar.getReferenceLength() < MIN_HAPLOTYPE_REFERENCE_LENGTH ) {
-            //            // N cigar elements means that a bubble was too divergent from the reference so skip over this path
-            //            continue;
-            //        } else if( cigar.getReferenceLength() != refHaplotype.getCigar().getReferenceLength() ) { // SW failure
-            //            throw new IllegalStateException("Smith-Waterman alignment failure. Cigar = " + cigar + " with reference length "
-            //                    + cigar.getReferenceLength() + " but expecting reference length of " + refHaplotype.getCigar().getReferenceLength()
-            //                    + " ref = " + refHaplotype + " path " + new String(h.getBases()));
-            //        }
-
-            //        h.setCigar(cigar);
-            //        h.setAlignmentStartHapwrtRef(activeRegionStart);
-            //        h.setGenomeLocation(activeRegionWindow);
-            //        returnHaplotypes.add(h);
-            //        assemblyResultSet.add(h, assemblyResultByGraph.get(graph));
-
-            //        if ( debug )
-            //            logger.info("Adding haplotype " + h.getCigar() + " from graph with kmer " + graph.getKmerSize());
-            //    } else {
-            //        //System.out.println("HanHu Smithwaterman : returnHaplotypes did not contain h, cigar = " + h.getCigar() + "AlignmentStartHapwrtRef = " + h.getAlignmentStartHapwrtRef() + "GenoLoc = " + h.getGenomeLocation());
-            //    }
-            //}
         }
-        //System.out.println("Find Best Path count, SmithWaterman count = " + count_sw);
 
         // Make sure that the ref haplotype is amongst the return haplotypes and calculate its score as
         // the first returned by any finder.

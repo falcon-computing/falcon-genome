@@ -100,18 +100,12 @@ import org.broadinstitute.gatk.utils.help.DocumentedGATKFeature;
 import org.broadinstitute.gatk.utils.help.HelpConstants;
 import org.broadinstitute.gatk.utils.pairhmm.PairHMM;
 import org.broadinstitute.gatk.utils.sam.AlignmentUtils;
-import org.broadinstitute.gatk.utils.sam.CigarUtils;
 import org.broadinstitute.gatk.utils.sam.GATKSAMRecord;
 import org.broadinstitute.gatk.utils.sam.ReadUtils;
-import org.broadinstitute.gatk.utils.smithwaterman.SWPairwiseAlignment;
 import org.broadinstitute.gatk.utils.variant.*;
 
 import java.io.FileNotFoundException;
 import java.util.*;
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
-import htsjdk.samtools.SAMRecord;
 
 /**
  * Call germline SNPs and indels via local re-assembly of haplotypes
@@ -241,15 +235,7 @@ public class HaplotypeCaller extends ActiveRegionWalker<List<VariantContext>, In
     // -----------------------------------------------------------------------------------------------
     // general haplotype caller arguments
     // -----------------------------------------------------------------------------------------------
-    private static int max_length_ref = 0;
-    private static int max_length_alt = 0;
-    private static int min_length_ref = 1000;
-    private static int min_length_alt = 1000;
-    private static int count_sw = 0;
-    private static long count_cycles = 0;
-    private static long count_all = 0;
-    private static long count_region1 = 0;
-    private static long count_region2 = 0;
+
     /**
      * A raw, unfiltered, highly sensitive callset in VCF format.
      */
@@ -850,13 +836,9 @@ public class HaplotypeCaller extends ActiveRegionWalker<List<VariantContext>, In
     private final static List<VariantContext> NO_CALLS = Collections.emptyList();
     @Override
     public List<VariantContext> map( final ActiveRegion originalActiveRegion, final RefMetaDataTracker metaDataTracker ) {
-
         if ( justDetermineActiveRegions )
             // we're benchmarking ART and/or the active region determination code in the HC, just leave without doing any work
             return NO_CALLS;
-
-        //System.out.println("HanHu active region Window, start = " + originalActiveRegion.getLocation().getStart() + ", stop = " +originalActiveRegion.getLocation().getStop() + ", length = " + (originalActiveRegion.getLocation().getStop() - originalActiveRegion.getLocation().getStart() ));
-        //System.out.println("HanHu active region extension Window, start = " + originalActiveRegion.getExtendedLoc().getStart() + ", stop = " +originalActiveRegion.getExtendedLoc().getStop() + ", length = " + (originalActiveRegion.getExtendedLoc().getStop() - originalActiveRegion.getExtendedLoc().getStart() ));
 
         if (sampleNameToUse != null)
             removeReadsFromAllSamplesExcept(sampleNameToUse, originalActiveRegion);
@@ -879,8 +861,6 @@ public class HaplotypeCaller extends ActiveRegionWalker<List<VariantContext>, In
             if( originalActiveRegion.size() == 0 ) { return referenceModelForNoVariation(originalActiveRegion, true); }
         }
 
-        count_region1++;
-        //System.out.println("1 HanHu active region number = " + count_region1);
         // run the local assembler, getting back a collection of information on how we should proceed
         final AssemblyResultSet untrimmedAssemblyResult = assembleReads(originalActiveRegion, givenAlleles);
 
@@ -934,8 +914,6 @@ public class HaplotypeCaller extends ActiveRegionWalker<List<VariantContext>, In
         // Realign reads to their best haplotype.
         final Map<GATKSAMRecord,GATKSAMRecord> readRealignments = realignReadsToTheirBestHaplotype(readLikelihoods, assemblyResult.getReferenceHaplotype(), assemblyResult.getPaddedReferenceLoc());
         readLikelihoods.changeReads(readRealignments);
-        count_region2++;
-        //System.out.println("2 HanHu active region number = " + count_region2);
 
         // Note: we used to subset down at this point to only the "best" haplotypes in all samples for genotyping, but there
         //  was a bad interaction between that selection and the marginalization that happens over each event when computing
@@ -1004,64 +982,13 @@ public class HaplotypeCaller extends ActiveRegionWalker<List<VariantContext>, In
         final Collection<ReadLikelihoods<Haplotype>.BestAllele> bestAlleles = originalReadLikelihoods.bestAlleles();
         final Map<GATKSAMRecord,GATKSAMRecord> result = new HashMap<>(bestAlleles.size());
 
-        count_sw = 0;
-        List<GATKSAMRecord> originalReadlist = new ArrayList<GATKSAMRecord>();
-        List<Haplotype> bestHaplotypelist = new ArrayList<Haplotype>();
-        List<Boolean> infolist = new ArrayList<Boolean>();
-        List<byte[]> bestlist = new ArrayList<byte[]>();
-        List<byte[]> orglist = new ArrayList<byte[]>();
-        List<Integer> alignmentlist = new ArrayList<Integer>();
-        List<Cigar> Cigarlist = new ArrayList<Cigar>();
         for (final ReadLikelihoods<Haplotype>.BestAllele bestAllele : bestAlleles) {
             final GATKSAMRecord originalRead = bestAllele.read;
             final Haplotype bestHaplotype = bestAllele.allele;
             final boolean isInformative = bestAllele.isInformative();
-            infolist.add(isInformative);
-            originalReadlist.add(originalRead);
-            bestHaplotypelist.add(bestHaplotype);
-            bestlist.add(bestHaplotype.getBases());
-            orglist.add(originalRead.getReadBases());
-
-            //int n = originalRead.getReadBases().length;
-            //int m = bestHaplotype.getBases().length;
-            //if(max_length_ref<n) max_length_ref=n;
-            //if(max_length_alt<m) max_length_alt=m;
-            //if(min_length_ref>n) min_length_ref=n;
-            //if(min_length_alt>m) min_length_alt=m;
-            //System.out.println("Realignment org, SmithWaterman reference.length org = " + n + ", alternate.length org =" + m + "");
-            //System.out.println("Realignment min, SmithWaterman reference.length min = " + min_length_ref + ", alternate.length min =" + min_length_alt + "");
-            //System.out.println("Realignment max, SmithWaterman reference.length max = " + max_length_ref + ", alternate.length max =" + max_length_alt + "");
-            //count_sw++;
-            //count_cycles += n*m+m+n;
-            //count_all += 1;
-            //if(count_all % 1000 == 0) {
-                //System.out.println("Realignment cycles, SmithWaterman total cycles count = " + count_cycles);
-                //logger.info("Total : Realignment cycles, SmithWaterman total cycles count = " + count_cycles);
-            //}
-
-//            final SWPairwiseAlignment swPairwiseAlignment = new SWPairwiseAlignment(bestHaplotype.getBases(), originalRead.getReadBases(), CigarUtils.NEW_SW_PARAMETERS);
-//            //System.out.println("Realignment, SmithWaterman output alignment = " + swPairwiseAlignment.getAlignmentStart2wrt1());
-//            int alignment_offset = swPairwiseAlignment.getAlignmentStart2wrt1();
-//            final Cigar swCigar = swPairwiseAlignment.getCigar();
-//            //final GATKSAMRecord realignedRead = AlignmentUtils.createReadAlignedToRef(originalRead, bestHaplotype, refHaplotype, paddedReferenceLoc.getStart(), isInformative);
-//            final GATKSAMRecord realignedRead = AlignmentUtils.createReadAlignedToRef_new(originalRead, bestHaplotype, refHaplotype, paddedReferenceLoc.getStart(), isInformative, alignment_offset, swCigar);
-//            result.put(originalRead,realignedRead);
-        }
-        for(int i=0; i<bestlist.size(); i++) {
-            //System.out.println("Realignment best sequence = " + bestHaplotype.getBases() + ", org sequence = " + originalRead.getReadBases());
-            final SWPairwiseAlignment swPairwiseAlignment = new SWPairwiseAlignment(bestlist.get(i), orglist.get(i), CigarUtils.NEW_SW_PARAMETERS);
-            alignmentlist.add(swPairwiseAlignment.getAlignmentStart2wrt1());
-            Cigarlist.add(swPairwiseAlignment.getCigar());
-        }
-        for(int i=0; i<alignmentlist.size(); i++) {
-            final GATKSAMRecord originalRead = originalReadlist.get(i);
-            int alignment_offset = alignmentlist.get(i);
-            final Cigar swCigar = Cigarlist.get(i);
-            final GATKSAMRecord realignedRead = AlignmentUtils.createReadAlignedToRef_new(originalRead, bestHaplotypelist.get(i), refHaplotype, paddedReferenceLoc.getStart(), infolist.get(i), alignment_offset, swCigar);
+            final GATKSAMRecord realignedRead = AlignmentUtils.createReadAlignedToRef(originalRead, bestHaplotype, refHaplotype, paddedReferenceLoc.getStart(), isInformative);
             result.put(originalRead,realignedRead);
         }
-
-        //System.out.println("Realignment count, SmithWaterman count = " + count_sw);
         return result;
     }
 
