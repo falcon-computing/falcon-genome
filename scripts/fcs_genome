@@ -34,5 +34,9 @@ else
     shift
     fcs_genome_bqsr.sh "$@"
     ;;
+    printread)
+    shift
+    fcs_genome_printRead.sh "$@"
+    ;;
   esac
 fi

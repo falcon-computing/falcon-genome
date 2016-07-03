@@ -39,7 +39,7 @@ if [ ! -z $help_req ];then
   exit 1;
 fi
 
-if [ -z $input_base];then
+if [ -z $input_base ];then
   echo "input_base is not specified, please check the command"
   exit 1
 fi
@@ -50,9 +50,9 @@ if [ -z $chr_dir ];then
 fi
 
 if [ -z $rpt_dir ];then
-  rpt_dir=$output_diri/rpt
+  rpt_dir=$output_dir/rpt
+  create_dir $rpt_dir
   echo "rpt_dir is not set,will generate rpt in $rpt_dir"
-  exit 1
 fi
 
 if [ -z $output ];then
@@ -65,7 +65,7 @@ fi
 
 chr_list="$(seq 1 22) X Y MT"
 for chr in $chr_list; do
-  chr_bam=$chr_dir/${input_base}.markdups.chr${chr}.bam
+  chr_bam=$chr_dir/${input_base}.bam.markdups.chr${chr}.bam
   if [ ! -f $chr_bam ];then 
     echo "Could not find the ${chr}.bam"
     exit 1
@@ -83,10 +83,6 @@ else
   host_file=$DIR/host_file
 fi
 echo "$DIR/manager/manager --v=1 --log_dir=. $host_file"
-source $DIR/manager/config.mk
-LD_LIBRARY_PATH=$BOOST_DIR/lib:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=$GLOG_DIR/lib:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=$GFLAGS_DIR/lib:$LD_LIBRARY_PATH
 $DIR/manager/manager --v=1 --log_dir=. $host_file &
 manager_pid=$!
 sleep 1
@@ -98,9 +94,9 @@ fi
 # Start the jobs
 for chr in $chr_list; do
     # The splited bams are in tmp_dir[1], the recalibrated bams should be in [2]
-    chr_bam=${tmp_dir[1]}/${sample_id}.markdups.chr${chr}.bam
-    chr_rpt=$rpt_dir/${sample_id}.recalibration_report.grp
-    chr_recal_bam=${tmp_dir[2]}/${sample_id}.recal.chr${chr}.bam
+    chr_bam=${tmp_dir[1]}/${input_base}.bam.markdups.chr${chr}.bam
+    chr_rpt=$rpt_dir/${input_base}.bam.markdups.bam.recalibration_report.grp
+    chr_recal_bam=${tmp_dir[2]}/${input_base}.bam.recal.chr${chr}.bam
 
     $DIR/fcs-sh "$DIR/printReads.sh $chr_bam $chr_rpt $chr_recal_bam $chr" 2> $log_dir/printReads_chr${chr}.log &
     pid_table["$chr"]=$!
@@ -112,8 +108,8 @@ for chr in $chr_list; do
   end_ts=$(date +%s)
 
   for chr in $chr_list; do
-    chr_bam=${tmp_dir[1]}/${sample_id}.markdups.chr${chr}.bam
-    chr_recal_bam=${tmp_dir[2]}/${sample_id}.recal.chr${chr}.bam
+    chr_bam=${tmp_dir[1]}/${input_base}.bam.markdups.chr${chr}.bam
+    chr_recal_bam=${tmp_dir[2]}/${input_base}.bam.recal.chr${chr}.bam
     if [ ! -e ${chr_recal_bam}.done ]; then
       exit 4;
     fi

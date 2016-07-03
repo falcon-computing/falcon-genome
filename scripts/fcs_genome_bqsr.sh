@@ -47,6 +47,25 @@ fi
 check_input $input
 check_output $output
 
+# Table storing all the pids for tasks within one stage
+declare -A pid_table
+
+# Start manager
+if [ -e "host_file" ]; then
+  host_file=host_file
+else
+  host_file=$DIR/host_file
+fi
+echo "$DIR/manager/manager --v=1 --log_dir=. $host_file"
+$DIR/manager/manager --v=1 --log_dir=. $host_file &
+manager_pid=$!
+sleep 1
+if [[ ! $(ps -p "$manager_pid" -o comm=) =~ "manager" ]]; then
+  echo "Cannot start manager, exiting"
+  exit -1
+fi
+
+
 export PATH=$DIR:$PATH
 
 $JAVA -Djava.io.tmpdir=/tmp -jar ${GATK_QUEUE} \
@@ -65,3 +84,5 @@ $JAVA -Djava.io.tmpdir=/tmp -jar ${GATK_QUEUE} \
 
 
 
+# Stop manager
+kill $manager_pid
