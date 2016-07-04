@@ -18,7 +18,7 @@ case $key in
     shift # past argument
     ;;
     -t|--temp)
-    temp_dir="$2"
+    tmp_dir="$2"
     shift # past argument
     ;;
     -h|--help)
@@ -47,11 +47,11 @@ fi
 
 if [ -z $output ];then
   create_dir ${tmp_dir[1]}
-  output=${tmp_dir[1]}/$fastq_base.bam
+  output=${tmp_dir[1]}/${fastq_base}.bam
   echo "Output file name is not set, the output file is stored to "$output" as default"
 fi
 
-if [ -z $temp_dir ];then
+if [ -z $tmp_dir ];then
   create_dir ${tmp_dir[2]}
   tmp_dir=${tmp_dir[2]}
   echo "Temp directory is not set, using default "$tmp_dir" instead"

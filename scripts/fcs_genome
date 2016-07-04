@@ -38,5 +38,13 @@ else
     shift
     fcs_genome_printRead.sh "$@"
     ;;
+    haplotypecaller)
+    shift
+    fcs_genome_HaplotypeCaller.sh "$@"
+    ;;
+    all)
+    shift
+    fcs_genome_pipeline.sh "$@"
+    ;;
   esac
 fi

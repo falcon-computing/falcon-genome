@@ -1,3 +1,4 @@
+
 #!/bin/bash
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $DIR/globals.sh
@@ -15,12 +16,8 @@ case $key in
     chr_dir="$2"
     shift # past argument
     ;;
-    -r|--rpt_dir)
-    rpt_dir="$2"
-    shift # past argument
-    ;;
     -o|--output)
-    output="$2"
+    vcf_dir="$2"
     shift # past argument
     ;;
     -h|--help)
@@ -33,9 +30,8 @@ esac
 shift # past argument or value
 done
 
-# Check the command
 if [ ! -z $help_req ];then
-  echo "USAGE: fcs_genome printread -i <input_base> -c <chr_dir> -r <rpt_dir> -o <output_dir>"
+  echo "USAGE: fcs_genome haplotypecaller -i <input_base> -c <chr_dir> -r -o <output_dir>"
   exit 1;
 fi
 
@@ -49,23 +45,16 @@ if [ -z $chr_dir ];then
   exit 1
 fi
 
-if [ -z $rpt_dir ];then
-  rpt_dir=$output_dir/rpt
-  create_dir $rpt_dir
-  echo "rpt_dir is not set,will generate rpt in $rpt_dir"
-fi
-
-if [ -z $output ];then
-  create_dir ${tmp_dir[2]}
-  output=${tmp_dir[2]}
-  echo "Output file name is not set, the output file is stored to "$output" as default"
+if [ -z $vcf_dir ];then
+  vcf_dir=$output_dir/vcf
+  create_dir $vcf_dir
+  echo "Output file name is not set, the output file is stored to $vcf_dir as default"
 fi
 
 # Check the inputs
-
 chr_list="$(seq 1 22) X Y MT"
 for chr in $chr_list; do
-  chr_bam=$chr_dir/${input_base}.bam.markdups.chr${chr}.bam
+  chr_bam=$chr_dir/${input_base}.bam.recal.chr${chr}.bam
   if [ ! -f $chr_bam ];then 
     echo "Could not find the $chr_bam"
     exit 1
@@ -92,36 +81,29 @@ if [[ ! $(ps -p "$manager_pid" -o comm=) =~ "manager" ]]; then
 fi
 
 # Start the jobs
-for chr in $chr_list; do
-    # The splited bams are in tmp_dir[1], the recalibrated bams should be in [2]
-    chr_bam=${tmp_dir[1]}/${input_base}.bam.markdups.chr${chr}.bam
-    chr_rpt=$rpt_dir/${input_base}.bam.markdups.bam.recalibration_report.grp
-    chr_recal_bam=${tmp_dir[2]}/${input_base}.bam.recal.chr${chr}.bam
 
-    $DIR/fcs-sh "$DIR/printReads.sh $chr_bam $chr_rpt $chr_recal_bam $chr" 2> $log_dir/printReads_chr${chr}.log &
-    pid_table["$chr"]=$!
+
+for chr in $chr_list; do
+  chr_bam=$chr_dir/${input_base}.bam.recal.chr${chr}.bam
+  chr_vcf=$vcf_dir/${input_base}_chr${chr}.gvcf
+  $DIR/fcs-sh "$DIR/haploTC.sh $chr $chr_bam $chr_vcf" & #2> $log_dir/haplotypeCaller_chr${chr}.log &
+  pid_table["$chr"]=$!
 done
+
 # Wait on all the tasks
 for pid in ${pid_table[@]}; do
   wait "${pid}"
 done
-end_ts=$(date +%s)
 
 for chr in $chr_list; do
-  chr_bam=${tmp_dir[1]}/${input_base}.bam.markdups.chr${chr}.bam
-  chr_recal_bam=${tmp_dir[2]}/${input_base}.bam.recal.chr${chr}.bam
-  if [ ! -e ${chr_recal_bam}.done ]; then
-    exit 4;
+  chr_bam=$chr_dir/${input_base}.bam.recal.chr${chr}.bam
+  chr_vcf=$vcf_dir/${input_base}_chr${chr}.gvcf
+  if [ ! -e ${chr_vcf}.done ]; then
+    exit 5;
   fi
-  rm ${chr_recal_bam}.done
-  rm $chr_bam &
-  rm ${chr_bam}.bai &
+  rm ${chr_vcf}.done
+  rm $chr_bam 
 done
-echo "PrintReads stage finishes in $((end_ts - start_ts))s"
-
+ 
 # Stop manager
 kill $manager_pid
-
-
-
-

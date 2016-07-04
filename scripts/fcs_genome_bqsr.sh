@@ -13,7 +13,7 @@ case $key in
     shift # past argument
     ;;
     -o|--output)
-    output="$2"
+    rpt_dir="$2"
     shift # past argument
     ;;
     -h|--help)
@@ -28,7 +28,7 @@ done
 
 # Check the command
 if [ ! -z $help_req ];then
-  echo "USAGE: fcs_genome bqsr -i <input> "
+  echo "USAGE: fcs_genome bqsr -i <input> -o <output_dir>"
   exit 1;
 fi
 
@@ -37,12 +37,13 @@ if [ -z $input ];then
   exit 1;
 fi
 
-if [ -z $output ];then
+if [ -z $rpt_dir ];then
   rpt_dir=$output_dir/rpt
   create_dir $rpt_dir
-  output=$rpt_dir/$(basename $input).recalibration_report.grp
-  echo "The output dir is not specified, would put the result to $output"
+  echo "The output dir is not specified, would put the result to $rpt_dir"
 fi
+
+output=$rpt_dir/$(basename $input).recalibration_report.grp
 
 check_input $input
 check_output $output
