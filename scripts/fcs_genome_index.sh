@@ -1,7 +1,13 @@
+################################################################################
+## This script generates sorted bam file from fastq using bwa-flow
+################################################################################
 #!/bin/bash
+
+# Import global variables
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $DIR/globals.sh
 
+# Get the input command 
 while [[ $# -gt 0 ]]
 do
 key="$1"
@@ -11,6 +17,9 @@ case $key in
     input="$2"
     shift # past argument
     ;;
+    -h|--help)
+    help_req=YES
+    ;;
     *)
             # unknown option
     ;;
@@ -18,8 +27,13 @@ esac
 shift # past argument or value
 done
 
+if [ ! -z $help_req ];then
+  echo " USAGE: fcs_genome index -i <input_file>"
+  echo " The input_file argument is the markduped bam file"
+fi
+
 if [ -z $input ];then
-  echo "The input arg is missing, please check the cmd"
+  echo "The input argument is missing, please check the cmd"
   exit 1;
 fi
 

@@ -35,8 +35,17 @@ check_input() {
 check_output() {
   filename=$1;
   if [ -f $filename ]; then
-    echo "Output file $filename already exists";
-    exit 1;
+    echo -e "Output file $filename already exists,do you want to run again to cover it? \e[31m[yes|no]\e[0m"
+    read answer
+    if [ $answer == "yes" ];then
+      echo "Continue to cover the $filename"
+    elif [ $answer == "no" ];then
+      echo "Exiting,choose another file name if it's necessary"
+      exit 1;
+    else 
+      echo "Please type yes or no"
+      check_output $filename
+    fi
   fi;
   # Check if output folder writtable
   echo "1" > $filename;
@@ -46,6 +55,7 @@ check_output() {
   fi;
   rm $filename;
 }
+
 
 # check if output dir exists and is writable
 check_output_dir() {
