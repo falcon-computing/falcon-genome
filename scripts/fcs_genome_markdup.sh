@@ -21,8 +21,8 @@ case $key in
     output="$2"
     shift
     ;;
-    -t|--temp_dir)
-    tmp_dir="$2"
+    -v|--verbose)
+    verbose="$2"
     shift
     ;;
     -h|--help)
@@ -40,7 +40,8 @@ if [ ! -z $help_req ];then
   echo  " USAGE: fcs_genome markdup -i <input_bam> -o <output_bam>"
   echo  " The <input_bam> argument is necessary for the script to run, should contain the full name"
   echo  " The <output> argument is the file to store the marked bam, could be empty."
-  echo  " The <temp_dir> argument is the directory to store the intermediate results, could be empty."
+  echo  " The <verbose> argument is the verbose level of the run, verbose=0 means quiet \
+and no output, verbose=1 means output errors, verbose=2 means detailed information. By default it is set to 1"
   exit 1;
 fi
 
@@ -56,13 +57,15 @@ if [ -z $output ];then
   echo "If you want to set it, use the -o <output> option "
 fi
 
-if [ -z $tmp_dir ];then
-  create_dir ${tmp_dir[1]}
-  tmp_dir=${tmp_dir[1]}
-  echo "Temp directory is not set, the intermediate files are stored to $tmp_dir as default"
-  echo "If you want to set it, use the -t <temp_dir> option"
+if [ -z $verbose ];then
+  verbose=1;
+  echo "In default verbose is 1"
+  echo "If you want to set it, use the -v <verbose> option "
 fi
 
+create_dir ${tmp_dir[1]}
+tmp_dir=${tmp_dir[1]}
+echo "The intermediate files of mark duplicate are stored to $tmp_dir as default"
 
 # Find the input bam
 
@@ -77,17 +80,47 @@ create_dir $markdup_log_dir
 
 echo "Start mark duplicates"
 start_ts=$(date +%s)
-$JAVA -XX:+UseSerialGC -Xmx160g -jar $PICARD \
+
+case $verbose in
+    0)
+    # Put all the information to log, not displaying
+    $JAVA -XX:+UseSerialGC -Xmx160g -jar $PICARD \
     MarkDuplicates \
     TMP_DIR=$tmp_dir COMPRESSION_LEVEL=1 \
     INPUT=$input \
     OUTPUT=$output \
     METRICS_FILE=${output}.dups_stats \
     REMOVE_DUPLICATES=false ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT \
-    2>$markdup_log_dir/markdup_run.log
+    >$markdup_log_dir/markdup_run_err.log 2> $markdup_log_dir/markdup_run.log
+    ;;
+
+    1)
+    # Put stdout to log, stderr to log and display
+    $JAVA -XX:+UseSerialGC -Xmx160g -jar $PICARD \
+    MarkDuplicates \
+    TMP_DIR=$tmp_dir COMPRESSION_LEVEL=1 \
+    INPUT=$input \
+    OUTPUT=$output \
+    METRICS_FILE=${output}.dups_stats \
+    REMOVE_DUPLICATES=false ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT \
+    > >(tee $markdup_log_dir/markdup_run.log) 2> >(tee $markdup_log_dir/markdup_run_err.log >&2)
+    ;;
+
+    2)
+    # Put all the information to log and display
+    $JAVA -XX:+UseSerialGC -Xmx160g -jar $PICARD \
+    MarkDuplicates \
+    TMP_DIR=$tmp_dir COMPRESSION_LEVEL=1 \
+    INPUT=$input \
+    OUTPUT=$output \
+    METRICS_FILE=${output}.dups_stats \
+    REMOVE_DUPLICATES=false ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT \
+    > >(tee $markdup_log_dir/markdup_run.log) 2> >(tee $markdup_log_dir/markdup_run_err.log >&2)
+    ;;
+esac
 
 if [ "$?" -ne 0 ]; then 
-  echo "Mark duplicates failed,please check $markdup_log_dir/markdup_run.log for detailed information"
+  >&2 echo "Mark duplicates failed, please check $markdup_log_dir/markdup_run_err.log for detailed information"
   exit 1
 fi
 

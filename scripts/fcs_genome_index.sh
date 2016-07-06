@@ -1,5 +1,5 @@
 ################################################################################
-## This script generates sorted bam file from fastq using bwa-flow
+## This script generates the bam index of the input bam file using samtools
 ################################################################################
 #!/bin/bash
 
@@ -30,25 +30,28 @@ done
 if [ ! -z $help_req ];then
   echo " USAGE: fcs_genome index -i <input_file>"
   echo " The input_file argument is the markduped bam file"
+  echo " The output *.bai file would be put in the same directory as the input"
 fi
 
 if [ -z $input ];then
   echo "The input argument is missing, please check the cmd"
+  echo " USAGE: fcs_genome index -i <input_file>"
   exit 1;
 fi
 
 if [ ! -f $input ]; then
-  echo "Cannot find $input for index"
+  >&2 echo "Cannot find $input for index, please check if the input file exist"
   exit 1
 fi
 
+output=${input}.bai
+check_output $output
+
+echo "Starting index"
 start_ts=$(date +%s)
-# Indexing input if it is not indexed
-if [ ! -f ${input}.bai ]; then
-  $SAMTOOLS index $input 
-else
-  echo "The input is already indexed"
-fi
+  
+$SAMTOOLS index $input 
 
 end_ts=$(date +%s)
 echo "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
+echo "The output file is ${input}.bai"

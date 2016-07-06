@@ -27,7 +27,9 @@ done
 
 # Check the command
 if [ ! -z $help_req ];then
-  echo "USAGE: fcs_genome split -i <input> -o <output_dir> "
+  echo " USAGE: fcs_genome split -i <input> -o <output_dir> "
+  echo " The input argument is the markduped bam file "
+  echo " The output_dir argument is the directory where the splitted bam should be stored "
   exit 1;
 fi
 
@@ -50,17 +52,19 @@ chr_list="$(seq 1 22) X Y MT"
 
 # Split BAM by chromosome
 start_ts=$(date +%s)
-set -x
 for chr in $chr_list; do
   chr_bam=$output/${input_base}.chr${chr}.bam
   if [ ! -f $chr_bam ]; then
     $SAMTOOLS view -u -b -S $input $chr > $chr_bam
     $SAMTOOLS index $chr_bam
+  else
+    echo "$chr_bam already exist, skipping"
   fi
 done
-set +x
 end_ts=$(date +%s)
-echo "Samtools split for $(basename $input) finishes in $((end_ts - start_ts))s" | tee -a $log_dir/${sample_id}.bqsr.time.log
+echo "Samtools split for $(basename $input) finishes in $((end_ts - start_ts))s"
+echo "Please find the splitted bam in $output"
+#| tee -a $log_dir/${sample_id}.bqsr.time.log
 
 
 
