@@ -90,11 +90,13 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
 
   if [ "$?" -ne 0 ]; then
     echo "Alignment failed"
+    # Stop manager
+    kill $manager_pid
     exit 1;
   fi
 
   # checkpoint
-  cp $output $bam_dir
+  cp $output $bam_dir &
 fi
 
 # Step 2: Mark Duplicate
@@ -109,6 +111,8 @@ if [[ "${do_stage["2"]}" == "1" ]]; then
 
   if [ "$?" -ne 0 ]; then
     echo "MarkDuplicate failed"
+    # Stop manager
+    kill $manager_pid
     exit 2;
   fi
 
@@ -119,8 +123,8 @@ if [[ "${do_stage["2"]}" == "1" ]]; then
   rm $input &
 
   # Checkpoint markdup bam file
-  cp $output $bam_dir
-  cp ${output}.dups_stats $bam_dir
+  cp $output $bam_dir &
+  cp ${output}.dups_stats $bam_dir &
 fi
 
 # Step 3: GATK BaseRecalibrate
@@ -130,6 +134,8 @@ if [[ "${do_stage["3"]}" == "1" ]]; then
   input=${tmp_dir[2]}/${sample_id}.markdups.bam
   if [ ! -f $input ]; then
     echo "Cannot find $input"
+    # Stop manager
+    kill $manager_pid
     exit 1
   fi
 
@@ -154,6 +160,8 @@ if [[ "${do_stage["3"]}" == "1" ]]; then
   $DIR/baseRecal.sh $input $output 2> >(tee $log_dir/baseRecal.log >&2)
   if [ "$?" -ne 0 ]; then
     echo "BaseRecalibrator failed"
+    # Stop manager
+    kill $manager_pid
     exit 3;
   fi
   end_ts=$(date +%s)
@@ -195,12 +203,13 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
     chr_bam=${tmp_dir[1]}/${sample_id}.markdups.chr${chr}.bam
     chr_recal_bam=${tmp_dir[2]}/${sample_id}.recal.chr${chr}.bam
     if [ ! -e ${chr_recal_bam}.done ]; then
+      # Stop manager
+      kill $manager_pid
       exit 4;
     fi
-    rm ${chr_recal_bam}.done
     rm $chr_bam &
     rm ${chr_bam}.bai &
-    rm ${chr_recal_bam}.bai &
+    rm ${chr_recal_bam}.done
     cp $chr_recal_bam $bam_dir
   done
   echo "PrintReads stage finishes in $((end_ts - start_ts))s"
@@ -232,6 +241,8 @@ if [[ "${do_stage["5"]}" == "1" ]]; then
     chr_bam=${tmp_dir[2]}/${sample_id}.recal.chr${chr}.bam
     chr_vcf=$vcf_dir/${sample_id}_chr${chr}.gvcf
     if [ ! -e ${chr_vcf}.done ]; then
+      # Stop manager
+      kill $manager_pid
       exit 5;
     fi
     rm ${chr_vcf}.done

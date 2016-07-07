@@ -73,3 +73,28 @@ create_dir() {
     fi
   fi;
 }
+
+# log messge
+log_msg() {
+  local level=$1;
+  local msg=$2;
+  local v=$verbose;
+  if [[ "$v" == "" ]]; then
+    local v=1;
+  fi;
+  if [ "$level" -le "$v" ]; then
+    (>&2 echo "$msg");
+  fi;
+}
+
+log_info() {
+  log_msg 2 "$1";
+}
+
+log_warn() {
+  log_msg 1 "$1";
+}
+
+log_error() {
+  log_msg 0 "$1";
+}
