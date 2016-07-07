@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.Executors;
 
 /**
  * Class for reading and querying BAM files.
@@ -591,89 +592,196 @@ class BAMFileReader extends SamReader.ReaderImplementation {
     }
 
     /**
-
-    /**
+     * Multi-threaded implementation of BAMFileIterator.
+     *
      * Iterator for non-indexed sequential iteration through all SAMRecords in file.
      * Starting point of iteration is wherever current file position is when the iterator is constructed.
      */
     private class BAMFileIterator extends AbstractBamIterator {
-        private SAMRecord mNextRecord = null;
-        private final BAMRecordCodec bamRecordCodec;
-        private long samRecordIndex = 0; // Records at what position (counted in records) we are at in the file
+      private SAMRecord mNextRecord = null;
+      private final BAMRecordCodec bamRecordCodec;
+      private long samRecordIndex = 0; // Records at what position (counted in records) we are at in the file
 
-        BAMFileIterator() {
-            this(true);
-        }
+      private SAMRecordCircularBuffer buffer = new SAMRecordCircularBuffer();
 
-        /**
-         * @param advance Trick to enable subclass to do more setup before advancing
-         */
-        BAMFileIterator(final boolean advance) {
-            this.bamRecordCodec = new BAMRecordCodec(getFileHeader(), samRecordFactory);
-            this.bamRecordCodec.setInputStream(BAMFileReader.this.mStream.getInputStream(),
-                    BAMFileReader.this.mStream.getInputFileName());
+      BAMFileIterator() {
+        this(true);
+      }
 
-            if (advance) {
-                advance();
-            }
-        }
-
-        public boolean hasNext() {
-            assertOpen();
-            return (mNextRecord != null);
-        }
-
-        public SAMRecord next() {
-            assertOpen();
-            final SAMRecord result = mNextRecord;
-            advance();
-            return result;
-        }
-
-        void advance() {
-            try {
-                mNextRecord = getNextRecord();
-
-                if (mNextRecord != null) {
-                    ++this.samRecordIndex;
-                    // Because some decoding is done lazily, the record needs to remember the validation stringency.
-                    mNextRecord.setValidationStringency(mValidationStringency);
-
-                    if (mValidationStringency != ValidationStringency.SILENT) {
-                        final List<SAMValidationError> validationErrors = mNextRecord.isValid(mValidationStringency == ValidationStringency.STRICT);
-                        SAMUtils.processValidationErrors(validationErrors,
-                                this.samRecordIndex, BAMFileReader.this.getValidationStringency());
-                    }
+      /**
+       * @param advance Trick to enable subclass to do more setup before advancing
+       */
+      BAMFileIterator(final boolean advance) {
+        this.bamRecordCodec = new BAMRecordCodec(getFileHeader(), samRecordFactory);
+        this.bamRecordCodec.setInputStream(BAMFileReader.this.mStream.getInputStream(),
+            BAMFileReader.this.mStream.getInputFileName());
+        // Start a background thread to read in the record without decoding.
+        // This thread automatically stops when it finishes reading all the records.
+        Executors.newSingleThreadExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+              while(true) {
+                final SAMRecord next = bamRecordCodec.decode();
+                try {
+                  buffer.put(next);
+                } catch (InterruptedException e) {
+                  System.err.println("InterruptedException in BAMFileReader#BAMFileIterator");
                 }
-                if (eagerDecode && mNextRecord != null) {
-                    mNextRecord.eagerDecode();
-                }
-            } catch (final IOException exc) {
-                throw new RuntimeIOException(exc.getMessage(), exc);
+                if (next == null) break;
+              }
             }
+            });
+
+        if (advance) {
+          advance();
         }
+      }
 
-        /**
-         * Read the next record from the input stream.
-         */
-        SAMRecord getNextRecord() throws IOException {
-            final long startCoordinate = mCompressedInputStream.getFilePointer();
-            final SAMRecord next = bamRecordCodec.decode();
-            final long stopCoordinate = mCompressedInputStream.getFilePointer();
+      public boolean hasNext() {
+        assertOpen();
+        return (mNextRecord != null);
+      }
 
-            if(mReader != null && next != null)
-                next.setFileSource(new SAMFileSource(mReader,new BAMFileSpan(new Chunk(startCoordinate,stopCoordinate))));
+      public SAMRecord next() {
+        assertOpen();
+        final SAMRecord result = mNextRecord;
+        advance();
+        return result;
+      }
 
-            return next;
+      void advance() {
+        try {
+          mNextRecord = getNextRecord();
+
+          if (mNextRecord != null) {
+            ++this.samRecordIndex;
+            // Because some decoding is done lazily, the record needs to remember the validation stringency.
+            mNextRecord.setValidationStringency(mValidationStringency);
+
+            if (mValidationStringency != ValidationStringency.SILENT) {
+              final List<SAMValidationError> validationErrors = mNextRecord.isValid(mValidationStringency == ValidationStringency.STRICT);
+              SAMUtils.processValidationErrors(validationErrors,
+                  this.samRecordIndex, BAMFileReader.this.getValidationStringency());
+            }
+          }
+
+          if (eagerDecode && mNextRecord != null) {
+            mNextRecord.eagerDecode();
+          }
+        } catch (final IOException exc) {
+          throw new RuntimeIOException(exc.getMessage(), exc);
         }
+      }
 
-        /**
-         * @return The record that will be return by the next call to next()
-         */
-        protected SAMRecord peek() {
-            return mNextRecord;
+      /**
+       * Read the next record from the input stream.
+       */
+      // (WARNING) File source of the SAMRecord is not set. See the original
+      // implementation to see how to set the file source.
+      SAMRecord getNextRecord() throws IOException {
+        try {
+          final SAMRecord next = buffer.take();
+          return next;
+        } catch (InterruptedException ie) {
+          System.err.println("InterruptedException in BAMFileReader.java");
         }
+        return null;
+      }
+
+      /**
+       * @return The record that will be return by the next call to next()
+       */
+      protected SAMRecord peek() {
+        return mNextRecord;
+      }
     }
+
+//    /**
+//     * Iterator for non-indexed sequential iteration through all SAMRecords in file.
+//     * Starting point of iteration is wherever current file position is when the iterator is constructed.
+//     */
+//    private class BAMFileIterator extends AbstractBamIterator {
+//        private SAMRecord mNextRecord = null;
+//        private final BAMRecordCodec bamRecordCodec;
+//        private long samRecordIndex = 0; // Records at what position (counted in records) we are at in the file
+// 
+// 
+//        BAMFileIterator() {
+//            this(true);
+//        }
+// 
+//        /**
+//         * @param advance Trick to enable subclass to do more setup before advancing
+//         */
+//        BAMFileIterator(final boolean advance) {
+//            this.bamRecordCodec = new BAMRecordCodec(getFileHeader(), samRecordFactory);
+//            this.bamRecordCodec.setInputStream(BAMFileReader.this.mStream.getInputStream(),
+//                    BAMFileReader.this.mStream.getInputFileName());
+// 
+//            if (advance) {
+//                advance();
+//            }
+//        }
+// 
+//        public boolean hasNext() {
+//            assertOpen();
+//            return (mNextRecord != null);
+//        }
+// 
+//        public SAMRecord next() {
+//            assertOpen();
+//            final SAMRecord result = mNextRecord;
+//            advance();
+//            return result;
+//        }
+// 
+//        void advance() {
+//            try {
+//                mNextRecord = getNextRecord();
+// 
+//                if (mNextRecord != null) {
+//                    ++this.samRecordIndex;
+//                    // Because some decoding is done lazily, the record needs to remember the validation stringency.
+//                    mNextRecord.setValidationStringency(mValidationStringency);
+// 
+//                    if (mValidationStringency != ValidationStringency.SILENT) {
+//                        final List<SAMValidationError> validationErrors = mNextRecord.isValid(mValidationStringency == ValidationStringency.STRICT);
+//                        SAMUtils.processValidationErrors(validationErrors,
+//                                this.samRecordIndex, BAMFileReader.this.getValidationStringency());
+//                    }
+//                }
+// 
+//                if (eagerDecode && mNextRecord != null) {
+//                    mNextRecord.eagerDecode();
+//                }
+//            } catch (final IOException exc) {
+//                throw new RuntimeIOException(exc.getMessage(), exc);
+//            }
+//        }
+// 
+//        /**
+//         * Read the next record from the input stream.
+//         */
+//        SAMRecord getNextRecord() throws IOException {
+//            final long startCoordinate = mCompressedInputStream.getFilePointer();
+//            final SAMRecord next = bamRecordCodec.decode();
+//            final long stopCoordinate = mCompressedInputStream.getFilePointer();
+// 
+//             In Markduplicates, mRead == null, SAMRecord.setFileSource is not invoked.
+//            if(mReader != null && next != null) {
+//                next.setFileSource(new SAMFileSource(mReader,new BAMFileSpan(new Chunk(startCoordinate,stopCoordinate))));
+//            }
+// 
+//            return next;
+//        }
+// 
+//        /**
+//         * @return The record that will be return by the next call to next()
+//         */
+//        protected SAMRecord peek() {
+//            return mNextRecord;
+//        }
+//    }
 
     /**
      * Prepare to iterate through SAMRecords in the given reference that start exactly at the given start coordinate.

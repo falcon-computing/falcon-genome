@@ -14,7 +14,7 @@ chr=$4
 
 check_input $input
 check_input $BQSR
-check_output $output
+check_output $output.done
 
 # check if index already exists
 if [ ! -f ${input}.bai ]; then
@@ -33,6 +33,7 @@ if [[ $chr > 4 && $chr < 9 ]]; then
 fi
 
 start_ts=$(date +%s)
+set -x
 $JAVA -d64 -Xmx$((nthreads * 2))g -jar $GATK \
     -T PrintReads \
     -R $ref_genome \
@@ -40,6 +41,7 @@ $JAVA -d64 -Xmx$((nthreads * 2))g -jar $GATK \
     -BQSR $BQSR \
     -nct $nthreads \
     -o $output
+set +x
 
 if [ "$?" -ne "0" ]; then
   echo "PrintReads for $(basename $input) failed"

@@ -69,6 +69,7 @@ public class BinaryCodec implements Closeable {
      * For byte swapping.
      */
     private ByteBuffer byteBuffer;
+    private ByteBuffer byteBufferForWrite;
 
     /**
      * For reading Strings of known length, this can reduce object creation
@@ -85,6 +86,12 @@ public class BinaryCodec implements Closeable {
 
     // We never serialize more than this much at a time (except for Strings)
     private static final int MAX_BYTE_BUFFER = 8;
+    // TODO(mhhuang) check if enlarging the buffer size here helps the performance
+    // or not. It might lead to GC issues. 
+    private static final int MAX_BYTE_BUFFER_WRITE = 4 * 1024;
+    // TODO(mhhuang): we probably don't need this variable. We can track this
+    // by byteBuffer.position()
+    private int byteBufferForWriteOffset = 0; 
 
     //////////////////////////////////////////////////
     // Constructors                                 //
@@ -157,6 +164,9 @@ public class BinaryCodec implements Closeable {
     private void initByteBuffer() {
         byteBuffer = ByteBuffer.allocate(MAX_BYTE_BUFFER);
         byteBuffer.order(LITTLE_ENDIAN);
+        byteBufferForWrite = ByteBuffer.allocate(MAX_BYTE_BUFFER_WRITE);
+        byteBufferForWrite.order(LITTLE_ENDIAN);
+        byteBufferForWriteOffset = 0;
     }
 
     //////////////////////////////////////////////////
@@ -170,8 +180,30 @@ public class BinaryCodec implements Closeable {
      * more bytes were put into the ByteBuffer than will get written out.
      */
     private void writeByteBuffer(final int numBytes) {
-        assert(numBytes <= byteBuffer.limit());
-        writeBytes(byteBuffer.array(), 0, numBytes);
+        assert(numBytes <= byteBufferForWrite.limit());
+        writeBytes(byteBufferForWrite.array(), 0, numBytes);
+    }
+
+    private void makeRoom(final int bytesToPut) {
+      if (byteBufferForWriteOffset + bytesToPut >= MAX_BYTE_BUFFER_WRITE) {
+        writeByteBuffer(byteBufferForWriteOffset);
+        byteBufferForWrite.clear();
+        byteBufferForWriteOffset = 0;
+      }
+    }
+
+    public void writeFlush() {
+      if (byteBufferForWriteOffset > 0) {
+        // TODO(mhhuang): clean up the code so that we don't have deal with the following
+        // cyclic dependency. 
+        //
+        // It's important to clear offset first to avoid cyclic dependency...
+        // writeFlush --> writeByteBuffer --> writeBytes --> writeFlush
+        int bytesToWrite = byteBufferForWriteOffset;
+        byteBufferForWriteOffset = 0;
+        writeByteBuffer(bytesToWrite);
+        byteBufferForWrite.clear();
+      }
     }
 
     /**
@@ -180,9 +212,12 @@ public class BinaryCodec implements Closeable {
      * @param bite byte array to write
      */
     public void writeByte(final byte bite) {
-        byteBuffer.clear();
-        byteBuffer.put(bite);
-        writeByteBuffer(1);
+        //byteBuffer.clear();
+        //byteBuffer.put(bite);
+        //writeByteBuffer(1);
+        makeRoom(1);
+        byteBufferForWrite.put(bite);
+        byteBufferForWriteOffset += 1;
     }
 
     public void writeByte(final int b) {
@@ -195,7 +230,7 @@ public class BinaryCodec implements Closeable {
      * @param bytes value to write
      */
     public void writeBytes(final byte[] bytes) {
-        writeBytes(bytes,  0, bytes.length);
+        writeBytes(bytes, 0, bytes.length);
     }
 
     public void writeBytes(final byte[] bytes, final int startOffset, final int numBytes) {
@@ -203,6 +238,8 @@ public class BinaryCodec implements Closeable {
             throw new IllegalStateException("Calling write method on BinaryCodec open for read.");
         }
         try {
+            // clear byteBuffer first if this call comes from outside of this class
+            writeFlush();
             outputStream.write(bytes, startOffset, numBytes);
         } catch (IOException e) {
             throw new RuntimeIOException(constructErrorMessage("Write error"), e);
@@ -215,9 +252,12 @@ public class BinaryCodec implements Closeable {
      * @param value int to write
      */
     public void writeInt(final int value) {
-        byteBuffer.clear();
-        byteBuffer.putInt(value);
-        writeByteBuffer(4);
+        //byteBuffer.clear();
+        //byteBuffer.putInt(value);
+        //writeByteBuffer(4);
+        makeRoom(4);
+        byteBufferForWrite.putInt(value);
+        byteBufferForWriteOffset += 4;
     }
 
     /**
@@ -226,9 +266,12 @@ public class BinaryCodec implements Closeable {
      * @param value double to write
      */
     public void writeDouble(final double value) {
-        byteBuffer.clear();
-        byteBuffer.putDouble(value);
-        writeByteBuffer(8);
+        //byteBuffer.clear();
+        //byteBuffer.putDouble(value);
+        //writeByteBuffer(8);
+        makeRoom(8);
+        byteBufferForWrite.putDouble(value);
+        byteBufferForWriteOffset += 8;
     }
 
     /**
@@ -237,9 +280,12 @@ public class BinaryCodec implements Closeable {
      * @param value long to write
      */
     public void writeLong(final long value) {
-        byteBuffer.clear();
-        byteBuffer.putLong(value);
-        writeByteBuffer(8);
+        //byteBuffer.clear();
+        //byteBuffer.putLong(value);
+        //writeByteBuffer(8);
+        makeRoom(8);
+        byteBufferForWrite.putLong(value);
+        byteBufferForWriteOffset += 8;
     }
 
 
@@ -247,9 +293,12 @@ public class BinaryCodec implements Closeable {
      * Write a 16-bit short to output stream
      */
     public void writeShort(final short value) {
-        byteBuffer.clear();
-        byteBuffer.putShort(value);
-        writeByteBuffer(2);
+        //byteBuffer.clear();
+        //byteBuffer.putShort(value);
+        //writeByteBuffer(2);
+        makeRoom(2);
+        byteBufferForWrite.putShort(value);
+        byteBufferForWriteOffset += 2;
     }
 
     /**
@@ -258,9 +307,12 @@ public class BinaryCodec implements Closeable {
      * @param value float to write
      */
     public void writeFloat(final float value) {
-        byteBuffer.clear();
-        byteBuffer.putFloat(value);
-        writeByteBuffer(4);
+        //byteBuffer.clear();
+        //byteBuffer.putFloat(value);
+        //writeByteBuffer(4);
+        makeRoom(4);
+        byteBufferForWrite.putFloat(value);
+        byteBufferForWriteOffset += 4;
     }
 
     /**
@@ -269,9 +321,12 @@ public class BinaryCodec implements Closeable {
      * @param value boolean to write
      */
     public void writeBoolean(final boolean value) {
-        byteBuffer.clear();
-        byteBuffer.put(value ? (byte)1 : (byte)0);
-        writeByteBuffer(1);
+        //byteBuffer.clear();
+        //byteBuffer.put(value ? (byte)1 : (byte)0);
+        //writeByteBuffer(1);
+        makeRoom(1);
+        byteBufferForWrite.put(value ? (byte)1 : (byte)0);
+        byteBufferForWriteOffset += 1;
     }
 
     /**
@@ -316,9 +371,13 @@ public class BinaryCodec implements Closeable {
         if (val > MAX_UBYTE) {
             throw new IllegalArgumentException("Value (" + val + ") to large to be written as ubyte.");
         }
-        byteBuffer.clear();
-        byteBuffer.putShort(val);
-        writeByteBuffer(1);
+        //byteBuffer.clear();
+        //byteBuffer.putShort(val);
+        //writeByteBuffer(1);
+        makeRoom(2);
+        byteBufferForWrite.putShort(val);
+        byteBufferForWrite.position(byteBufferForWrite.position()-1);
+        byteBufferForWriteOffset += 1;
     }
 
     /**
@@ -332,9 +391,13 @@ public class BinaryCodec implements Closeable {
         if (val > MAX_USHORT) {
             throw new IllegalArgumentException("Value (" + val + ") too large to be written as ushort.");
         }
-        byteBuffer.clear();
-        byteBuffer.putInt(val);
-        writeByteBuffer(2);
+        //byteBuffer.clear();
+        //byteBuffer.putInt(val);
+        //writeByteBuffer(2);
+        makeRoom(4);
+        byteBufferForWrite.putInt(val);
+        byteBufferForWrite.position(byteBufferForWrite.position()-2);
+        byteBufferForWriteOffset += 2;
     }
 
     /**
@@ -348,9 +411,13 @@ public class BinaryCodec implements Closeable {
         if (val > MAX_UINT) {
             throw new IllegalArgumentException("Value (" + val + ") to large to be written as uint.");
         }
-        byteBuffer.clear();
-        byteBuffer.putLong(val);
-        writeByteBuffer(4);
+        //byteBuffer.clear();
+        //byteBuffer.putLong(val);
+        //writeByteBuffer(4);
+        makeRoom(8);
+        byteBufferForWrite.putLong(val);
+        byteBufferForWrite.position(byteBufferForWrite.position()-4);
+        byteBufferForWriteOffset += 4;
     }
 
     //////////////////////////////////////////////////
@@ -590,6 +657,7 @@ public class BinaryCodec implements Closeable {
     public void close() {
         try {
             if (this.isWriting) {
+                writeFlush();
                 // To the degree possible, make sure the bytes get forced to the file system,
                 // or else cause an exception to be thrown.
                 this.outputStream.flush();

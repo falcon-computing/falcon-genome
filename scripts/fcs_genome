@@ -1,0 +1,50 @@
+################################################################################
+## This script is the user interface to call seperate genome steps
+################################################################################
+#!/bin/bash
+
+
+# Import global variables
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+source $DIR/globals.sh
+
+stage=$1
+if [ -z $stage ];then
+  echo "command is missing"
+  exit 1
+else
+  case $stage in
+    align)
+    shift
+    fcs_genome_align.sh "$@"
+    ;;
+    markdup)
+    shift
+    fcs_genome_markdup.sh "$@"
+    ;;
+    index)
+    shift
+    fcs_genome_index.sh "$@"
+    ;;
+    split)
+    shift
+    fcs_genome_split.sh "$@"
+    ;;
+    bqsr)
+    shift
+    fcs_genome_bqsr.sh "$@"
+    ;;
+    printread)
+    shift
+    fcs_genome_printRead.sh "$@"
+    ;;
+    haplotypecaller)
+    shift
+    fcs_genome_HaplotypeCaller.sh "$@"
+    ;;
+    all)
+    shift
+    fcs_genome_pipeline.sh "$@"
+    ;;
+  esac
+fi
