@@ -9,6 +9,9 @@
 #include <string>
 #include <unordered_map>
 
+std::string queue_name = 
+    "fcs-req_queue" + std::to_string((long long)getuid());
+
 int main(int argc, char** argv) {
 
   // Initialize Google Flags
@@ -32,7 +35,7 @@ int main(int argc, char** argv) {
     // Open message queue
     boost::interprocess::message_queue msg_q(
         boost::interprocess::open_only,
-        "fcs-req-queue");
+        queue_name.c_str());
 
     // Send own pid to message queue
     msg_q.send(&pid, sizeof(pid), 0);

@@ -9,11 +9,14 @@
 #include <string>
 #include <unordered_map>
 
+std::string queue_name = 
+    "fcs-req_queue" + std::to_string((long long)getuid());
+
 void sigint_handler(int s){
   LOG(INFO) << "Caught interrupt, removing queue";
   
   // Erase previous message queue
-  boost::interprocess::message_queue::remove("fcs-req-queue");
+  boost::interprocess::message_queue::remove(queue_name.c_str());
 
   exit(0); 
 }
@@ -68,12 +71,12 @@ int main(int argc, char** argv) {
 
   try {
     // Erase previous message queue
-    boost::interprocess::message_queue::remove("fcs-req-queue");
+    boost::interprocess::message_queue::remove(queue_name.c_str());
 
     // Create a message_queue.
     boost::interprocess::message_queue msg_q(
         boost::interprocess::create_only,
-        "fcs-req-queue",
+        queue_name.c_str(),
         64,
         sizeof(int)); 
 
