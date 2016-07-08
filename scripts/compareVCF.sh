@@ -136,6 +136,15 @@ gatk_compare_vcf() {
   local temp_comp=$(basename $2).comp.tmp;
   local output_file=$(basename $1).compare.rpt;
 
+  log_info "$JAVA -d64 -Xmx4g -jar $GATK \
+      -T VariantEval \
+      -R $ref_genome \
+      -D $db138_SNPs \
+      -noEV -EV CompOverlap \
+      --eval $eval_file \
+      --comp $base_file \
+      -o $output_file"
+
   $JAVA -d64 -Xmx4g -jar $GATK \
       -T VariantEval \
       -R $ref_genome \
@@ -143,44 +152,7 @@ gatk_compare_vcf() {
       -noEV -EV CompOverlap \
       --eval $eval_file \
       --comp $base_file \
-      -o $output_file > /dev/null;
-}
-
-gatk_compare_vcfs() {
-  local chr_list="$(seq 1 22) X Y MT";
-  local eval_dir=$1;
-  local comp_dir=$2;
-  local sample_id=`get_sample_id $comp_dir`;
-
-  for chr in $chr_list; do
-    local eval_vcf=$eval_dir/${sample_id}_chr${chr}.gvcf
-    local comp_vcf=$comp_dir/${sample_id}_chr${chr}.gvcf
-    gatk_compare_vcf $eval_vcf $comp_vcf 2> $log_dir/htc_chr${chr}.log &
-    pid_table["$chr"]=$!
-  done;
-
-  # Wait on all the tasks
-  for pid in ${pid_table[@]}; do
-    wait "${pid}"
-  done;
-
-  local n_extra=0;
-  local n_concordant=0;
-  for chr in $chr_list; do
-    local output_file=${sample_id}_chr${chr}.gvcf.compare.rpt
-    n_var=`grep novel $output_file | sed -n '2p' | awk '{print $(NF-3)}'`
-    n_con=`grep novel $output_file | sed -n '2p' | awk '{print $(NF-1)}'`
-    if [ $n_var -gt $n_con ]; then
-      n_extra=$(($n_extra + $n_var - $n_con))
-    fi
-    n_concordant=$(($n_concordant + $n_con))
-  done;
-  if [ "$n_extra" -eq "0" ]; then
-    (>&2 echo "HTC for $sample_id passes verification")
-  else
-    concordance=`bc <<< "scale=2; 100.0*$n_concordant / ($n_concordant + $n_extra)"`
-    (>&2 echo "HTC for $sample_id fails verification, concordance=$concordance")
-  fi;
+      -o $output_file 2> /dev/null;
 }
 
 # Check files in $comp_dir
@@ -252,6 +224,37 @@ if [[ "$tool" == "rtg" ]]; then
 elif [[ "$tool" == "gatk" ]]; then
   log_info "Using GATK to evaluate VCFs"
 
+  sample_id=$comp_id
+  chr_list="$(seq 1 22) X Y MT";
+  for chr in $chr_list; do
+    comp_vcf=$comp_dir/${sample_id}_chr${chr}.gvcf
+    base_vcf=$base_dir/${sample_id}_chr${chr}.gvcf
+    gatk_compare_vcf $comp_vcf $base_vcf &
+    pid_table["$chr"]=$!
+  done
+
+  # Wait on all the tasks
+  for pid in ${pid_table[@]}; do
+    wait "${pid}"
+  done
+
+  n_extra=0
+  n_concordant=0
+  for chr in $chr_list; do
+    output_file=${sample_id}_chr${chr}.gvcf.compare.rpt
+    n_var=`grep novel $output_file | sed -n '2p' | awk '{print $(NF-3)}'`
+    n_con=`grep novel $output_file | sed -n '2p' | awk '{print $(NF-1)}'`
+    if [ $n_var -gt $n_con ]; then
+      n_extra=$(($n_extra + $n_var - $n_con))
+    fi
+    n_concordant=$(($n_concordant + $n_con))
+  done
+  if [ "$n_extra" -eq "0" ]; then
+    log_error "HTC for $sample_id passes verification"
+  else
+    concordance=`bc <<< "scale=2; 100.0*$n_concordant / ($n_concordant + $n_extra)"`
+    log_error "HTC for $sample_id fails verification, concordance=$concordance"
+  fi
 else
   log_error "Error: Tool selection (-t) must either be 'rtg' or 'gatk'"
   exit 1
