@@ -10,9 +10,17 @@ fi
 chr=$1
 input=$2
 output=$3
+ref=$4
 
 check_input $input
 check_output $output
+
+echo $BASHPID > ${output}.pid
+kill_process(){
+  kill -5 $(jobs -p)
+  exit 1;
+}
+trap "kill_process" 1 2 3 15 
 
 chr_list="$(seq 1 22) X Y MT"
 # Check chromosome format 
@@ -21,7 +29,7 @@ if [[ "$chr_list" != *"$chr"* ]]; then
   exit 1;
 fi
 
-nthreads=6
+nthreads=4
 if [[ $chr > 0 && $chr < 3 ]]; then
     nthreads=12
 fi
@@ -30,20 +38,25 @@ if [[ $chr > 2 && $chr < 8 ]]; then
 fi
 
 start_ts=$(date +%s)
-$JAVA -d64 -Xmx$((nthreads * 2))g -jar $GATK \
+$JAVA -d64 -Xmx$((nthreads * 2 + 4))g -jar $GATK \
     -T HaplotypeCaller \
-    -R $ref_genome \
+    -R $ref \
     -I $input \
     --emitRefConfidence GVCF \
     --variant_index_type LINEAR \
     --variant_index_parameter 128000 \
     -L $chr \
     -nct $nthreads \
-    -o $output
-if [ "$?" -ne "0" ]; then
-  echo "HaplotypeCaller for CH:$chr failed"
-  exit -1;
-fi
+    -o $output &
+hptc_java_pid=$!
+echo $hptc_java_pid > ${output}.java.pid
+wait "$hptc_java_pid"
+rm ${output}.java.pid
+rm ${output}.pid
+#if [ "$?" -ne "0" ]; then
+#  echo "HaplotypeCaller for CH:$chr failed"
+#  exit -1;
+#fi
 end_ts=$(date +%s)
 echo "HaplotypeCaller on CH:$chr of $(basename $input) finishes in $((end_ts - start_ts))s"
 

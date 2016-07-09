@@ -37,24 +37,24 @@ done
 
 # Check the command 
 if [ ! -z $help_req ];then
-  echo  " USAGE: fcs_genome markdup -i <input_bam> -o <output_bam>"
-  echo  " The <input_bam> argument is necessary for the script to run, should contain the full name"
-  echo  " The <output> argument is the file to store the marked bam, could be empty."
+  echo  " USAGE: fcs_genome markdup -i <input.bam> -o <output.bam>"
+  echo  " The <input.bam> argument is necessary for the script to run, should contain the full name"
+  echo  " The <output.bam> argument is the file to store the markduped bam, could be empty."
   echo  " The <verbose> argument is the verbose level of the run, verbose=0 means quiet \
 and no output, verbose=1 means output errors, verbose=2 means detailed information. By default it is set to 1"
   exit 1;
 fi
 
 if [ -z $input ];then
-  echo " The <input_bam> argument is necessary for the script to run, should contain the full name"
-  echo " You should use -i <input_bam> to specify the input bam file"
+  echo " The input bam is not specified, please check the command"
+  echo " You should use -i <input.bam> to specify the input bam file"
   exit 1;
 fi 
 
 if [ -z $output ];then
   output=${tmp_dir[2]}/$(basename $input).markdups.bam
   echo "Output file is not set, the output file is stored to "$output" as default"
-  echo "If you want to set it, use the -o <output> option "
+  echo "If you want to set it, use the -o option "
 fi
 
 if [ -z $verbose ];then
@@ -126,4 +126,5 @@ fi
 
 end_ts=$(date +%s)
 echo "Mark duplicates finished in $((end_ts - start_ts))s"
-
+echo "The results can be found at $output "
+echo "Log can be found at $markdup_log_dir"

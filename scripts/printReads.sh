@@ -11,11 +11,22 @@ input=$1
 BQSR=$2
 output=$3
 chr=$4
+ref=$5
 
 check_input $input
 check_input $BQSR
-check_output $output.done
+#check_output ${output}.done
 
+echo $BASHPID
+echo $BASHPID > ${output}.pid
+
+kill_process(){
+#  echo "PrintReads interrupted"
+  kill -5 $(jobs -p)
+#  kill "$pr_java_pid"
+  exit 1;
+}
+trap "kill_process" 1 2 3 15 
 # check if index already exists
 if [ ! -f ${input}.bai ]; then
   start_ts=$(date +%s)
@@ -33,21 +44,26 @@ if [[ $chr > 4 && $chr < 9 ]]; then
 fi
 
 start_ts=$(date +%s)
-set -x
 $JAVA -d64 -Xmx$((nthreads * 2))g -jar $GATK \
     -T PrintReads \
-    -R $ref_genome \
+    -R $ref \
     -I $input \
     -BQSR $BQSR \
     -nct $nthreads \
-    -o $output
-set +x
+    -L $chr \
+    -o $output &
+pr_java_pid=$!
+echo $pr_java_pid > ${output}.java.pid
 
-if [ "$?" -ne "0" ]; then
-  echo "PrintReads for $(basename $input) failed"
-  exit -1;
-fi
+#if [ "$?" -ne "0" ]; then
+#  echo "PrintReads for $(basename $input) failed"
+#  exit -1;
+#fi
+wait "$pr_java_pid"
+rm ${output}.java.pid
+rm ${output}.pid
+
 end_ts=$(date +%s)
-echo "PrintReads for $(basename $input) finishes in $((end_ts - start_ts))s"
+echo "PrintReads for $(basename $output) finishes in $((end_ts - start_ts))s"
 
 echo "done" > ${output}.done
