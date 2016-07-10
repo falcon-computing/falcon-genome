@@ -36,6 +36,9 @@ case $key in
     verbose="$2"
     shift
     ;;
+    -f|--force)
+    force_flag=YES
+    ;;
     -h|--help)
     help_req=YES
     ;;
@@ -100,10 +103,16 @@ create_dir $bqsr_log_dir
 create_dir $bqsr_manager_dir
 
 check_input $input
-check_output $output_rpt
+if [ ! -z $force_flag ];then
+   echo "Force option is used"
+   check_output_force $output_rpt
+  else
+   check_output $output_rpt
+fi
 
 #Clear the done files to recover
-rm $rpt_dir/.*.done> /dev/null 
+rm $rpt_dir/.${output_rpt}*> /dev/null 
+rm $rpt_dir/${output_rpt}.*> /dev/null 
 rm .queue -rf> /dev/null
 
 # Table storing all the pids for tasks within one stage
@@ -175,4 +184,4 @@ kill $manager_pid
 
 end_ts=$(date +%s);
 echo "bqsr for $(basename $output_rpt) finishes in $((end_ts - start_ts))s"
-
+echo "The output could be found at $output_rpt"

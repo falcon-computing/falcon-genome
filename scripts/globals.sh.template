@@ -35,7 +35,8 @@ check_input() {
 check_output() {
   filename=$1;
   if [ -f $filename ]; then
-    echo -e "Output file $filename already exists,do you want to run again to cover it? \e[31m[yes|no]\e[0m"
+    echo -e "Output file $filename already exists,do you want to overwrite it? \e[31m[yes|no]\e[0m"
+    echo "You can run with -f option to skip this promt"
     read answer
     if [ $answer == "yes" ];then
       echo "Continue to cover the $filename"
@@ -54,6 +55,20 @@ check_output() {
     exit 1;
   fi;
   rm $filename;
+}
+
+check_output_force() {
+  filename=$1;
+  if [ -f $filename ]; then
+    echo "Output file $filename already exists, would overwrite it since force option is detected "
+  fi;
+  # Check if output folder writtable
+  echo "1" > $filename;
+  if [ ! -f $filename ]; then
+    echo "Cannot write to folder $(dirname $filename)";
+    exit 1;
+  fi;
+  rm $filename & 
 }
 
 

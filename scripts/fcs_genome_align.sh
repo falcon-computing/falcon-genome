@@ -37,6 +37,9 @@ case $key in
     verbose="$2"
     shift
     ;;
+    -f|--force)
+    force_flag=YES
+    ;;
     -h|--help)
     help_req=YES
     ;;
@@ -58,14 +61,21 @@ and no output, verbose=1 means output errors, verbose=2 means detailed informati
   exit 1;
 fi
 
+
 if [ -z $ref_fasta ];then
   ref_fasta=$ref_genome
   echo "The reference fasta is not specified, by default we would use $ref_fasta"
   echo "You should use -r <ref.fasta> to specify the reference"
 fi
 
-if [ -z $fastq1 -o -z $fastq2 ];then
-  echo "The fastq file is not specified, please check the command"
+if [ -z $fastq1 ];then
+  echo "The fastq1 file is not specified, please check the command"
+  echo "You should use -fq1 <input_1.fastq> -fq2 <input_2.fastq> to specify the fastq file"
+  exit 1
+fi
+
+if [ -z $fastq2 ];then
+  echo "The fastq2 file is not specified, please check the command"
   echo "You should use -fq1 <input_1.fastq> -fq2 <input_2.fastq> to specify the fastq file"
   exit 1
 fi
@@ -129,7 +139,12 @@ echo "The intermediate files OF BWA alignment are stored to $tmp_dir"
 
 check_input $fastq1
 check_input $fastq2
-check_output $output
+if [ ! -z $force_flag ];then
+   echo "Force option is used"
+   check_output_force $output
+  else
+   check_output $output
+fi
 check_output_dir $tmp_dir
 
 # Create the directories of the run
@@ -141,7 +156,6 @@ check_output_dir $bwa_log_dir
 output_parts_dir=$tmp_dir/$(basename $output).parts
 
 # Use pseudo input for header
-# TODO(yaoh) maybe let the below arguments flexible to user
 
 if [ "$bwa_sort" -gt 0 ]; then
   ext_options="--sort --max_num_records=2000000"
@@ -236,4 +250,5 @@ fi
 rm -r $output_parts_dir &
 
 end_ts=$(date +%s)
-echo "Samtools sort for $(basename $output) finishes in $((end_ts - start_ts))s"
+echo "Samtools sort for finishes in $((end_ts - start_ts))s"
+echo "The output can be found at $output "

@@ -10,7 +10,8 @@ source $DIR/globals.sh
 
 stage=$1
 if [ -z $stage ];then
-  echo "command is missing"
+  echo "No command input, please use -l|--list to see the available commands"
+  echo "you can use -h|--help to see the detailed help information"
   exit 1
 else
   case $stage in
@@ -37,6 +38,13 @@ else
     all)
     shift
     fcs_genome_pipeline.sh "$@"
+    ;;
+    -l|--list)
+    echo "align|al"
+    echo "markdup|md"
+    echo "baseRecal|bqsr"
+    echo "printReads|pr"
+    echo "haplotypeCaller|hptc"
     ;;
     -h|--help)
     echo " The fcs_genome have several commands to do single stages or the whole pipeline"

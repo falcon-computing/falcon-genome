@@ -32,6 +32,9 @@ case $key in
     clean_flag="$2"
     shift
     ;;
+    -f|--force)
+    force_flag=YES
+    ;;
     -h|--help)
     help_req=YES
     ;;
@@ -45,7 +48,7 @@ done
 if [ ! -z $help_req ];then
   echo " USAGE: fcs_genome haplotypecaller -r <ref.fasta> -i <input_base> -c <chr_dir> -o <output_dir>"
   echo " The <input_base> argument is the basename of the input bams, shoud not contain suffixes"
-  echo " The <chr_dir> argument is the directory to find the input bams"
+  echo " The <chr_dir> argument is the directory to find the input recal bams"
   echo " The <output_dir> argument is the directory to put the output vcf results"
 #  echo " The <verbose> argument is the verbose level of the run, verbose=0 means quiet \
 #and no output, verbose=1 means output errors, verbose=2 means detailed information. By default it is set to 1"
@@ -100,7 +103,12 @@ for chr in $chr_list; do
   fi
 done
 chr_vcf=$vcf_dir/${input_base}_chr1.gvcf
-check_output $chr_vcf
+if [ ! -z $force_flag ];then
+   echo "Force option is used"
+   check_output_force $chr_vcf
+  else
+   check_output $chr_vcf
+fi
 rm $vcf_dir/${input_base}_chr*.gvcf>/dev/null
 
 # Create the directorys
