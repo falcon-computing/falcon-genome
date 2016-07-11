@@ -10,35 +10,28 @@ source $DIR/globals.sh
 
 stage=$1
 if [ -z $stage ];then
-  echo "command is missing"
+  echo "No command input, please use -l|--list to see the available commands"
+  echo "you can use -h|--help to see the detailed help information"
   exit 1
 else
   case $stage in
-    align)
+    al|align)
     shift
     fcs_genome_align.sh "$@"
     ;;
-    markdup)
+    md|markdup)
     shift
     fcs_genome_markdup.sh "$@"
     ;;
-    index)
-    shift
-    fcs_genome_index.sh "$@"
-    ;;
-    split)
-    shift
-    fcs_genome_split.sh "$@"
-    ;;
-    bqsr)
+    bqsr|baseRecal)
     shift
     fcs_genome_bqsr.sh "$@"
     ;;
-    printread)
+    pr|printReads)
     shift
     fcs_genome_printRead.sh "$@"
     ;;
-    haplotypecaller)
+    hptc|haplotypecaller)
     shift
     fcs_genome_HaplotypeCaller.sh "$@"
     ;;
@@ -46,5 +39,27 @@ else
     shift
     fcs_genome_pipeline.sh "$@"
     ;;
+    -l|--list)
+    echo "align|al"
+    echo "markdup|md"
+    echo "baseRecal|bqsr"
+    echo "printReads|pr"
+    echo "haplotypeCaller|hptc"
+    ;;
+    -h|--help)
+    echo " The fcs_genome have several commands to do single stages or the whole pipeline"
+    echo " Basically there are align. markdup. baseRecal. printReads and haplotypeCaller, these command could be use in alias or complete name"
+    echo " For the alignment process"
+    echo " USAGE: fcs_genome align|al -r <ref.fasta> -fq1 <input_1.fastq> -fq2 <input_2.fastq> -o <output.bam> \
+-R <@RG\tID:rg_id\tSM:sample_id\tPL:platform\tLB:library>"
+    echo " For the Mark Duplicate process"
+    echo " USAGE: fcs_genome markdup|md -i <input.bam> -o <output.bam>"
+    echo " For the Base Recalibration process"
+    echo " USAGE: fcs_genome bqsr|baseRecal -r <ref.fasta> -i <input> -knownSites <xx.vcf> -o <output.rpt> " 
+    echo " For the Print Reads process"
+    echo " USAGE: fcs_genome printread|pr -r <ref.fasta> -i <input.bam> -bqsr calibrate.rpt -o <output_dir> "
+    echo " For the Haploytype Caller process"
+    echo " USAGE: fcs_genome haplotypecaller|hptc -r <ref.fasta> -i <input_base> -c <chr_dir> -o <output_dir>"
+    
   esac
 fi

@@ -38,7 +38,7 @@ done
 
 # Check the command 
 if [ ! -z $help_req ];then
-   echo "USAGE: fcs_genome pipeline -f <fastq_basename> -o <output_dir> -t1 <temp_dir1> -t2 <temp_dir2>"
+   echo "USAGE: fcs_genome pipeline -f <fastq_basename> -o <output_dir>" 
    exit 1
 fi
 
@@ -66,7 +66,7 @@ if [ -z $temp_dir2 ];then
 fi
 
 # Start the bwa mem alignment
-fcs_genome align -f $fastq_base -o $tmp_dir1/${fastq_base}.bam -t $tmp_dir2
+fcs_genome align -f $fastq_base -o $tmp_dir1/${fastq_base}.bam 
 
 if [ "$?" -ne 0 ]; then
   echo "Alignment failed"
@@ -74,14 +74,14 @@ if [ "$?" -ne 0 ]; then
 fi
 
 # Start the Mark Duplicates
-fcs_genome markdup -i $tmp_dir1/${fastq_base}.bam -o $tmp_dir2/${fastq_base}.bam.markdups.bam -t $tmp_dir1
+fcs_genome markdup -i $tmp_dir1/${fastq_base}.bam -o $tmp_dir2/${fastq_base}.bam.markdups.bam 
 
 if [ "$?" -ne 0 ]; then
   echo "MarkDuplicate failed"
   exit 2;
 fi
 
-if [ "$clean_flag" =="true" ]; then
+if [ "$clean_flag" == "true" ]; then
   echo "Clean the input sorted bam for space"
   rm $tmp_dir1/${fastq_base}.bam &
 fi
@@ -96,8 +96,8 @@ if [ "$?" -ne 0 ]; then
 fi
 
 # then split the bam file 
-fcs_genome split -i $tmp_dir2/${fastq_base}.bam.markdups.bam -o $tmp_dir1 #&
-#split_pid=$!
+fcs_genome split -i $tmp_dir2/${fastq_base}.bam.markdups.bam -o $tmp_dir1 &
+split_pid=$!
 
 # then do the bqsr
 rpt_dir=$output_dir/rpt
@@ -110,7 +110,7 @@ if [ "$?" -ne 0 ]; then
 fi
 
 # Wait for split to finish
-#wait "${split_pid}"
+wait "${split_pid}"
 
 # Start PrintRead
 fcs_genome printread -i $fastq_base -c $tmp_dir1 -r $rpt_dir
@@ -123,7 +123,7 @@ fi
 # Start HaplotypeCaller
 vcf_dir=$output_dir/vcf
 create_dir $vcf_dir
-fcs_genome haplotypecaller -i gcat_300k -c $tmp_dir2 -o $vcf_dir 
+fcs_genome haplotypecaller -i $fastq_base -c $tmp_dir2 -o $vcf_dir 
 if [ "$?" -ne 0 ]; then
   echo "HaplotypeCaller failed"
   exit 5;

@@ -25,6 +25,9 @@ case $key in
     verbose="$2"
     shift
     ;;
+    -f|--force)
+    force_flag=YES
+    ;;
     -h|--help)
     help_req=YES
     ;;
@@ -37,24 +40,26 @@ done
 
 # Check the command 
 if [ ! -z $help_req ];then
-  echo  " USAGE: fcs_genome markdup -i <input_bam> -o <output_bam>"
-  echo  " The <input_bam> argument is necessary for the script to run, should contain the full name"
-  echo  " The <output> argument is the file to store the marked bam, could be empty."
-  echo  " The <verbose> argument is the verbose level of the run, verbose=0 means quiet \
-and no output, verbose=1 means output errors, verbose=2 means detailed information. By default it is set to 1"
+  echo  " USAGE: fcs_genome markdup -i <input.bam> -o <output.bam>"
+  echo  " The <input.bam> argument is necessary for the script to run, should contain the full name"
+  echo  " The <output.bam> argument is the file to store the markduped bam, could be empty."
+#  echo  " The <verbose> argument is the verbose level of the run, verbose=0 means quiet \
+#and no output, verbose=1 means output errors, verbose=2 means detailed information. By default it is set to 1"
   exit 1;
 fi
 
 if [ -z $input ];then
-  echo " The <input_bam> argument is necessary for the script to run, should contain the full name"
-  echo " You should use -i <input_bam> to specify the input bam file"
+  echo " The input bam is not specified, please check the command"
+  echo " You should use -i <input.bam> to specify the input bam file"
   exit 1;
 fi 
 
 if [ -z $output ];then
-  output=${tmp_dir[2]}/$(basename $input).markdups.bam
+  fastq_base_withsuffix=$(basename $input)
+  fastq_base=${fastq_base_withsuffix%.*} 
+  output=${tmp_dir[2]}/${fastq_base}.markdups.bam
   echo "Output file is not set, the output file is stored to "$output" as default"
-  echo "If you want to set it, use the -o <output> option "
+  echo "If you want to set it, use the -o option "
 fi
 
 if [ -z $verbose ];then
@@ -70,8 +75,15 @@ echo "The intermediate files of mark duplicate are stored to $tmp_dir as default
 # Find the input bam
 
 check_input $input
-check_output $output
-check_output ${output}.dup_stats
+if [ ! -z $force_flag ];then
+   echo "Force option is used"
+   check_output_force $output
+   check_output_force ${output}.dup_stats
+  else
+   check_output $output
+   check_output ${output}.dup_stats
+fi
+check_output_dir $tmp_dir
 check_output_dir $tmp_dir
 
 markdup_log_dir=$log_dir/markdup
@@ -126,4 +138,4 @@ fi
 
 end_ts=$(date +%s)
 echo "Mark duplicates finished in $((end_ts - start_ts))s"
-
+echo "The results can be found at $output "

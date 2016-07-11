@@ -13,17 +13,32 @@ do
 key="$1"
 
 case $key in
-    -f|--fastq)
-    fastq_base="$2"
-    shift # past argument
+    -r|--ref)
+    ref_fasta="$2"
+    shift
+    ;;
+    -fq1|--fastq1)
+    fastq1="$2"
+    shift
+    ;;
+    -fq2|--fastq2)
+    fastq2="$2"
+    shift
     ;;
     -o|--output)
     output="$2"
-    shift # past argument
+    shift
+    ;;
+    -R|-r)
+    RGinfo="$2"
+    shift
     ;;
     -v|--verbose)
     verbose="$2"
     shift
+    ;;
+    -f|--force)
+    force_flag=YES
     ;;
     -h|--help)
     help_req=YES
@@ -37,26 +52,53 @@ done
 
 # Check the command 
 if [ ! -z $help_req ];then
-  echo  " USAGE: fcs_genome align -f <fastq_basename> -o <output> -v <verbose>"
-  echo  " The <fastq_basename> argument is necessary for the script to run, should not \
-contain suffixes and should be put in $fastq_dir in default."
-  echo  " The <output> argument is the file to store the sorted bam, could be empty."
+  echo  " USAGE: fcs_genome align -r <ref.fasta> -fq1 <input_1.fastq> -fq2 <input_2.fastq> -o <output.bam> \
+-R <@RG\tID:rg_id\tSM:sample_id\tPL:platform\tLB:library>"
+  echo  " The <output> argument is the file to store the sorted bam, could be empty"
+  echo  " The -R option allows you to specify the read group information, coule be empty"
   echo  " The <verbose> argument is the verbose level of the run, verbose=0 means quiet \
 and no output, verbose=1 means output errors, verbose=2 means detailed information. By default it is set to 1"
   exit 1;
 fi
 
-if [ -z $fastq_base ];then
-  echo "The <fastq_basename> argument is nessary for the script to run, should not contain suffixes"
-  echo "You should use -f <fastq_baseneme> to pass in the fastq basename"
+
+if [ -z $ref_fasta ];then
+  ref_fasta=$ref_genome
+  echo "The reference fasta is not specified, by default we would use $ref_fasta"
+  echo "You should use -r <ref.fasta> to specify the reference"
+fi
+
+if [ -z $fastq1 ];then
+  echo "The fastq1 file is not specified, please check the command"
+  echo "You should use -fq1 <input_1.fastq> -fq2 <input_2.fastq> to specify the fastq file"
   exit 1
 fi
+
+if [ -z $fastq2 ];then
+  echo "The fastq2 file is not specified, please check the command"
+  echo "You should use -fq1 <input_1.fastq> -fq2 <input_2.fastq> to specify the fastq file"
+  exit 1
+fi
+
+fastq_base_withsuffix=$(basename $fastq1)
+fastq_base=${fastq_base_withsuffix%_1.*} 
+echo "$fastq_base is the fastq base name"
 
 if [ -z $output ];then
   create_dir ${tmp_dir[1]}
   output=${tmp_dir[1]}/${fastq_base}.bam
   echo "Output file is not set, the output file is stored to "$output" as default"
   echo "If you want to set it, use the -o <output> option "
+fi
+
+if [ -z $RGinfo ];then
+  sample_id=SEQ01
+  RG_ID=SEQ01
+  platform=ILLUMINA
+  library=HUMsgR2AQDCAAPE
+  RGinfo="@RG\tID:$RG_ID\tSM:$sample_id\tPL:$platform\tLB:$library"
+  echo "Read group information is not specified, by default it is set to $RGinfo"
+  echo "If you want to set it, use the -R option "
 fi
 
 if [ -z $verbose ];then
@@ -68,26 +110,26 @@ fi
 
 
 # Find the input fastqs
-fastq1_base=$fastq_dir/${fastq_base}_1  
-fastq2_base=$fastq_dir/${fastq_base}_2
-echo "Finding fastq files in $fastq_dir"
-echo
-if [ -f "${fastq1_base}.fastq" -a -f "${fastq2_base}.fastq" ];then
-  fastq1=${fastq1_base}.fastq
-  fastq2=${fastq2_base}.fastq 
-  echo "Input file found, using $fastq1 and $fastq2 as input"
-elif [ -f "${fastq1_base}.fastq.gz" -a -f "${fastq2_base}.fastq.gz" ];then
-  fastq1=${fastq1_base}.fastq.gz
-  fastq2=${fastq2_base}.fastq.gz 
-  echo "Input file found, using $fastq1 and $fastq2 as input"
-elif [ -f "${fastq1_base}.fq" -a -f "${fastq2_base}.fq" ];then
-  fastq1=${fastq1_base}.fq
-  fastq2=${fastq2_base}.fq
-  echo "Input file found, using $fastq1 and $fastq2 as input"
-else
-  echo "Cannot find input file in $fastq_dir, please ensure that you have put the fastq input at $fastq_dir"
-  exit -1
-fi
+#fastq1_base=$fastq_dir/${fastq_base}_1  
+#fastq2_base=$fastq_dir/${fastq_base}_2
+#echo "Finding fastq files in $fastq_dir"
+#echo
+#if [ -f "${fastq1_base}.fastq" -a -f "${fastq2_base}.fastq" ];then
+#  fastq1=${fastq1_base}.fastq
+#  fastq2=${fastq2_base}.fastq 
+#  echo "Input file found, using $fastq1 and $fastq2 as input"
+#elif [ -f "${fastq1_base}.fastq.gz" -a -f "${fastq2_base}.fastq.gz" ];then
+#  fastq1=${fastq1_base}.fastq.gz
+#  fastq2=${fastq2_base}.fastq.gz 
+#  echo "Input file found, using $fastq1 and $fastq2 as input"
+#elif [ -f "${fastq1_base}.fq" -a -f "${fastq2_base}.fq" ];then
+#  fastq1=${fastq1_base}.fq
+#  fastq2=${fastq2_base}.fq
+#  echo "Input file found, using $fastq1 and $fastq2 as input"
+#else
+#  echo "Cannot find input file in $fastq_dir, please ensure that you have put the fastq input at $fastq_dir"
+#  exit -1
+#fi
   
 bwa_sort=1
 
@@ -97,7 +139,12 @@ echo "The intermediate files OF BWA alignment are stored to $tmp_dir"
 
 check_input $fastq1
 check_input $fastq2
-check_output $output
+if [ ! -z $force_flag ];then
+   echo "Force option is used"
+   check_output_force $output
+  else
+   check_output $output
+fi
 check_output_dir $tmp_dir
 
 # Create the directories of the run
@@ -109,11 +156,6 @@ check_output_dir $bwa_log_dir
 output_parts_dir=$tmp_dir/$(basename $output).parts
 
 # Use pseudo input for header
-# TODO(yaoh) maybe let the below arguments flexible to user
-sample_id=SEQ01
-RG_ID=SEQ01
-platform=ILLUMINA
-library=HUMsgR2AQDCAAPE
 
 if [ "$bwa_sort" -gt 0 ]; then
   ext_options="--sort --max_num_records=2000000"
@@ -140,11 +182,11 @@ case $verbose in
     0)
     # Put all the information to log, not displaying
     $BWA mem -M \
-    -R "@RG\tID:$RG_ID\tSM:$sample_id\tPL:$platform\tLB:$library" \
+    -R "$RGinfo" \
     --log_dir=$bwa_log_dir/ \
     --output_dir=$output_parts_dir \
     $ext_options \
-    $ref_genome \
+    $ref_fasta \
     $fastq1 \
     $fastq2 \
     2> $bwa_log_dir/bwa_run_err.log 1> $bwa_log_dir/bwa_run.log
@@ -152,11 +194,11 @@ case $verbose in
     1)
     # Put stdout to log, stderr to log and display
     $BWA mem -M \
-    -R "@RG\tID:$RG_ID\tSM:$sample_id\tPL:$platform\tLB:$library" \
+    -R "$RGinfo" \
     --log_dir=$bwa_log_dir/ \
     --output_dir=$output_parts_dir \
     $ext_options \
-    $ref_genome \
+    $ref_fasta \
     $fastq1 \
     $fastq2 \
     > $bwa_log_dir/bwa_run.log 2> >(tee $bwa_log_dir/bwa_run_err.log >&2)
@@ -164,11 +206,11 @@ case $verbose in
     2)
     # Put all the information to log and display
     $BWA mem -M \
-    -R "@RG\tID:$RG_ID\tSM:$sample_id\tPL:$platform\tLB:$library" \
+    -R "$RGinfo" \
     --log_dir=$bwa_log_dir/ \
     --output_dir=$output_parts_dir \
     $ext_options \
-    $ref_genome \
+    $ref_fasta \
     $fastq1 \
     $fastq2 \
     > >(tee $bwa_log_dir/bwa_run.log) 2> >(tee $bwa_log_dir/bwa_run_err.log >&2)
@@ -185,9 +227,9 @@ echo "BWA mem finishes in $((end_ts - start_ts))s"
 # Increase the max number of files that can be opened concurrently
 ulimit -n 2048
 
-sort_files=$(find $output_dir -name part-* 2>/dev/null)
+sort_files=$(find $output_parts_dir -name part-* 2>/dev/null)
 if [[ -z "$sort_files" ]]; then
-  >&2 echo "Folder $output_dir is empty, could not start sorting"
+  >&2 echo "Folder $output_parts_dir is empty, could not start sorting"
   exit 1
 fi
 
@@ -208,4 +250,5 @@ fi
 rm -r $output_parts_dir &
 
 end_ts=$(date +%s)
-echo "Samtools sort for $(basename $output) finishes in $((end_ts - start_ts))s"
+echo "Samtools sort for finishes in $((end_ts - start_ts))s"
+echo "The output can be found at $output "
