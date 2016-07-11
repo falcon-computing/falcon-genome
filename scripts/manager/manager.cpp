@@ -12,23 +12,44 @@
 std::string queue_name = 
     "fcs-req_queue" + std::to_string((long long)getuid());
 
+// Record all outstanding requests
+std::unordered_map<int, std::string> client_table;
+std::queue<std::string>              pending_requests;
+
 void sigint_handler(int s){
   LOG(INFO) << "Caught interrupt, removing queue";
   
   // Erase previous message queue
   boost::interprocess::message_queue::remove(queue_name.c_str());
 
+  // Erase all client queue
+  for (auto iter = client_table.begin();
+       iter != client_table.end();
+       iter++) {
+    boost::interprocess::message_queue::remove(
+        std::to_string((long long)iter->first).c_str());
+    DLOG(INFO) << "Remove client queue for " << iter->first;
+  }
+  
+  // Erase all client queue
+  while (!pending_requests.empty()) {
+    std::string client_pid = pending_requests.front();
+    boost::interprocess::message_queue::remove(client_pid.c_str());
+    DLOG(INFO) << "Remove client queue for " << client_pid;
+    pending_requests.pop();
+  }
+
   exit(0); 
 }
 
 int main(int argc, char** argv) {
 
+  // Initialize Google Log
+  google::InitGoogleLogging(argv[0]);
+
   // Initialize Google Flags
   gflags::SetUsageMessage(argv[0]);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
-
-  // Initialize Google Log
-  google::InitGoogleLogging(argv[0]);
 
   if (argc < 2) {
     printf("Usage: %s host_file\n", argv[0]);
@@ -41,9 +62,7 @@ int main(int argc, char** argv) {
   // Build table for hosts and their slots
   std::unordered_map<std::string, int>  host_slots_table;
   std::unordered_map<std::string, int>  host_usage_table;
-  std::unordered_map<int, std::string>  client_table;
   std::queue<std::string>               available_hosts;
-  std::queue<std::string>               pending_requests;
 
   // Parse host file
   std::ifstream fin(argv[1]);

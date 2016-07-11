@@ -45,7 +45,8 @@ int main(int argc, char** argv) {
       boost::this_thread::sleep_for(boost::chrono::microseconds(100));
 
       // Start waiting for allocated slot
-      while (true) {
+      bool wait_for_setup = true;
+      while (wait_for_setup) {
         try {
           char host[1000];
           unsigned int priority = 0;
@@ -53,13 +54,24 @@ int main(int argc, char** argv) {
 
           DLOG(INFO) << "Opening queue " << std::to_string((long long) pid).c_str();
 
-          boost::interprocess::message_queue client_q(
-              boost::interprocess::open_only,
-              std::to_string((long long)pid).c_str());
+          bool wait_for_msg = true;
+          while (wait_for_msg) {
+            boost::interprocess::message_queue client_q(
+                boost::interprocess::open_only,
+                std::to_string((long long)pid).c_str());
 
-          DLOG(INFO) << "Opened queue " << std::to_string((long long) pid).c_str();
+            // At this point exception means there are something wrong
+            wait_for_setup = false;
+            DLOG_IF(INFO, wait_for_setup) << "Opened queue " 
+              << std::to_string((long long) pid).c_str();
 
-          client_q.receive(host, 1000, recv_size, priority);
+            // Try receiving a message
+            wait_for_msg = !client_q.try_receive(host, 1000, recv_size, priority);
+
+            if (wait_for_msg) {
+              boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
+            }
+          }
 
           // Just to make sure char* is ended properly
           host[recv_size] = '\0';
@@ -69,10 +81,16 @@ int main(int argc, char** argv) {
           break;
         }
         catch (boost::interprocess::interprocess_exception &e) {
-          DLOG(INFO) << "Queue is not established yet, wait for a while: " 
-            << e.what();
-          // Catch exception when client_q is not created yet
-          boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
+          if (wait_for_setup) {
+            // Catch exception when client_q is not created yet
+            DLOG(INFO) << "Queue is not established yet, wait for a while: " 
+              << e.what();
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
+          }
+          else {
+            DLOG(INFO) << "Failure in receiving from manager: " << e.what();
+            return 1;
+          }
         }
       }
     }

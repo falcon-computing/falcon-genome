@@ -1,7 +1,8 @@
 include config.mk
 
-CFLAGS 	:= -g -std=c++0x -fPIC -O1 -DNDEBUG\
-	   -Wno-deprecated-declarations
+CFLAGS 	:= -g -std=c++0x -fPIC -O1 \
+	   -Wno-deprecated-declarations \
+	   -DNDEBUG 
 
 INCLUDES:= -I. \
 	   -I$(BOOST_DIR)/include \
