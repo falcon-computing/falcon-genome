@@ -1,0 +1,61 @@
+################################################################################
+## This script is the user interface to call seperate genome steps
+################################################################################
+#!/usr/bin/env bash
+
+# Import global variables
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+source $DIR/globals.sh
+
+print_help() {
+  echo "'fcs-genome' have the following commands:"
+  echo "Alignment: "
+  ehco "  fcs-genome align|al -r <ref.fasta> -fq1 <input_1.fastq> -fq2 <input_2.fastq> -o <output.bam>"
+  echo "Mark Duplicate: "
+  echo "  fcs-genome markDup|md -i <input.bam> -o <output.bam>"
+  echo "Base Recalibration:"
+  echo "  fcs-genome baseRecal|bqsr -r <ref.fasta> -i <input> -knownSites <xx.vcf> -o <output.rpt>"
+  echo "Print Reads:"
+  echo "  fcs-genome printReads|pr -r <ref.fasta> -i <input.bam> -bqsr calibrate.rpt -o <output_dir>"
+  echo "Haploytype Caller:"
+  echo "  fcs-genome haplotypeCaller|hptc -r <ref.fasta> -i <input_base> -c <chr_dir> -o <output_dir>"
+}
+
+stage=$1
+if [ -z $stage ];then
+  print_help
+  exit 1
+else
+  case $stage in
+  al|align)
+    shift
+    $DIR/fcs_genome_align.sh "$@"
+    ;;
+  md|markdup)
+    shift
+    $DIR/fcs_genome_markdup.sh "$@"
+    ;;
+  bqsr|baseRecal)
+    shift
+    $DIR/fcs_genome_bqsr.sh "$@"
+    ;;
+  pr|printReads)
+    shift
+    source $DIR/stage-worker/printReads.sh "$@"
+    ;;
+  hptc|haplotypeCaller)
+    shift
+    $DIR/fcs_genome_HaplotypeCaller.sh "$@"
+    ;;
+  all)
+    shift
+    $DIR/fcs_genome_pipeline.sh "$@"
+    ;;
+  -l|--list)
+    print_help
+    ;;
+  -h|--help)
+    print_help
+    ;;
+  esac
+fi
