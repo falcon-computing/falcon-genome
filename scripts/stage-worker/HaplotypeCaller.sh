@@ -150,22 +150,23 @@ done
 # Wait on all the tasks
 log_file=$hptc_log_dir/HaplotypeCaller.log
 is_error=0
-for pid in ${pid_table[@]}; do
+for chr in ${!pid_table[@]}; do
+  pid=${pid_table[$chr]}
   wait "${pid}"
   if [ "$?" -gt 0 ]; then
     is_error=1
     log_error "HaplotypeCaller failed on chromosome $chr"
   fi
 
+  # Concat log and remove the individual ones
+  chr_log=$hptc_log_dir/haplotypeCaller_chr${chr}.log
+  cat $chr_log >> $log_file
+  rm -f $chr_log
 done
 
 for chr in $chr_list; do
   chr_bam=$chr_dir/${input_base}.bam.recal.chr${chr}.bam
   chr_vcf=$vcf_dir/${input_base}_chr${chr}.gvcf
-  # Concat log and remove the individual ones
-  chr_log=$hptc_log_dir/haplotypeCaller_chr${chr}.log
-  cat $chr_log >> $log_file
-  rm -f $chr_log
 
   if [ ! -e ${chr_vcf}.done ]; then
     is_error=1
