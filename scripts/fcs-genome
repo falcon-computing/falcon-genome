@@ -37,7 +37,7 @@ else
     ;;
   bqsr|baseRecal)
     shift
-    $DIR/fcs_genome_bqsr.sh "$@"
+    source $DIR/stage-worker/baseRecal.sh "$@"
     ;;
   pr|printReads)
     shift

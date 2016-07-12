@@ -37,7 +37,7 @@ print_help() {
 
 if [ $# -lt 1 ]; then
   print_help
-  exit 0;
+  exit 1;
 fi
 
 # Get the input command
@@ -84,7 +84,7 @@ done
 # If no argument is given then print help message
 if [ ! -z $help_req ];then
   print_help
-  exit 1;
+  exit 0;
 fi
 
 # Check the input arguments
@@ -191,4 +191,4 @@ if [ $clean_flag == 1 ]; then
 fi
 rm -f ${output}/${input_base}.recal.chr*.bam.done
 
-log_info "PrintReads stage finishes in $((end_ts - start_ts))s"
+echo "PrintReads stage finishes in $((end_ts - start_ts))s"

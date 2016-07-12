@@ -19,7 +19,11 @@ host=${output_arr[0]}
 pid=${output_arr[1]}
 
 # launch process
-ssh $host "$1"
+if [ -e "$1" ]; then
+  ssh $host 'bash -s' < $1
+else
+  ssh $host $1
+fi
 ret=$?
 
 $SCRIPT_DIR/manager/client $pid
