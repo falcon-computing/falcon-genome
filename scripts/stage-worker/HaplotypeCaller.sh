@@ -157,15 +157,16 @@ for pid in ${pid_table[@]}; do
     log_error "HaplotypeCaller failed on chromosome $chr"
   fi
 
-  # Concat log and remove the individual ones
-  chr_log=$hptc_log_dir/haplotypeCaller_chr${chr}.log
-  cat $chr_log >> $log_file
-  rm -f $chr_log
 done
 
 for chr in $chr_list; do
   chr_bam=$chr_dir/${input_base}.bam.recal.chr${chr}.bam
   chr_vcf=$vcf_dir/${input_base}_chr${chr}.gvcf
+  # Concat log and remove the individual ones
+  chr_log=$hptc_log_dir/haplotypeCaller_chr${chr}.log
+  cat $chr_log >> $log_file
+  rm -f $chr_log
+
   if [ ! -e ${chr_vcf}.done ]; then
     is_error=1
   fi
