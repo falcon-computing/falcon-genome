@@ -101,8 +101,10 @@ if [ -z $clean_flag ]; then
 fi
 
 # Check the input
+check_input $ref_fasta
 check_input $input
 check_input $bqsr_rpt
+
 
 input_base_withsuffix=$(basename $input)
 input_base=${input_base_withsuffix%%.*} 
@@ -146,7 +148,6 @@ fi
 
 # Start the jobs
 for chr in $chr_list; do
-  # The splited bams are in tmp_dir[1], the recalibrated bams should be in [2]
   chr_recal_bam=${output}/${input_base}.recal.chr${chr}.bam
 
   # TODO(yaoh) add the verbose option case here

@@ -85,8 +85,11 @@ if [ ! -z $help_req ]; then
   exit 0;
 fi
 
-check_arg "-r" "ref_fasta" "$ref_genome"
 check_arg "-i" "$input"
+check_args
+
+check_arg "-r" "ref_fasta" "$ref_genome"
+check_arg "-v" "verbose" "1"
 check_arg "-o" "output_rpt" "$output_dir/rpt/$(basename $input).recal.rpt"
 
 if [ -z ${knownSites[0]} ]; then
@@ -116,11 +119,17 @@ create_dir $bqsr_log_dir
 check_input $input
 check_output $output_rpt
 
-# Clear the done files to recover
-if [ -z $force_flag ]; then
-  rm -f $rpt_dir/.${output_rpt}*
-  rm -f $rpt_dir/${output_rpt}.*
-  rm -rf .queue 
+# Clear the done files to rerun
+rpt_donefile=$output_dir/rpt/.$(basename $input).recal.rpt.done
+rpt_out_donefile=$output_dir/rpt/.$(basename $input).recal.rpt.out.done
+if [ -f $rpt_donefile ]; then
+  rm -f $rpt_donefile
+fi
+if [ -f $rpt_out_donefile ]; then
+  rm -f $rpt_out_donefile
+fi
+if [ -d .queue ]; then
+  rm -rf .queue
 fi
 
 # Table storing all the pids for tasks within one stage

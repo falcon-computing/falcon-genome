@@ -113,6 +113,7 @@ check_output() {
     else
       log_warn "Overwriting output file $filename"
     fi
+    rm $filename
   fi;
 }
 

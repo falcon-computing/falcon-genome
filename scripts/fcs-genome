@@ -10,7 +10,7 @@ source $DIR/globals.sh
 print_help() {
   echo "'fcs-genome' have the following commands:"
   echo "Alignment: "
-  ehco "  fcs-genome align|al -r <ref.fasta> -fq1 <input_1.fastq> -fq2 <input_2.fastq> -o <output.bam>"
+  echo "  fcs-genome align|al -r <ref.fasta> -fq1 <input_1.fastq> -fq2 <input_2.fastq> -o <output.bam>"
   echo "Mark Duplicate: "
   echo "  fcs-genome markDup|md -i <input.bam> -o <output.bam>"
   echo "Base Recalibration:"
@@ -29,11 +29,11 @@ else
   case $stage in
   al|align)
     shift
-    $DIR/fcs_genome_align.sh "$@"
+    source $DIR/stage-worker/align.sh "$@"
     ;;
   md|markdup)
     shift
-    $DIR/fcs_genome_markdup.sh "$@"
+    source $DIR/stage-worker/markDup.sh "$@"
     ;;
   bqsr|baseRecal)
     shift
@@ -45,7 +45,7 @@ else
     ;;
   hptc|haplotypeCaller)
     shift
-    $DIR/fcs_genome_HaplotypeCaller.sh "$@"
+    source $DIR/stage-worker/HaplotypeCaller.sh "$@"
     ;;
   all)
     shift

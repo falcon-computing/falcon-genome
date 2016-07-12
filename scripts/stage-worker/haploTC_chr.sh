@@ -1,6 +1,7 @@
 #!/bin/bash
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-source $DIR/globals.sh
+source $DIR/../globals.sh
+source $DIR/common.sh
 
 if [[ $# -lt 2 ]]; then
   echo "USAGE: $0 <chr> <input.bam> <output.gvcf>"
@@ -51,13 +52,14 @@ $JAVA -d64 -Xmx$((nthreads * 2 + 4))g -jar $GATK \
 hptc_java_pid=$!
 echo $hptc_java_pid > ${output}.java.pid
 wait "$hptc_java_pid"
+
+if [ "$?" -ne "0" ]; then
+  exit 1;
+fi
+
 rm ${output}.java.pid
 rm ${output}.pid
-#if [ "$?" -ne "0" ]; then
-#  echo "HaplotypeCaller for CH:$chr failed"
-#  exit -1;
-#fi
 end_ts=$(date +%s)
-echo "HaplotypeCaller on CH:$chr of $(basename $input) finishes in $((end_ts - start_ts))s"
+log_info "HaplotypeCaller on CH:$chr of $(basename $input) finishes in $((end_ts - start_ts))s"
 
 echo "done" > ${output}.done
