@@ -31,32 +31,39 @@ fi
 
 # Step 1: BWA alignment
 if [[ "${do_stage["1"]}" == "1" ]]; then
+  if [ ! -d "$fastq_dir"]; then
+    echo "Cannot find fastq dir: $fastq_dir" 
+    exit 1
+  fi
+
+  create_dir $bam_dir
   fastq_1=$fastq_dir/${sample_id}_1.fastq
   fastq_2=$fastq_dir/${sample_id}_2.fastq
-  output=$sam_dir/${sample_id}.sam
+  if [ ! -f $fastq_1 ]; then
+    fastq_1=$fastq_dir/${sample_id}_1.fastq.gz
+    fastq_2=$fastq_dir/${sample_id}_2.fastq.gz
+  fi
+  if [ ! -f $fastq_1 ]; then
+    fastq_1=$fastq_dir/${sample_id}_1.fq
+    fastq_2=$fastq_dir/${sample_id}_2.fq
+  fi
+  output=$bam_dir/${sample_id}.bam
   $DIR/align.sh $fastq_1 $fastq_2 $output 2> align.log
 fi
 
-# Step 2: Samtools Sort
-if [[ "${do_stage["2"]}" == "1" ]]; then
-  input=$sam_dir/${sample_id}.sam
-  output=$bam_dir/${sample_id}.bam
-  $DIR/sort.sh $input $output 2> sort.log
-fi
-
-# Step 3: Mark Duplicate
+# Step 2: Mark Duplicate
 # - Input: sorted ${sample_id}.bam
 # - Output: duplicates-removed ${sample_id}.markdups.bam
-if [[ "${do_stage["3"]}" == "1" ]]; then
+if [[ "${do_stage["2"]}" == "1" ]]; then
   input=$bam_dir/${sample_id}.bam
   output=$bam_dir/${sample_id}.markdups.bam
   $DIR/markDup.sh $input $output 2> markDup.log
 fi
 
-# Step 4: GATK BaseRecalibrate
+# Step 3: GATK BaseRecalibrate
 # - Input: ${sample_id}.markdups.bam
 # - Output: recalibrated ${sample_id}.markdups.recal.bam
-if [[ "${do_stage["4"]}" == "1" ]]; then
+if [[ "${do_stage["3"]}" == "1" ]]; then
   input=$bam_dir/${sample_id}.markdups.bam
   if [ ! -f $input ]; then
     echo "Cannot find $input"
@@ -71,6 +78,8 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   end_ts=$(date +%s)
   echo "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
 
+  create_dir $rpt_dir
+
   start_ts=$(date +%s)
   output_rpt=$rpt_dir/${sample_id}.recalibration_report.grp
   if [ ! -f $output_rpt ]; then
@@ -81,24 +90,22 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   end_ts=$(date +%s)
   echo "BaseRecalibrator stage finishes in $((end_ts - start_ts))s"
 
-  # Split BAM by chromosome
-  chr_list="$(seq 1 22) X Y MT"
-  for chr in $chr_list; do
-    chr_bam=$bam_dir/${sample_id}.markdups.chr${chr}.bam
-    if [ ! -f $chr_bam ]; then
-      $SAMTOOLS view -u -b -S $input $chr > $chr_bam
-    fi
-  done
-  
+  start_ts=$(date +%s)
+  $SAMTOOLS index $input
+  end_ts=$(date +%s)
+  echo "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
+
   # Table storing all the pids for tasks within one stage
   declare -A pid_table
 
+  input_bam=$bam_dir/${sample_id}.markdups.bam
+  input_rpt=$output_rpt
+
+  chr_list="$(seq 1 22) X Y MT"
   start_ts=$(date +%s)
   for chr in $chr_list; do
-    chr_bam=$bam_dir/${sample_id}.markdups.chr${chr}.bam
-    chr_rpt=$rpt_dir/${sample_id}.recalibration_report.grp
     chr_recal_bam=$bam_dir/${sample_id}.recal.chr${chr}.bam
-    $DIR/printReads.sh $chr_bam $chr_rpt $chr_recal_bam 2> printReads_chr${chr}.log &
+    $DIR/printReads.sh "$chr" "$input_bam" "$input_rpt" "$chr_recal_bam" 2> printReads_chr${chr}.log &
     pid_table["$chr"]=$!
   done
   # Wait on all the tasks
@@ -109,12 +116,14 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   echo "PrintReads stage finishes in $((end_ts - start_ts))s"
 fi
 
-# Step 5: GATK HaplotypeCaller
+# Step 4: GATK HaplotypeCaller
 # - Input: ${sample_id}.markdups.recal.bam
 # - Output: per chromosome varients ${sample_id}_$chr.gvcf
-if [[ "${do_stage["5"]}" == "1" ]]; then
+if [[ "${do_stage["4"]}" == "1" ]]; then
   chr_list="$(seq 1 22) X Y MT"
   declare -A pid_table
+
+  create_dir $vcf_dir
 
   start_ts=$(date +%s)
   for chr in $chr_list; do

@@ -23,7 +23,7 @@ fi
 
 start_ts=$(date +%s)
 set -x
-$JAVA -d64 -Xmx8g -jar $GATK \
+$JAVA -d64 -Xmx4g -jar $GATK \
     -T HaplotypeCaller \
     -R $ref_genome \
     -I $input \
