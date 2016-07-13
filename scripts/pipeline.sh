@@ -2,7 +2,6 @@
 ## This script generates gVCF files from a specified in a input file 
 ## (c) Di Wu 04/07/2016
 #############################################################################################
-
 #!/bin/bash
 
 # Import global variables
@@ -29,14 +28,49 @@ else
   do_stage=( ["1"]="1" ["2"]="1" ["3"]="1" ["4"]="1" ["5"]="1" )
 fi
 
-# Step 1: BWA alignment
+# Check input data
+if [[ $INPUT_DIR != "" ]]; then
+  fastq_dir=$INPUT_DIR
+fi
 if [[ "${do_stage["1"]}" == "1" ]]; then
-  if [ ! -d "$fastq_dir" ]; then
-    echo "Cannot find fastq dir: $fastq_dir" 
-    exit 1
+  basename=$fastq_dir/${sample_id}_1
+  if [ -f "${basename}.fastq" -o -f "${basename}.fastq.gz" -o -f "${basename}.fq" ]; then
+    echo "Input file found"
+  else
+    echo "Cannot find input file in $fastq_dir" 
+    exit -1
   fi
+fi
 
-  create_dir $bam_dir
+# Table storing all the pids for tasks within one stage
+declare -A pid_table
+
+# Start manager
+if [ -e "host_file" ]; then
+  host_file=host_file
+else
+  host_file=$DIR/host_file
+fi
+echo "$DIR/manager/manager --v=1 --log_dir=. $host_file"
+source $DIR/manager/config.mk
+$DIR/manager/manager --v=1 --log_dir=. $host_file &
+manager_pid=$!
+sleep 1
+if [[ ! $(ps -p "$manager_pid" -o comm=) =~ "manager" ]]; then
+  echo "Cannot start manager, exiting"
+  exit -1
+fi
+
+# Preparation of output directories
+create_dir $log_dir
+create_dir $bam_dir
+create_dir ${tmp_dir[1]}
+create_dir ${tmp_dir[2]}
+
+chkpt_pid=
+
+# Step 1: BWA alignment and sort
+if [[ "${do_stage["1"]}" == "1" ]]; then
   fastq_1=$fastq_dir/${sample_id}_1.fastq
   fastq_2=$fastq_dir/${sample_id}_2.fastq
   if [ ! -f $fastq_1 ]; then
@@ -47,24 +81,50 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
     fastq_1=$fastq_dir/${sample_id}_1.fq
     fastq_2=$fastq_dir/${sample_id}_2.fq
   fi
-  output=$bam_dir/${sample_id}.bam
-  $DIR/align.sh $fastq_1 $fastq_2 $output 2> align.log
+  # Put output in tmp_dir[1]
+  output=${tmp_dir[1]}/${sample_id}.bam
+  $DIR/align.sh $fastq_1 $fastq_2 $output ${tmp_dir[2]}
+
+  if [ "$?" -ne 0 ]; then
+    echo "Alignment failed"
+    exit 1;
+  fi
+
+  # checkpoint
+  cp $output $bam_dir &
 fi
 
 # Step 2: Mark Duplicate
 # - Input: sorted ${sample_id}.bam
 # - Output: duplicates-removed ${sample_id}.markdups.bam
 if [[ "${do_stage["2"]}" == "1" ]]; then
-  input=$bam_dir/${sample_id}.bam
-  output=$bam_dir/${sample_id}.markdups.bam
-  $DIR/markDup.sh $input $output 2> markDup.log
+  start_ts=$(date +%s)
+  input=${tmp_dir[1]}/${sample_id}.bam
+  output=${tmp_dir[2]}/${sample_id}.markdups.bam
+
+  $DIR/markDup.sh $input $output ${tmp_dir[1]} 2> >(tee $log_dir/markDup.log >&2)
+
+  if [ "$?" -ne 0 ]; then
+    echo "MarkDuplicate failed"
+    exit 2;
+  fi
+
+  end_ts=$(date +%s)
+  echo "MarkDuplicate for $(basename $input) finishes in $((end_ts - start_ts))s"
+  
+  # Delete sorted bam file
+  rm $input &
+
+  # Checkpoint markdup bam file
+  cp $output $bam_dir &
+  cp ${output}.dups_stats $bam_dir &
 fi
 
 # Step 3: GATK BaseRecalibrate
 # - Input: ${sample_id}.markdups.bam
 # - Output: recalibrated ${sample_id}.markdups.recal.bam
 if [[ "${do_stage["3"]}" == "1" ]]; then
-  input=$bam_dir/${sample_id}.markdups.bam
+  input=${tmp_dir[2]}/${sample_id}.markdups.bam
   if [ ! -f $input ]; then
     echo "Cannot find $input"
     exit 1
@@ -73,39 +133,47 @@ if [[ "${do_stage["3"]}" == "1" ]]; then
   start_ts=$(date +%s)
   # Indexing input if it is not indexed
   if [ ! -f ${input}.bai ]; then
-    $SAMTOOLS index $input $chr
+    $SAMTOOLS index $input 
   fi
   end_ts=$(date +%s)
+  cp ${input}.bai $bam_dir &
   echo "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
 
+  rpt_dir=$output_dir/rpt
   create_dir $rpt_dir
 
   start_ts=$(date +%s)
-  output_rpt=$rpt_dir/${sample_id}.recalibration_report.grp
-  if [ ! -f $output_rpt ]; then
-    $DIR/baseRecal.sh $input $output_rpt 2> baseRecal.log
-  else 
-    echo "WARNING: $output_rpt already exists, assuming BaseRecalibration already done"
+  output=$rpt_dir/${sample_id}.recalibration_report.grp
+
+  $DIR/baseRecal.sh $input $output 2> >(tee $log_dir/baseRecal.log >&2)
+  if [ "$?" -ne 0 ]; then
+    echo "BaseRecalibrator failed"
+    exit 3;
   fi
   end_ts=$(date +%s)
-  echo "BaseRecalibrator stage finishes in $((end_ts - start_ts))s"
 
+  echo "BaseRecalibrator for $(basename $input) finishes in $((end_ts - start_ts))s"
+
+  if [[ "$chkpt_pid" != "" ]]; then
+    wait $chkpt_pid
+  fi
+fi
+
+# Step 4: GATK PrintRead
+# - Input: ${sample_id}.markdups.recal.chr${chr}.bam
+# - Output: per chromosome calibrated bam ${sample_id}_chr${chr}.bam
+if [[ "${do_stage["4"]}" == "1" ]]; then
   start_ts=$(date +%s)
-  $SAMTOOLS index $input
-  end_ts=$(date +%s)
-  echo "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
 
-  # Table storing all the pids for tasks within one stage
-  declare -A pid_table
-
-  input_bam=$bam_dir/${sample_id}.markdups.bam
-  input_rpt=$output_rpt
-
+  rpt_dir=$output_dir/rpt
   chr_list="$(seq 1 22) X Y MT"
-  start_ts=$(date +%s)
   for chr in $chr_list; do
-    chr_recal_bam=$bam_dir/${sample_id}.recal.chr${chr}.bam
-    $DIR/printReads.sh "$chr" "$input_bam" "$input_rpt" "$chr_recal_bam" 2> printReads_chr${chr}.log &
+    # The splited bams are in tmp_dir[1], the recalibrated bams should be in [2]
+    chr_bam=${tmp_dir[1]}/${sample_id}.markdups.bam
+    chr_rpt=$rpt_dir/${sample_id}.recalibration_report.grp
+    chr_recal_bam=${tmp_dir[2]}/${sample_id}.recal.chr${chr}.bam
+
+    $DIR/fcs-sh "$DIR/printReads.sh $chr_bam $chr_rpt $chr_recal_bam $chr" 2> $log_dir/printReads_chr${chr}.log &
     pid_table["$chr"]=$!
   done
   # Wait on all the tasks
@@ -113,23 +181,40 @@ if [[ "${do_stage["3"]}" == "1" ]]; then
     wait "${pid}"
   done
   end_ts=$(date +%s)
+
+  for chr in $chr_list; do
+    chr_bam=${tmp_dir[1]}/${sample_id}.markdups.bam
+    chr_recal_bam=${tmp_dir[2]}/${sample_id}.recal.chr${chr}.bam
+    if [ ! -e ${chr_recal_bam}.done ]; then
+      exit 4;
+    fi
+    rm ${chr_recal_bam}.done
+
+    # Check point for PrintReads
+    cp $chr_recal_bam $bam_dir &
+    cp ${chr_recal_bam%.bam}.bai $bam_dir &
+  done
   echo "PrintReads stage finishes in $((end_ts - start_ts))s"
+
+  # Remove temp output for MarkDup
+  rm $input &
+  rm ${input}.bai &
+  rm ${input}.dups_stats &
 fi
 
-# Step 4: GATK HaplotypeCaller
+# Step 5: GATK HaplotypeCaller
 # - Input: ${sample_id}.markdups.recal.bam
 # - Output: per chromosome varients ${sample_id}_$chr.gvcf
-if [[ "${do_stage["4"]}" == "1" ]]; then
+if [[ "${do_stage["5"]}" == "1" ]]; then
   chr_list="$(seq 1 22) X Y MT"
-  declare -A pid_table
-
+  vcf_dir=$output_dir/vcf
   create_dir $vcf_dir
 
   start_ts=$(date +%s)
   for chr in $chr_list; do
-    chr_bam=$bam_dir/${sample_id}.recal.chr${chr}.bam
+    chr_bam=${tmp_dir[2]}/${sample_id}.recal.chr${chr}.bam
     chr_vcf=$vcf_dir/${sample_id}_chr${chr}.gvcf
-    $DIR/haploTC.sh $chr $chr_bam $chr_vcf 2> haplotypeCaller_chr${chr}.log &
+    $DIR/fcs-sh "$DIR/haploTC.sh $chr $chr_bam $chr_vcf" 2> $log_dir/haplotypeCaller_chr${chr}.log &
     pid_table["$chr"]=$!
   done
 
@@ -138,5 +223,22 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
     wait "${pid}"
   done
   end_ts=$(date +%s)
+
+  for chr in $chr_list; do
+    chr_bam=${tmp_dir[2]}/${sample_id}.recal.chr${chr}.bam
+    chr_vcf=$vcf_dir/${sample_id}_chr${chr}.gvcf
+    if [ ! -e ${chr_vcf}.done ]; then
+      exit 5;
+    fi
+    rm ${chr_vcf}.done
+    rm $chr_bam 
+    rm ${chr_bam%.bam}.bai
+    # Note, the output of samtool index for $chr_bam is not 
+    # ${chr_bam}.bai because it is generated by GATK
+    # so 'rm ${chr_bam}.bai' is wrong
+  done
   echo "HaplotypeCaller stage finishes in $((end_ts - start_ts))s"
 fi
+
+# Stop manager
+kill $manager_pid
