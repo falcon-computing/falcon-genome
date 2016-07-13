@@ -1,0 +1,88 @@
+<!--
+  ~ Copyright (c) 2012, The Broad Institute
+  ~
+  ~ Permission is hereby granted, free of charge, to any person
+  ~ obtaining a copy of this software and associated documentation
+  ~ files (the "Software"), to deal in the Software without
+  ~ restriction, including without limitation the rights to use,
+  ~ copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the
+  ~ Software is furnished to do so, subject to the following
+  ~ conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be
+  ~ included in all copies or substantial portions of the Software.
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  ~ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  ~ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  ~ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  ~ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  ~ OTHER DEALINGS IN THE SOFTWARE.
+  -->
+
+<#--
+        This file contains all the theming neccesary to present GATKDocs on the GATK website
+        Included are the paths to our bootstrap assets as well as helper functions to generate relevant links
+
+        -->
+
+    <#global siteRoot = "http://www.broadinstitute.org/gatk/" />
+    <#global guideIndex = "http://www.broadinstitute.org/gatk/guide/" />
+    <#global forum = "http://gatkforums.broadinstitute.org/" />
+
+    <#macro footerInfo>
+        <hr>
+        <p><a href='#top'><i class='fa fa-chevron-up'></i> Return to top</a></p>
+        <hr>
+        <p class="see-also">See also 
+        	<a href="${guideIndex}">Guide Index</a> | 
+        	<a href="index">Tool Documentation Index</a> |
+        	<a href="${forum}">Support Forum</a>
+        </p>
+
+        <p class="version">GATK version ${version} built at ${timestamp}.
+        <#-- closing P tag in next macro -->
+    </#macro>
+    
+    <#macro footerClose>
+    	<#-- ugly little hack to enable adding tool-specific info inline -->
+        </p>
+    </#macro>
+
+    <#macro getCategories groups>
+        <style>
+            #sidenav .accordion-body a {
+                color : gray;
+            }
+
+            .accordion-body li {
+                list-style : none;
+            }
+        </style>
+        <ul class="nav nav-pills nav-stacked" id="sidenav">
+        	<#assign seq = ["engine", "tools", "utilities", "other"]>
+        	<#list seq as supercat>
+        		<hr>
+        		<#list groups?sort_by("name") as group>
+        			<#if group.supercat == supercat>
+						<li><a data-toggle="collapse" data-parent="#sidenav" href="#${group.id}">${group.name}</a>
+							<div id="${group.id}"
+								<?php echo ($group == '${group.name}')? 'class="accordion-body collapse in"'.chr(62) : 'class="accordion-body collapse"'.chr(62);?>
+								<ul>
+									<#list data as datum>
+										<#if datum.group == group.name>
+											<li>
+												<a href="${datum.filename}">${datum.name}</a>
+											</li>
+										</#if>
+									</#list>
+								</ul>
+							</div>
+						</li>
+        			</#if>
+        		</#list>
+        	</#list>
+        </ul>
+    </#macro>

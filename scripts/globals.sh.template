@@ -1,12 +1,8 @@
 # Modify the following paths accordingly
 input_dir=
-output_dir=
+output_dir=$(pwd)
 tools_dir=
 
-# Directories setup
-fastq_dir=$input_dir/fastq
-ref_dir=$input_dir/ref
-sam_dir=$output_dir/sam
 bam_dir=$output_dir/bam
 rpt_dir=$output_dir/rpt
 vcf_dir=$output_dir/vcf
@@ -45,4 +41,16 @@ check_output() {
     exit 1;
   fi;
   rm $filename;
+}
+
+# create output dir if it does not exist 
+create_dir() {
+  dir=$1
+  if [[ ! -d "$dir" ]]; then
+    mkdir $dir &> /dev/null;
+    if [ $? -ne 0 ]; then
+      echo "Cannot create dir $dir";
+      exit 1;
+    fi
+  fi;
 }
