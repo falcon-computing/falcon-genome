@@ -166,7 +166,8 @@ if [[ "${do_stage["5"]}" == "1" ]]; then
 
   $DIR/fcs-genome haplotypeCaller \
     -r $ref_genome \
-    -i $input_dir \
+    -i $sample_id \
+    -c $input_dir \
     -o $vcf_dir \
     -clean
 
