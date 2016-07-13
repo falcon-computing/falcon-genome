@@ -14,7 +14,7 @@ chr=$4
 
 check_input $input
 check_input $BQSR
-check_output $output.done
+check_output $output
 
 # check if index already exists
 if [ ! -f ${input}.bai ]; then
@@ -38,6 +38,7 @@ $JAVA -d64 -Xmx$((nthreads * 2))g -jar $GATK \
     -T PrintReads \
     -R $ref_genome \
     -I $input \
+    -L $chr \
     -BQSR $BQSR \
     -nct $nthreads \
     -o $output
