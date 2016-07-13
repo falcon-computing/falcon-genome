@@ -167,15 +167,15 @@ fi
 if [[ "${do_stage["4"]}" == "1" ]]; then
   start_ts=$(date +%s)
 
-  rpt_dir=$output_dir/rpt
+  input_bam=${tmp_dir[2]}/${sample_id}.markdups.bam
+  input_rpt=$output_dir/rpt/${sample_id}.recalibration_report.grp
+
   chr_list="$(seq 1 22) X Y MT"
   for chr in $chr_list; do
     # The splited bams are in tmp_dir[1], the recalibrated bams should be in [2]
-    chr_bam=${tmp_dir[1]}/${sample_id}.markdups.bam
-    chr_rpt=$rpt_dir/${sample_id}.recalibration_report.grp
-    chr_recal_bam=${tmp_dir[2]}/${sample_id}.recal.chr${chr}.bam
+    chr_recal_bam=${tmp_dir[1]}/${sample_id}.recal.chr${chr}.bam
 
-    $DIR/fcs-sh "$DIR/printReads.sh $chr $chr_bam $chr_rpt $chr_recal_bam" 2> $log_dir/printReads_chr${chr}.log &
+    $DIR/fcs-sh "$DIR/printReads.sh $chr $input_bam $input_rpt $chr_recal_bam" 2> $log_dir/printReads_chr${chr}.log &
     pid_table["$chr"]=$!
   done
   # Wait on all the tasks
@@ -185,8 +185,7 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   end_ts=$(date +%s)
 
   for chr in $chr_list; do
-    chr_bam=${tmp_dir[1]}/${sample_id}.markdups.bam
-    chr_recal_bam=${tmp_dir[2]}/${sample_id}.recal.chr${chr}.bam
+    chr_recal_bam=${tmp_dir[1]}/${sample_id}.recal.chr${chr}.bam
     if [ ! -e ${chr_recal_bam}.done ]; then
       exit 4;
     fi
@@ -199,9 +198,9 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   echo "PrintReads stage finishes in $((end_ts - start_ts))s"
 
   # Remove temp output for MarkDup
-  rm $input &
-  rm ${input}.bai &
-  rm ${input}.dups_stats &
+  rm $input_bam &
+  rm ${input_bam}.bai &
+  rm ${input_bam}.dups_stats &
 fi
 
 # Step 5: GATK HaplotypeCaller
@@ -214,7 +213,7 @@ if [[ "${do_stage["5"]}" == "1" ]]; then
 
   start_ts=$(date +%s)
   for chr in $chr_list; do
-    chr_bam=${tmp_dir[2]}/${sample_id}.recal.chr${chr}.bam
+    chr_bam=${tmp_dir[1]}/${sample_id}.recal.chr${chr}.bam
     chr_vcf=$vcf_dir/${sample_id}_chr${chr}.gvcf
     $DIR/fcs-sh "$DIR/haploTC.sh $chr $chr_bam $chr_vcf" 2> $log_dir/haplotypeCaller_chr${chr}.log &
     pid_table["$chr"]=$!
@@ -227,7 +226,7 @@ if [[ "${do_stage["5"]}" == "1" ]]; then
   end_ts=$(date +%s)
 
   for chr in $chr_list; do
-    chr_bam=${tmp_dir[2]}/${sample_id}.recal.chr${chr}.bam
+    chr_bam=${tmp_dir[1]}/${sample_id}.recal.chr${chr}.bam
     chr_vcf=$vcf_dir/${sample_id}_chr${chr}.gvcf
     if [ ! -e ${chr_vcf}.done ]; then
       exit 5;
