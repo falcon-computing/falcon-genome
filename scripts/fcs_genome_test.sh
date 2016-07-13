@@ -31,8 +31,8 @@ index_list="$(seq 1 6)"
 for index in $index_list; do
   base_of_input=${BASENAME[$index]}
   # Start alignment
-  fcs-genome al -fq1 $fastq_dir/${base_of_input}_1.fastq \
-                -fq2 $fastq_dir/${base_of_input}_2.fastq \
+  fcs-genome al -fq1 $input_fastq_dir/${base_of_input}_1.fastq \
+                -fq2 $input_fastq_dir/${base_of_input}_2.fastq \
                 -o $results_dir/bams_al/${base_of_input}.bam \
                 -ID SEQ01 -SP SEQ01 -PL ILLUMINA -LB HUMsgR2AQDCAAPE \
                 -v 1 -f
