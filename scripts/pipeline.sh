@@ -63,7 +63,6 @@ fi
 
 # Preparation of output directories
 create_dir $log_dir
-create_dir $bam_dir
 create_dir ${tmp_dir[1]}
 create_dir ${tmp_dir[2]}
 
@@ -71,6 +70,8 @@ chkpt_pid=
 
 # Step 1: BWA alignment and sort
 if [[ "${do_stage["1"]}" == "1" ]]; then
+
+  create_dir $bam_dir
   fastq_1=$fastq_dir/${sample_id}_1.fastq
   fastq_2=$fastq_dir/${sample_id}_2.fastq
   if [ ! -f $fastq_1 ]; then
@@ -81,6 +82,7 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
     fastq_1=$fastq_dir/${sample_id}_1.fq
     fastq_2=$fastq_dir/${sample_id}_2.fq
   fi
+
   # Put output in tmp_dir[1]
   output=${tmp_dir[1]}/${sample_id}.bam
   $DIR/align.sh $fastq_1 $fastq_2 $output ${tmp_dir[2]}
@@ -173,7 +175,7 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
     chr_rpt=$rpt_dir/${sample_id}.recalibration_report.grp
     chr_recal_bam=${tmp_dir[2]}/${sample_id}.recal.chr${chr}.bam
 
-    $DIR/fcs-sh "$DIR/printReads.sh $chr_bam $chr_rpt $chr_recal_bam $chr" 2> $log_dir/printReads_chr${chr}.log &
+    $DIR/fcs-sh "$DIR/printReads.sh $chr $chr_bam $chr_rpt $chr_recal_bam" 2> $log_dir/printReads_chr${chr}.log &
     pid_table["$chr"]=$!
   done
   # Wait on all the tasks
