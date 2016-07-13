@@ -31,7 +31,7 @@ fi
 
 # Step 1: BWA alignment
 if [[ "${do_stage["1"]}" == "1" ]]; then
-  if [ ! -d "$fastq_dir"]; then
+  if [ ! -d "$fastq_dir" ]; then
     echo "Cannot find fastq dir: $fastq_dir" 
     exit 1
   fi
