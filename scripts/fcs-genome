@@ -31,7 +31,7 @@ else
     shift
     source $DIR/stage-worker/align.sh "$@"
     ;;
-  md|markdup)
+  md|markDup)
     shift
     source $DIR/stage-worker/markDup.sh "$@"
     ;;
@@ -51,10 +51,7 @@ else
     shift
     $DIR/fcs_genome_pipeline.sh "$@"
     ;;
-  -l|--list)
-    print_help
-    ;;
-  -h|--help)
+  *)
     print_help
     ;;
   esac
