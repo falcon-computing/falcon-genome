@@ -1,6 +1,7 @@
 #!/bin/bash
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $DIR/globals.sh
+source $DIR/stage-worker/common.sh
 
 if [[ $# -lt 2 ]]; then
   log_error "USAGE: $0 -i <input_dir> -r <reference_dir> -t rtg|gatk"
@@ -9,6 +10,7 @@ fi
 
 tool="rtg"
 verbose=1
+result_output=results.csv
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
@@ -22,6 +24,10 @@ while [[ $# -gt 0 ]]; do
     ;;
   -t|--tool)
     tool="$2"
+    shift # past argument
+    ;;
+  -o|--output)
+    result_output="$2"
     shift # past argument
     ;;
   -v|--verbose)
@@ -218,7 +224,7 @@ if [[ "$tool" == "rtg" ]]; then
   fi
 
   # Append results to a file and print it on screen
-  echo $comp_id,$results >> results.csv
+  echo $comp_id,$results >> $result_output
   log_error "$comp_id,$results"
 
 elif [[ "$tool" == "gatk" ]]; then

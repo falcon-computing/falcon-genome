@@ -98,10 +98,10 @@ check_output() {
       while true; do
         read answer;
         if [[ "$answer" == "yes" ]]; then
-          log_info "Overwritting $filename, run with -f option to skip this prompt."
+          log_warn "Overwritting $filename, run with -f option to skip this prompt."
           break
         elif [[ "$answer" == "all" ]]; then
-          log_info "Overwritting $filename, run with -f option to skip this prompt."
+          log_warn "Overwritting $filename, run with -f option to skip this prompt."
           force_flag=1
           break
         elif [[ "$answer" == "no" ]]; then

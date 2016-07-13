@@ -151,7 +151,7 @@ for chr in $chr_list; do
   chr_recal_bam=${output}/${input_base}.recal.chr${chr}.bam
 
   # TODO(yaoh) add the verbose option case here
-  $DIR/../fcs-sh "$DIR/printReads_chr.sh $input $bqsr_rpt $chr_recal_bam $chr $ref_fasta " 2> $log_dir/printReads_chr${chr}.log &
+  $DIR/../fcs-sh "$DIR/printReads_chr.sh $input $bqsr_rpt $chr_recal_bam $chr $ref_fasta " 2> $log_dir/printReads_chr${chr}.log 1>/dev/null &
   pid_table["$chr"]=$!
   output_table["$chr"]=$chr_recal_bam
 done
