@@ -40,46 +40,44 @@ if [ $# -lt 1 ]; then
 fi
 
 # Get the input command
-while [[ $# -gt 0 ]]
-do
-key="$1"
-
-case $key in
-    -r|--ref)
-    ref_fasta="$2"
-    shift # past argument
-    ;;
-    -i|--input_base)
-    input_base="$2"
-    shift # past argument
-    ;;
-    -c|--chr_dir)
-    chr_dir="$2"
-    shift # past argument
-    ;;
-    -o|--output)
-    vcf_dir="$2"
-    shift # past argument
-    ;;
-    -v|--verbose)
-    verbose="$2"
-    shift
-    ;;
-    -clean)
-    clean_flag="$2"
-    shift
-    ;;
-    -f|--force)
-    force_flag=YES
-    ;;
-    -h|--help)
-    help_req=YES
-    ;;
-    *)
-            # unknown option
-    ;;
-esac
-shift # past argument or value
+while [[ $# -gt 0 ]];do
+ key="$1"
+ case $key in
+ -r|--ref)
+   ref_fasta="$2"
+   shift # past argument
+   ;;
+ -i|--input_base)
+   input_base="$2"
+   shift # past argument
+   ;;
+ -c|--chr_dir)
+   chr_dir="$2"
+   shift # past argument
+   ;;
+ -o|--output)
+   vcf_dir="$2"
+   shift # past argument
+   ;;
+ -v|--verbose)
+   verbose="$2"
+   shift
+   ;;
+ -clean)
+   clean_flag="$2"
+   shift
+   ;;
+ -f|--force)
+   force_flag=YES
+   ;;
+ -h|--help)
+   help_req=YES
+   ;;
+ *)
+           # unknown option
+   ;;
+  esac
+  shift # past argument or value
 done
 
 # If no argument is given then print help message
@@ -95,8 +93,8 @@ check_args
 
 check_arg "-r" "ref_fasta" "$ref_genome"
 vcf_dir_default=$output_dir/vcf
-create_dir $vcf_dir_default
 check_arg "-o" "vcf_dir" "$vcf_dir_default"
+create_dir $vcf_dir
 check_arg "-v" "verbose" "1"
 
 # The clean option needs to be discussed
@@ -112,7 +110,7 @@ chr_list="$(seq 1 22) X Y MT"
 for chr in $chr_list; do
   chr_bam=$chr_dir/${input_base}.recal.chr${chr}.bam
   if [ ! -f $chr_bam ];then 
-    >&2 echo "Could not find the $chr_bam, please check if you have pointed the right directory"
+    log_error "Could not find the $chr_bam, please check if you have pointed the right directory"
     exit 1
   fi
 done
@@ -190,4 +188,3 @@ if [ "$is_error" -ne 0 ]; then
 fi
 
 echo "HaplotypeCaller stage finishes in $((end_ts - start_ts))s"
-echo "Please find the results in $vcf_dir dir"

@@ -38,34 +38,32 @@ if [ $# -lt 1 ]; then
 fi
 
 # Get the input command 
-while [[ $# -gt 0 ]]
-do
-key="$1"
-
-case $key in
-    -i|--input)
+while [[ $# -gt 0 ]];do
+  key="$1"
+  case $key in
+  -i|--input)
     input="$2"
     shift # past argument
     ;;
-    -o|--output)
+  -o|--output)
     output="$2"
     shift
     ;;
-    -v|--verbose)
+  -v|--verbose)
     verbose="$2"
     shift
     ;;
-    -f|--force)
+  -f|--force)
     force_flag=YES
     ;;
-    -h|--help)
+  -h|--help)
     help_req=YES
     ;;
-    *)
+  *)
             # unknown option
     ;;
-esac
-shift # past argument or value
+  esac
+  shift # past argument or value
 done
 
 # If no argument is given then print help message
@@ -101,19 +99,15 @@ create_dir $markdup_log_dir
 log_info "Start mark duplicates"
 start_ts=$(date +%s)
 
-case $verbose in
-    0|1|2)
-    # Put all the information to log, not displaying
-    $JAVA -XX:+UseSerialGC -Xmx160g -jar $PICARD \
-    MarkDuplicates \
-    TMP_DIR=$tmp_dir COMPRESSION_LEVEL=1 \
-    INPUT=$input \
-    OUTPUT=$output \
-    METRICS_FILE=${output}.dups_stats \
-    REMOVE_DUPLICATES=false ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT \
-    >$markdup_log_dir/markdup_run.log 2> $markdup_log_dir/markdup_run_err.log
-    ;;
-esac
+# Put all the information to log, not displaying
+$JAVA -XX:+UseSerialGC -Xmx160g -jar $PICARD \
+MarkDuplicates \
+TMP_DIR=$tmp_dir COMPRESSION_LEVEL=1 \
+INPUT=$input \
+OUTPUT=$output \
+METRICS_FILE=${output}.dups_stats \
+REMOVE_DUPLICATES=false ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT \
+>$markdup_log_dir/markdup_run.log 2> $markdup_log_dir/markdup_run_err.log
 
 if [ "$?" -ne 0 ]; then 
   log_error "Mark duplicates failed, please check $markdup_log_dir/markdup_run_err.log for detailed information"
@@ -122,4 +116,3 @@ fi
 
 end_ts=$(date +%s)
 echo "Mark duplicates finished in $((end_ts - start_ts))s"
-echo "The results can be found at $output "

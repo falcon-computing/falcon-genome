@@ -120,8 +120,8 @@ check_input $input
 check_output $output_rpt
 
 # Clear the done files to rerun
-rpt_donefile=$output_dir/rpt/.$(basename $input).recal.rpt.done
-rpt_out_donefile=$output_dir/rpt/.$(basename $input).recal.rpt.out.done
+rpt_donefile=$rpt_dir/.$(basename $output_rpt).done
+rpt_out_donefile=$rpt_dir/.$(basename $output_rpt).out.done
 if [ -f $rpt_donefile ]; then
   rm -f $rpt_donefile
 fi
@@ -136,15 +136,17 @@ fi
 declare -A pid_table
 
 # Start the index option
-if [ ! -f ${input}.bai ]; then
-  log_info "Start the samtools index"
-
-  start_ts=$(date +%s)
-  $SAMTOOLS index $input 
-  end_ts=$(date +%s)
-
-  log_info "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
+# usually the old bai would cause the bqsr error
+if [ -f ${input}.bai ];then
+  rm -f input.bai
 fi
+log_info "Start the samtools index"
+
+start_ts=$(date +%s)
+$SAMTOOLS index $input 
+end_ts=$(date +%s)
+
+log_info "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
 
 # Start manager
 start_manager
@@ -153,26 +155,25 @@ export PATH=$DIR:$PATH
 
 start_ts=$(date +%s)
 
-case $verbose in
-    0|1|2)
-    # Put all the information to log, not displaying
-    $JAVA -Djava.io.tmpdir=/tmp -jar ${GATK_QUEUE} \
-    -S $DIR/BaseRecalQueue.scala \
-    -R $ref_fasta \
-    -I $input \
-    $knownSites_string \
-    -o $output_rpt \
-    -jobRunner ParallelShell \
-    -maxConcurrentRun 32 \
-    -scatterCount 32 \
-    -run
-    > $bqsr_log_dir/bqsr_run.log 2> $bqsr_log_dir/bqsr_run_err.log 
-    ;;
-   # TODO(yaoh) add the remain verbose options after figure out how the bqsr print information 
-esac
+# Put all the information to log, not displaying
+$JAVA -Djava.io.tmpdir=/tmp -jar ${GATK_QUEUE} \
+-S $DIR/BaseRecalQueue.scala \
+-R $ref_fasta \
+-I $input \
+$knownSites_string \
+-o $output_rpt \
+-jobRunner ParallelShell \
+-maxConcurrentRun 32 \
+-scatterCount 32 \
+-run \
+2> $bqsr_log_dir/bqsr_run_err.log 
 
 # Stop manager
 stop_manager
 
+if [ ! -f $rpt_donefile ];then
+  log_error "Base Recalibration failed, you can check $bqsr_log_dir/bqsr_run_err.log for details" 
+  exit 1
+fi
 end_ts=$(date +%s);
 echo "Base Recalibration for $(basename $output_rpt) finishes in $((end_ts - start_ts))s"

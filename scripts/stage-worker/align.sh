@@ -28,55 +28,69 @@ print_help() {
   echo "    -r <ref.fasta> \\";
   echo "    -fq1 <input_1.fastq> \\ ";
   echo "    -fq2 <input_2.fastq> \\ ";
-  echo "    -o <output.bam>";
-  echo "    -R <@RG\tID:rg_id\tSM:sample_id\tPL:platform\tLB:library>"
+  echo "    -o <output.bam> \\";
+  echo "    -ID <RG_ID> \\ ";
+  echo "    -SP <sample_id> \\ "
+  echo "    -PL <platform> \\ "
+  echo "    -LB <library>"
   echo 
   echo "<input.bam> argument is the markduped bam file";
   echo "<input_1.fastq> and <input_2.fastq> are the input fastq file";
   echo "<output.bam> argument is the file to put the output bam results";
+  echo "<RG_ID> <sample_id> <platform> <library> arguments is the read group information";
 }
 
 # Get the input command 
-while [[ $# -gt 0 ]]
-do
-key="$1"
-
-case $key in
-    -r|--ref)
+while [[ $# -gt 0 ]];do
+  key="$1"
+  case $key in
+  -r|--ref)
     ref_fasta="$2"
     shift
     ;;
-    -fq1|--fastq1)
+  -fq1|--fastq1)
     fastq1="$2"
     shift
     ;;
-    -fq2|--fastq2)
+  -fq2|--fastq2)
     fastq2="$2"
     shift
     ;;
-    -o|--output)
+  -o|--output)
     output="$2"
     shift
     ;;
-    -R|-r)
-    RGinfo="$2"
+  -ID)
+    RG_ID="$2"
     shift
     ;;
-    -v|--verbose)
+  -SP)
+    sample_id="$2"
+    shift
+    ;;
+  -PL)
+    platform="$2"
+    shift
+    ;;
+  -LB)
+    library="$2"
+    shift
+    ;;
+  -v|--verbose)
     verbose="$2"
     shift
     ;;
-    -f|--force)
+  -f|--force)
     force_flag=YES
     ;;
-    -h|--help)
+  -h|--help)
     help_req=YES
     ;;
     *)
             # unknown option
     ;;
-esac
-shift # past argument or value
+  esac
+  shift # past argument or value
 done
 
 # Check the command 
@@ -88,6 +102,10 @@ fi
 # Check the input arguments
 check_arg "-fq1" "fastq1"
 check_arg "-fq2" "fastq2"
+check_arg "-ID" "RG_ID"
+check_arg "-SP" "sample_id"
+check_arg "-PL" "platform"
+check_arg "-LB" "library"
 check_args 
 fastq_base_withsuffix=$(basename $fastq1)
 fastq_base=${fastq_base_withsuffix%_1.*} 
@@ -98,14 +116,6 @@ check_arg "-o" "output" "$output_default"
 check_arg "-r" "ref_fasta" "$ref_genome"
 check_arg "-v" "verbose" "1"
 
-sample_id=SEQ01
-RG_ID=SEQ01
-platform=ILLUMINA
-library=HUMsgR2AQDCAAPE
-RGinfo_default="@RG\tID:$RG_ID\tSM:$sample_id\tPL:$platform\tLB:$library"
-
-check_arg "-R" "RGinfo" "$RGinfo_default"
-check_args
 
 bwa_sort=1
 
@@ -140,20 +150,16 @@ fi
 log_info "Started BWA alignment"
 start_ts=$(date +%s)
 
-case $verbose in
-    0|1|2)
-    # Put all the information to log, not displaying
-    $BWA mem -M \
-    -R "$RGinfo" \
-    --log_dir=$bwa_log_dir/ \
-    --output_dir=$output_parts_dir \
-    $ext_options \
-    $ref_fasta \
-    $fastq1 \
-    $fastq2 \
-    2> $bwa_log_dir/bwa_run_err.log 1> $bwa_log_dir/bwa_run.log
-    ;;
- esac
+# Put all the information to log, not displaying
+$BWA mem -M \
+-R "@RG\tID:$RG_ID\tSM:$sample_id\tPL:$platform\tLB:$library" \
+--log_dir=$bwa_log_dir/ \
+--output_dir=$output_parts_dir \
+$ext_options \
+$ref_fasta \
+$fastq1 \
+$fastq2 \
+2> $bwa_log_dir/bwa_run_err.log 
 
 if [ "$?" -ne 0 ]; then 
   log_error "BWAMEM failed, please check $bwa_log_dir/bwa_run_err.log for details"
@@ -189,4 +195,3 @@ rm -r $output_parts_dir &
 
 end_ts=$(date +%s)
 echo "Samtools sort for finishes in $((end_ts - start_ts))s"
-echo "The output can be found at $output "
