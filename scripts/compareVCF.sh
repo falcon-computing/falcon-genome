@@ -3,14 +3,15 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $DIR/globals.sh
 source $DIR/stage-worker/common.sh
 
+print_help() {
+  echo "USAGE: $0 -i <input_dir> -r <reference_dir> -t rtg|gatk"
+}
+
 if [[ $# -lt 2 ]]; then
-  log_error "USAGE: $0 -i <input_dir> -r <reference_dir> -t rtg|gatk"
+  print_help 
   exit 1
 fi
 
-tool="rtg"
-verbose=1
-result_output=results.csv
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
@@ -39,6 +40,12 @@ while [[ $# -gt 0 ]]; do
   esac
   shift # past argument or value
 done
+
+check_arg "-i" "comp_dir"
+check_arg "-r" "base_dir"
+check_arg "-t" "tool" "rtg"
+check_arg "-o" "result_output" "results.csv"
+check_args
 
 get_sample_id() {
   local input_dir=$1;
@@ -193,6 +200,7 @@ if [[ "$tool" == "rtg" ]]; then
     log_info "$comp_vcf does not exist, start generating with rtg"
     rtg_merge_vcfs $comp_dir $comp_dir
     if [ "$?" -ne 0 ]; then
+      log_error "ERROR: merge VCF failed for $comp_dir"
       exit 1
     fi
   fi
