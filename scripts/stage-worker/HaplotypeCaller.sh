@@ -95,7 +95,6 @@ check_arg "-r" "ref_fasta" "$ref_genome"
 vcf_dir_default=$output_dir/vcf
 check_arg "-o" "vcf_dir" "$vcf_dir_default"
 create_dir $vcf_dir
-check_arg "-v" "verbose" "1"
 
 # The clean option needs to be discussed
 if [ -z $clean_flag ];then

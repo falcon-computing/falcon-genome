@@ -80,7 +80,6 @@ fastq_base_withsuffix=$(basename $input)
 fastq_base=${fastq_base_withsuffix%.*} 
 output_default=${tmp_dir[2]}/${fastq_base}.markdups.bam
 check_arg "-o" "output" "$output_default"
-check_arg "-v" "verbose" "1"
 
 # Check input
 check_input $input

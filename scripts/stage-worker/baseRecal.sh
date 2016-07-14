@@ -89,7 +89,6 @@ check_arg "-i" "$input"
 check_args
 
 check_arg "-r" "ref_fasta" "$ref_genome"
-check_arg "-v" "verbose" "1"
 check_arg "-o" "output_rpt" "$output_dir/rpt/$(basename $input).recal.rpt"
 
 if [ -z ${knownSites[0]} ]; then

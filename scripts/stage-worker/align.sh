@@ -114,7 +114,6 @@ output_default=${tmp_dir[1]}/$fastq_base.bam
 
 check_arg "-o" "output" "$output_default"
 check_arg "-r" "ref_fasta" "$ref_genome"
-check_arg "-v" "verbose" "1"
 
 
 bwa_sort=1

@@ -6,12 +6,15 @@ The output is a sorted BAM file.
 
 #####Example
 ```
-fcs-genome align \
+fcs-genome al|align \
     -r ref.fasta \
     -fq1 input_1.fastq \
     -fq2 input_2.fastq \
     -o output.bam \
-    -R "@RG\tID:rg_id\tSM:sample_id\tPL:platform\tLB:library"
+    -ID RG_ID
+    -SP sample_id
+    -PL platform
+    -LB library
 ```
 
 ### Mark Duplicate
@@ -20,7 +23,7 @@ is a BAM file and a duplicate statistic file with the name `output.bam.dups_stat
 
 #####Example
 ```
-fcs-genome markDuplicate \
+fcs-genome md|markdup \
     -i input.bam \
     -o output.bam
 ```
@@ -31,7 +34,7 @@ recalibration report for analysis.
 
 #####Example
 ```
-fcs-genome baseRecal \
+fcs-genome bqsr|baseRecal \
     -r ref.fasta \
     -i input.bam \
     -knownSites dbsnp.vcf \
@@ -43,11 +46,11 @@ Apply the recalibrated score the the input BAM file using `GATK PrintReads`.
 
 #####Example
 ```
-fcs-genome printReads \
+fcs-genome pr|printReads \
     -r ref.fasta \
     -i input.bam \
     -bqsr calibrate.rpt \
-    -o output.bam
+    -o recal_bam_dir
 ```
 
 ### Haploytype Caller
@@ -59,6 +62,7 @@ put in a new directory named `output`
 ```
 fcs-genome haplotypeCaller \
     -r ref.fasta \
-    -i input.bam \
-    -o output
+    -i sample_id \
+    -c recal_bam_dir \
+    -o vcf_dir
 ```

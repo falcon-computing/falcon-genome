@@ -23,11 +23,13 @@ declare -A BASENAME
 BASENAME[1]=na_1M
 BASENAME[2]=CDMD1015_100k
 BASENAME[3]=exome01_100k
-BASENAME[4]=exome01_100k
-BASENAME[5]=exome01_100k
-BASENAME[6]=SRR098359_100k
+BASENAME[4]=exome02_100k
+BASENAME[5]=exome03_100k
+BASENAME[6]=A15_100k
+BASENAME[7]=DSDEX72_100k
+BASENAME[8]=NS17_100k
 
-index_list="$(seq 1 6)"
+index_list="$(seq 1 8)"
 for index in $index_list; do
   base_of_input=${BASENAME[$index]}
   # Start alignment
