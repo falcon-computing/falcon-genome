@@ -18,7 +18,7 @@ log_msg() {
     local v=1;
   fi;
   if [ "$level" -le "$v" ]; then
-    (>&2 echo "$msg");
+    (>&2 echo "[fcs-genome $stage_name]$msg");
   fi;
 }
 
