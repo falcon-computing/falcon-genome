@@ -45,7 +45,6 @@ fi
 
 # Preparation of output directories
 create_dir $log_dir
-create_dir $bam_dir
 create_dir ${tmp_dir[1]}
 create_dir ${tmp_dir[2]}
 
@@ -55,6 +54,8 @@ start_ts=$(date +%s)
 
 # Step 1: BWA alignment and sort
 if [[ "${do_stage["1"]}" == "1" ]]; then
+
+  create_dir $bam_dir
   fastq_1=$fastq_dir/${sample_id}_1.fastq
   fastq_2=$fastq_dir/${sample_id}_2.fastq
   if [ ! -f $fastq_1 ]; then
@@ -65,6 +66,7 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
     fastq_1=$fastq_dir/${sample_id}_1.fq
     fastq_2=$fastq_dir/${sample_id}_2.fq
   fi
+
   # Put output in tmp_dir[1]
   output=${tmp_dir[1]}/${sample_id}.bam
 
@@ -118,11 +120,9 @@ if [[ "${do_stage["3"]}" == "1" ]]; then
     echo "Cannot find $input"
     exit 1
   fi
-  
   rpt_dir=$output_dir/rpt
   output=$rpt_dir/${sample_id}.recalibration_report.grp
 
-  start_ts=$(date +%s)
   $DIR/fcs-genome baseRecal \
     -r $ref_genome \
     -i $input \
@@ -131,6 +131,10 @@ if [[ "${do_stage["3"]}" == "1" ]]; then
   if [ "$?" -ne 0 ]; then
     echo "BaseRecalibrator failed"
     exit 3;
+  fi
+
+  if [[ "$chkpt_pid" != "" ]]; then
+    wait $chkpt_pid
   fi
 fi
 

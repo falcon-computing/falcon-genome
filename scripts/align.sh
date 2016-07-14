@@ -8,7 +8,7 @@ if [[ $# -lt 3 ]]; then
   exit 1;
 fi
 
-bwa_sort=0
+bwa_sort=1
 
 fastq1=$1
 fastq2=$2
