@@ -21,9 +21,16 @@ if [[ "$chr_list" != *"$chr"* ]]; then
   exit 1;
 fi
 
+nthreads=4
+if [[ $chr > 0 && $chr < 3 ]]; then
+    nthreads=12
+fi
+if [[ $chr > 2 && $chr < 8 ]]; then
+    nthreads=8
+fi
+
 start_ts=$(date +%s)
-set -x
-$JAVA -d64 -Xmx4g -jar $GATK \
+$JAVA -d64 -Xmx$((nthreads * 2 + 4))g -jar $GATK \
     -T HaplotypeCaller \
     -R $ref_genome \
     -I $input \
@@ -31,7 +38,13 @@ $JAVA -d64 -Xmx4g -jar $GATK \
     --variant_index_type LINEAR \
     --variant_index_parameter 128000 \
     -L $chr \
+    -nct $nthreads \
     -o $output
-set +x
+if [ "$?" -ne "0" ]; then
+  echo "HaplotypeCaller for CH:$chr failed"
+  exit -1;
+fi
 end_ts=$(date +%s)
 echo "HaplotypeCaller on CH:$chr of $(basename $input) finishes in $((end_ts - start_ts))s"
+
+echo "done" > ${output}.done
