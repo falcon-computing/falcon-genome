@@ -13,6 +13,8 @@ input=$2
 output=$3
 ref=$4
 
+stage_name=haploptypeCaller-chr$chr
+
 check_input $input
 check_output $output
 
@@ -60,6 +62,6 @@ fi
 rm ${output}.java.pid
 rm ${output}.pid
 end_ts=$(date +%s)
-log_info "HaplotypeCaller on CH:$chr of $(basename $input) finishes in $((end_ts - start_ts))s"
+log_info "Finishes in $((end_ts - start_ts))s"
 
 echo "done" > ${output}.done

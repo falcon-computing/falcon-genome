@@ -144,9 +144,11 @@ fi
 
 log_info "Stage starts"
 
-start_ts=$(date +%s)
-$SAMTOOLS index $input 
-end_ts=$(date +%s)
+if [ -f ${input}.bai ]; then
+  start_ts=$(date +%s)
+  $SAMTOOLS index $input 
+  end_ts=$(date +%s)
+fi
 
 log_info "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
 
@@ -159,16 +161,16 @@ start_ts=$(date +%s)
 
 # Put all the information to log, not displaying
 $JAVA -Djava.io.tmpdir=/tmp -jar ${GATK_QUEUE} \
--S $DIR/BaseRecalQueue.scala \
--R $ref_fasta \
--I $input \
-$knownSites_string \
--o $output_rpt \
--jobRunner ParallelShell \
--maxConcurrentRun 32 \
--scatterCount 32 \
--run \
-2> $bqsr_log_dir/bqsr_run_err.log 
+  -S $DIR/BaseRecalQueue.scala \
+  -R $ref_fasta \
+  -I $input \
+  $knownSites_string \
+  -o $output_rpt \
+  -jobRunner ParallelShell \
+  -maxConcurrentRun 32 \
+  -scatterCount 32 \
+  -run \
+  2> $bqsr_log_dir/bqsr_run_err.log 
 
 # Stop manager
 stop_manager

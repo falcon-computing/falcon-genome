@@ -13,6 +13,8 @@ output=$3
 chr=$4
 ref=$5
 
+stage_name=printReads-chr$chr
+
 #echo $BASHPID
 echo $BASHPID > ${output}.pid
 
@@ -49,5 +51,5 @@ rm ${output}.java.pid
 rm ${output}.pid
 
 end_ts=$(date +%s)
-log_info "PrintReads for $(basename $output) finishes in $((end_ts - start_ts))s"
+log_info "Finishes finishes in $((end_ts - start_ts))s"
 echo "done" > ${output}.done

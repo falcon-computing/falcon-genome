@@ -116,4 +116,4 @@ if [ "$?" -ne 0 ]; then
 fi
 
 end_ts=$(date +%s)
-echo "Mark duplicates finished in $((end_ts - start_ts))s"
+log_info "Stage finished in $((end_ts - start_ts))s"
