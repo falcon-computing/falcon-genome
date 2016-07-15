@@ -74,21 +74,22 @@ if [ $command == "gatk" ];then
 else 
    # Get the picard command
    picard_command=$2
-   if [ $picard_command == MarkDuplicates ];then    
+   if [ $picard_command == "MarkDuplicates" ];then    
      # Detect the command
      while [[ $# -gt 0 ]];do
         key="$1"
         case $key in
         INPUT=*)
-          markdup_input=${$key#*INPUT=}
+          markdup_input=${key#*INPUT=}
+              echo "$markdup_input"
         ;;
         OUTPUT=*)
-          markdup_output=${$key#*OUTPUT=}
+          markdup_output=${key#*OUTPUT=}
         ;;
         esac
         shift
       done
-      fcs-genome -i $markdup_input -o markdup_output
+      fcs-genome md -i $markdup_input -o markdup_output
     else
       shift
       $JAVA -jar $PICARD $@
