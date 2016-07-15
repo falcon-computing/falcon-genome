@@ -46,15 +46,15 @@ fi
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
-  -r|--ref)
+  -r|--ref|-R)
     ref_fasta="$2"
     shift # past argument
     ;;
-  -i|--input)
+  -i|--input|-I)
     input="$2"
     shift # past argument
     ;;
-  -bqsr)
+  -bqsr|-BQSR)
     bqsr_rpt="$2"
     shift # past argument
     ;;

@@ -35,17 +35,20 @@ else
     shift
     source $DIR/stage-worker/markDup.sh "$@"
     ;;
-  bqsr|baseRecal)
+  bqsr|baseRecal|BaseRecalibrator)
     shift
     source $DIR/stage-worker/baseRecal.sh "$@"
     ;;
-  pr|printReads)
+  pr|printReads|PrintReads)
     shift
     source $DIR/stage-worker/printReads.sh "$@"
     ;;
-  hptc|haplotypeCaller)
+  hptc|haplotypeCaller|HaplotypeCaller)
     shift
     source $DIR/stage-worker/HaplotypeCaller.sh "$@"
+    ;;
+  gatk|picard)
+    source $DIR/stage-worker/Wrapper.sh "$@"
     ;;
   all)
     shift

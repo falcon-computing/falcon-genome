@@ -45,11 +45,11 @@ fi
 while [[ $# -gt 0 ]];do
  key="$1"
  case $key in
- -r|--ref)
+ -r|--ref|-R)
    ref_fasta="$2"
    shift # past argument
    ;;
- -i|--input_base)
+ -i|--input_base|-I)
    input_base="$2"
    shift # past argument
    ;;

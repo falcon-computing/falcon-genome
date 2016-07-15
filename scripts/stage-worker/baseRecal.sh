@@ -1,5 +1,5 @@
 ################################################################################
-## This script generates sorted bam file from fastq using bwa-flow
+## This script does the Base Recalibration stage
 ################################################################################
 #!/bin/bash
 
@@ -46,11 +46,11 @@ ks_index=0
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
-  -r|--ref)
+  -r|--ref|-R)
     ref_fasta="$2"
     shift # past argument
     ;;
-  -i|--input)
+  -i|--input|-I)
     input="$2"
     shift # past argument
     ;;
@@ -60,7 +60,7 @@ while [[ $# -gt 0 ]]; do
     ks_index=$[$ks_index+1]
     shift # past argument
     ;;
-  -o|--output)
+  -o|--output|-O)
     output_rpt="$2"
     shift # past argument
     ;;
