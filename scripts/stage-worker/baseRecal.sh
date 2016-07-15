@@ -110,12 +110,10 @@ for ks in ${knownSites[@]}; do
 done
 log_debug "$knownSites_string"
 
-bqsr_log_dir=$log_dir/bqsr
 rpt_dir=$(dirname $output_rpt)
 
 create_dir $log_dir
 create_dir $rpt_dir
-create_dir $bqsr_log_dir
 
 check_input $input
 check_output $output_rpt
@@ -170,14 +168,32 @@ $JAVA -Djava.io.tmpdir=/tmp -jar ${GATK_QUEUE} \
   -maxConcurrentRun 32 \
   -scatterCount 32 \
   -run \
-  2> $bqsr_log_dir/bqsr_run_err.log 
+  &> /dev/null
 
 # Stop manager
 stop_manager
 
+# concat the log here
+index_list="$(seq -w 1 32)"
+for index in $index_list; do
+  cat .queue/scatterGather/BaseRecalQueue-1-sg/temp_${index}_of_32/*.out >> $log_dir/bqsr.log
+done
+
 if [ ! -f $rpt_donefile ];then
-  log_error "Stage failed, you can check $bqsr_log_dir/bqsr_run_err.log for details" 
+  log_error "Stage failed, you can check $log_dir/bqsr.log for details" 
   exit 1
 fi
+
+# Remove the temp files
+if [ -f $rpt_donefile ]; then
+  rm -f $rpt_donefile
+fi
+if [ -f $rpt_out_donefile ]; then
+  rm -f $rpt_out_donefile
+fi
+if [ -d .queue ];then
+  rm .queue -rf
+fi
+
 end_ts=$(date +%s);
 log_info "Stage finishes in $((end_ts - start_ts))s"

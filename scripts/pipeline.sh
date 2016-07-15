@@ -137,7 +137,8 @@ if [[ "${do_stage["3"]}" == "1" ]]; then
   $DIR/fcs-genome baseRecal \
     -r $ref_genome \
     -i $input \
-    -o $output
+    -o $output \
+    -v 2
 
   if [ "$?" -ne 0 ]; then
     echo "BaseRecalibrator failed"

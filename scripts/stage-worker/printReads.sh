@@ -66,10 +66,6 @@ while [[ $# -gt 0 ]]; do
     verbose="$2"
     shift
     ;;
-  -clean)
-    clean_flag="$2"
-    shift
-    ;;
   -f|--force)
     force_flag=YES
     ;;
@@ -95,12 +91,6 @@ check_arg "-i" "$input"
 check_arg "-bqsr" "$bqsr_rpt"
 check_arg "-o" "output" "${tmp_dir[1]}"
 check_args
-
-if [ -z $clean_flag ]; then
-  clean_flag=0;
-  #echo "In default clean_flag is 0, the input would be kept"
-  #echo "If you want to set it, use the -clean option "
-fi
 
 # Check the input
 check_input $ref_fasta
@@ -188,10 +178,4 @@ if [ "$is_error" -ne 0 ]; then
 fi
 
 log_info "Stage finishes in $((end_ts - start_ts))s"
-
-if [ $clean_flag == 1 ]; then
-  rm -f $input &
-  rm -f ${input}.bai &
-  #rm ${output}/${input_base}.recal.chr*.bam
-fi
 rm -f ${output}/${input_base}.recal.chr*.bam.done

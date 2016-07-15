@@ -65,10 +65,6 @@ while [[ $# -gt 0 ]];do
    verbose="$2"
    shift
    ;;
- -clean)
-   clean_flag="$2"
-   shift
-   ;;
  -f|--force)
    force_flag=YES
    ;;
@@ -98,13 +94,6 @@ vcf_dir_default=$output_dir/vcf
 check_arg "-o" "vcf_dir" "$vcf_dir_default"
 create_dir $vcf_dir
 
-# The clean option needs to be discussed
-if [ -z $clean_flag ];then
-  clean_flag=0;
-  #echo "In default clean_flag is 0, the input would be kept"
-  #echo "If you want to set it, use the -clean option "
-fi
-
 # Check the inputs
 check_input $ref_fasta
 chr_list="$(seq 1 22) X Y MT"
@@ -122,9 +111,7 @@ for chr in $chr_list; do
 done
 
 # Create the directorys
-hptc_log_dir=$log_dir/hptc
 create_dir $log_dir
-create_dir $hptc_log_dir
 
 # Start the manager
 declare -A pid_table
@@ -141,13 +128,13 @@ trap "terminate" 1 2 3 15
 for chr in $chr_list; do
   chr_bam=$chr_dir/${input_base}.recal.chr${chr}.bam
   chr_vcf=$vcf_dir/${input_base}_chr${chr}.gvcf
-  $DIR/../fcs-sh "$DIR/haploTC_chr.sh $chr $chr_bam $chr_vcf $ref_fasta" 2> $hptc_log_dir/haplotypeCaller_chr${chr}.log &
+  $DIR/../fcs-sh "$DIR/haploTC_chr.sh $chr $chr_bam $chr_vcf $ref_fasta" 2> $log_dir/haplotypeCaller_chr${chr}.log &
   pid_table["$chr"]=$!
   output_table["$chr"]=$chr_vcf
 done
 
 # Wait on all the tasks
-log_file=$hptc_log_dir/HaplotypeCaller.log
+log_file=$log_dir/HaplotypeCaller.log
 is_error=0
 for chr in ${!pid_table[@]}; do
   pid=${pid_table[$chr]}
@@ -158,7 +145,7 @@ for chr in ${!pid_table[@]}; do
   fi
 
   # Concat log and remove the individual ones
-  chr_log=$hptc_log_dir/haplotypeCaller_chr${chr}.log
+  chr_log=$log_dir/haplotypeCaller_chr${chr}.log
   cat $chr_log >> $log_file
   rm -f $chr_log
 done
@@ -169,9 +156,6 @@ for chr in $chr_list; do
 
   if [ ! -e ${chr_vcf}.done ]; then
     is_error=1
-  fi
-  if [ $clean_flag == 1 ]; then
-  rm $chr_bam 
   fi
   rm ${chr_vcf}.done
 done

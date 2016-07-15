@@ -93,9 +93,7 @@ check_output_dir $tmp_dir
 log_info "The intermediate files of mark duplicate are stored to $tmp_dir as default"
 
 #Create log dir
-markdup_log_dir=$log_dir/markdup
 create_dir $log_dir
-create_dir $markdup_log_dir
 
 log_info "Start mark duplicates"
 start_ts=$(date +%s)
@@ -108,10 +106,10 @@ INPUT=$input \
 OUTPUT=$output \
 METRICS_FILE=${output}.dups_stats \
 REMOVE_DUPLICATES=false ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT \
->$markdup_log_dir/markdup_run.log 2> $markdup_log_dir/markdup_run_err.log
+&> $log_dir/markDup.log
 
 if [ "$?" -ne 0 ]; then 
-  log_error "Mark duplicates failed, please check $markdup_log_dir/markdup_run_err.log for detailed information"
+  log_error "Mark duplicates failed, please check $log_dir/markDup.log for detailed information"
   exit 1
 fi
 

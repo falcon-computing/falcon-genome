@@ -140,9 +140,7 @@ check_output_dir $tmp_dir
 # Create the directories of the run
 
 create_dir $log_dir
-bwa_log_dir=$log_dir/bwa
-create_dir $bwa_log_dir
-check_output_dir $bwa_log_dir
+check_output_dir $log_dir
 output_parts_dir=$tmp_dir/$(basename $output).parts
 
 # Use pseudo input for header
@@ -160,16 +158,16 @@ start_ts_total=$start_ts
 # Put all the information to log, not displaying
 $BWA mem -M \
     -R "@RG\tID:$RG_ID\tSM:$sample_id\tPL:$platform\tLB:$library" \
-    --log_dir=$bwa_log_dir/ \
+    --logtostderr=1 \
     --output_dir=$output_parts_dir \
     $ext_options \
     $ref_fasta \
     $fastq1 \
     $fastq2 \
-    2> $bwa_log_dir/bwa_run_err.log 
+    &> $log_dir/bwa.log
 
 if [ "$?" -ne 0 ]; then 
-  log_error "BWAMEM failed, please check $bwa_log_dir/bwa_run_err.log for details"
+  log_error "BWAMEM failed, please check $log_dir/bwa.log for details"
   exit 1
 fi
 end_ts=$(date +%s)
@@ -187,13 +185,13 @@ fi
 log_info "Start sorting"
 start_ts=$(date +%s)
 if [ "$bwa_sort" -gt 0 ]; then
-  $SAMTOOLS merge -r -c -p -l 1 -@ 10 ${output} $sort_files -f 2> $bwa_log_dir/samtool_run.log
+  $SAMTOOLS merge -r -c -p -l 1 -@ 10 ${output} $sort_files -f 2> $log_dir/sort.log
 else
-  cat $sort_files | $SAMTOOLS sort -m 16g -@ 10 -l 0 -o $output 2> $bwa_log_dir/samtool_run.log
+  cat $sort_files | $SAMTOOLS sort -m 16g -@ 10 -l 0 -o $output 2> $log_dir/sort.log
 fi
 
 if [ "$?" -ne 0 ]; then 
-  log_error "Sorting failed, please check $bwa_log_dir/samtool_run.log for detailed information"
+  log_error "Sorting failed, please check $log_dir/sort.log for detailed information"
   exit 1
 fi
 
