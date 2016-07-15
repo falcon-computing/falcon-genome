@@ -68,7 +68,7 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
   fi
 
   # Use these pseudo information for testing purpose
-  sample_id=SEQ01
+  SP_id=SEQ01
   RG_ID=SEQ01
   platform=ILLUMINA
   library=HUMsgR2AQDCAAPE
@@ -80,10 +80,11 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
     -r $ref_genome \
     -fq1 $fastq_1 \
     -fq2 $fastq_2 \
-    -ID $sample_id \
-    -SP $RG_ID \
-    -PL $platform \
-    -LB $library \
+    -sp $SP_id \
+    -rg $RG_ID \
+    -pl $platform \
+    -lb $library \
+    -v 2 \
     -o $output
 
   if [ "$?" -ne 0 ]; then

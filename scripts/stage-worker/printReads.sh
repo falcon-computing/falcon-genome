@@ -166,7 +166,7 @@ for chr in ${!pid_table[@]}; do
   wait "${pid}"
   if [ "$?" -gt 0 ]; then
     is_error=1
-    log_error "PrintReads failed on chromosome $chr"
+    log_error "Failed on chromosome $chr"
   fi
 
   # Concat log and remove the individual ones
@@ -183,9 +183,11 @@ unset pid_table
 unset output_table
 
 if [ "$is_error" -ne 0 ]; then
-  log_error "PrintReads failed, please check logs in $log_file for details."
+  log_error "Stage failed, please check logs in $log_file for details."
   exit 1
 fi
+
+log_info "Stage finishes in $((end_ts - start_ts))s"
 
 if [ $clean_flag == 1 ]; then
   rm -f $input &
@@ -193,5 +195,3 @@ if [ $clean_flag == 1 ]; then
   #rm ${output}/${input_base}.recal.chr*.bam
 fi
 rm -f ${output}/${input_base}.recal.chr*.bam.done
-
-echo "PrintReads stage finishes in $((end_ts - start_ts))s"

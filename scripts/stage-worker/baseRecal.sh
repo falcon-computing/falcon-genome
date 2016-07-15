@@ -141,7 +141,8 @@ declare -A pid_table
 if [ -f ${input}.bai ];then
   rm -f input.bai
 fi
-log_info "Start the samtools index"
+
+log_info "Stage starts"
 
 start_ts=$(date +%s)
 $SAMTOOLS index $input 
@@ -173,8 +174,8 @@ $knownSites_string \
 stop_manager
 
 if [ ! -f $rpt_donefile ];then
-  log_error "Base Recalibration failed, you can check $bqsr_log_dir/bqsr_run_err.log for details" 
+  log_error "Stage failed, you can check $bqsr_log_dir/bqsr_run_err.log for details" 
   exit 1
 fi
 end_ts=$(date +%s);
-echo "Base Recalibration for $(basename $output_rpt) finishes in $((end_ts - start_ts))s"
+log_info "Stage finishes in $((end_ts - start_ts))s"

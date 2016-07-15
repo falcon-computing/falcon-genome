@@ -126,7 +126,7 @@ check_arg "-r" "ref_fasta" "$ref_genome"
 bwa_sort=1
 
 tmp_dir=${tmp_dir[2]}
-log_info "The intermediate files OF BWA alignment are stored to $tmp_dir"
+log_info "The intermediate files of BWA alignment are stored to $tmp_dir"
 
 # Check input
 check_input $ref_fasta
@@ -187,9 +187,9 @@ fi
 log_info "Start sorting"
 start_ts=$(date +%s)
 if [ "$bwa_sort" -gt 0 ]; then
-  $SAMTOOLS merge -r -c -p -l 1 -@ 10 ${output} $sort_files -f 2>$bwa_log_dir/samtool_run.log
+  $SAMTOOLS merge -r -c -p -l 1 -@ 10 ${output} $sort_files -f 2> $bwa_log_dir/samtool_run.log
 else
-  cat $sort_files | $SAMTOOLS sort -m 16g -@ 10 -l 0 -o $output 2>$bwa_log_dir/samtool_run.log
+  cat $sort_files | $SAMTOOLS sort -m 16g -@ 10 -l 0 -o $output 2> $bwa_log_dir/samtool_run.log
 fi
 
 if [ "$?" -ne 0 ]; then 
@@ -201,5 +201,5 @@ fi
 rm -r $output_parts_dir &
 
 end_ts=$(date +%s)
-log_info "Samtools sort for finishes in $((end_ts - start_ts))s"
-echo "[fcs-genome Alignment] Finishes in $((end_ts - start_ts_total))s"
+log_info "Samtools sort finishes in $((end_ts - start_ts))s"
+log_info "Stage finishes in $((end_ts - start_ts_total))s"

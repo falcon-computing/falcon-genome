@@ -105,7 +105,7 @@ check_output() {
           force_flag=1
           break
         elif [[ "$answer" == "no" ]]; then
-          exit 0
+          exit 2
         else 
           >&2 echo -e -n "Please type 'yes' or 'no' or 'all': "
         fi
