@@ -7,7 +7,8 @@
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $DIR/../globals.sh
 source $DIR/common.sh
-stage_name=Alignment
+
+stage_name=align
 # Prevent this script to be running alone
 if [[ $0 != ${BASH_SOURCE[0]} ]]; then
   # Script is sourced by another shell
@@ -29,16 +30,22 @@ print_help() {
   echo "    -fq1 <input_1.fastq> \\ ";
   echo "    -fq2 <input_2.fastq> \\ ";
   echo "    -o <output.bam> \\";
-  echo "    -ID <RG_ID> \\ ";
-  echo "    -SP <sample_id> \\ "
-  echo "    -PL <platform> \\ "
-  echo "    -LB <library>"
+  echo "    -rg <readgroup_id> \\ ";
+  echo "    -sp <sample_id> \\ "
+  echo "    -pl <platform_id> \\ "
+  echo "    -lb <library_id>"
   echo 
   echo "<input.bam> argument is the markduped bam file";
   echo "<input_1.fastq> and <input_2.fastq> are the input fastq file";
   echo "<output.bam> argument is the file to put the output bam results";
-  echo "<RG_ID> <sample_id> <platform> <library> arguments is the read group information";
+  echo "<readgroup_id> <sample_id> <platform_id> <library_id> specifies read group information";
 }
+
+# check the command 
+if [ $# -lt 2 ];then
+  print_help
+  exit 0;
+fi
 
 # Get the input command 
 while [[ $# -gt 0 ]];do
@@ -60,19 +67,19 @@ while [[ $# -gt 0 ]];do
     output="$2"
     shift
     ;;
-  -ID)
+  -rg|--readgroup_id)
     RG_ID="$2"
     shift
     ;;
-  -SP)
+  -sp|--sample_id)
     sample_id="$2"
     shift
     ;;
-  -PL)
+  -pl|--platform_id)
     platform="$2"
     shift
     ;;
-  -LB)
+  -lb|--library_id)
     library="$2"
     shift
     ;;
@@ -93,7 +100,7 @@ while [[ $# -gt 0 ]];do
   shift # past argument or value
 done
 
-# Check the command 
+# check the command 
 if [ ! -z $help_req ];then
   print_help
   exit 0;
@@ -102,11 +109,12 @@ fi
 # Check the input arguments
 check_arg "-fq1" "fastq1"
 check_arg "-fq2" "fastq2"
-check_arg "-ID" "RG_ID"
-check_arg "-SP" "sample_id"
-check_arg "-PL" "platform"
-check_arg "-LB" "library"
+check_arg "-rg" "RG_ID"
+check_arg "-sp" "sample_id"
+check_arg "-pl" "platform"
+check_arg "-lb" "library"
 check_args 
+
 fastq_base_withsuffix=$(basename $fastq1)
 fastq_base=${fastq_base_withsuffix%_1.*} 
 log_info "$fastq_base is the fastq base name"
@@ -114,7 +122,6 @@ output_default=${tmp_dir[1]}/$fastq_base.bam
 
 check_arg "-o" "output" "$output_default"
 check_arg "-r" "ref_fasta" "$ref_genome"
-
 
 bwa_sort=1
 
@@ -148,24 +155,25 @@ fi
 
 log_info "Started BWA alignment"
 start_ts=$(date +%s)
+start_ts_total=$start_ts
 
 # Put all the information to log, not displaying
 $BWA mem -M \
--R "@RG\tID:$RG_ID\tSM:$sample_id\tPL:$platform\tLB:$library" \
---log_dir=$bwa_log_dir/ \
---output_dir=$output_parts_dir \
-$ext_options \
-$ref_fasta \
-$fastq1 \
-$fastq2 \
-2> $bwa_log_dir/bwa_run_err.log 
+    -R "@RG\tID:$RG_ID\tSM:$sample_id\tPL:$platform\tLB:$library" \
+    --log_dir=$bwa_log_dir/ \
+    --output_dir=$output_parts_dir \
+    $ext_options \
+    $ref_fasta \
+    $fastq1 \
+    $fastq2 \
+    2> $bwa_log_dir/bwa_run_err.log 
 
 if [ "$?" -ne 0 ]; then 
   log_error "BWAMEM failed, please check $bwa_log_dir/bwa_run_err.log for details"
   exit 1
 fi
 end_ts=$(date +%s)
-echo "BWA mem finishes in $((end_ts - start_ts))s"
+log_info "BWA mem finishes in $((end_ts - start_ts))s"
 
 # Increase the max number of files that can be opened concurrently
 ulimit -n 2048
@@ -193,4 +201,5 @@ fi
 rm -r $output_parts_dir &
 
 end_ts=$(date +%s)
-echo "Samtools sort for finishes in $((end_ts - start_ts))s"
+log_info "Samtools sort for finishes in $((end_ts - start_ts))s"
+echo "[fcs-genome Alignment] Finishes in $((end_ts - start_ts_total))s"

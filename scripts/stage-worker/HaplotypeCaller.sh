@@ -6,7 +6,9 @@
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $DIR/../globals.sh
 source $DIR/common.sh
-stage_name=HaplotypeCaller
+
+stage_name=haplotypeCaller
+
 # Prevent this script to be running alone
 if [[ $0 != ${BASH_SOURCE[0]} ]]; then
   # Script is sourced by another shell
@@ -23,7 +25,7 @@ fi
 
 print_help() {
   echo "USAGE:"
-  echo "fcs-genome hptc|haplotypecaller \\";
+  echo "fcs-genome hptc|haplotypeCaller \\";
   echo "    -r <ref.fasta> \\";
   echo "    -i <input_base> \\ ";
   echo "    -c <chr_dir> \\";
@@ -74,7 +76,7 @@ while [[ $# -gt 0 ]];do
    help_req=YES
    ;;
  *)
-           # unknown option
+   # unknown option
    ;;
   esac
   shift # past argument or value

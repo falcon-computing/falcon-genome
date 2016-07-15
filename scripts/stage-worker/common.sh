@@ -18,20 +18,20 @@ log_msg() {
     local v=1;
   fi;
   if [ "$level" -le "$v" ]; then
-    (>&2 echo "[fcs-genome $stage_name]$msg");
+    (>&2 echo "[fcs-genome $stage_name] $msg");
   fi;
 }
 
 log_info() {
-  log_msg 2 "$1";
+  log_msg 2 "INFO: $1";
 }
 
 log_warn() {
-  log_msg 1 "$1";
+  log_msg 1 "WARNING: $1";
 }
 
 log_error() {
-  log_msg 0 "$1";
+  log_msg 0 "ERROR: $1";
 }
 
 log_debug() {
@@ -41,8 +41,8 @@ log_debug() {
 }
 
 log_internal() {
-  log_error "Encountered an internal error, please contact technical support at";
-  log_error "support@falcon-computing.com";
+  log_error "Encountered an internal error"
+  log_error "Please contact technical support at support@falcon-computing.com";
 }
 
 # Check if arguement is present, if a default value is specified

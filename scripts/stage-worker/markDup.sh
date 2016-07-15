@@ -7,7 +7,9 @@
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $DIR/../globals.sh
 source $DIR/common.sh
-stage_name=MarkDuplicate
+
+stage_name=markDup
+
 # Prevent this script to be running alone
 if [[ $0 != ${BASH_SOURCE[0]} ]]; then
   # Script is sourced by another shell
@@ -24,7 +26,7 @@ fi
 
 print_help() {
   echo "USAGE:"
-  echo "fcs-genome md|markdup \\";
+  echo "fcs-genome md|markDup \\";
   echo "    -i <input.bam> \\ ";
   echo "    -o <output.bam>";
   echo 

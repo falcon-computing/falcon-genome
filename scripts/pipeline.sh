@@ -67,6 +67,12 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
     fastq_2=$fastq_dir/${sample_id}_2.fq
   fi
 
+  # Use these pseudo information for testing purpose
+  sample_id=SEQ01
+  RG_ID=SEQ01
+  platform=ILLUMINA
+  library=HUMsgR2AQDCAAPE
+
   # Put output in tmp_dir[1]
   output=${tmp_dir[1]}/${sample_id}.bam
 
@@ -74,6 +80,10 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
     -r $ref_genome \
     -fq1 $fastq_1 \
     -fq2 $fastq_2 \
+    -ID $sample_id \
+    -SP $RG_ID \
+    -PL $platform \
+    -LB $library \
     -o $output
 
   if [ "$?" -ne 0 ]; then
