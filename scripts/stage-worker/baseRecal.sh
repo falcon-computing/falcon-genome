@@ -117,7 +117,14 @@ for ks in ${knownSites[@]}; do
    knownSites_string="$knownSites_string -knownSites $ks"  
 done
 
+# Get absolute filepath for input/output
+readlink_check ref_fasta
+readlink_check input
+readlink_check output_rpt
+readlink_check log_dir
+
 rpt_dir=$(dirname $output_rpt)
+
 
 create_dir $log_dir
 create_dir $rpt_dir

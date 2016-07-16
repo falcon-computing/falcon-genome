@@ -36,7 +36,7 @@ print_help() {
 
 if [ $# -lt 1 ]; then
   print_help
-  exit 1;
+  exit 0;
 fi
 
 # Get the input command 
@@ -92,6 +92,12 @@ output_default=${tmp_dir[2]}/${fastq_base}.markdups.bam
 
 check_arg "-o" "output" "$output_default"
 check_args
+
+# Get absolute filepath for input/output
+readlink_check input
+readlink_check output
+readlink_check log_dir
+
 
 # Check input
 check_output $output

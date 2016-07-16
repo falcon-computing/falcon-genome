@@ -106,9 +106,9 @@ check_arg "-o" "vcf_dir" "$vcf_dir_default"
 check_args
 
 # Get absolute filepath for input/output
-ref_fasta=$(readlink -f $ref_fasta)
-input=$(readlink -f $input)
-vcf_dir=$(readlink -f $vcf_dir)
+readlink_check ref_fasta
+readlink_check input
+readlink_check vcf_dir
 
 # Create the directorys
 create_dir $log_dir

@@ -136,6 +136,13 @@ bwa_sort=1
 tmp_dir=${tmp_dir[2]}
 log_info "The intermediate files of BWA alignment are stored to $tmp_dir"
 
+# Get absolute filepath for input/outputs
+readlink_check ref_fasta
+readlink_check fastq1
+readlink_check fastq2
+readlink_check output
+readlink_check log_dir
+
 # Check input
 check_input $ref_fasta
 check_input $fastq1

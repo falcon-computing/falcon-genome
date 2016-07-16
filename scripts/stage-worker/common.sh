@@ -83,7 +83,7 @@ check_output() {
   local filename=$1;
 
   # Check if output folder writtable
-  echo "1" > ${filename}.tmp;
+  eval "echo "1" > ${filename}.tmp" &>/dev/null ;
   if [ ! -f ${filename}.tmp ]; then
     log_error "Cannot write to folder $(dirname $filename)"
     exit 1
@@ -227,4 +227,15 @@ terminate() {
     fi;
   done;
   exit 1;
+}
+
+readlink_check() {
+  eval "local val=\$$1"
+  abs_path=$(readlink -f $val)
+  if [ -z $abs_path ];then
+    log_error "The directory $(dirname $val) does not exist"
+    exit 1
+  else
+    eval "$1=$abs_path"
+  fi
 }

@@ -111,11 +111,11 @@ check_args
 
 # Get absolute filepath for input/output
 # This is necessary because the jobs can be run distributedly
-ref_fasta=$(readlink -f $ref_fasta)
-input=$(readlink -f $input)
-output=$(readlink -f $output)
-bqsr_rpt=$(readlink -f $bqsr_rpt)
-log_dir=$(readlink -f $log_dir)
+readlink_check ref_fasta
+readlink_check input
+readlink_check output
+readlink_check bqsr_rpt
+readlink_check log_dir
 
 create_dir $log_dir
 create_dir $output
