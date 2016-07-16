@@ -45,17 +45,14 @@ else
     ;;
   hptc|haplotypeCaller|HaplotypeCaller)
     shift
-    source $DIR/stage-worker/HaplotypeCaller.sh "$@"
+    source $DIR/stage-worker/haploTC.sh "$@"
     ;;
   gatk|picard)
-    source $DIR/stage-worker/Wrapper.sh "$@"
-    ;;
-  all)
-    shift
-    $DIR/fcs_genome_pipeline.sh "$@"
+    source $DIR/stage-worker/wrapper.sh "$@"
     ;;
   *)
     print_help
+    exit 1
     ;;
   esac
 fi

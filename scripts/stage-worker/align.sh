@@ -84,8 +84,13 @@ while [[ $# -gt 0 ]];do
     shift
     ;;
   -v|--verbose)
-    verbose="$2"
-    shift
+    if [ $2 -eq $2 2> /dev/null ]; then
+      # user specified an integer as input
+      verbose="$2"
+      shift
+    else
+      verbose=2
+    fi
     ;;
   -f|--force)
     force_flag=YES
@@ -94,7 +99,10 @@ while [[ $# -gt 0 ]];do
     help_req=YES
     ;;
     *)
-            # unknown option
+    # unknown option
+    log_error "Failed to recongize argument '$1'"
+    print_help
+    exit 1
     ;;
   esac
   shift # past argument or value
@@ -171,7 +179,7 @@ if [ "$?" -ne 0 ]; then
   exit 1
 fi
 end_ts=$(date +%s)
-log_info "BWA mem finishes in $((end_ts - start_ts))s"
+log_info "bwa mem finishes in $((end_ts - start_ts))s"
 
 # Increase the max number of files that can be opened concurrently
 ulimit -n 2048
@@ -197,7 +205,7 @@ fi
 
 # Remove the partial files
 rm -r $output_parts_dir &
-
 end_ts=$(date +%s)
+
 log_info "Samtools sort finishes in $((end_ts - start_ts))s"
 log_info "Stage finishes in $((end_ts - start_ts_total))s"

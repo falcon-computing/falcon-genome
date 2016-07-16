@@ -7,11 +7,12 @@ if [[ $# -lt 5 ]]; then
   exit 1;
 fi
 
-input=$1
-BQSR=$2
-output=$3
-chr=$4
-ref=$5
+ref=$1
+chr=$2
+input=$3
+BQSR=$4
+output=$5
+verbose=$6
 
 stage_name=printReads-chr$chr
 
@@ -36,7 +37,6 @@ $JAVA -d64 -Xmx$((nthreads * 2))g -jar $GATK \
     -L $chr \
     -BQSR $BQSR \
     -nct $nthreads \
-    -L $chr \
     -o $output &
 
 pr_java_pid=$!
@@ -51,5 +51,4 @@ rm ${output}.java.pid
 rm ${output}.pid
 
 end_ts=$(date +%s)
-log_info "Finishes finishes in $((end_ts - start_ts))s"
-echo "done" > ${output}.done
+#log_info "Finishes finishes in $((end_ts - start_ts))s"

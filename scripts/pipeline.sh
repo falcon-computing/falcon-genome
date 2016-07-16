@@ -48,8 +48,6 @@ create_dir $log_dir
 create_dir ${tmp_dir[1]}
 create_dir ${tmp_dir[2]}
 
-trap 'echo intrrupted; kill $(jobs -p)' SIGINT SIGTERM
-
 start_ts=$(date +%s)
 
 # Step 1: BWA alignment and sort
@@ -138,7 +136,7 @@ if [[ "${do_stage["3"]}" == "1" ]]; then
     -r $ref_genome \
     -i $input \
     -o $output \
-    -v 2
+    -v 2 -f
 
   if [ "$?" -ne 0 ]; then
     echo "BaseRecalibrator failed"
@@ -157,14 +155,12 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
 
   input_bam=${tmp_dir[2]}/${sample_id}.markdups.bam
   input_bqsr=$output_dir/rpt/${sample_id}.recalibration_report.grp
-  output_dir=${tmp_dir[1]}/bam_recal
 
   $DIR/fcs-genome printReads \
     -r $ref_genome \
     -i $input_bam \
     -bqsr $input_bqsr \
-    -o $output_dir \
-    -clean
+    -v 2 -f
 
   if [ "$?" -ne 0 ]; then
     echo "Print Reads failed"
@@ -185,7 +181,7 @@ if [[ "${do_stage["5"]}" == "1" ]]; then
     -i $sample_id \
     -c $input_dir \
     -o $vcf_dir \
-    -clean
+    -v 2 -f
 
   if [ "$?" -ne 0 ]; then
     echo "Variant Calling failed"

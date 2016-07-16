@@ -3,15 +3,15 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $DIR/../globals.sh
 source $DIR/common.sh
 
-if [[ $# -lt 2 ]]; then
-  echo "USAGE: $0 <chr> <input.bam> <output.gvcf>"
+if [[ $# -lt 4 ]]; then
   exit 1;
 fi
 
-chr=$1
-input=$2
-output=$3
-ref=$4
+ref=$1
+chr=$2
+input=$3
+output=$4
+verbose=$5
 
 stage_name=haploptypeCaller-chr$chr
 
@@ -54,14 +54,12 @@ $JAVA -d64 -Xmx$((nthreads * 2 + 4))g -jar $GATK \
 hptc_java_pid=$!
 echo $hptc_java_pid > ${output}.java.pid
 wait "$hptc_java_pid"
-
 if [ "$?" -ne "0" ]; then
   exit 1;
 fi
 
 rm ${output}.java.pid
 rm ${output}.pid
-end_ts=$(date +%s)
-log_info "Finishes in $((end_ts - start_ts))s"
 
-echo "done" > ${output}.done
+end_ts=$(date +%s)
+#log_info "Finishes in $((end_ts - start_ts))s"

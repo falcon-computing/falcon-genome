@@ -36,44 +36,47 @@ print_help() {
   echo "<vcf_dir> argument is the directory to put the vcf output results";
 }
 
-if [ $# -lt 1 ]; then
+if [ $# -lt 2 ]; then
   print_help
   exit 1;
 fi
 
 # Get the input command
 while [[ $# -gt 0 ]];do
- key="$1"
- case $key in
- -r|--ref|-R)
-   ref_fasta="$2"
-   shift # past argument
-   ;;
- -i|--input_base|-I)
-   input_base="$2"
-   shift # past argument
-   ;;
- -c|--chr_dir)
-   chr_dir="$2"
-   shift # past argument
-   ;;
- -o|--output)
-   vcf_dir="$2"
-   shift # past argument
-   ;;
- -v|--verbose)
-   verbose="$2"
-   shift
-   ;;
- -f|--force)
-   force_flag=YES
-   ;;
- -h|--help)
-   help_req=YES
-   ;;
- *)
-   # unknown option
-   ;;
+  key="$1"
+  case $key in
+  -r|--ref|-R)
+    ref_fasta="$2"
+    shift # past argument
+    ;;
+  -i|--input|-I)
+    input="$2"
+    shift # past argument
+    ;;
+  -o|--output|-O)
+    vcf_dir="$2"
+    shift # past argument
+    ;;
+  -v|--verbose)
+    if [ $2 -eq $2 2> /dev/null ]; then
+      # user specified an integer as input
+      verbose="$2"
+      shift
+    else
+      verbose=2
+    fi
+    ;;
+  -f|--force)
+    force_flag=YES
+    ;;
+  -h|--help)
+    help_req=YES
+    ;;
+  *)
+    # unknown option
+    log_error "Failed to recongize argument '$1'"
+    print_help
+    ;;
   esac
   shift # past argument or value
 done
@@ -84,59 +87,81 @@ if [ ! -z $help_req ];then
   exit 0;
 fi
 
-# Check the input arguments
-check_arg "-i" "$input"
-check_arg "-c" "$chr_dir"
-check_args
-
-check_arg "-r" "ref_fasta" "$ref_genome"
-vcf_dir_default=$output_dir/vcf
-check_arg "-o" "vcf_dir" "$vcf_dir_default"
-create_dir $vcf_dir
-
-# Check the inputs
-check_input $ref_fasta
-chr_list="$(seq 1 22) X Y MT"
-for chr in $chr_list; do
-  chr_bam=$chr_dir/${input_base}.recal.chr${chr}.bam
-  if [ ! -f $chr_bam ];then 
-    log_error "Could not find the $chr_bam, please check if you have pointed the right directory"
-    exit 1
-  fi
-done
-# Check the outputs
-for chr in $chr_list; do
-   chr_vcf=$vcf_dir/${input_base}_chr${chr}.gvcf
-   check_output $chr_vcf
-done
-
-# Create the directorys
-create_dir $log_dir
-
-# Start the manager
+declare -A chr_bam
+declare -A chr_vcf
 declare -A pid_table
 declare -A output_table
 
+input_base_withsuffix=$(basename $input)
+input_base=${input_base_withsuffix%%.*} 
+vcf_dir_default=$output_dir/vcf
+chr_list="$(seq 1 22) X Y MT"
+
+log_debug "Sample id is $input_base"
+
+# Check the input arguments
+check_arg "-i" "$input"
+check_arg "-r" "ref_fasta" "$ref_genome"
+check_arg "-o" "vcf_dir" "$vcf_dir_default"
+check_args
+
+# Get absolute filepath for input/output
+ref_fasta=$(readlink -f $ref_fasta)
+input=$(readlink -f $input)
+vcf_dir=$(readlink -f $vcf_dir)
+
+# Create the directorys
+create_dir $log_dir
+create_dir $vcf_dir
+
+# Check the inputs
+if [ -d "$input" ]; then
+  # Input is a directory, checkout for per-chr data
+  for chr in $chr_list; do
+    chr_bam["$chr"]=${input}/${input_base}.chr${chr}.bam
+    check_input ${chr_bam["$chr"]}
+  done
+else
+  # Input is a single file, use if for all per-chr HTC
+  check_input $input
+  for chr in $chr_list; do
+    chr_bam["$chr"]=$input
+  done
+fi
+
+# Check the outputs
+for chr in $chr_list; do
+  chr_vcf["$chr"]=$vcf_dir/${input_base}.chr${chr}.gvcf
+  check_output ${chr_vcf[$chr]}
+done
+
 # Start manager
-start_ts=$(date +%s)
 start_manager
 
 trap "terminate" 1 2 3 15
 
 # Start the jobs
+log_info "Start stage for input $input"
+log_info "Output files will be put in $vcf_dir"
+start_ts_total=$(date +%s)
 
 for chr in $chr_list; do
-  chr_bam=$chr_dir/${input_base}.recal.chr${chr}.bam
-  chr_vcf=$vcf_dir/${input_base}_chr${chr}.gvcf
-  $DIR/../fcs-sh "$DIR/haploTC_chr.sh $chr $chr_bam $chr_vcf $ref_fasta" 2> $log_dir/haplotypeCaller_chr${chr}.log &
+  $DIR/../fcs-sh "$DIR/haploTC_chr.sh \
+      $ref_fasta \
+      $chr \
+      ${chr_bam[$chr]} \
+      ${chr_vcf[$chr]} \
+      $verbose" 2> $log_dir/haplotypeCaller_chr${chr}.log &
+
   pid_table["$chr"]=$!
   output_table["$chr"]=$chr_vcf
 done
 
 # Wait on all the tasks
-log_file=$log_dir/HaplotypeCaller.log
+log_file=$log_dir/haplotypeCaller.log
+rm -f $log_file
 is_error=0
-for chr in ${!pid_table[@]}; do
+for chr in $chr_list; do
   pid=${pid_table[$chr]}
   wait "${pid}"
   if [ "$?" -gt 0 ]; then
@@ -149,21 +174,21 @@ for chr in ${!pid_table[@]}; do
   cat $chr_log >> $log_file
   rm -f $chr_log
 done
-
-for chr in $chr_list; do
-  chr_bam=$chr_dir/${input_base}.bam.recal.chr${chr}.bam
-  chr_vcf=$vcf_dir/${input_base}_chr${chr}.gvcf
-
-  if [ ! -e ${chr_vcf}.done ]; then
-    is_error=1
-  fi
-  rm ${chr_vcf}.done
-done
- 
 end_ts=$(date +%s)
+
+#for chr in $chr_list; do
+#  if [ ! -e ${chr_vcf[$chr]}.done ]; then
+#    is_error=1
+#  fi
+#  rm ${chr_vcf[$chr]}.done
+#done
+ 
+
 # Stop manager
 stop_manager
 
+unset chr_bam
+unset chr_vcf
 unset pid_table
 unset output_table
 
@@ -172,4 +197,4 @@ if [ "$is_error" -ne 0 ]; then
   exit 1
 fi
 
-log_info "Stage finishes in $((end_ts - start_ts))s"
+log_info "Stage finishes in $((end_ts - start_ts_total))s"

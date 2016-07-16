@@ -37,7 +37,7 @@ print_help() {
   echo "<output_dir> argument is the directory to put the output results";
 }
 
-if [ $# -lt 1 ]; then
+if [ $# -lt 2 ]; then
   print_help
   exit 1;
 fi
@@ -63,8 +63,13 @@ while [[ $# -gt 0 ]]; do
     shift # past argument
     ;;
   -v|--verbose)
-    verbose="$2"
-    shift
+    if [ $2 -eq $2 2> /dev/null ]; then
+      # user specified an integer as input
+      verbose="$2"
+      shift
+    else
+      verbose=2
+    fi
     ;;
   -f|--force)
     force_flag=YES
@@ -74,57 +79,60 @@ while [[ $# -gt 0 ]]; do
     ;;
   *)
     # unknown option
+    log_error "Failed to recongize argument '$1'"
+    print_help
+    exit 1
     ;;
   esac
   shift # past argument or value
 done
 
 # If no argument is given then print help message
-if [ ! -z $help_req ];then
+if [ ! -z $help_req ]; then
   print_help
   exit 0;
 fi
+
+declare -A chr_recal_bam
+declare -A pid_table
+declare -A output_table
+
+input_base_withsuffix=$(basename $input)
+input_base=${input_base_withsuffix%%.*} 
+output_default=${tmp_dir[1]}/${input_base}.recal.bam
+chr_list="$(seq 1 22) X Y MT"
 
 # Check the input arguments
 check_arg "-r" "ref_fasta" "$ref_genome"
 check_arg "-i" "$input"
 check_arg "-bqsr" "$bqsr_rpt"
-check_arg "-o" "output" "${tmp_dir[1]}"
+check_arg "-o" "output" "$output_default"
 check_args
 
-# Check the input
-check_input $ref_fasta
-check_input $input
-check_input $bqsr_rpt
-
-
-input_base_withsuffix=$(basename $input)
-input_base=${input_base_withsuffix%%.*} 
-
-# Check output
-create_dir $output
-
-chr_list="$(seq 1 22) X Y MT"
-for chr in $chr_list; do
-  # The splited bams are in tmp_dir[1], the recalibrated bams should be in [2]
-  chr_recal_bam=${output}/${input_base}.recal.chr${chr}.bam
-  check_output $chr_recal_bam
-done
-
 # Get absolute filepath for input/output
+# This is necessary because the jobs can be run distributedly
 ref_fasta=$(readlink -f $ref_fasta)
 input=$(readlink -f $input)
 output=$(readlink -f $output)
 bqsr_rpt=$(readlink -f $bqsr_rpt)
+log_dir=$(readlink -f $log_dir)
 
-# Create the log directory
 create_dir $log_dir
+create_dir $output
 
-declare -A pid_table
-declare -A output_table
+# Check input
+check_input $ref_fasta
+check_input $input
+check_input $bqsr_rpt
+
+# Check output
+for chr in $chr_list; do
+  # The splited bams are in tmp_dir[1], the recalibrated bams should be in [2]
+  chr_recal_bam["$chr"]=${output}/${input_base}.chr${chr}.bam
+  check_output ${chr_recal_bam["$chr"]}
+done
 
 # Start manager
-start_ts=$(date +%s)
 start_manager
 
 trap "terminate" 1 2 3 15
@@ -139,19 +147,29 @@ if [ ! -f ${input}.bai ]; then
 fi
 
 # Start the jobs
-for chr in $chr_list; do
-  chr_recal_bam=${output}/${input_base}.recal.chr${chr}.bam
+log_info "Start stage for input $input_base"
+log_info "Output will be put in $output"
+start_ts_total=$(date +%s)
 
-  # TODO(yaoh) add the verbose option case here
-  $DIR/../fcs-sh "$DIR/printReads_chr.sh $input $bqsr_rpt $chr_recal_bam $chr $ref_fasta " 2> $log_dir/printReads_chr${chr}.log 1>/dev/null &
+for chr in $chr_list; do
+
+  $DIR/../fcs-sh "$DIR/printReads_chr.sh \
+      $ref_fasta \
+      $chr \
+      $input \
+      $bqsr_rpt \
+      ${chr_recal_bam["$chr"]} \
+      $verbose" 2> $log_dir/printReads_chr${chr}.log 1> /dev/null &
+
   pid_table["$chr"]=$!
-  output_table["$chr"]=$chr_recal_bam
+  output_table["$chr"]=${chr_recal_bam[$chr]}
 done
 
 # Wait on all the tasks
 log_file=$log_dir/printReads.log
+rm -f $log_file
 is_error=0
-for chr in ${!pid_table[@]}; do
+for chr in $chr_list; do
   pid=${pid_table[$chr]}
   wait "${pid}"
   if [ "$?" -gt 0 ]; then
@@ -169,6 +187,7 @@ end_ts=$(date +%s)
 # Stop manager
 stop_manager
 
+unset chr_recal_bam
 unset pid_table
 unset output_table
 
@@ -177,5 +196,4 @@ if [ "$is_error" -ne 0 ]; then
   exit 1
 fi
 
-log_info "Stage finishes in $((end_ts - start_ts))s"
-rm -f ${output}/${input_base}.recal.chr*.bam.done
+log_info "Stage finishes in $((end_ts - start_ts_total))s"

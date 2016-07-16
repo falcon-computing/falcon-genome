@@ -8,7 +8,7 @@ source $DIR/globals.sh
 source $DIR/stage-worker/common.sh
 # input and output dir, could be changed by user
 input_fastq_dir=/merlin_fs/merlin1/hdd1/yaoh/fastq_short
-results_dir=/merlin_fs/merlin2/ssd1/yaoh
+results_dir=/merlin_fs/merlin2/ssd1/diwu
 ref_vcf_dir=/merlin_fs/merlin2/ssd1/yaoh/v1.0
 
 # Create seperate dir for each stage
@@ -36,7 +36,7 @@ for index in $index_list; do
   fcs-genome al -fq1 $input_fastq_dir/${base_of_input}_1.fastq \
                 -fq2 $input_fastq_dir/${base_of_input}_2.fastq \
                 -o $results_dir/bams_al/${base_of_input}.bam \
-                -ID SEQ01 -SP SEQ01 -PL ILLUMINA -LB HUMsgR2AQDCAAPE \
+                -rg SEQ01 -sp SEQ01 -pl ILLUMINA -lb HUMsgR2AQDCAAPE \
                 -v 1 -f
   
   if [ "$?" -ne 0 ];then
@@ -78,8 +78,7 @@ for index in $index_list; do
   
   # Start HaplotypeCaller
   create_dir $results_dir/vcf/${base_of_input}
-  fcs-genome hptc -i ${base_of_input} \
-                  -c $results_dir/bams_pr/${base_of_input} \
+  fcs-genome hptc -i $results_dir/bams_pr/${base_of_input} \
                   -o $results_dir/vcf/${base_of_input} \
                   -v 1 -f 
   

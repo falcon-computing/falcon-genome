@@ -65,8 +65,13 @@ while [[ $# -gt 0 ]]; do
     shift # past argument
     ;;
   -v|--verbose)
-    verbose="$2"
-    shift
+    if [ $2 -eq $2 2> /dev/null ]; then
+      # user specified an integer as input
+      verbose="$2"
+      shift
+    else
+      verbose=2
+    fi
     ;;
   -f|--force)
     force_flag=YES
@@ -76,6 +81,9 @@ while [[ $# -gt 0 ]]; do
     ;;
   *)
     # unknown option
+    log_error "Failed to recongize argument '$1'"
+    print_help
+    exit 1
     ;;
   esac
   shift # past argument or value
@@ -108,7 +116,6 @@ fi
 for ks in ${knownSites[@]}; do
    knownSites_string="$knownSites_string -knownSites $ks"  
 done
-log_debug "$knownSites_string"
 
 rpt_dir=$(dirname $output_rpt)
 
@@ -142,11 +149,9 @@ fi
 
 log_info "Stage starts"
 
-if [ -f ${input}.bai ]; then
-  start_ts=$(date +%s)
-  $SAMTOOLS index $input 
-  end_ts=$(date +%s)
-fi
+start_ts=$(date +%s)
+$SAMTOOLS index $input 
+end_ts=$(date +%s)
 
 log_info "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
 
@@ -174,6 +179,8 @@ $JAVA -Djava.io.tmpdir=/tmp -jar ${GATK_QUEUE} \
 stop_manager
 
 # concat the log here
+rm -f $log_dir/bqsr.log
+
 index_list="$(seq -w 1 32)"
 for index in $index_list; do
   cat .queue/scatterGather/BaseRecalQueue-1-sg/temp_${index}_of_32/*.out >> $log_dir/bqsr.log

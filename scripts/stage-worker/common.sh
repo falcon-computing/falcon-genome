@@ -94,7 +94,7 @@ check_output() {
   if [ -f $filename ]; then
     # Here detect a global variable that will be handled in the caller
     if [ -z "$force_flag" ]; then
-      >&2 echo -e -n "Output file $filename already exists, overwrite? \e[31m[yes|no|all]\e[0m "
+      >&2 echo -e -n "[fcs-genome $stage_name] Output file $filename already exists, overwrite? \e[31m[yes|no|all]\e[0m "
       while true; do
         read answer;
         if [[ "$answer" == "yes" ]]; then
@@ -107,7 +107,7 @@ check_output() {
         elif [[ "$answer" == "no" ]]; then
           exit 2
         else 
-          >&2 echo -e -n "Please type 'yes' or 'no' or 'all': "
+          >&2 echo -e -n "[fcs-genome $stage_name] Please type 'yes' or 'no' or 'all': "
         fi
       done
     else
@@ -140,7 +140,10 @@ create_dir() {
     if [ $? -ne 0 ]; then
       log_error "Cannot create dir $dir";
       exit 1;
-    fi
+    fi;
+    return 0;
+  else
+    return 1; # did not create dir
   fi;
 }
 
@@ -180,40 +183,48 @@ stop_manager() {
   manager_pid=;
 }
 
-kill_process(){
+kill_process() {
   kill -5 $(jobs -p);
   exit 1;
 }
 
+terminate_process() {
+  local pid=$1;
+  if [ -z "$pid" ]; then
+    return 2;
+  fi
+  kill "${pid}" 2> /dev/null;
+  if [ "$?" -eq 0 ]; then
+    log_debug "killed $pid";
+  else
+    return 1;
+  fi
+}
+
 # Catch the interrupt option to stop manager
-terminate(){
-  log_warn "Caught interruption, cleaning up";
+terminate() {
+  log_info "Caught interruption, cleaning up";
   stop_manager;
 
   # Stop stray processes
   for pid in ${pid_table[@]}; do
-    ps -p $pid > /dev/null;
-    if [ "$?" == 0 ];then 
-      kill "${pid}"
-      log_debug "kill $pid"
-    fi;
+    terminate_process "$pid"
   done;
 
   # Check run dir
   for file in ${output_table[@]}; do
     if [ -e ${file}.java.pid ]; then
       local java_pid=$(cat ${file}.java.pid)
-      kill "$java_pid"
+      terminate_process "$java_pid"
       rm ${file}.java.pid
       log_debug "Stopped remote java process $java_pid for $file"
     fi;
     if [ -e ${file}.pid ]; then
       local bash_pid=$(cat ${file}.pid)
-      kill "$bash_pid"
+      terminate_process "$bash_pid"
       rm ${file}.pid
       log_debug "Stopped remote printReads process $bash_pid for $file"
     fi;
   done;
-  log_warn "Exiting";
   exit 1;
 }
