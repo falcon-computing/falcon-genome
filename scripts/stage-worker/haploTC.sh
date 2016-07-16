@@ -154,7 +154,7 @@ for chr in $chr_list; do
       $verbose" 2> $log_dir/haplotypeCaller_chr${chr}.log &
 
   pid_table["$chr"]=$!
-  output_table["$chr"]=$chr_vcf
+  output_table["$chr"]=${chr_vcf[$chr]}
 done
 
 # Wait on all the tasks
