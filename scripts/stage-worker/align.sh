@@ -44,7 +44,7 @@ print_help() {
 # check the command 
 if [ $# -lt 2 ];then
   print_help
-  exit 0;
+  exit 1;
 fi
 
 # Get the input command 

@@ -25,8 +25,8 @@ else
 fi
 
 print_help() {
-  echo "USAGE: "
-  echo "fcs_genome baseRecal \\"
+  echo "USAGE:"
+  echo "fcs-genome baseRecal \\"
   echo "    -r <ref.fasta> \\"
   echo "    -i <input.bam> \\"
   echo "    -knownSites <site.vcf> \\"
@@ -95,7 +95,7 @@ if [ ! -z $help_req ]; then
   exit 0;
 fi
 
-check_arg "-i" "$input"
+check_arg "-i" "input"
 check_args
 
 check_arg "-r" "ref_fasta" "$ref_genome"

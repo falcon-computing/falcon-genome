@@ -97,17 +97,18 @@ declare -A chr_recal_bam
 declare -A pid_table
 declare -A output_table
 
-input_base_withsuffix=$(basename $input)
-input_base=${input_base_withsuffix%%.*} 
-output_default=${tmp_dir[1]}/${input_base}.recal.bam
 chr_list="$(seq 1 22) X Y MT"
 
 # Check the input arguments
 check_arg "-r" "ref_fasta" "$ref_genome"
-check_arg "-i" "$input"
-check_arg "-bqsr" "$bqsr_rpt"
-check_arg "-o" "output" "$output_default"
+check_arg "-i" "input"
+check_arg "-bqsr" "bqsr_rpt"
 check_args
+
+input_base_withsuffix=$(basename $input)
+input_base=${input_base_withsuffix%%.*} 
+output_default=${tmp_dir[1]}/${input_base}.recal.bam
+check_arg "-o" "output" "$output_default"
 
 # Get absolute filepath for input/output
 # This is necessary because the jobs can be run distributedly

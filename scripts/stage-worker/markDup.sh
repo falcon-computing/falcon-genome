@@ -36,7 +36,7 @@ print_help() {
 
 if [ $# -lt 1 ]; then
   print_help
-  exit 0;
+  exit 1;
 fi
 
 # Get the input command 

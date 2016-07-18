@@ -27,12 +27,10 @@ print_help() {
   echo "USAGE:"
   echo "fcs-genome hptc|haplotypeCaller \\";
   echo "    -r <ref.fasta> \\";
-  echo "    -i <input_base> \\ ";
-  echo "    -c <chr_dir> \\";
+  echo "    -i <input dir or input bam> \\ ";
   echo "    -o <vcf_dir>";
   echo 
-  echo "<input_base> argument is the basename of the bam file, should not contain suffixes";
-  echo "<chr_dir> argument is the directory to find the recaled bams";
+  echo "The -i input could be a directory or a single file"
   echo "<vcf_dir> argument is the directory to put the vcf output results";
 }
 
@@ -92,18 +90,19 @@ declare -A chr_vcf
 declare -A pid_table
 declare -A output_table
 
-input_base_withsuffix=$(basename $input)
-input_base=${input_base_withsuffix%%.*} 
 vcf_dir_default=$output_dir/vcf
 chr_list="$(seq 1 22) X Y MT"
 
 log_debug "Sample id is $input_base"
 
 # Check the input arguments
-check_arg "-i" "$input"
+check_arg "-i" "input"
 check_arg "-r" "ref_fasta" "$ref_genome"
 check_arg "-o" "vcf_dir" "$vcf_dir_default"
 check_args
+
+input_base_withsuffix=$(basename $input)
+input_base=${input_base_withsuffix%%.*} 
 
 # Get absolute filepath for input/output
 readlink_check ref_fasta
