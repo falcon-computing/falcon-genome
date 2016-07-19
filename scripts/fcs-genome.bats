@@ -181,10 +181,10 @@ use ${tmp_dir[1]}/A15_100k.bam by default" ]
    [ "${lines[0]}" = "[fcs-genome haplotypeCaller] ERROR: Argument '-i' is missing, please specify." ]
 }
 
-@test "HaplotypeCaller input dir not compelete" {
+@test "HaplotypeCaller input dir does not contain complete set of chromosomes" {
    run fcs-genome hptc -i /merlin_fs/merlin2/ssd1/yaoh/A15_100k_false -o outputdir
    [ "$status" -eq 1 ]
-   [ "${lines[1]}" = "[fcs-genome haplotypeCaller] ERROR: Input file /merlin_fs/merlin2/ssd1/yaoh/A15_100k_false/A15_100k_false.chr1.bam does not exist" ]
+   [ "${lines[1]}" = "[fcs-genome haplotypeCaller] ERROR: Input file /merlin_fs/merlin2/ssd1/yaoh/A15_100k_false/A15_100k.chr1.bam does not exist" ]
 }
 
 @test "HaplotypeCaller output dir's father directory dont exist" {
