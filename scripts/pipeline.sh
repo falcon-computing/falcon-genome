@@ -4,10 +4,19 @@
 #############################################################################################
 #!/bin/bash
 
-# Import global variables
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-source $DIR/globals.sh
-source $DIR/stage-worker/common.sh
+# Global variables
+fastq_dir=/merlin_fs/merlin1/hdd1/diwu/fastq
+output_dir=$(pwd)
+log_dir=$output_dir/log
+bam_dir=$output_dir/bam
+tmp_dir[1]=/merlin_fs/merlin2/ssd1/diwu/temp
+tmp_dir[2]=/merlin_fs/merlin2/ssd2/diwu/temp
+
+ref_dir=/space/scratch/genome/ref
+ref_genome=$ref_dir/factor4/human_g1k_v37.fasta
+db138_SNPs=$ref_dir/dbsnp_138.b37.vcf
+g1000_indels=$ref_dir/1000G_phase1.indels.b37.vcf
+g1000_gold_standard_indels=$ref_dir/Mills_and_1000G_gold_standard.indels.b37.vcf
 
 if [[ $# -lt 1 ]]; then
   echo "USAGE: $0 <sample id> [1..5]"
@@ -43,17 +52,24 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
   fi
 fi
 
+# Check if fcs-genome is available
+which fcs-genome &> /dev/null
+if [ "$?" -gt 0 ]; then
+  echo "Cannot find 'fcs-genome' in PATH"
+  exit -1
+fi
+
 # Preparation of output directories
-create_dir $log_dir
-create_dir ${tmp_dir[1]}
-create_dir ${tmp_dir[2]}
+mkdir -p $log_dir
+mkdir -p $bam_dir
+mkdir -p ${tmp_dir[1]}
+mkdir -p ${tmp_dir[2]}
 
 start_ts=$(date +%s)
 
 # Step 1: BWA alignment and sort
 if [[ "${do_stage["1"]}" == "1" ]]; then
 
-  create_dir $bam_dir
   fastq_1=$fastq_dir/${sample_id}_1.fastq
   fastq_2=$fastq_dir/${sample_id}_2.fastq
   if [ ! -f $fastq_1 ]; then
@@ -74,7 +90,7 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
   # Put output in tmp_dir[1]
   output=${tmp_dir[1]}/${sample_id}.bam
 
-  $DIR/fcs-genome align \
+  fcs-genome align \
     -r $ref_genome \
     -fq1 $fastq_1 \
     -fq2 $fastq_2 \
@@ -91,7 +107,9 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
   fi
 
   # checkpoint
-  cp $output $bam_dir &
+  if [ -z "$checkpoint" ]; then
+    cp $output $bam_dir &
+  fi
 fi
 
 # Step 2: Mark Duplicate
@@ -102,9 +120,10 @@ if [[ "${do_stage["2"]}" == "1" ]]; then
   input=${tmp_dir[1]}/${sample_id}.bam
   output=${tmp_dir[2]}/${sample_id}.markdups.bam
 
-  $DIR/fcs-genome markDup \
+  fcs-genome markDup \
     -i $input \
-    -o $output
+    -o $output \
+    -v -f
 
   if [ "$?" -ne 0 ]; then
     echo "MarkDuplicate failed"
@@ -115,8 +134,10 @@ if [[ "${do_stage["2"]}" == "1" ]]; then
   rm $input &
 
   # Checkpoint markdup bam file
-  cp $output $bam_dir &
-  cp ${output}.dups_stats $bam_dir &
+  if [ -z "$checkpoint" ]; then
+    cp $output $bam_dir &
+    cp ${output}.dups_stats $bam_dir &
+  fi
 fi
 
 # Step 3: GATK BaseRecalibrate
@@ -130,13 +151,14 @@ if [[ "${do_stage["3"]}" == "1" ]]; then
     exit 1
   fi
   rpt_dir=$output_dir/rpt
+  mkdir -p $rpt_dir
   output=$rpt_dir/${sample_id}.recalibration_report.grp
 
-  $DIR/fcs-genome baseRecal \
+  fcs-genome baseRecal \
     -r $ref_genome \
     -i $input \
     -o $output \
-    -v 2 -f
+    -v -f
 
   if [ "$?" -ne 0 ]; then
     echo "BaseRecalibrator failed"
@@ -155,12 +177,14 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
 
   input_bam=${tmp_dir[2]}/${sample_id}.markdups.bam
   input_bqsr=$output_dir/rpt/${sample_id}.recalibration_report.grp
+  output_dir=${tmp_dir[1]}/${sample_id}
 
-  $DIR/fcs-genome printReads \
+  fcs-genome printReads \
     -r $ref_genome \
     -i $input_bam \
     -bqsr $input_bqsr \
-    -v 2 -f
+    -o $output_dir \
+    -v -f
 
   if [ "$?" -ne 0 ]; then
     echo "Print Reads failed"
@@ -173,14 +197,14 @@ fi
 # - Output: per chromosome varients ${sample_id}_$chr.gvcf
 if [[ "${do_stage["5"]}" == "1" ]]; then
 
-  input_dir=${tmp_dir[1]}/$sample_id
+  input_dir=${tmp_dir[1]}/${sample_id}
   vcf_dir=$output_dir/vcf
 
-  $DIR/fcs-genome haplotypeCaller \
+  fcs-genome haplotypeCaller \
     -r $ref_genome \
     -i $input_dir \
     -o $vcf_dir \
-    -v 2 -f
+    -v -f
 
   if [ "$?" -ne 0 ]; then
     echo "Variant Calling failed"

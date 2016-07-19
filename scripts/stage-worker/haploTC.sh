@@ -193,14 +193,6 @@ for chr in $chr_list; do
 done
 end_ts=$(date +%s)
 
-#for chr in $chr_list; do
-#  if [ ! -e ${chr_vcf[$chr]}.done ]; then
-#    is_error=1
-#  fi
-#  rm ${chr_vcf[$chr]}.done
-#done
- 
-
 # Stop manager
 stop_manager
 
