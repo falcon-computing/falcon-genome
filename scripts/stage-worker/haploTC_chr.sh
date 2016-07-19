@@ -11,7 +11,8 @@ ref=$1
 chr=$2
 input=$3
 output=$4
-verbose=$5
+shift 4
+user_args=$@
 
 stage_name=haploptypeCaller-chr$chr
 
@@ -50,6 +51,7 @@ $JAVA -d64 -Xmx$((nthreads * 2 + 4))g -jar $GATK \
     --variant_index_parameter 128000 \
     -L $chr \
     -nct $nthreads \
+    $user_args \
     -o $output &
 hptc_java_pid=$!
 echo $hptc_java_pid > ${output}.java.pid

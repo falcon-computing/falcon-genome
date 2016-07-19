@@ -24,18 +24,22 @@ else
 fi
 
 print_help() {
-  echo "USAGE:"
-  echo "fcs-genome hptc|haplotypeCaller \\";
-  echo "    -r <ref.fasta> \\";
-  echo "    -i <input dir or input bam> \\ ";
-  echo "    -o <vcf_dir>";
-  echo 
-  echo "The -i input could be a directory or a single file"
-  echo "<vcf_dir> argument is the directory to put the vcf output results";
+  if [[ $pass_args != YES && $1 != gatk ]];then
+    echo "USAGE:"
+    echo "fcs-genome hptc|haplotypeCaller \\";
+    echo "    -r <ref.fasta> \\";
+    echo "    -i <input dir or input bam> \\ ";
+    echo "    -o <vcf_dir>";
+    echo 
+    echo "The -i input could be a directory or a single file"
+    echo "<vcf_dir> argument is the directory to put the vcf output results";
+  else
+    $JAVA -d64 -jar $GATK -T HaplotypeCaller --help
+  fi
 }
 
 if [ $# -lt 2 ]; then
-  print_help
+  print_help $1
   exit 1;
 fi
 
@@ -43,6 +47,9 @@ fi
 while [[ $# -gt 0 ]];do
   key="$1"
   case $key in
+  gatk)
+    pass_args=YES
+  ;;
   -r|--ref|-R)
     ref_fasta="$2"
     shift # past argument
@@ -72,9 +79,13 @@ while [[ $# -gt 0 ]];do
     ;;
   *)
     # unknown option
-    log_error "Failed to recongize argument '$1'"
-    print_help
-    ;;
+    if [ -z $pass_args ];then
+      log_error "Failed to recongize argument '$1'"
+      print_help
+      exit 1
+    else
+      additional_args="$additional_args $1"
+    fi
   esac
   shift # past argument or value
 done
@@ -93,7 +104,6 @@ declare -A output_table
 vcf_dir_default=$output_dir/vcf
 chr_list="$(seq 1 22) X Y MT"
 
-log_debug "Sample id is $input_base"
 
 # Check the input arguments
 check_arg "-i" "input"
@@ -101,8 +111,16 @@ check_arg "-r" "ref_fasta" "$ref_genome"
 check_arg "-o" "vcf_dir" "$vcf_dir_default"
 check_args
 
-input_base_withsuffix=$(basename $input)
-input_base=${input_base_withsuffix%%.*} 
+# Infer the input_base
+if [ -d "$input" ];then
+  input_base_withsuffix=`ls $input/*.bam | sed -e 'N;s/^\(.*\).*\n\1.*$/\1\n\1/;D'`; 
+  input_base_withsuffix=$(basename $input_base_withsuffix)
+  input_base=${input_base_withsuffix%%.*}
+else
+  input_base_withsuffix=$(basename $input)
+  input_base=${input_base_withsuffix%%.*} 
+fi
+log_debug "Sample id is $input_base"
 
 # Get absolute filepath for input/output
 readlink_check ref_fasta
@@ -150,7 +168,7 @@ for chr in $chr_list; do
       $chr \
       ${chr_bam[$chr]} \
       ${chr_vcf[$chr]} \
-      $verbose" 2> $log_dir/haplotypeCaller_chr${chr}.log &
+      $additional_args" 2> $log_dir/haplotypeCaller_chr${chr}.log &
 
   pid_table["$chr"]=$!
   output_table["$chr"]=${chr_vcf[$chr]}

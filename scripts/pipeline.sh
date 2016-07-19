@@ -173,13 +173,12 @@ fi
 # - Output: per chromosome varients ${sample_id}_$chr.gvcf
 if [[ "${do_stage["5"]}" == "1" ]]; then
 
-  input_dir=${tmp_dir[1]}/bam_recal
+  input_dir=${tmp_dir[1]}/$sample_id
   vcf_dir=$output_dir/vcf
 
   $DIR/fcs-genome haplotypeCaller \
     -r $ref_genome \
-    -i $sample_id \
-    -c $input_dir \
+    -i $input_dir \
     -o $vcf_dir \
     -v 2 -f
 

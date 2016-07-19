@@ -12,11 +12,11 @@ chr=$2
 input=$3
 BQSR=$4
 output=$5
-verbose=$6
+shift 5
+user_args=$@
 
 stage_name=printReads-chr$chr
 
-#echo $BASHPID
 echo $BASHPID > ${output}.pid
 
 trap "kill_process" 1 2 3 15 
@@ -37,6 +37,7 @@ $JAVA -d64 -Xmx$((nthreads * 2))g -jar $GATK \
     -L $chr \
     -BQSR $BQSR \
     -nct $nthreads \
+    $user_args \
     -o $output &
 
 pr_java_pid=$!

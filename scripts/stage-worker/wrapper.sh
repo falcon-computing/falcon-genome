@@ -24,7 +24,6 @@ fi
 
 command=$1
 stage_name=$command
-
 counter=1
 
 filter_args(){
@@ -56,7 +55,6 @@ if [ $command == "gatk" ]; then
   case $gatk_command in
   BaseRecalibrator|PrintReads|HaplotypeCaller)
     # Filter the duplicate command
-    shift
     for arg in $@; do
       if [ $arg == "-T" -o $arg == $gatk_command ];then
          args=$args
@@ -67,7 +65,7 @@ if [ $command == "gatk" ]; then
     # Start fcs-genome baseRecal
     log_info "Using fcs-genome $gatk_command instead"
     log_debug "$args"
-    $DIR/../fcs-genome $gatk_command "$args"
+    $DIR/../fcs-genome $gatk_command  $args
     if [ "$?" -ne 0 ]; then 
       exit $?
     fi
@@ -91,7 +89,6 @@ elif [ $command == "picard" ]; then
       case $key in
       INPUT=*)
         markdup_input=${key#*INPUT=}
-        #echo "$markdup_input"
         ;;
       OUTPUT=*)
         markdup_output=${key#*OUTPUT=}

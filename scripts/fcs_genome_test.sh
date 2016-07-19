@@ -8,8 +8,8 @@ source $DIR/globals.sh
 source $DIR/stage-worker/common.sh
 # input and output dir, could be changed by user
 input_fastq_dir=/merlin_fs/merlin1/hdd1/yaoh/fastq_short
-results_dir=/merlin_fs/merlin2/ssd1/diwu
-ref_vcf_dir=/merlin_fs/merlin2/ssd1/yaoh/v1.0
+results_dir=/merlin_fs/merlin2/ssd1/yaoh
+ref_vcf_dir=/merlin_fs/merlin2/ssd1/yaoh/v2.0
 
 # Create seperate dir for each stage
 create_dir $results_dir/bams_al

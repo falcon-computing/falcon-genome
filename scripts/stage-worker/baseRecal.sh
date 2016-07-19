@@ -25,27 +25,35 @@ else
 fi
 
 print_help() {
-  echo "USAGE:"
-  echo "fcs-genome baseRecal \\"
-  echo "    -r <ref.fasta> \\"
-  echo "    -i <input.bam> \\"
-  echo "    -knownSites <site.vcf> \\"
-  echo "    -o <output.rpt>" 
-  echo "<input.bam> argument is the markduped bam file";
-  echo "<output.rpt> argument is the output BQSR results";
+  if [[ $pass_args != YES && $1 != gatk ]];then
+    echo "USAGE:"
+    echo "fcs-genome baseRecal \\"
+    echo "    -r <ref.fasta> \\"
+    echo "    -i <input.bam> \\"
+    echo "    -knownSites <site.vcf> \\"
+    echo "    -o <output.rpt>" 
+    echo "<input.bam> argument is the markduped bam file";
+    echo "<output.rpt> argument is the output BQSR results";
+  else
+    $JAVA  -d64 -jar $GATK -T BaseRecalibrator --help
+  fi
 }
 
 if [ $# -lt 1 ]; then
-  print_help
+  print_help $1
   exit 1;
 fi
 
 declare -A knownSites
 
 ks_index=0
+
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
+  gatk)
+    pass_args=YES
+  ;;
   -r|--ref|-R)
     ref_fasta="$2"
     shift # past argument
@@ -81,9 +89,13 @@ while [[ $# -gt 0 ]]; do
     ;;
   *)
     # unknown option
-    log_error "Failed to recongize argument '$1'"
-    print_help
-    exit 1
+    if [ -z $pass_args ];then
+      log_error "Failed to recongize argument '$1'"
+      print_help
+      exit 1
+    else
+      additional_args="$additional_args $1"
+    fi
     ;;
   esac
   shift # past argument or value
@@ -169,6 +181,7 @@ export PATH=$DIR:$PATH
 
 start_ts=$(date +%s)
 
+rm -f $log_dir/bqsr.log
 # Put all the information to log, not displaying
 $JAVA -Djava.io.tmpdir=/tmp -jar ${GATK_QUEUE} \
   -S $DIR/BaseRecalQueue.scala \
@@ -179,18 +192,20 @@ $JAVA -Djava.io.tmpdir=/tmp -jar ${GATK_QUEUE} \
   -jobRunner ParallelShell \
   -maxConcurrentRun 32 \
   -scatterCount 32 \
+  $additional_args \
   -run \
-  &> /dev/null
+  &> $log_dir/bqsr.log
 
 # Stop manager
 stop_manager
 
 # concat the log here
-rm -f $log_dir/bqsr.log
 
 index_list="$(seq -w 1 32)"
 for index in $index_list; do
-  cat .queue/scatterGather/BaseRecalQueue-1-sg/temp_${index}_of_32/*.out >> $log_dir/bqsr.log
+  if [ -f .queue/scatterGather/BaseRecalQueue-1-sg/temp_${index}_of_32/*.out ];then
+    cat .queue/scatterGather/BaseRecalQueue-1-sg/temp_${index}_of_32/*.out >> $log_dir/bqsr.log
+  fi
 done
 
 if [ ! -f $rpt_donefile ];then

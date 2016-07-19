@@ -59,7 +59,7 @@ check_input_chr() {
   local input_dir=$1;
   local chr_list="$(seq 1 22) X Y MT";
   for chr in $chr_list; do
-    if [ -z "`find $input_dir -name *_chr${chr}.gvcf`" ]; then
+    if [ -z "`find $input_dir -name *.chr${chr}.gvcf`" ]; then
       log_error "ERROR: cannot find VCF for chr$chr";
       return 1;
     fi;
