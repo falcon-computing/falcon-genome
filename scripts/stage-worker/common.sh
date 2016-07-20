@@ -184,7 +184,8 @@ stop_manager() {
 }
 
 kill_process() {
-  kill -5 $(jobs -p);
+  log_info "Caught interruption, cleaning up";
+  kill -5 $(jobs -p) 2> /dev/null;
   exit 1;
 }
 
