@@ -198,3 +198,46 @@ use ${tmp_dir[1]}/A15_100k.bam by default" ]
    [ "$status" -eq 1 ]
    [ "${lines[1]}" = "[fcs-genome haplotypeCaller] ERROR: Cannot write to folder /" ]
 }
+
+# wrapper
+@test "gatk wrapper help command" {
+   run fcs-genome gatk --help
+   [ "$status" -eq 0 ]
+   [ "${lines[6]}" = "usage: java -jar GenomeAnalysisTK.jar -T <analysis_type> [-args <arg_file>] [-I <input_file>] [--showFullBamList] [-rbs " ]
+}
+
+@test "gatk BaseRecalibrator with no args input" {
+   run fcs-genome gatk -T BaseRecalibrator
+   [ "$status" -eq 0 ]
+   [ "${lines[6]}" = "usage: java -jar GenomeAnalysisTK.jar -T <analysis_type> [-args <arg_file>] [-I <input_file>] [--showFullBamList] [-rbs " ]
+}
+
+@test "gatk BaseRecalibrator with help command" {
+   run fcs-genome gatk -T BaseRecalibrator --help
+   [ "$status" -eq 0 ]
+   [ "${lines[6]}" = "usage: java -jar GenomeAnalysisTK.jar -T <analysis_type> [-args <arg_file>] [-I <input_file>] [--showFullBamList] [-rbs " ]
+}
+
+@test "gatk PrintReads with no args input" {
+   run fcs-genome gatk -T PrintReads
+   [ "$status" -eq 0 ]
+   [ "${lines[6]}" = "usage: java -jar GenomeAnalysisTK.jar -T <analysis_type> [-args <arg_file>] [-I <input_file>] [--showFullBamList] [-rbs " ]
+}
+
+@test "gatk PrintReads with help command" {
+   run fcs-genome gatk -T PrintReads --help
+   [ "$status" -eq 0 ]
+   [ "${lines[6]}" = "usage: java -jar GenomeAnalysisTK.jar -T <analysis_type> [-args <arg_file>] [-I <input_file>] [--showFullBamList] [-rbs " ]
+}
+
+@test "gatk HaplotypeCaller with no args command" {
+   run fcs-genome gatk -T HaplotypeCaller
+   [ "$status" -eq 0 ]
+   [ "${lines[6]}" = "usage: java -jar GenomeAnalysisTK.jar -T <analysis_type> [-args <arg_file>] [-I <input_file>] [--showFullBamList] [-rbs " ]
+}
+
+@test "gatk HaplotypeCaller with help command" {
+   run fcs-genome gatk -T HaplotypeCaller --help
+   [ "$status" -eq 0 ]
+   [ "${lines[6]}" = "usage: java -jar GenomeAnalysisTK.jar -T <analysis_type> [-args <arg_file>] [-I <input_file>] [--showFullBamList] [-rbs " ]
+}

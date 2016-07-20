@@ -42,6 +42,9 @@ print_help() {
 if [ $# -lt 1 ]; then
   print_help $1
   exit 1;
+elif [ $# -eq 1 -a $1 == gatk ];then
+  print_help $1
+  exit 1;
 fi
 
 declare -A knownSites
