@@ -18,6 +18,7 @@ create_dir $results_dir/rpt
 create_dir $results_dir/bams_pr
 create_dir $results_dir/vcf
 create_dir $results_dir/compare
+create_dir $results_dir/combine
 
 declare -A BASENAME
 BASENAME[1]=na_1M
@@ -98,4 +99,9 @@ for index in $index_list; do
      #exit 1;
   fi
 done
+# Combine vcf results
+combineGVCF.sh -i $results_dir/vcf \
+               -o $results_dir/combine \
+               -nt 12
+
 echo "All test finished"
