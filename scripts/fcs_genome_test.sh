@@ -104,4 +104,7 @@ combineGVCF.sh -i $results_dir/vcf \
                -o $results_dir/combine \
                -nt 12
 
+genotypeGVCF.sh -i $results_dir/combine \
+                -o $results_dir/genotyped.vcf
+
 echo "All test finished"
