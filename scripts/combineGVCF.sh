@@ -78,8 +78,9 @@ readlink_check input_dir
 readlink_check output_dir
 readlink_check log_dir
 
-check_output_dir $output_dir
+create_dir $output_dir
 create_dir $log_dir
+check_output_dir $output_dir
 check_output_dir $log_dir
 
 # Get a sample list from input dir
@@ -136,7 +137,7 @@ echo "}" >> callset.json
 
 # Compute the interval to be equal
 GENOME_LENGTH=3101976562
-workspace=/merlin_fs/merlin2/hdd2/yaoh/ws_combine
+workspace=$combine_workspace/ws_combine
 interval_size=$((GENOME_LENGTH/nparts))
 
 # Write the loader json file
@@ -151,7 +152,7 @@ while [ $partition_id -le $nparts ];do
   echo '  { "begin": ' $begin_column_id, >>loader.json
   echo '   "workspace":"'$workspace'",' >>loader.json
   echo '   "array": "partition-'$partition_id'",' >>loader.json     
-  echo '   "vcf_output_filename":"'$output_dir/part-${partition_id}.gvcf.gz'"' >>loader.json
+  echo '   "vcf_output_filename":"'$output_dir/part-${partition_id}.gvcf'"' >>loader.json
   if [ $partition_id -eq $nparts ];then
     echo "  }" >>loader.json
   else
