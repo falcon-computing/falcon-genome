@@ -101,8 +101,8 @@ for index in $index_list; do
 done
 # Combine vcf results
 combineGVCF.sh -i $results_dir/vcf \
-               -o $results_dir/combine \
-               -nt 12
+               -o $results_dir/combine
+          
 
 genotypeGVCF.sh -i $results_dir/combine \
                 -o $results_dir/genotyped.vcf

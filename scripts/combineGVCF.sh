@@ -5,7 +5,7 @@ source $DIR/stage-worker/common.sh
 
 stage_name=combineGVCF
 print_help() {
-  echo "USAGE: $0 -r <ref.fasta> -i <input_dir> -o <output_dir> -np <num_partitions>"
+  echo "USAGE: $0 -r <ref.fasta> -i <input_dir> -o <output_dir> "
 }
 
 if [[ $# -lt 2 ]]; then
@@ -27,15 +27,6 @@ while [[ $# -gt 0 ]]; do
   -o|--output_dir)
     output_dir="$2"
     shift # past argument
-    ;;
-  -np|--nparts)
-    if [ $2 -eq $2 2> /dev/null ]; then
-      nparts="$2"
-      shift
-    else
-      nparts=12
-      shift
-    fi
     ;;
   -v|--verbose)
     if [ $2 -eq $2 2> /dev/null ]; then
@@ -65,10 +56,17 @@ check_input_chr() {
   done;
 }
 
+concatVCF() {
+  local input_dir=$1;
+  local output=$2;
+  output_base=${output%%.*}
+  $BCFTOOLS concat $input_dir/*.chr*.gvcf -o ${output_base}.gvcf
+  $BGZIP -c ${output_base}.gvcf > $output
+  $TABIX -p vcf $output
+}
 # Check the args
 check_arg "-i" "input_dir"
 check_arg "-o" "output_dir"
-check_arg "-np" "nparts" "12"
 check_output_dir $output_dir
 check_arg "-r" "ref_fasta" "$ref_genome"
 
@@ -106,7 +104,7 @@ start_ts=$(date +%s)
 echo "Concating for $sample_num samples" >$log_dir/combine.log
 
 for sample in "${input_samples[@]}"; do
-  concatVCF.sh -i $input_dir/$sample -o $input_dir/$sample/${sample}.gvcf.gz &>>$log_dir/combine.log
+  concatVCF $input_dir/$sample $input_dir/$sample/${sample}.gvcf.gz &>>$log_dir/combine.log
   if [ "$?" -ne 0 ]; then
     log_error "concatVCF failed for $sample, please check $log_dir/combine.log for details"
     exit 1
@@ -137,7 +135,9 @@ echo "}" >> callset.json
 
 # Compute the interval to be equal
 GENOME_LENGTH=3101976562
-workspace=$combine_workspace/ws_combine
+workspace=${tmp_dir[1]}/ws_combine
+#TODO:automatically detect the nparts based on machine
+nparts=32
 interval_size=$((GENOME_LENGTH/nparts))
 
 # Write the loader json file
@@ -175,7 +175,7 @@ echo "}" >>loader.json
 start_ts=$(date +%s)
 
 echo "run GenomicDB for $nparts patitions" >>$log_dir/combine.log
-mpirun -n $nparts -hostfile host_file $GenomicsDB loader.json &>>$log_dir/combine.log
+mpirun -n $nparts -hostfile $DIR/stage-worker/GenomicsDB_hostfile $GenomicsDB loader.json &>>$log_dir/combine.log
 if [ "$?" -ne 0 ]; then 
   log_error "combineGVCF failed, please check $log_dir/combine.log for details"
   exit 1
