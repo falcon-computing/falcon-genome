@@ -1,11 +1,15 @@
 #!/bin/bash
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-source $DIR/globals.sh
-source $DIR/stage-worker/common.sh
+source $DIR/../globals.sh
+source $DIR/common.sh
 
 stage_name=combineGVCF
 print_help() {
-  echo "USAGE: $0 -r <ref.fasta> -i <input_dir> -o <output_dir> "
+  echo "USAGE:"
+  echo "fcs-genome cb|combineGVCF \\";
+  echo "    -r <ref.fasta> \\"
+  echo "    -i <input_dir> \\"
+  echo "    -o <output_dir> \\"
 }
 
 if [[ $# -lt 2 ]]; then
@@ -101,15 +105,43 @@ sample_num=${#input_samples[@]}
 
 log_info "Start concating chr to one for $sample_num samples"
 start_ts=$(date +%s)
+
+declare -A pid_table
+start_manager
+trap "terminate" 1 2 3 15
+
 echo "Concating for $sample_num samples" >$log_dir/combine.log
 
+# Start the concat jobs distributely
 for sample in "${input_samples[@]}"; do
-  concatVCF $input_dir/$sample $input_dir/$sample/${sample}.gvcf.gz &>>$log_dir/combine.log
-  if [ "$?" -ne 0 ]; then
-    log_error "concatVCF failed for $sample, please check $log_dir/combine.log for details"
-    exit 1
-  fi
+  $DIR/../fcs-sh "$DIR/concatVCF.sh $input_dir/$sample $input_dir/$sample/${sample}.gvcf.gz" \
+  &> $log_dir/concat.${sample}.log &
+  pid_table["$sample"]=$!
+  echo "pid is $pid_table["$sample"]"
 done
+
+# Wait for all the tasks
+is_error=0
+for sample in "${input_samples[@]}"; do
+  pid=${pid_table[$sample]}
+  wait "${pid}"
+  if [ "$?" -gt 0 ]; then
+    is_error=1
+    log_error "Failed on sample $sample"
+  fi
+  # Concat logs
+  sample_log=$log_dir/concat.${sample}.log
+  cat $sample_log >> $log_dir/combine.log
+  rm -f $sample_log
+done
+
+stop_manager
+unset pid_table
+
+if [ "$is_error" -ne 0 ];then
+  log_error "Stage failed, please check logs in $log_dir/combine.log for details"
+  exit 1
+fi
 
 end_ts=$(date +%s)
 log_info "Concating finishes in $((end_ts - start_ts))s "
@@ -137,7 +169,7 @@ echo "}" >> callset.json
 GENOME_LENGTH=3101976562
 workspace=${tmp_dir[1]}/ws_combine
 #TODO:automatically detect the nparts based on machine
-nparts=32
+nparts=24
 interval_size=$((GENOME_LENGTH/nparts))
 
 # Write the loader json file
@@ -163,7 +195,7 @@ while [ $partition_id -le $nparts ];do
 done
 echo ' ],' >>loader.json
 echo ' "callset_mapping_file" : "callset.json",' >>loader.json
-echo ' "vid_mapping_file" : "'$DIR/vid.json'",' >>loader.json
+echo ' "vid_mapping_file" : "'$DIR/../vid.json'",' >>loader.json
 echo ' "treat_deletions_as_intervals" : true,' >>loader.json
 echo ' "reference_genome" : "'$ref_fasta'",' >>loader.json
 echo ' "do_ping_pong_buffering" : true,' >>loader.json
@@ -175,7 +207,7 @@ echo "}" >>loader.json
 start_ts=$(date +%s)
 
 echo "run GenomicDB for $nparts patitions" >>$log_dir/combine.log
-mpirun -n $nparts -hostfile $DIR/stage-worker/GenomicsDB_hostfile $GenomicsDB loader.json &>>$log_dir/combine.log
+mpirun -n $nparts -hostfile $DIR/GenomicsDB_hostfile $GenomicsDB loader.json &>>$log_dir/combine.log
 if [ "$?" -ne 0 ]; then 
   log_error "combineGVCF failed, please check $log_dir/combine.log for details"
   exit 1
