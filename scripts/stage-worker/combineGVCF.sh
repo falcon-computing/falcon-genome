@@ -117,7 +117,6 @@ for sample in "${input_samples[@]}"; do
   $DIR/../fcs-sh "$DIR/concatVCF.sh $input_dir/$sample $input_dir/$sample/${sample}.gvcf.gz" \
   &> $log_dir/concat.${sample}.log &
   pid_table["$sample"]=$!
-  echo "pid is $pid_table["$sample"]"
 done
 
 # Wait for all the tasks

@@ -99,12 +99,12 @@ for index in $index_list; do
      #exit 1;
   fi
 done
-# Combine vcf results
-combineGVCF.sh -i $results_dir/vcf \
+# Combine vcf result
+fcs-genome cb -i $results_dir/vcf \
                -o $results_dir/combine
           
 
-genotypeGVCF.sh -i $results_dir/combine \
+fcs-genome gt -i $results_dir/combine \
                 -o $results_dir/genotyped.vcf
 
 echo "All test finished"
