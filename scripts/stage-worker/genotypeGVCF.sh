@@ -9,7 +9,7 @@ print_help() {
   echo "fcs-genome gt|genotypeGVCF \\";
   echo "    -r <ref.fasta> \\"
   echo "    -i <input_dir> \\"
-  echo "    -o <output,gvcf> \\"
+  echo "    -o <output.gvcf> \\"
 }
 
 if [[ $# -lt 2 ]]; then
@@ -66,8 +66,26 @@ create_dir $log_dir
 check_output_dir $log_dir
 
 # Get a sample list from input dir
-IFS=$'\r\n' GLOBIGNORE='*' command eval 'sample_list=($(ls $input_dir | grep "gvcf"))' &>/dev/null
-input_gvcfs=
+#IFS=$'\r\n' GLOBIGNORE='*' command eval 'sample_list=($(ls $input_dir | grep "gvcf"))' &>/dev/null
+declare -A sample_list
+part_index=1
+
+while true; do
+  if [ -f $input_dir/part-${part_index}.gvcf ];then
+    sample_list["$part_index"]=part-${part_index}.gvcf
+    part_index=$[$part_index+1]
+  else
+    part_index=$[$part_index-1]
+    break
+  fi
+done 
+
+# check if there are inputs
+if [ $part_index -eq 0 ];then
+  log_error "No valid gvcf file found in $input_dir"
+  exit 1
+fi
+
 start_ts=$(date +%s)
 
 declare -A pid_table
@@ -79,14 +97,15 @@ echo "Compressing for ${#sample_list[@]} gvcf" >$log_dir/genotype.log
 # Start the compress jobs distributely
 for sample in "${sample_list[@]}";do
   gvcf_file=$input_dir/$sample
-  $DIR/../fcs-sh "$DIR/compressVCF.sh $gvcf_file" &>$log_dir/compress.${sample}.log & 
+  $DIR/../fcs-sh "$DIR/genotypeGVCF_part.sh $gvcf_file $ref_fasta" &>$log_dir/compress.${sample}.log & 
   pid_table["$sample"]=$! 
-  input_gvcfs=$input_gvcfs"--variant ${gvcf_file}.gz "  
 done
 
 # Wait for the jobs to finish
 is_error=0
-for sample in "${sample_list[@]}"; do
+output_vcf_list=
+for index in $(seq 1 $part_index); do
+  sample=${sample_list["$index"]}
   pid=${pid_table[$sample]}
   wait "${pid}"
   if [ "$?" -gt 0 ];then
@@ -97,10 +116,13 @@ for sample in "${sample_list[@]}"; do
   sample_log=$log_dir/compress.${sample}.log
   cat $sample_log >> $log_dir/genotype.log
   rm -f $sample_log
+  # Collect results
+  output_vcf_list=$output_vcf_list"$input_dir/${sample}.genotype.vcf "
 done
 
 stop_manager
 unset pid_table
+unset sample_list
 
 if [ "$is_error" -ne 0 ];then
   log_error "Stage failed, please check logs in $log_dir/genotype.log for details"
@@ -108,30 +130,16 @@ if [ "$is_error" -ne 0 ];then
 fi
 
 end_ts=$(date +%s)
-log_info "Compress and index finishes in $((end_ts - start_ts))s"
+log_info "Genotype finishes in $((end_ts - start_ts))s"
 
-# Start to genotype the gvcf using GATK
-start_ts=$(date +%s)
+# Concat the distributed vcf
+$BCFTOOLS concat $output_vcf_list -o $output &>>$log_dir/genotype.log
 
-log_info "$JAVA -d64 -Xmx4g -jar $GATK \
-      -T GenotypeGVCFs \
-      -R $ref_fasta \
-      $input_gvcfs \
-      -nt 20 \
-      -o $output_gvcf";
-
-$JAVA -d64 -Xmx4g -jar $GATK \
-      -T GenotypeGVCFs \
-      -R $ref_fasta \
-      $input_gvcfs \
-      -nt 20 \
-      -o $output &> $log_dir/genotype.log
-
-if [ "$?" -ne 0 ]; then 
-  log_error "genotypeGVCF failed, please check $log_dir/genotype.log for details"
+if [ "$?" -gt 0 ];then
+  log_error "Stage failed, please check logs in $log_dir/genotype.log for details"
   exit 1
 fi
 
-end_ts=$(date +%s)
-log_info "Stage finishes in $((end_ts - start_ts))s"
+end_ts_total=$(date +%s)
+log_info "Stage finishes in $((end_ts_total - start_ts))s"
 
