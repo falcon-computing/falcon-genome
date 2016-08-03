@@ -6,12 +6,19 @@ fastq2=$fastq_dir/A15_100k_2.fastq
 tmp_dir[1]=/merlin_fs/merlin2/ssd1/yaoh/temp2
 tmp_dir[2]=/merlin_fs/merlin2/ssd2/yaoh/temp2
 
+@test "test starting manager twice" {
+  skip
+  run ./manager/manager -v 0 -h host_file &
+  run ./manager/manager -v 0 -h host_file
+  [ "$status" -eq 1 ]
+}
+
 # align
 @test "align without input arg" {
-   run fcs-genome al  
-   [ "$status" -eq 1 ]
-   [ "${lines[0]}" = "USAGE:" ]
-   [ "${lines[1]}" = 'fcs-genome al|align \' ]
+  run fcs-genome al  
+  [ "$status" -eq 1 ]
+  [ "${lines[0]}" = "USAGE:" ]
+  [ "${lines[1]}" = 'fcs-genome al|align \' ]
 }
 
 @test "align without reference specified" {

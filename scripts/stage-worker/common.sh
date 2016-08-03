@@ -159,8 +159,8 @@ start_manager() {
   else
     local host_file=$DIR/../host_file
   fi;
-  log_debug "$DIR/../manager/manager --v=0 $host_file";
-  $DIR/../manager/manager --v=0 $host_file &
+  log_debug "$DIR/../manager/manager --v=0 -h $host_file";
+  $DIR/../manager/manager --v=0 -h $host_file &
   manager_pid=$!;
   sleep 1;
   if [[ ! $(ps -p "$manager_pid" -o comm=) =~ "manager" ]]; then

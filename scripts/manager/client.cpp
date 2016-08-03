@@ -10,25 +10,33 @@
 #include <unordered_map>
 
 std::string queue_name = 
-    "fcs-req_queue" + std::to_string((long long)getuid());
+    "fcs-req_queue-" + std::to_string((long long)getuid());
+
+DEFINE_string(q, "default", "Queue name for the manager");
 
 int main(int argc, char** argv) {
+
+  // Initialize Google Log
+  google::InitGoogleLogging(argv[0]);
 
   // Initialize Google Flags
   gflags::SetUsageMessage(argv[0]);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
-  // Initialize Google Log
-  google::InitGoogleLogging(argv[0]);
+  queue_name = queue_name + "-" + FLAGS_q;
 
   int pid = 0;
   if (argc < 2) {
     // Make request for a slot
     pid = getpid();
+
+    VLOG(1) << "Request a slot for queue: " << FLAGS_q;
   }
   else {
     // Free a slot
     pid = atoi(argv[1]);
+
+    VLOG(1) << "Freeing a slot for queue: " << FLAGS_q;
   }
 
   try {
