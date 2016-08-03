@@ -107,6 +107,8 @@ log_info "Start concating chr to one for $sample_num samples"
 start_ts=$(date +%s)
 
 declare -A pid_table
+declare -A output_table
+
 start_manager
 trap "terminate" 1 2 3 15
 
@@ -117,6 +119,7 @@ for sample in "${input_samples[@]}"; do
   $DIR/../fcs-sh "$DIR/concatVCF.sh $input_dir/$sample $input_dir/$sample/${sample}.gvcf.gz" \
   &> $log_dir/concat.${sample}.log &
   pid_table["$sample"]=$!
+  output_table["$sample"]=$input_dir/$sample/${sample}.gvcf.gz
 done
 
 # Wait for all the tasks
@@ -136,6 +139,7 @@ done
 
 stop_manager
 unset pid_table
+unset output_table
 
 if [ "$is_error" -ne 0 ];then
   log_error "Stage failed, please check logs in $log_dir/combine.log for details"
@@ -168,7 +172,7 @@ echo "}" >> callset.json
 GENOME_LENGTH=3101976562
 workspace=${tmp_dir[1]}/ws_combine
 #TODO:automatically detect the nparts based on machine
-nparts=24
+nparts=32
 interval_size=$((GENOME_LENGTH/nparts))
 
 # Write the loader json file

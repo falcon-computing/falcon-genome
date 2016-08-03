@@ -14,10 +14,30 @@ vcf_sample_id=${vcf_sample_id%%.*}
 input_vcf_list=
 chr_list="$(seq 1 22) X Y MT";
 
+echo $BASHPID > ${output_vcf}.pid
+
 for chr in $chr_list; do
   input_vcf_list="$input_vcf_list ${vcf_sample_id}.chr${chr}.gvcf"
 done
 
-$BCFTOOLS concat $input_vcf_list -o ${vcf_sample_id}.gvcf
-$BGZIP -c ${vcf_sample_id}.gvcf > $output_vcf
-$TABIX -p vcf $output_vcf
+kill_task_pid() {
+  echo "kill $task_pid"
+  kill $task_pid
+  exit 1
+}
+
+trap "kill_task_pid" 1 2 3 9 15
+
+$BCFTOOLS concat $input_vcf_list -o ${vcf_sample_id}.gvcf &
+task_pid=$!
+wait "$task_pid"
+
+$BGZIP -c ${vcf_sample_id}.gvcf > $output_vcf &
+task_pid=$!
+wait "$task_pid"
+
+$TABIX -p vcf $output_vcf &
+task_pid=$!
+wait "$task_pid"
+
+rm ${output_vcf}.pid
