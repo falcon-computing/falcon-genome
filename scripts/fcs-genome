@@ -51,6 +51,10 @@ else
     shift
     source $DIR/stage-worker/haploTC.sh "$@"
     ;;
+  concat|concatGVCF)
+    shift
+    source $DIR/stage-worker/concatVCF.sh "$@"
+    ;;
   cb|combineGVCF)
     shift
     source $DIR/stage-worker/combineGVCF.sh "$@"

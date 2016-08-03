@@ -5,39 +5,102 @@ source $DIR/common.sh
 
 stage_name=concatVCF
 
-input_vcf_dir=$1
-output_vcf=$2
-output_base=${output_vcf%%.*}
-# infer the basename, TODO:find a better way to get the basename
-vcf_sample_id=`ls $input_vcf_dir/*.chr*.gvcf | sed -e 'N;s/^\(.*\).*\n\1.*$/\1\n\1/;D'`;
-vcf_sample_id=${vcf_sample_id%%.*}
-input_vcf_list=
-chr_list="$(seq 1 22) X Y MT";
+# Prevent this script to be running alone
+if [[ $0 != ${BASH_SOURCE[0]} ]]; then
+  # Script is sourced by another shell
+  cmd_name=`basename $0 2> /dev/null`
+  if [[ "$cmd_name" != "fcs-genome" ]]; then
+    log_error "This script should be started by 'fcs-genome'"
+    return 1
+  fi
+else
+  # Script is executed directly
+  log_error "This script should be started by 'fcs-genome'"
+  exit 1
+fi
 
-echo $BASHPID > ${output_vcf}.pid
+print_help() {
+  echo "USAGE: $0 -i <input_dir> -o <output>"
+}
 
-for chr in $chr_list; do
-  input_vcf_list="$input_vcf_list ${vcf_sample_id}.chr${chr}.gvcf"
+if [[ $# -lt 2 ]]; then
+  print_help 
+  exit 1
+fi
+
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  case $key in
+  -i|--input_dir)
+    input_vcf_dir="$2"
+    shift # past argument
+    ;;
+  -o|--output_dir)
+    output_dir="$2"
+    shift # past argument
+    ;;
+  -v|--verbose)
+    verbose=2
+    ;;
+  *) # unknown option
+    log_error "failed to parse argument $key"
+    ;;
+  esac
+  shift # past argument or value
 done
 
+check_arg "-i" "input_vcf_dir"
+check_arg "-o" "output_dir" $(pwd)
+check_args
+
+get_sample_id() {
+  local input_dir=$1;
+  local sample_id=`ls $input_dir/*.gvcf | sed -e 'N;s/^\(.*\).*\n\1.*$/\1\n\1/;D'`;
+  local sample_id=$(basename $sample_id);
+  local sample_id=${sample_id::-4};
+  echo $sample_id;
+}
+
 kill_task_pid() {
-  echo "kill $task_pid"
-  kill $task_pid
+  log_info "kill $task_pid"
+  kill $task_pid 2> /dev/null
   exit 1
 }
 
 trap "kill_task_pid" 1 2 3 9 15
 
-$BCFTOOLS concat $input_vcf_list -o ${vcf_sample_id}.gvcf &
+vcf_sample_id=`get_sample_id $input_vcf_dir`
+
+input_vcf_list=
+chr_list="$(seq 1 22) X Y MT";
+for chr in $chr_list; do
+  input_vcf_list="$input_vcf_list ${vcf_sample_id}.chr${chr}.gvcf"
+done
+
+$BCFTOOLS concat $input_vcf_list -o $output_dir/${vcf_sample_id}.gvcf &
 task_pid=$!
 wait "$task_pid"
+if [ "$?" -ne "0" ]; then
+  log_error "bcftools concat failed"
+  exit 1;
+fi
 
-$BGZIP -c ${vcf_sample_id}.gvcf > $output_vcf &
+$BGZIP -c $output_dir/${vcf_sample_id}.gvcf > $output_dir/${vcf_sample_id}.gvcf.gz &
 task_pid=$!
 wait "$task_pid"
+if [ "$?" -ne "0" ]; then
+  log_error "bgzip compression failed"
+  exit 1;
+fi
 
-$TABIX -p vcf $output_vcf &
+# delete uncompressed gvcf file
+rm $output_dir/${vcf_sample_id}.gvcf
+
+$TABIX -p vcf $output_dir/${vcf_sample_id}.gvcf.gz &
 task_pid=$!
 wait "$task_pid"
+if [ "$?" -ne "0" ]; then
+  log_error "tabix failed"
+  exit 1;
+fi 
 
-rm ${output_vcf}.pid
