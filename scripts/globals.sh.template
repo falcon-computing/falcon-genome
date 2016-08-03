@@ -6,6 +6,7 @@ tools_dir=
 bam_dir=$output_dir/bam
 rpt_dir=$output_dir/rpt
 vcf_dir=$output_dir/vcf
+combine_workspace=
 
 # Reference Genome Info
 ref_genome=$ref_dir/human_g1k_v37.fasta
@@ -19,3 +20,8 @@ SAMTOOLS=
 GATK=
 PICARD=
 JAVA=
+BGZIP=
+TABIX=
+BCFTOOLS=
+GenomicsDB=
+
