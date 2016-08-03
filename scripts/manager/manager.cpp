@@ -10,7 +10,7 @@
 #include <unordered_map>
 
 std::string queue_name = 
-    "fcs-req_queue" + std::to_string((long long)getuid());
+    "fcs-req_queue-" + std::to_string((long long)getuid());
 
 // Record all outstanding requests
 std::unordered_map<int, std::string> client_table;
@@ -21,6 +21,7 @@ void sigint_handler(int s){
   
   // Erase previous message queue
   boost::interprocess::message_queue::remove(queue_name.c_str());
+  DLOG(INFO) << "Remove manager queue " << queue_name;
 
   // Erase all client queue
   for (auto iter = client_table.begin();
@@ -42,6 +43,9 @@ void sigint_handler(int s){
   exit(0); 
 }
 
+DEFINE_string(q, "default", "Queue name for the manager");
+DEFINE_string(h, "", "host file specifying the slots");
+
 int main(int argc, char** argv) {
 
   // Initialize Google Log
@@ -51,10 +55,15 @@ int main(int argc, char** argv) {
   gflags::SetUsageMessage(argv[0]);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
-  if (argc < 2) {
-    printf("Usage: %s host_file\n", argv[0]);
+  if (FLAGS_h == "") {
+    printf("Usage: %s -h host_file\n", argv[0]);
     return 1;
   }
+
+  queue_name = queue_name + "-" + FLAGS_q;
+
+  VLOG(1) << "Starting manager for queue: " << FLAGS_q;
+  DLOG(INFO) << "Queue name is " << queue_name;
 
   signal(SIGINT, sigint_handler);
   signal(SIGTERM, sigint_handler);
@@ -65,7 +74,7 @@ int main(int argc, char** argv) {
   std::queue<std::string>               available_hosts;
 
   // Parse host file
-  std::ifstream fin(argv[1]);
+  std::ifstream fin(FLAGS_h.c_str());
   
   if (!fin.is_open()) {
     LOG(ERROR) << "Cannot open host file at " << argv[1];
@@ -90,7 +99,7 @@ int main(int argc, char** argv) {
 
   try {
     // Erase previous message queue
-    boost::interprocess::message_queue::remove(queue_name.c_str());
+    //boost::interprocess::message_queue::remove(queue_name.c_str());
 
     // Create a message_queue.
     boost::interprocess::message_queue msg_q(
