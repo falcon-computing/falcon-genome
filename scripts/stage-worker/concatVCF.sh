@@ -96,7 +96,7 @@ if [ "$?" -ne "0" ]; then
   exit 1;
 fi
 
-$BGZIP -c $output_dir/${vcf_sample_id}.gvcf > $output_dir/${vcf_sample_id}.gvcf.gz &>>$log_dir/concat.log &
+$BGZIP -c $output_dir/${vcf_sample_id}.gvcf > $output_dir/${vcf_sample_id}.gvcf.gz 2>>$log_dir/concat.log &
 task_pid=$!
 wait "$task_pid"
 if [ "$?" -ne "0" ]; then
@@ -107,7 +107,7 @@ fi
 # delete uncompressed gvcf file
 rm $output_dir/${vcf_sample_id}.gvcf
 
-$TABIX -p vcf $output_dir/${vcf_sample_id}.gvcf.gz &>>$log_dir/concat.log &
+$TABIX -p vcf $output_dir/${vcf_sample_id}.gvcf.gz 2>>$log_dir/concat.log &
 task_pid=$!
 wait "$task_pid"
 if [ "$?" -ne "0" ]; then
