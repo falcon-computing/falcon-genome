@@ -43,6 +43,7 @@ void sigint_handler(int s){
   exit(0); 
 }
 
+DEFINE_bool(r, false, "If set, will delete queue and exit immediately.");
 DEFINE_string(q, "default", "Queue name for the manager");
 DEFINE_string(h, "", "host file specifying the slots");
 
@@ -55,12 +56,17 @@ int main(int argc, char** argv) {
   gflags::SetUsageMessage(argv[0]);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
-  if (FLAGS_h == "") {
+  queue_name = queue_name + "-" + FLAGS_q;
+
+  if (FLAGS_r) {
+    VLOG(1) << "Removing queue " << FLAGS_q;
+    boost::interprocess::message_queue::remove(queue_name.c_str());
+    return 0; 
+  }
+  else if (FLAGS_h == "") {
     printf("Usage: %s -h host_file\n", argv[0]);
     return 1;
   }
-
-  queue_name = queue_name + "-" + FLAGS_q;
 
   VLOG(1) << "Starting manager for queue: " << FLAGS_q;
   DLOG(INFO) << "Queue name is " << queue_name;
