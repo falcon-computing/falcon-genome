@@ -9,11 +9,42 @@ input_gvcf_file=$1
 ref_fasta=$2
 output_vcf=${input_gvcf_file}.genotype.vcf
 
-$BGZIP -c $input_gvcf_file > ${input_gvcf_file}.gz
-$TABIX -p vcf ${input_gvcf_file}.gz
+echo $BASHPID > ${input_gvcf_file}.pid
+
+kill_task_pid() {
+  log_info "kill $task_pid"
+  kill $task_pid 2> /dev/null
+  exit 1
+}
+
+trap "kill_task_pid" 1 2 3 9 15
+
+$BGZIP -c $input_gvcf_file > ${input_gvcf_file}.gz &
+task_pid=$!
+wait "$task_pid"
+if [ "$?" -ne "0" ]; then
+  log_error "bgzip compression failed"
+  exit 1;
+fi
+
+$TABIX -p vcf ${input_gvcf_file}.gz &
+task_pid=$!
+wait "$task_pid"
+if [ "$?" -ne "0" ]; then
+  log_error "tabix failed"
+  exit 1;
+fi
 
 $JAVA -d64 -Xmx4g -jar $GATK \
       -T GenotypeGVCFs \
       -R $ref_fasta \
       --variant ${input_gvcf_file}.gz \
-      -o $output_vcf 
+      -o $output_vcf &
+task_pid=$!
+wait "$task_pid"
+if [ "$?" -ne "0" ]; then
+  log_error "GATK GenotypeGVCFs failed"
+  exit 1;
+fi
+
+rm ${output_vcf}.pid -f

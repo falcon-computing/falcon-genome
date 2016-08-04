@@ -89,6 +89,8 @@ fi
 start_ts=$(date +%s)
 
 declare -A pid_table
+declare -A output_table
+
 start_manager
 trap "terminate" 1 2 3 15
 
@@ -99,6 +101,7 @@ for sample in "${sample_list[@]}";do
   gvcf_file=$input_dir/$sample
   $DIR/../fcs-sh "$DIR/genotypeGVCF_part.sh $gvcf_file $ref_fasta" &>$log_dir/compress.${sample}.log & 
   pid_table["$sample"]=$! 
+  output_table["$sample"]=$gvcf_file
 done
 
 # Wait for the jobs to finish
@@ -122,6 +125,7 @@ done
 
 stop_manager
 unset pid_table
+unset output_table
 unset sample_list
 
 if [ "$is_error" -ne 0 ];then
