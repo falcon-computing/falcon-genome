@@ -9,7 +9,9 @@ input_gvcf_file=$1
 ref_fasta=$2
 output_vcf=${input_gvcf_file}.genotype.vcf
 
-echo $BASHPID > ${input_gvcf_file}.pid
+echo $(hostname) >${input_gvcf_file}.pid
+echo $BASHPID >> ${input_gvcf_file}.pid
+
 
 kill_task_pid() {
   log_info "kill $task_pid"
@@ -24,6 +26,7 @@ task_pid=$!
 wait "$task_pid"
 if [ "$?" -ne "0" ]; then
   log_error "bgzip compression failed"
+  rm ${input_gvcf_file}.pid -f
   exit 1;
 fi
 
@@ -32,6 +35,7 @@ task_pid=$!
 wait "$task_pid"
 if [ "$?" -ne "0" ]; then
   log_error "tabix failed"
+  rm ${input_gvcf_file}.pid -f
   exit 1;
 fi
 
@@ -44,7 +48,8 @@ task_pid=$!
 wait "$task_pid"
 if [ "$?" -ne "0" ]; then
   log_error "GATK GenotypeGVCFs failed"
+  rm ${input_gvcf_file}.pid -f
   exit 1;
 fi
 
-rm ${output_vcf}.pid -f
+rm ${input_gvcf_file}.pid -f

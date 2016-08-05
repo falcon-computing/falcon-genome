@@ -207,10 +207,6 @@ terminate() {
   log_info "Caught interruption, cleaning up";
   stop_manager;
 
-  # Stop stray processes
-  for pid in ${pid_table[@]}; do
-    terminate_process "$pid"
-  done;
 
   # Check run dir
   for file in ${output_table[@]}; do
@@ -221,12 +217,21 @@ terminate() {
       log_debug "Stopped remote java process $java_pid for $file"
     fi;
     if [ -e ${file}.pid ]; then
-      local bash_pid=$(cat ${file}.pid)
-      terminate_process "$bash_pid"
+      local node_name=$(sed "1q;d" ${file}.pid)
+      local bash_pid=$(sed "2q;d" ${file}.pid)
+      log_debug "kill $bash_pid on $node_name for $file "
+      # kill the remote process
+      ssh $node_name "kill $bash_pid"
       rm ${file}.pid
       log_debug "Stopped remote printReads process $bash_pid for $file"
     fi;
   done;
+
+  # Stop stray processes
+  for pid in ${pid_table[@]}; do
+    terminate_process "$pid"
+  done;
+
   exit 1;
 }
 
