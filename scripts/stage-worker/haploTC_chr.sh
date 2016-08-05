@@ -19,12 +19,10 @@ stage_name=haploptypeCaller-chr$chr
 check_input $input
 check_output $output
 
-echo $BASHPID > ${output}.pid
-kill_process(){
-  kill -5 $(jobs -p)
-  exit 1;
-}
-trap "kill_process" 1 2 3 15 
+echo $(hostname) >${output}.pid
+echo $BASHPID >> ${output}.pid
+
+trap "kill_task_pid" 1 2 3 9 15 
 
 chr_list="$(seq 1 22) X Y MT"
 # Check chromosome format 
@@ -53,15 +51,16 @@ $JAVA -d64 -Xmx$((nthreads * 2 + 4))g -jar $GATK \
     -nct $nthreads \
     $user_args \
     -o $output &
-hptc_java_pid=$!
-echo $hptc_java_pid > ${output}.java.pid
-wait "$hptc_java_pid"
+
+task_pid=$!
+wait "$task_pid"
+
 if [ "$?" -ne "0" ]; then
+  rm ${output}.pid -f
   exit 1;
 fi
 
-rm ${output}.java.pid
-rm ${output}.pid
+rm ${output}.pid -f
 
 end_ts=$(date +%s)
 #log_info "Finishes in $((end_ts - start_ts))s"

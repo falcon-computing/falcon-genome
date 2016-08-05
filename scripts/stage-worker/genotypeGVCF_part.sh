@@ -12,13 +12,6 @@ output_vcf=${input_gvcf_file}.genotype.vcf
 echo $(hostname) >${input_gvcf_file}.pid
 echo $BASHPID >> ${input_gvcf_file}.pid
 
-
-kill_task_pid() {
-  log_info "kill $task_pid"
-  kill $task_pid 2> /dev/null
-  exit 1
-}
-
 trap "kill_task_pid" 1 2 3 9 15
 
 $BGZIP -c $input_gvcf_file > ${input_gvcf_file}.gz &

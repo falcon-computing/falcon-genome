@@ -17,9 +17,10 @@ user_args=$@
 
 stage_name=printReads-chr$chr
 
-echo $BASHPID > ${output}.pid
+echo $(hostname) >${output}.pid
+echo $BASHPID >> ${output}.pid
 
-trap "kill_process" 1 2 3 15 
+trap "kill_task_pid" 1 2 3 9 15 
 
 nthreads=4
 if [[ $chr > 0 && $chr < 3 ]]; then
@@ -40,16 +41,15 @@ $JAVA -d64 -Xmx$((nthreads * 2))g -jar $GATK \
     $user_args \
     -o $output &
 
-pr_java_pid=$!
-echo $pr_java_pid > ${output}.java.pid
-wait "$pr_java_pid"
+task_pid=$!
+wait "$task_pid"
 
 if [ "$?" -ne "0" ]; then
+  rm ${output}.pid -f
   exit 1;
 fi
 
-rm ${output}.java.pid
-rm ${output}.pid
+rm ${output}.pid -f
 
 end_ts=$(date +%s)
 #log_info "Finishes finishes in $((end_ts - start_ts))s"
