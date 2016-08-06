@@ -49,29 +49,20 @@ while [[ $# -gt 0 ]]; do
   shift # past argument or value
 done
 
-check_input_chr() {
+get_file_name() {
   local input_dir=$1;
-  local chr_list="$(seq 1 22) X Y MT";
-  for chr in $chr_list; do
-    if [ -z "`find $input_dir -name *.chr${chr}.gvcf`" ]; then
-      log_error "ERROR: cannot find VCF for chr$chr";
+    if [ -z "`find $input_dir -name *.gvcf.gz`" ]; then
+      log_error "ERROR: cannot find compressed file";
       exit 1;
+    else 
+      file_name=$(ls ${input_dir}/*.gvcf.gz | head -n1) 
     fi;
-  done;
 }
 
-concatVCF() {
-  local input_dir=$1;
-  local output=$2;
-  output_base=${output%%.*}
-  $BCFTOOLS concat $input_dir/*.chr*.gvcf -o ${output_base}.gvcf
-  $BGZIP -c ${output_base}.gvcf > $output
-  $TABIX -p vcf $output
-}
+
 # Check the args
 check_arg "-i" "input_dir"
 check_arg "-o" "output_dir"
-check_output_dir $output_dir
 check_arg "-r" "ref_fasta" "$ref_genome"
 
 # Get absolute file path
@@ -89,66 +80,22 @@ check_output_dir $log_dir
 IFS=$'\r\n' GLOBIGNORE='*' command eval 'sample_list=($(ls $input_dir))'
 
 input_samples=()
+file_name=
 for sample_id in "${sample_list[@]}"; do
-  check_input_chr "$input_dir/$sample_id"
+  get_file_name "$input_dir/$sample_id"
   if [ "$?" -eq 0 ]; then
-    input_samples+=("$sample_id")
+    input_samples+=("$file_name")
   fi
 done
+
+echo "input_samples is ${input_samples[@]}"
 
 if [ ${#input_samples[@]} -lt 1 ]; then
   log_error "Cannot find valid input files"
   exit 1
 fi
 sample_num=${#input_samples[@]}
-# First concat and compress the vcf files
 
-log_info "Start concating chr to one for $sample_num samples"
-start_ts=$(date +%s)
-
-declare -A pid_table
-declare -A output_table
-
-start_manager
-trap "terminate" 1 2 3 15
-
-echo "Concating for $sample_num samples" >$log_dir/combine.log
-
-# Start the concat jobs distributely
-for sample in "${input_samples[@]}"; do
-  $DIR/../fcs-sh "$DIR/concatVCF.sh $input_dir/$sample $input_dir/$sample/${sample}.gvcf.gz" \
-  &> $log_dir/concat.${sample}.log &
-  pid_table["$sample"]=$!
-  output_table["$sample"]=$input_dir/$sample/${sample}.gvcf.gz
-done
-
-# Wait for all the tasks
-is_error=0
-for sample in "${input_samples[@]}"; do
-  pid=${pid_table[$sample]}
-  wait "${pid}"
-  if [ "$?" -gt 0 ]; then
-    is_error=1
-    log_error "Failed on sample $sample"
-  fi
-  # Concat logs
-  sample_log=$log_dir/concat.${sample}.log
-  cat $sample_log >> $log_dir/combine.log
-  rm -f $sample_log
-done
-
-stop_manager
-unset pid_table
-unset output_table
-
-if [ "$is_error" -ne 0 ];then
-  log_error "Stage failed, please check logs in $log_dir/combine.log for details"
-  exit 1
-fi
-
-end_ts=$(date +%s)
-log_info "Concating finishes in $((end_ts - start_ts))s "
- 
 # Write the callsets json file
 echo "{" > callset.json
 echo ' "callsets" : {' >> callset.json
@@ -157,7 +104,7 @@ for sample in "${input_samples[@]}"; do
   echo '   "'$sample'" : {' >> callset.json
   echo '      "row_idx" : '$row_idx, >> callset.json
   echo '      "idx_in_file" : 0,' >> callset.json
-  echo '      "filename":' '"'$input_dir/$sample/${sample}.gvcf.gz'"' >> callset.json
+  echo '      "filename":' '"'$sample'"' >> callset.json
   row_idx=$[$row_idx+1]
   if [ $row_idx -eq $sample_num ];then
     echo "   }" >> callset.json
