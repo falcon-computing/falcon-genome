@@ -84,11 +84,15 @@ vcf_sample_id=`get_sample_id $input_vcf_dir`
 
 input_vcf_list=
 chr_list="$(seq 1 22) X Y MT";
-for chr in $chr_list; do
-  input_vcf_list="$input_vcf_list ${input_vcf_dir}/${vcf_sample_id}.chr${chr}.gvcf"
+nparts=32
+contig_list="$(seq 1 $nparts)"
+rm $log_dir/concat.log -f
+
+for contig in $contig_list; do
+  input_vcf_list="$input_vcf_list ${input_vcf_dir}/${vcf_sample_id}.contig${contig}.gvcf"
 done
 
-$BCFTOOLS concat $input_vcf_list -o $output_dir/${vcf_sample_id}.gvcf &>$log_dir/concat.log &
+$BCFTOOLS concat $input_vcf_list -o $output_dir/${vcf_sample_id}.gvcf &>$log_dir/concat.log & 
 task_pid=$!
 wait "$task_pid"
 if [ "$?" -ne "0" ]; then

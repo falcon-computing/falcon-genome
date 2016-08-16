@@ -103,11 +103,6 @@ readlink_check log_dir
 check_output $output
 check_output $output.dup_stats
 
-tmp_dir=${tmp_dir[1]}
-create_dir $tmp_dir
-check_output_dir $tmp_dir
-log_info "The intermediate files of mark duplicate are stored to $tmp_dir as default"
-
 #Create log dir
 create_dir $log_dir
 
@@ -115,15 +110,8 @@ log_info "Start stage for input $input"
 
 start_ts=$(date +%s)
 
-# Put all the information to log, not displaying
-$JAVA -XX:+UseSerialGC -Xmx160g -jar $PICARD \
-    MarkDuplicates \
-    TMP_DIR=$tmp_dir COMPRESSION_LEVEL=1 \
-    INPUT=$input \
-    OUTPUT=$output \
-    METRICS_FILE=${output}.dups_stats \
-    REMOVE_DUPLICATES=false ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT \
-    &> $log_dir/markDup.log
+# do the sambamba markdup
+$SAMBAMBA markdup -l 1 -t 22 $input $output &>$log_dir/markDup.log
 
 if [ "$?" -ne 0 ]; then 
   log_error "Stage failed, please check $log_dir/markDup.log for detailed information"

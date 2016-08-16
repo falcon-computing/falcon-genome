@@ -218,7 +218,7 @@ terminate() {
     if [ -e ${file}.pid ]; then
       local node_name=$(sed "1q;d" ${file}.pid)
       local bash_pid=$(sed "2q;d" ${file}.pid)
-      echo "kill $bash_pid on $node_name for $file "
+      #echo "kill $bash_pid on $node_name for $file "
       log_debug "kill $bash_pid on $node_name for $file "
       # kill the remote process
       ssh $node_name "kill $bash_pid 2>/dev/null"

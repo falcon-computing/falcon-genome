@@ -104,11 +104,12 @@ if [ ! -z $help_req ]; then
   exit 0;
 fi
 
-declare -A chr_recal_bam
+declare -A contig_recal_bam
 declare -A pid_table
 declare -A output_table
 
-chr_list="$(seq 1 22) X Y MT"
+nparts=32
+contig_list="$(seq 1 $nparts)"
 
 # Check the input arguments
 check_arg "-r" "ref_fasta" "$ref_genome"
@@ -138,16 +139,15 @@ check_input $input
 check_input $bqsr_rpt
 
 # Check output
-for chr in $chr_list; do
-  # The splited bams are in tmp_dir[1], the recalibrated bams should be in [2]
-  chr_recal_bam["$chr"]=${output}/${input_base}.chr${chr}.bam
-  check_output ${chr_recal_bam["$chr"]}
+for contig in $contig_list; do
+  contig_recal_bam["$contig"]=${output}/${input_base}.contig${contig}.bam
+  check_output ${contig_recal_bam["$contig"]}
 done
 
 # Start manager
 start_manager
 
-trap "terminate" 1 2 3 15
+trap "terminate" 1 2 3 9 15
 
 # check if index already exists
 if [ ! -f ${input}.bai ]; then
@@ -163,43 +163,43 @@ log_info "Start stage for input $input_base"
 log_info "Output will be put in $output"
 start_ts_total=$(date +%s)
 
-for chr in $chr_list; do
-
-  $DIR/../fcs-sh "$DIR/printReads_chr.sh \
+for contig in $contig_list; do
+  $DIR/../fcs-sh "$DIR/printReads_contig.sh \
       $ref_fasta \
-      $chr \
+      $DIR/intv_lists_${nparts}/intv${contig}.list \
       $input \
       $bqsr_rpt \
-      ${chr_recal_bam["$chr"]} \
-      $additional_args" 2> $log_dir/printReads_chr${chr}.log 1> /dev/null &
+      ${contig_recal_bam["$contig"]} \
+      $contig \
+      $additional_args" 2> $log_dir/printReads_contig${contig}.log 1> /dev/null &
 
-  pid_table["$chr"]=$!
-  output_table["$chr"]=${chr_recal_bam[$chr]}
+  pid_table["$contig"]=$!
+  output_table["$contig"]=${contig_recal_bam[$contig]}
 done
 
 # Wait on all the tasks
 log_file=$log_dir/printReads.log
 rm -f $log_file
 is_error=0
-for chr in $chr_list; do
-  pid=${pid_table[$chr]}
+for contig in $contig_list; do
+  pid=${pid_table[$contig]}
   wait "${pid}"
   if [ "$?" -gt 0 ]; then
     is_error=1
-    log_error "Failed on chromosome $chr"
+    log_error "Failed on contig $contig"
   fi
 
   # Concat log and remove the individual ones
-  chr_log=$log_dir/printReads_chr${chr}.log
-  cat $chr_log >> $log_file
-  rm -f $log_dir/printReads_chr${chr}.log
+  contig_log=$log_dir/printReads_contig${contig}.log
+  cat $contig_log >> $log_file
+  rm -f $log_dir/printReads_contig${contig}.log
 done
 end_ts=$(date +%s)
 
 # Stop manager
 stop_manager
 
-unset chr_recal_bam
+unset contig_recal_bam
 unset pid_table
 unset output_table
 
