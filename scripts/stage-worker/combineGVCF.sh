@@ -156,7 +156,7 @@ echo "}" >>loader.json
 # Start the combine operation
 start_ts=$(date +%s)
 
-echo "run GenomicDB for $nparts patitions" >>$log_dir/combine.log
+echo "run GenomicDB for $nparts patitions" >$log_dir/combine.log
 mpirun -n $nparts -hostfile $DIR/GenomicsDB_hostfile $GenomicsDB loader.json &>>$log_dir/combine.log
 if [ "$?" -ne 0 ]; then 
   log_error "combineGVCF failed, please check $log_dir/combine.log for details"
