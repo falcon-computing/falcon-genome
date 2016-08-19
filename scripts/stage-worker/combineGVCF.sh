@@ -51,7 +51,7 @@ done
 
 get_file_name() {
   local input_dir=$1;
-    if [ -z "`find $input_dir -name *.gvcf.gz`" ]; then
+    if [ -z "`find $input_dir -name '*.gvcf.gz'`" ]; then
       log_error "ERROR: cannot find compressed file";
       exit 1;
     else 
