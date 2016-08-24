@@ -39,6 +39,14 @@ else
     shift
     source $DIR/stage-worker/markDup.sh "$@"
     ;;
+  rtc|realignTargetCreator)
+    shift
+    source $DIR/stage-worker/realignerTargetCreator.sh "$@"
+    ;;
+  ir|indelRealigner)
+    shift
+    source $DIR/stage-worker/indelRealigner.sh "$@"
+    ;;
   bqsr|baseRecal|BaseRecalibrator)
     shift
     source $DIR/stage-worker/baseRecal.sh "$@"
@@ -53,7 +61,7 @@ else
     ;;
   concat|concatGVCF)
     shift
-    source $DIR/stage-worker/concatVCF.sh "$@"
+    source $DIR/stage-worker/concatVCF_contig.sh "$@"
     ;;
   cb|combineGVCF)
     shift
@@ -62,6 +70,10 @@ else
   gt|genotypeGVCF)
     shift
     source $DIR/stage-worker/genotypeGVCF.sh "$@"
+    ;;
+  ug|unifiedGenotyper)
+    shift
+    source $DIR/stage-worker/unifiedGT.sh "$@"
     ;;
   gatk|picard)
     source $DIR/stage-worker/wrapper.sh "$@"

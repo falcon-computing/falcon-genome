@@ -11,22 +11,22 @@ source $DIR/common.sh
 stage_name=Indelrealign
 
 # Prevent this script to be running alone
-#if [[ $0 != ${BASH_SOURCE[0]} ]]; then
-#  # Script is sourced by another shell
-#  cmd_name=`basename $0 2> /dev/null`
-#  if [[ "$cmd_name" != "fcs-genome" ]]; then
-#    log_error "This script should be started by 'fcs-genome'"
-#    return 1
-#  fi
-#else
-#  # Script is executed directly
-#  log_error "This script should be started by 'fcs-genome'"
-#  exit 1
-#fi
+if [[ $0 != ${BASH_SOURCE[0]} ]]; then
+  # Script is sourced by another shell
+  cmd_name=`basename $0 2> /dev/null`
+  if [[ "$cmd_name" != "fcs-genome" ]]; then
+    log_error "This script should be started by 'fcs-genome'"
+    return 1
+  fi
+else
+  # Script is executed directly
+  log_error "This script should be started by 'fcs-genome'"
+  exit 1
+fi
 
 print_help() {
   echo "USAGE:"
-  echo "fcs-genome RTC \\"
+  echo "fcs-genome ir|indelRealigner  \\"
   echo "    -r <ref.fasta> \\"
   echo "    -i <input.bam> \\"
   echo "    -known <indels.vcf> \\"
@@ -136,9 +136,7 @@ contig_list="$(seq 1 $nparts)"
 # Check output
 for contig in $contig_list; do
   contig_realign_bam["$contig"]=${tmp_dir[1]}/$(basename $input).realign.contig${contig}.bam
-  echo "$contig_realign_bam"
 done
-
 
 start_ts_total=$(date +%s);
 
@@ -153,7 +151,7 @@ log_info "Output will be put in $output"
 for contig in $contig_list; do
   $DIR/../fcs-sh "$DIR/indelRealign_contig.sh \
     $ref_fasta \
-    $DIR/intv_lists_${nparts}/intv${contig}.list \
+    $DIR/scatter_intervals/intv${contig}.intervals \
     $input \
     \"$known_string\" \
     $target_interval \
@@ -198,12 +196,20 @@ fi
 log_info "realign finishes in $((end_ts - start_ts_total))s"
 
 
-log_info "Start merging"
+log_info "Start gathering"
 start_ts=$(date +%s)
-$SAMTOOLS merge -r -c -p -l 1 -@ 10 ${output} ${contig_realign_bam[@]} -f 2>> $log_file
+gather_input_string=
+
+for contig in $contig_list; do
+  gather_input_string="$gather_input_string I=${contig_realign_bam["$contig"]}"
+done
+
+$JAVA -jar $PICARD GatherBamFiles \
+  $gather_input_string \
+  O=$output &>>$log_file
 
 if [ "$?" -ne 0 ]; then 
-  log_error "Samtools merge failed, please check $log_file for detailed information"
+  log_error "Picard gatherBam failed, please check $log_file for detailed information"
   exit 1
 fi
 
@@ -211,6 +217,6 @@ fi
 unset contig_realign_bam
 
 end_ts=$(date +%s);
-log_info "Samtools merge finishes in $((end_ts-start_ts))s"
+log_info "Picard gatherBam finishes in $((end_ts-start_ts))s"
 log_info "Stage finishes in $((end_ts-start_ts_total))s"
 
