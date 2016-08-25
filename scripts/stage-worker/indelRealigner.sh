@@ -145,7 +145,7 @@ start_manager
 
 trap "terminate" 1 2 3 9 15
 
-log_info "Start stage for input $input_base"
+log_info "Start stage for input $input"
 log_info "Output will be put in $output"
 
 for contig in $contig_list; do
