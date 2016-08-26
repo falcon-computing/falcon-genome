@@ -67,14 +67,24 @@ vcf_sample_id=`get_sample_id $input_vcf_dir`
 
 # TODO: check if all the partitions are present
 input_vcf_list=$(ls -v $input_vcf_dir/*.gvcf)
-$BCFTOOLS concat $input_vcf_list -o $output_dir/${vcf_sample_id}.gvcf &>$log_dir/concat.log
+if [ -z "$input_vcf_list" ]; then
+  echo "Cannot find input vcf files in $input_vcf_dir"
+  exit -1
+fi
+
+$BCFTOOLS concat $input_vcf_list \
+    -o $output_dir/${vcf_sample_id}.gvcf \
+    &>$log_dir/concat.log
 
 if [ "$?" -ne "0" ]; then
   log_error "bcftools concat failed"
   exit 1;
 fi
 
-$BGZIP -c $output_dir/${vcf_sample_id}.gvcf > $output_dir/${vcf_sample_id}.gvcf.gz 2>$log_dir/concat.log
+$BGZIP -c $output_dir/${vcf_sample_id}.gvcf \
+    > $output_dir/${vcf_sample_id}.gvcf.gz \
+    > 2>> $log_dir/concat.log
+
 if [ "$?" -ne "0" ]; then
   log_error "bgzip compression failed"
   exit 1;
@@ -83,7 +93,8 @@ fi
 # delete uncompressed gvcf file
 rm $output_dir/${vcf_sample_id}.gvcf
 
-$TABIX -p vcf $output_dir/${vcf_sample_id}.gvcf.gz 2> $log_dir/concat.log
+$TABIX -p vcf $output_dir/${vcf_sample_id}.gvcf.gz \
+    2>> $log_dir/concat.log
 if [ "$?" -ne "0" ]; then
   log_error "tabix failed"
   exit 1;

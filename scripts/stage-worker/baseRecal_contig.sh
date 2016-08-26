@@ -44,4 +44,4 @@ fi
 rm ${output}.pid -f
 
 end_ts=$(date +%s)
-echo "bqsr contig $contig finishes in $((end_ts - start_ts))s"
+>&2 echo "BQSR for contig $contig finishes in $((end_ts - start_ts))s"

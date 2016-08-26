@@ -63,7 +63,7 @@ while [[ $# -gt 0 ]]; do
     shift
     ;;
   -o|--output|-O)
-    output="$2"
+    output_dir="$2"
     shift # past argument
     ;;
   -v|--verbose)
@@ -92,7 +92,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 check_arg "-i" "input"
-check_arg "-o" "output"
+check_arg "-o" "output_dir"
 check_arg "-rtc" "target_interval"
 check_args
 
@@ -118,15 +118,15 @@ done
 readlink_check ref_fasta
 readlink_check input
 readlink_check target_interval
-readlink_check output
+readlink_check output_dir
 readlink_check log_dir
 
 create_dir $log_dir
-create_dir $output
+create_dir $output_dir
 
 check_input $input
 check_input $target_interval
-check_output_dir $output
+check_output_dir $output_dir
 
 declare -A contig_realign_bam
 declare -A pid_table
@@ -134,9 +134,11 @@ declare -A output_table
 
 nparts=32
 contig_list="$(seq 1 $nparts)"
-# Check output
+sample_id=$(basename $input)
+sample_id=${sample_id%%.*}
+
 for contig in $contig_list; do
-  contig_realign_bam["$contig"]=${output}/$(basename $input).realign.contig${contig}.bam
+  contig_realign_bam["$contig"]=$output_dir/${sample_id}.realign.contig${contig}.bam
 done
 
 start_ts_total=$(date +%s);
@@ -147,7 +149,7 @@ start_manager
 trap "terminate" 1 2 3 9 15
 
 log_info "Start stage for input $input"
-log_info "Output will be put in $output"
+log_info "Output will be put in $output_dir"
 
 for contig in $contig_list; do
   $DIR/../fcs-sh "$DIR/indelRealign_contig.sh \
@@ -188,11 +190,9 @@ stop_manager
 unset pid_table
 unset output_table
 
-
 if [ "$is_error" -ne 0 ]; then
   log_error "Stage failed, please check logs in $log_file for details."
   exit 1
 fi
 
 log_info "Stages finishes in $((end_ts - start_ts_total))s"
-
