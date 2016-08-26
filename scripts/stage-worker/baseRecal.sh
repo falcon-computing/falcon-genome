@@ -169,10 +169,9 @@ fi
 log_info "Stage starts"
 
 start_ts=$(date +%s)
-$SAMTOOLS index $input 
+$SAMBAMBA index -t 8 $input 
 end_ts=$(date +%s)
-
-log_info "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
+log_info "Indexing for $(basename $input) finishes in $((end_ts - start_ts))s"
 
 # Start manager
 start_manager
@@ -181,7 +180,6 @@ export PATH=$DIR:$PATH
 
 start_ts=$(date +%s)
 
-rm -f $log_dir/bqsr.log
 # Put all the information to log, not displaying
 $JAVA -Djava.io.tmpdir=/tmp -jar ${GATK_QUEUE} \
   -S $DIR/BaseRecalQueue.scala \

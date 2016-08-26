@@ -147,6 +147,14 @@ create_dir() {
   fi;
 }
 
+get_sample_id() {
+  local input_dir=$1;
+  local sample_id=`ls $input_dir/*.gvcf | sed -e 'N;s/^\(.*\).*\n\1.*$/\1\n\1/;D'`;
+  local sample_id=$(basename $sample_id);
+  local sample_id=${sample_id%%.*}
+  echo $sample_id;
+}
+
 # Start manager
 start_manager() {
   if [ ! -z "$manager_pid" ]; then

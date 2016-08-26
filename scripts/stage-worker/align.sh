@@ -35,7 +35,6 @@ print_help() {
   echo "    -pl <platform_id> \\ "
   echo "    -lb <library_id>"
   echo 
-  echo "<input.bam> argument is the markduped bam file";
   echo "<input_1.fastq> and <input_2.fastq> are the input fastq file";
   echo "<output.bam> argument is the file to put the output bam results";
   echo "<readgroup_id> <sample_id> <platform_id> <library_id> specifies read group information";
@@ -84,7 +83,7 @@ while [[ $# -gt 0 ]];do
     shift
     ;;
   -v|--verbose)
-    if [ $2 -eq $2 2> /dev/null ]; then
+    if [ "$2" -eq "$2" 2> /dev/null ]; then
       # user specified an integer as input
       verbose="$2"
       shift
@@ -125,8 +124,9 @@ check_args
 
 fastq_base_withsuffix=$(basename $fastq1)
 fastq_base=${fastq_base_withsuffix%_1.*} 
-log_info "$fastq_base is the fastq base name"
-output_default=${tmp_dir[1]}/$fastq_base.bam
+log_debug "$fastq_base is the fastq base name"
+
+output_default=${tmp_dir[1]}/${fastq_base}.bam
 
 check_arg "-o" "output" "$output_default"
 check_arg "-r" "ref_fasta" "$ref_genome"
@@ -134,7 +134,7 @@ check_arg "-r" "ref_fasta" "$ref_genome"
 bwa_sort=1
 
 tmp_dir=${tmp_dir[2]}
-log_info "The intermediate files of BWA alignment are stored to $tmp_dir"
+log_debug "The intermediate files of BWA alignment are stored to $tmp_dir"
 
 # Get absolute filepath for input/outputs
 readlink_check ref_fasta
@@ -197,22 +197,21 @@ if [[ -z "$sort_files" ]]; then
   exit 1
 fi
 
-log_info "Start sorting"
-start_ts=$(date +%s)
 if [ "$bwa_sort" -gt 0 ]; then
-  $SAMTOOLS merge -r -c -p -l 1 -@ 10 ${output} $sort_files -f 2> $log_dir/sort.log
+  log_info "Start mark duplicates"
+  start_ts=$(date +%s)
+  $SAMBAMBA markdup -l 1 -t 16 $sort_files $output 2> $log_dir/markdup.log
+
+  if [ "$?" -ne 0 ]; then 
+    log_error "Sorting failed, please check $log_dir/markdup.log for detailed information"
+    exit 1
+  fi
+  end_ts=$(date +%s)
+  log_info "Markdup finishes in $((end_ts - start_ts))s"
 else
   cat $sort_files | $SAMTOOLS sort -m 16g -@ 10 -l 0 -o $output 2> $log_dir/sort.log
 fi
 
-if [ "$?" -ne 0 ]; then 
-  log_error "Sorting failed, please check $log_dir/sort.log for detailed information"
-  exit 1
-fi
-
 # Remove the partial files
-rm -r $output_parts_dir &
-end_ts=$(date +%s)
-
-log_info "Samtools sort finishes in $((end_ts - start_ts))s"
+rm -r $output_parts_dir
 log_info "Stage finishes in $((end_ts - start_ts_total))s"

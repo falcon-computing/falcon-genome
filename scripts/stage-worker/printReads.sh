@@ -153,9 +153,9 @@ trap "terminate" 1 2 3 9 15
 if [ ! -f ${input}.bai ]; then
   log_warn "Cannot find index for $(basename $input), use samtool to index"
   start_ts=$(date +%s)
-  $SAMTOOLS index $input
+  $SAMBAMBA index -t 8 $input
   end_ts=$(date +%s)
-  log_info "Samtools index for $(basename $input) finishes in $((end_ts - start_ts))s"
+  log_info "Indexing for $(basename $input) finishes in $((end_ts - start_ts))s"
 fi
 
 # Start the jobs
@@ -177,10 +177,11 @@ for contig in $contig_list; do
   output_table["$contig"]=${contig_recal_bam[$contig]}
 done
 
-# Wait on all the tasks
 log_file=$log_dir/printReads.log
 rm -f $log_file
+
 is_error=0
+# Wait on all the tasks
 for contig in $contig_list; do
   pid=${pid_table[$contig]}
   wait "${pid}"
