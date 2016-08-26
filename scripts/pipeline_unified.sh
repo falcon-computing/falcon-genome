@@ -6,12 +6,8 @@
 
 # Global variables
 fastq_dir=/merlin_fs/merlin1/hdd1/diwu/fastq
-fastq_dir=/merlin_fs/merlin2/hdd2/yaoh/fastq_short
 output_dir=$(pwd)
-log_dir=$output_dir/log
-bam_dir=$output_dir/bam
-tmp_dir[1]=/merlin_fs/merlin2/ssd1/yaoh/temp
-tmp_dir[2]=/merlin_fs/merlin2/ssd1/yaoh/temp2
+tmp_dir=/pool/ssd1/$USER/temp
 
 ref_dir=/space/scratch/genome/ref
 ref_genome=$ref_dir/factor4/human_g1k_v37.fasta
@@ -24,30 +20,56 @@ if [[ $# -lt 1 ]]; then
   exit 1;
 fi
 
-sample_id=$1
-
-shift
-
 # dictionary to enable selective stages
 declare -A do_stage
-if [[ $# -gt "0" ]]; then
-  do_stage=( ["1"]="0" ["2"]="0" ["3"]="0" ["4"]="0" ["5"]="0" ["6"]="0" ["7"]="1" )
-  for i in $@; do 
-    do_stage["$i"]=1
-  done
-else
-  do_stage=( ["1"]="1" ["2"]="1" ["3"]="1" ["4"]="1" ["5"]="1" ["6"]="1" ["7"]="1" )
+do_stage=( ["1"]="1" ["2"]="1" ["3"]="1" ["4"]="1" ["5"]="1" ["6"]="1" ["7"]="1" )
+
+reset=1
+force_clean=0
+
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  case $key in
+  -d|--input_dir)
+    fastq_dir="$2"
+    shift # past argument
+    ;;
+  -s|--sample_id)
+    sample_id="$2"
+    shift # past argument
+    ;;
+  -o|--output_dir)
+    output_dir="$2"
+    shift # past argument
+    ;;
+  -c|--checkpoint)
+    checkpoint=1
+    ;;
+  -f|--force_clean)
+    force_clean=1
+    ;;
+  1|2|3|4|5|6|7) # selective stage
+    if [ $reset -eq 1 ]; then
+      do_stage=( ["1"]="0" ["2"]="0" ["3"]="0" ["4"]="0" ["5"]="0" ["6"]="0" ["7"]="0" )
+      reset=0
+    fi
+    do_stage["$key"]=1
+    ;;
+  *) # unknown option
+    ;;
+  esac
+  shift # past argument or value
+done
+
+if [ -z "$sample_id" ]; then
+  echo "Must specify a sample id"
+  exit 1
 fi
 
 # Check input data
-if [[ $INPUT_DIR != "" ]]; then
-  fastq_dir=$INPUT_DIR
-fi
 if [[ "${do_stage["1"]}" == "1" ]]; then
   basename=$fastq_dir/${sample_id}_1
-  if [ -f "${basename}.fastq" -o -f "${basename}.fastq.gz" -o -f "${basename}.fq" ]; then
-    echo "Input file found"
-  else
+  if [ ! -f "${basename}.fastq" ] && [ ! -f "${basename}.fastq.gz" ] && [ ! -f "${basename}.fq" ]; then
     echo "Cannot find input file in $fastq_dir" 
     exit -1
   fi
@@ -61,10 +83,13 @@ if [ "$?" -gt 0 ]; then
 fi
 
 # Preparation of output directories
+log_dir=$output_dir/log
+bam_dir=$output_dir
+
+# Preparation of output directories
 mkdir -p $log_dir
 mkdir -p $bam_dir
-mkdir -p ${tmp_dir[1]}
-mkdir -p ${tmp_dir[2]}
+mkdir -p $tmp_dir
 
 start_ts=$(date +%s)
 
@@ -83,13 +108,12 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
   fi
 
   # Use these pseudo information for testing purpose
-  SP_id=SEQ01
-  RG_ID=SEQ01
+  SP_id=$sample_id
+  RG_ID=$sample_id
   platform=ILLUMINA
-  library=HUMsgR2AQDCAAPE
+  library=1
 
-  # Put output in tmp_dir[1]
-  output=${tmp_dir[1]}/${sample_id}.bam
+  output=${tmp_dir}/${sample_id}.bam
 
   fcs-genome align \
     -r $ref_genome \
@@ -100,7 +124,7 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
     -pl $platform \
     -lb $library \
     -o $output \
-    -v 3 -f
+    -v 2 -f
 
   if [ "$?" -ne 0 ]; then
     echo "Alignment failed"
@@ -108,9 +132,9 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
   fi
 
   # checkpoint
- # if [ -z "$checkpoint" ]; then
- #   cp $output $bam_dir &
- # fi
+  if [ -z "$checkpoint" ]; then
+    cp $output $bam_dir &
+  fi
 fi
 
 # Step 2: Mark Duplicate
@@ -118,13 +142,13 @@ fi
 # - Output: duplicates-removed ${sample_id}.markdups.bam
 if [[ "${do_stage["2"]}" == "1" ]]; then
 
-  input=${tmp_dir[1]}/${sample_id}.bam
-  output=${tmp_dir[2]}/${sample_id}.markdups.bam
+  input=${tmp_dir}/${sample_id}.bam
+  output=${tmp_dir}/${sample_id}.markdups.bam
 
   fcs-genome markDup \
     -i $input \
     -o $output \
-    -v 3 -f
+    -v -f
 
   if [ "$?" -ne 0 ]; then
     echo "MarkDuplicate failed"
@@ -135,10 +159,10 @@ if [[ "${do_stage["2"]}" == "1" ]]; then
   rm $input &
 
   # Checkpoint markdup bam file
- # if [ -z "$checkpoint" ]; then
- #   cp $output $bam_dir &
- #   cp ${output}.dups_stats $bam_dir &
- # fi
+  if [ -z "$checkpoint" ]; then
+    cp $output $bam_dir &
+    cp ${output}.dups_stats $bam_dir &
+  fi
 fi
 
 # Step 3: GATK RealignTargetCreator
@@ -146,8 +170,8 @@ fi
 # - Output: ${sample_id}.intervals
 if [[ "${do_stage["3"]}" == "1" ]]; then
 
-  input=${tmp_dir[2]}/${sample_id}.markdups.bam
-  output=${tmp_dir[2]}/${sample_id}.intervals
+  input=${tmp_dir}/${sample_id}.markdups.bam
+  output=${tmp_dir}/${sample_id}.intervals
   if [ ! -f $input ]; then
     echo "Cannot find $input"
     exit 1
@@ -157,7 +181,7 @@ if [[ "${do_stage["3"]}" == "1" ]]; then
     -r $ref_genome \
     -i $input \
     -o $output \
-    -v 3 -f
+    -v 2 -f
 
   if [ "$?" -ne 0 ]; then
     echo "RealignTargetCreator failed"
@@ -170,30 +194,38 @@ fi
 # - Input: ${sample_id}.markdups.bam
 # - Output: ${sample_id}.realigned.bam
 if [[ "${do_stage["4"]}" == "1" ]]; then
-  input_bam=${tmp_dir[2]}/${sample_id}.markdups.bam
-  input_target=${tmp_dir[2]}/${sample_id}.intervals
-  output=${tmp_dir[1]}/${sample_id}.realigned.bam
+  input_bam=${tmp_dir}/${sample_id}.markdups.bam
+  input_target=${tmp_dir}/${sample_id}.intervals
+  output=${tmp_dir}/${sample_id}.realigned.bam
   
   fcs-genome ir \
     -r $ref_genome \
     -i $input_bam \
     -rtc $input_target \
     -o $output \
-    -v 3 -f
+    -v 2 -f
 
   if [ "$?" -ne 0 ]; then
     echo "IndelRealigner failed"
     exit 4;
   fi
-fi
 
+  if [ ! -z "$checkpoint" ]; then
+    cp -r $output $output_dir/bam &
+  fi
+
+  if [ "$force_clean" -eq 1 ]; then
+    rm -f $input_bam
+    rm -f $input_target
+  fi
+fi
 
 # Step 5: GATK baseRecalibrator
 # - Input: ${sample_id}.realigned.bam
 # - Output_dir ${sample_id}_rpt
 if [[ "${do_stage["5"]}" == "1" ]]; then
-  input_bam=${tmp_dir[1]}/${sample_id}.realigned.bam
-  output_rpt=${tmp_dir[1]}/${sample_id}.recal.rpt
+  input_bam=${tmp_dir}/${sample_id}.realigned.bam
+  output_rpt=${tmp_dir}/${sample_id}.recal.rpt
   
   fcs-genome bqsr \
     -r $ref_genome \
@@ -212,9 +244,9 @@ fi
 # - Ouput: per partition recaled bam 
 if [[ "${do_stage["6"]}" == "1" ]]; then
 
-  input_bam=${tmp_dir[1]}/${sample_id}.realigned.bam
-  input_bqsr=${tmp_dir[1]}/${sample_id}.recal.rpt
-  pr_output_dir=${tmp_dir[2]}/${sample_id}_pr
+  input_bam=${tmp_dir}/${sample_id}.realigned.bam
+  input_bqsr=${tmp_dir}/${sample_id}.recal.rpt
+  pr_output_dir=${tmp_dir}/${sample_id}_pr
 
   fcs-genome printReads \
     -r $ref_genome \
@@ -227,6 +259,15 @@ if [[ "${do_stage["6"]}" == "1" ]]; then
     echo "Print Reads failed"
     exit 6;
   fi
+
+  if [ "$force_clean" -eq 1 ]; then
+    rm -f $input_bam
+    rm -f $input_bqsr
+  fi
+
+  if [ ! -z "$checkpoint" ]; then
+    cp -r $pr_output_dir $output_dir/bam &
+  fi
 fi
 
 # Step 7: GATK unifiedGenotyper
@@ -234,7 +275,7 @@ fi
 # - Output: per partition gvcf
 if [[ "${do_stage["7"]}" == "1" ]]; then
 
-  input_pr_dir=${tmp_dir[2]}/${sample_id}_pr
+  input_pr_dir=${tmp_dir}/${sample_id}_pr
   output_vcf_dir=$output_dir/vcf
 
   fcs-genome ug \
@@ -246,6 +287,10 @@ if [[ "${do_stage["7"]}" == "1" ]]; then
   if [ "$?" -ne 0 ]; then
     echo "UnifiedGenotyper failed"
     exit 7;
+  fi
+
+  if [ "$force_clean" -eq 1 ]; then
+    rm -r $vcf_dir
   fi
 fi
 end_ts=$(date +%s)

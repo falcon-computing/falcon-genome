@@ -135,7 +135,7 @@ create_dir $output
 
 # Check input
 check_input $ref_fasta
-check_input $input
+#check_input $input
 check_input $bqsr_rpt
 
 # Check output
@@ -149,13 +149,28 @@ start_manager
 
 trap "terminate" 1 2 3 9 15
 
-# check if index already exists
-if [ ! -f ${input}.bai ]; then
-  log_warn "Cannot find index for $(basename $input), use samtool to index"
-  start_ts=$(date +%s)
-  $SAMBAMBA index -t 8 $input
-  end_ts=$(date +%s)
-  log_info "Indexing for $(basename $input) finishes in $((end_ts - start_ts))s"
+input_list=
+if [ -f $input ]; then
+  if [ ! -f ${input}.bai ]; then
+    log_warn "Cannot find index for $(basename $input), use samtool to index"
+    start_ts=$(date +%s)
+    $SAMBAMBA index -t 8 $input
+    end_ts=$(date +%s)
+    log_info "Indexing for $(basename $input) finishes in $((end_ts - start_ts))s"
+  fi
+  input_list="-I $input"
+elif [ -d "$input" ]; then
+  input_files=$(ls -v $input/*.bam)
+  if [ -z "$input_files" ]; then
+    echo "Cannot find input bam files in $input"
+    exit -1
+  fi
+  for input in $input_files; do
+    input_list="$input_list -I $input" 
+  done
+else
+  echo "Input argument '$input' is not valid"
+  exit -1
 fi
 
 # Start the jobs
@@ -167,7 +182,7 @@ for contig in $contig_list; do
   $DIR/../fcs-sh "$DIR/printReads_contig.sh \
       $ref_fasta \
       $DIR/intv_lists_${nparts}/intv${contig}.list \
-      $input \
+      $input_list \
       $bqsr_rpt \
       ${contig_recal_bam["$contig"]} \
       $contig \

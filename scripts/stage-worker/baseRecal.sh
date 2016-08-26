@@ -141,7 +141,7 @@ rpt_dir=$(dirname $output_rpt)
 create_dir $log_dir
 create_dir $rpt_dir
 
-check_input $input
+#check_input $input
 check_output $output_rpt
 
 # Clear the done files to rerun
@@ -160,18 +160,33 @@ fi
 # Table storing all the pids for tasks within one stage
 declare -A pid_table
 
-# Start the index option
-# usually the old bai would cause the bqsr error
-if [ -f ${input}.bai ];then
-  rm -f input.bai
-fi
-
 log_info "Stage starts"
 
-start_ts=$(date +%s)
-$SAMBAMBA index -t 8 $input 
-end_ts=$(date +%s)
-log_info "Indexing for $(basename $input) finishes in $((end_ts - start_ts))s"
+input_list=
+if [ -f $input ]; then
+  # Start the index option
+  # usually the old bai would cause the bqsr error
+  rm -f ${input}.bai
+  
+  start_ts=$(date +%s)
+  $SAMBAMBA index -t 8 $input 
+  end_ts=$(date +%s)
+  log_info "Indexing for $(basename $input) finishes in $((end_ts - start_ts))s"
+
+  input_list="-I $input"
+elif [ -d "$input" ]; then
+  input_files=$(ls -v $input/*.bam)
+  if [ -z "$input_files" ]; then
+    echo "Cannot find input bam files in $input"
+    exit -1
+  fi
+  for input in $input_files; do
+    input_list="$input_list -I $input" 
+  done
+else
+  echo "Input argument '$input' is not valid"
+  exit -1
+fi
 
 # Start manager
 start_manager
@@ -184,8 +199,8 @@ start_ts=$(date +%s)
 $JAVA -Djava.io.tmpdir=/tmp -jar ${GATK_QUEUE} \
   -S $DIR/BaseRecalQueue.scala \
   -R $ref_fasta \
-  -I $input \
   $knownSites_string \
+  $input_list \
   -o $output_rpt \
   -jobRunner ParallelShell \
   -maxConcurrentRun 32 \
