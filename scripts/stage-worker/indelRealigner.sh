@@ -122,10 +122,11 @@ readlink_check output
 readlink_check log_dir
 
 create_dir $log_dir
+create_dir $output
 
 check_input $input
 check_input $target_interval
-check_output $output
+check_output_dir $output
 
 declare -A contig_realign_bam
 declare -A pid_table
@@ -135,7 +136,7 @@ nparts=32
 contig_list="$(seq 1 $nparts)"
 # Check output
 for contig in $contig_list; do
-  contig_realign_bam["$contig"]=${tmp_dir[1]}/$(basename $input).realign.contig${contig}.bam
+  contig_realign_bam["$contig"]=${output}/$(basename $input).realign.contig${contig}.bam
 done
 
 start_ts_total=$(date +%s);
@@ -193,30 +194,5 @@ if [ "$is_error" -ne 0 ]; then
   exit 1
 fi
 
-log_info "realign finishes in $((end_ts - start_ts_total))s"
-
-
-log_info "Start gathering"
-start_ts=$(date +%s)
-gather_input_string=
-
-for contig in $contig_list; do
-  gather_input_string="$gather_input_string I=${contig_realign_bam["$contig"]}"
-done
-
-$JAVA -jar $PICARD GatherBamFiles \
-  $gather_input_string \
-  O=$output &>>$log_file
-
-if [ "$?" -ne 0 ]; then 
-  log_error "Picard gatherBam failed, please check $log_file for detailed information"
-  exit 1
-fi
-
-#rm -f ${contig_realign_bam[@]} &
-unset contig_realign_bam
-
-end_ts=$(date +%s);
-log_info "Picard gatherBam finishes in $((end_ts-start_ts))s"
-log_info "Stage finishes in $((end_ts-start_ts_total))s"
+log_info "Stages finishes in $((end_ts - start_ts_total))s"
 

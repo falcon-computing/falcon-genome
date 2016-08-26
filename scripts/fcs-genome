@@ -49,7 +49,7 @@ else
     ;;
   bqsr|baseRecal|BaseRecalibrator)
     shift
-    source $DIR/stage-worker/baseRecal.sh "$@"
+    source $DIR/stage-worker/baseRecal_sg.sh "$@"
     ;;
   pr|printReads|PrintReads)
     shift
