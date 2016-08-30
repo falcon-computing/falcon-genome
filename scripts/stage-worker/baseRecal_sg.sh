@@ -137,11 +137,8 @@ readlink_check log_dir
 
 rpt_dir=$output_dir/scatter_rpt
 
-
 create_dir $log_dir
 create_dir $rpt_dir
-
-#check_input $input
 check_output_dir $rpt_dir
 
 # Table storing all the pids for tasks within one stage
@@ -151,17 +148,17 @@ declare -A output_table
 
 nparts=32
 contig_list="$(seq 1 $nparts)"
-input_bam_string=
+
 # Get the input list
+input_bam_string=
 if [ -d $input ]; then
   for contig in $contig_list; do
-    contig_bam=`ls $input/*.contig${contig}.bam`
+    contig_bam=`ls -v $input/*.contig${contig}.bam`
     input_bam_string="$input_bam_string -I $contig_bam"
   done
 else
   input_bam_string="-I $input"
 fi
-
 
 for contig in $contig_list; do
   contig_rpt["$contig"]=$rpt_dir/$(basename $input).contig${contig}.recal.rpt

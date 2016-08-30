@@ -25,7 +25,6 @@ echo $BASHPID >> ${output}.pid
 
 trap "kill_task_pid" 1 2 3 9 15 
 
-
 nthreads=4
 #if [[ $chr > 0 && $chr < 3 ]]; then
 #    nthreads=12

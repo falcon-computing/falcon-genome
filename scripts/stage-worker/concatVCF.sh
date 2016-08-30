@@ -83,7 +83,7 @@ fi
 
 $BGZIP -c $output_dir/${vcf_sample_id}.gvcf \
     > $output_dir/${vcf_sample_id}.gvcf.gz \
-    > 2>> $log_dir/concat.log
+    2>> $log_dir/concat.log
 
 if [ "$?" -ne "0" ]; then
   log_error "bgzip compression failed"

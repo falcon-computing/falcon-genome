@@ -22,7 +22,7 @@ fi
 
 # dictionary to enable selective stages
 declare -A do_stage
-do_stage=( ["1"]="1" ["2"]="0" ["3"]="1" ["4"]="1" ["5"]="1" ["6"]="1" ["7"]="1" )
+do_stage=( ["1"]="1" ["2"]="1" ["3"]="1" ["4"]="1" ["5"]="1" ["6"]="1" ["7"]="1" )
 
 reset=1
 force_clean=0
@@ -137,83 +137,32 @@ if [[ "${do_stage["1"]}" == "1" ]]; then
   fi
 fi
 
-# Step 2: Mark Duplicate
-# - Input: sorted ${sample_id}.bam
-# - Output: duplicates-removed ${sample_id}.markdups.bam
+# Step 2: GATK Indel Realigner
+# - Input: ${sample_id}.markdups.bam
+# - Output: ${sample_id}.realn.bam
 if [[ "${do_stage["2"]}" == "1" ]]; then
 
-  input=${tmp_dir}/${sample_id}.bam
-  output=${tmp_dir}/${sample_id}.markdups.bam
-
-  fcs-genome markDup \
-    -i $input \
-    -o $output \
-    -v -f
-
-  if [ "$?" -ne 0 ]; then
-    echo "MarkDuplicate failed"
-    exit 2;
-  fi
-
-  # Delete sorted bam file
-  rm $input &
-
-  # Checkpoint markdup bam file
-  if [ -z "$checkpoint" ]; then
-    cp $output $bam_dir &
-    cp ${output}.dups_stats $bam_dir &
-  fi
-fi
-
-# Step 3: GATK RealignTargetCreator
-# - Input: ${sample_id}.markdups.bam
-# - Output: ${sample_id}.intervals
-if [[ "${do_stage["3"]}" == "1" ]]; then
-
-  if [ ${do_stage["2"]} -eq 1 ]; then
-    input=$tmp_dir/${sample_id}.markdups.bam
-  else
-    input=$tmp_dir/${sample_id}.bam
-  fi
-  output=${tmp_dir}/${sample_id}.intervals
+  input_bam=$tmp_dir/${sample_id}.bam
+  intervals=${tmp_dir}/${sample_id}.intervals
+  output=${tmp_dir}/${sample_id}.realn.bam
 
   fcs-genome rtc \
     -r $ref_genome \
-    -i $input \
-    -o $output \
+    -i $input_bam \
+    -o $intervals \
     -v -f
 
   if [ "$?" -ne 0 ]; then
     echo "RealignTargetCreator failed"
     exit 3;
   fi
-fi
 
-
-# Step 4: GATK indelRealigner
-# - Input: ${sample_id}.markdups.bam
-# - Output: ${sample_id}.realigned.bam
-if [[ "${do_stage["4"]}" == "1" ]]; then
-
-  if [ ${do_stage["2"]} -eq 1 ]; then
-    input_bam=$tmp_dir/${sample_id}.markdups.bam
-  else
-    input_bam=$tmp_dir/${sample_id}.bam
-  fi
-  input_target=${tmp_dir}/${sample_id}.intervals
-  output=${tmp_dir}/${sample_id}.realigned.bam
-  
   fcs-genome ir \
     -r $ref_genome \
     -i $input_bam \
-    -rtc $input_target \
+    -rtc $intervals \
     -o $output \
     -v -f
-
-  if [ "$?" -ne 0 ]; then
-    echo "IndelRealigner failed"
-    exit 4;
-  fi
 
   if [ ! -z "$checkpoint" ]; then
     cp -r $output $output_dir/bam &
@@ -225,11 +174,11 @@ if [[ "${do_stage["4"]}" == "1" ]]; then
   fi
 fi
 
-# Step 5: GATK baseRecalibrator
-# - Input: ${sample_id}.realigned.bam
-# - Output_dir ${sample_id}_rpt
-if [[ "${do_stage["5"]}" == "1" ]]; then
-  input_bam=${tmp_dir}/${sample_id}.realigned.bam
+# Step 3: GATK baseRecalibrator
+# - Input: ${sample_id}.realn.bam
+# - Output_dir ${sample_id}.recal.rpt
+if [[ "${do_stage["3"]}" == "1" ]]; then
+  input_bam=${tmp_dir}/${sample_id}.realn.bam
   output_rpt=${tmp_dir}/${sample_id}.recal.rpt
   
   fcs-genome bqsr \
@@ -244,14 +193,14 @@ if [[ "${do_stage["5"]}" == "1" ]]; then
   fi
 fi
 
-# Step 6: GATK PrintRead
+# Step 4: GATK PrintRead
 # - Input: ${sample_id}.realigned.bam
 # - Ouput: per partition recaled bam 
-if [[ "${do_stage["6"]}" == "1" ]]; then
+if [[ "${do_stage["4"]}" == "1" ]]; then
 
-  input_bam=${tmp_dir}/${sample_id}.realigned.bam
+  input_bam=${tmp_dir}/${sample_id}.realn.bam
   input_bqsr=${tmp_dir}/${sample_id}.recal.rpt
-  pr_output_dir=${tmp_dir}/${sample_id}_pr
+  pr_output_dir=${tmp_dir}/${sample_id}.recal.bam
 
   fcs-genome printReads \
     -r $ref_genome \
@@ -275,17 +224,17 @@ if [[ "${do_stage["6"]}" == "1" ]]; then
   fi
 fi
 
-# Step 7: GATK unifiedGenotyper
+# Step 5: GATK unifiedGenotyper
 # - Input: per partition recaled bam
 # - Output: per partition gvcf
-if [[ "${do_stage["7"]}" == "1" ]]; then
+if [[ "${do_stage["5"]}" == "1" ]]; then
 
-  input_pr_dir=${tmp_dir}/${sample_id}_pr
-  output_vcf_dir=$output_dir/vcf
+  input_dir=$tmp_dir/${sample_id}.recal.bam
+  output_vcf_dir=$tmp_dir/${sample_id}.vcf
 
   fcs-genome ug \
     -r $ref_genome \
-    -i $input_pr_dir \
+    -i $input_dir \
     -o $output_vcf_dir \
     -v -f
 
@@ -295,7 +244,21 @@ if [[ "${do_stage["7"]}" == "1" ]]; then
   fi
 
   if [ "$force_clean" -eq 1 ]; then
-    rm -r $vcf_dir
+    rm -r $input_dir
+  fi
+
+  fcs-genome concat \
+    -i $output_vcf_dir \
+    -o $output_dir \
+    -v 
+
+  if [ "$?" -ne 0 ]; then
+    echo "Concat vcf failed"
+    exit 7;
+  fi
+
+  if [ "$force_clean" -eq 1 ]; then
+    rm -r $output_vcf_dir
   fi
 fi
 end_ts=$(date +%s)

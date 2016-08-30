@@ -61,7 +61,7 @@ else
     ;;
   concat|concatGVCF)
     shift
-    source $DIR/stage-worker/concatVCF_contig.sh "$@"
+    source $DIR/stage-worker/concatVCF.sh "$@"
     ;;
   cb|combineGVCF)
     shift
