@@ -102,7 +102,7 @@ declare -A pid_table
 declare -A output_table
 
 vcf_dir_default=$output_dir/vcf
-nparts=32
+nparts=$num_partitions
 contig_list="$(seq 1 $nparts)"
 
 
@@ -163,10 +163,13 @@ log_info "Start stage for input $input"
 log_info "Output files will be put in $vcf_dir"
 start_ts_total=$(date +%s)
 
+# Setup interval lists
+setup_intv $nparts $ref_fasta
+
 for contig in $contig_list; do
   $DIR/../fcs-sh "$DIR/haploTC_contig.sh \
       $ref_fasta \
-      $DIR/intv_lists_${nparts}/intv${contig}.list \
+      $PWD/.fcs-genome/intv_$nparts/intv${contig}.list \
       ${contig_bam[$contig]} \
       ${contig_vcf[$contig]} \
       $contig \

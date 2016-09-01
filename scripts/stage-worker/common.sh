@@ -132,6 +132,15 @@ check_output_dir() {
   rm $dir/.test;
 }
 
+check_ret() {
+  local ret=$?;
+  local msg=$1;
+  if [ $ret -ne 0 ]; then
+    log_error "$1 failed";
+    exit -1
+  fi;
+}
+
 # Create output dir if it does not exist 
 create_dir() {
   local dir=$1
@@ -144,6 +153,19 @@ create_dir() {
     return 0;
   else
     return 1; # did not create dir
+  fi;
+}
+
+# Setup interval lists for partitions
+setup_intv() {
+  if [ $# -lt 2 ]; then
+    log_internal;
+    return 1;
+  fi
+  local nparts=$1;
+  local ref=$2;
+  if [ ! -d "$PWD/.fcs-genome/intv_$nparts" ]; then
+    $DIR/intvGen.sh -r $ref -n $nparts;
   fi;
 }
 

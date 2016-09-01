@@ -1,3 +1,6 @@
+# Global parameter setup
+num_partitions=32
+
 # Modify the following paths accordingly
 input_dir=
 output_dir=$(pwd)

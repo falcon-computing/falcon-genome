@@ -108,7 +108,7 @@ declare -A contig_recal_bam
 declare -A pid_table
 declare -A output_table
 
-nparts=32
+nparts=$num_partitions
 contig_list="$(seq 1 $nparts)"
 
 # Check the input arguments
@@ -179,10 +179,13 @@ log_info "Start stage for input $input_base"
 log_info "Output will be put in $output"
 start_ts_total=$(date +%s)
 
+# Setup interval lists
+setup_intv $nparts $ref_fasta
+
 for contig in $contig_list; do
   $DIR/../fcs-sh "$DIR/printReads_contig.sh \
       $ref_fasta \
-      $DIR/intv_lists_${nparts}/intv${contig}.list \
+      $PWD/.fcs-genome/intv_$nparts/intv${contig}.list \
       \"$input_bam_list\" \
       $bqsr_rpt \
       ${contig_recal_bam["$contig"]} \

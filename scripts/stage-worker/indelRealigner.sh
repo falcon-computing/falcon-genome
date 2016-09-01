@@ -151,10 +151,13 @@ trap "terminate" 1 2 3 9 15
 log_info "Start stage for input $input"
 log_info "Output will be put in $output_dir"
 
+# Setup interval lists
+setup_intv $nparts $ref_fasta
+
 for contig in $contig_list; do
   $DIR/../fcs-sh "$DIR/indelRealign_contig.sh \
     $ref_fasta \
-    $DIR/scatter_intervals/intv${contig}.intervals \
+    $PWD/.fcs-genome/intv_$nparts/intv${contig}.list \
     $input \
     \"$known_string\" \
     $target_interval \
