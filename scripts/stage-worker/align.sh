@@ -1,6 +1,3 @@
-################################################################################
-## This script generates sorted bam file from fastq using bwa-flow
-################################################################################
 #!/bin/bash
 
 # Import global variables
@@ -9,6 +6,7 @@ source $DIR/../globals.sh
 source $DIR/common.sh
 
 stage_name=align
+
 # Prevent this script to be running alone
 if [[ $0 != ${BASH_SOURCE[0]} ]]; then
   # Script is sourced by another shell
@@ -46,6 +44,8 @@ if [ $# -lt 2 ];then
   exit 1;
 fi
 
+do_markdup=1
+
 # Get the input command 
 while [[ $# -gt 0 ]];do
   key="$1"
@@ -66,8 +66,11 @@ while [[ $# -gt 0 ]];do
     output="$2"
     shift
     ;;
+  --align-only)
+    do_markdup=0
+    ;;
   -rg|--readgroup_id)
-    RG_ID="$2"
+    read_group="$2"
     shift
     ;;
   -sp|--sample_id)
@@ -116,22 +119,20 @@ fi
 # Check the input arguments
 check_arg "-fq1" "fastq1"
 check_arg "-fq2" "fastq2"
-check_arg "-rg" "RG_ID"
+check_arg "-rg" "read_group"
 check_arg "-sp" "sample_id"
 check_arg "-pl" "platform"
 check_arg "-lb" "library"
 check_args 
 
-fastq_base_withsuffix=$(basename $fastq1)
-fastq_base=${fastq_base_withsuffix%_1.*} 
-log_debug "$fastq_base is the fastq base name"
+#fastq_base_withsuffix=$(basename $fastq1)
+#fastq_base=${fastq_base_withsuffix%_1.*} 
+#log_debug "$fastq_base is the fastq base name"
 
-output_default=${tmp_dir[1]}/${fastq_base}.bam
-
-check_arg "-o" "output" "$output_default"
+if [ "$do_markdup" -eq 1 ]; then
+check_arg "-o" "output" "${tmp_dir[1]}/${read_group}.bam"
+fi
 check_arg "-r" "ref_fasta" "$ref_genome"
-
-bwa_sort=1
 
 tmp_dir=${tmp_dir[2]}
 log_debug "The intermediate files of BWA alignment are stored to $tmp_dir"
@@ -143,28 +144,29 @@ readlink_check fastq2
 readlink_check output
 readlink_check log_dir
 
-# Check input
+# Check input and output
 check_input $ref_fasta
 check_input $fastq1
 check_input $fastq2
 
-#check output
-check_output $output
-check_output_dir $tmp_dir
+if [ "$do_markdup" -eq 1 ]; then
+  check_output $output
+  output_parts_dir=$tmp_dir/$sample_id
+  if [ -d $output_parts_dir ]; then
+    rm -rf $output_parts_dir
+    log_info "Temp folder $output_parts_dir already exist, removing it."
+  fi
+else
+  output_dir=$output
+  create_dir $output
+
+  output_parts_dir=$output_dir/$read_group
+  check_output $output_parts_dir
+fi
 
 # Create the directories of the run
-
 create_dir $log_dir
 check_output_dir $log_dir
-output_parts_dir=$tmp_dir/$(basename $output).parts
-
-# Use pseudo input for header
-
-if [ "$bwa_sort" -gt 0 ]; then
-  ext_options="--sort --max_num_records=2000000"
-else
-  ext_options=
-fi
 
 log_info "Started BWA alignment"
 start_ts=$(date +%s)
@@ -172,10 +174,11 @@ start_ts_total=$start_ts
 
 # Put all the information to log, not displaying
 $BWA mem -M \
-    -R "@RG\tID:$RG_ID\tSM:$sample_id\tPL:$platform\tLB:$library" \
+    -R "@RG\tID:$read_group\tSM:$sample_id\tPL:$platform\tLB:$library" \
     --logtostderr=1 \
     --output_dir=$output_parts_dir \
-    $ext_options \
+    --sort \
+    --max_num_records=10000000 \
     $ref_fasta \
     $fastq1 \
     $fastq2 \
@@ -186,32 +189,31 @@ if [ "$?" -ne 0 ]; then
   exit 1
 fi
 end_ts=$(date +%s)
-log_info "bwa mem finishes in $((end_ts - start_ts))s"
+log_info "bwa mem finishes in $((end_ts - start_ts)) seconds"
 
-# Increase the max number of files that can be opened concurrently
-ulimit -n 2048
-
-sort_files=$(find $output_parts_dir -name part-* 2>/dev/null)
-if [[ -z "$sort_files" ]]; then
-  log_error "Folder $output_parts_dir is empty, could not start sorting"
-  exit 1
-fi
-
-if [ "$bwa_sort" -gt 0 ]; then
+if [ "$do_markdup" -eq 1 ]; then
+  # Increase the max number of files that can be opened concurrently
+  ulimit -n 4096
+  
+  sort_files=$(find $output_parts_dir -name part-* 2>/dev/null)
+  if [[ -z "$sort_files" ]]; then
+    log_error "Folder $output_parts_dir is empty, could not start sorting"
+    exit 1
+  fi
+  
   log_info "Start mark duplicates"
   start_ts=$(date +%s)
   $SAMBAMBA markdup -l 1 -t 16 $sort_files $output 2> $log_dir/markdup.log
-
+  
   if [ "$?" -ne 0 ]; then 
     log_error "Sorting failed, please check $log_dir/markdup.log for detailed information"
     exit 1
   fi
   end_ts=$(date +%s)
-  log_info "Markdup finishes in $((end_ts - start_ts))s"
-else
-  cat $sort_files | $SAMTOOLS sort -m 16g -@ 10 -l 0 -o $output 2> $log_dir/sort.log
-fi
+  log_info "Markdup finishes in $((end_ts - start_ts)) seconds"
+  
+  # Remove the partial files
+  rm -r $output_parts_dir
 
-# Remove the partial files
-rm -r $output_parts_dir
-log_info "Stage finishes in $((end_ts - start_ts_total))s"
+  log_info "Stage finishes in $((end_ts - start_ts_total)) seconds"
+fi

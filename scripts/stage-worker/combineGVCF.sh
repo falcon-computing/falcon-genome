@@ -49,17 +49,6 @@ while [[ $# -gt 0 ]]; do
   shift # past argument or value
 done
 
-get_file_name() {
-  local input_dir=$1;
-    if [ -z "`find $input_dir -name '*.gvcf.gz'`" ]; then
-      log_error "ERROR: cannot find compressed file";
-      exit 1;
-    else 
-      file_name=$(ls ${input_dir}/*.gvcf.gz | head -n1) 
-    fi;
-}
-
-
 # Check the args
 check_arg "-i" "input_dir"
 check_arg "-o" "output_dir"
@@ -77,19 +66,11 @@ check_output_dir $output_dir
 check_output_dir $log_dir
 
 # Get a sample list from input dir
-IFS=$'\r\n' GLOBIGNORE='*' command eval 'sample_list=($(ls $input_dir))'
+input_samples=($(find $input_dir -name "*.gvcf.gz"))
 
-input_samples=()
-file_name=
-for sample_id in "${sample_list[@]}"; do
-  get_file_name "$input_dir/$sample_id"
-  if [ "$?" -eq 0 ]; then
-    input_samples+=("$file_name")
-  fi
-done
+#echo "input_samples is ${input_samples[@]}"
 
-echo "input_samples is ${input_samples[@]}"
-
+echo ${#input_samples[@]}
 if [ ${#input_samples[@]} -lt 1 ]; then
   log_error "Cannot find valid input files"
   exit 1

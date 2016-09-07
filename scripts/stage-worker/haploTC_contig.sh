@@ -35,7 +35,7 @@ nthreads=4
 #fi
 
 start_ts=$(date +%s)
-$JAVA -d64 -Xmx$((nthreads * 2 + 4))g -jar $GATK \
+$JAVA -d64 -Xmx$((nthreads * 2 + 10))g -jar $GATK \
     -T HaplotypeCaller \
     -R $ref \
     -I $input \
