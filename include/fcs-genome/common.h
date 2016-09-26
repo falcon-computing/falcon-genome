@@ -1,15 +1,28 @@
+#ifndef FCSGENOME_COMMON_H
+#define FCSGENOME_COMMON_H
+
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <glog/logging.h>
+#include <iomanip>
 #include <string>
 #include <sys/syscall.h>
 #include <sys/time.h>
 #include <syscall.h>
 #include <time.h>
 
+#include "config.h"
+
 namespace fcsgenome {
 
 // Custom exceptions
+
+class helpRequest: public std::runtime_error {
+public:
+  explicit helpRequest():
+    std::runtime_error("") {;}
+};
+
 class silentExit: public std::runtime_error {
 public:
   explicit silentExit():
@@ -40,10 +53,6 @@ public:
 };
 
 // Macros for argument definition
-#define arg_decl_string_w_def(arg, defval, msg) (arg, \
-    po::value<std::string>(&str_opt)->default_value(defval), \
-    msg)
-
 #define arg_decl_string(arg, msg) (arg, \
     po::value<std::string>(), \
     msg)
@@ -92,6 +101,20 @@ inline T get_argument(
   }
 }
 
+template <class T>
+inline T get_argument(
+    boost::program_options::variables_map &vm,
+    const char* arg,
+    T def_val
+) {
+  if (!vm.count(arg)) {
+    return def_val;
+  }
+  else {
+    return vm[arg].as<T>();
+  }
+}
+
 template <>
 inline bool get_argument<bool>(
     boost::program_options::variables_map &vm,
@@ -100,27 +123,29 @@ inline bool get_argument<bool>(
   return vm.count(arg);
 }
 
+inline std::string get_contig_fname(
+    std::string base_path,
+    int contig,
+    std::string ext = "bam") 
+{
+  int n_digits = (int)log10((double)conf_gatk_ncontigs)+1;
+  std::stringstream ss;
+  ss << base_path << "/part-" 
+     << std::setw(n_digits) << std::setfill('0') << contig
+     << "." << ext;
+  return ss.str();
+}
+
 std::string get_basename(std::string path);
 std::string get_basename_wo_ext(std::string path);
 std::string get_absolute_path(std::string path);
 std::string check_input(std::string path);
-std::string check_output(std::string path, bool f);
-std::string get_input_list(std::string path, 
-    std::string pattern = ".*",
-    std::string prefix = "");
+std::string check_output(std::string path, bool &f, bool req_file = false);
 std::string get_bin_dir();
-
-// Worker functions
-int bwa_command(std::string& ref_path,
-    std::string& fq1_path, std::string& fq2_path,
-    std::string& output_path,
-    std::string& sample_id, std::string& read_group,
-    std::string& platform_id, std::string& library_id);
-
-int markdup_command(std::string& input_files, 
-    std::string& output_path);
-
-int align_main(int argc, char** argv);
-int markdup_main(int argc, char** argv);
+std::string get_log_name(std::string job_name, int idx = -1);
+void get_input_list(std::string path, 
+    std::vector<std::string> &list,
+    std::string pattern = ".*");
 
 } // namespace fcsgenome
+#endif

@@ -1,0 +1,43 @@
+#ifndef FCSGENOME_WORKERS_BQSRWORKER_H
+#define FCSGENOME_WORKERS_BQSRWORKER_H
+
+#include <string>
+#include "fcs-genome/Worker.h"
+
+namespace fcsgenome {
+
+class BQSRWorker : public Worker {
+ public:
+  BQSRWorker(std::string ref_path,
+      std::vector<std::string> &known_sites,
+      std::string intv_path,
+      std::string input_path,
+      std::string output_path,
+      int contig,
+      bool &flag_f);
+
+  void check();
+  void setup();
+
+ private:
+  std::vector<std::string> &known_sites_;
+  std::string ref_path_;
+  std::string intv_path_;
+  std::string input_path_;
+  std::string output_path_;
+};
+
+class BQSRGatherWorker : public Worker {
+ public:
+  BQSRGatherWorker(std::vector<std::string> &input_files,
+      std::string output_file,
+      bool &flag_f);
+
+  void check();
+  void setup();
+ private:
+  std::vector<std::string> &input_files_;
+  std::string output_file_;
+};
+} // namespace fcsgenome
+#endif

@@ -5,6 +5,7 @@ GTEST_DIR=/curr/diwu/tools/googletest/googletest
 OPENMPI_DIR=/curr/diwu/tools/openmpi-1.10.2/build/install
 PROTOBUF_DIR=/usr
 HTSLIB_PATH=/curr/diwu/tools/htslib-1.3.1
+FLMDIR=/curr/diwu/tools/falcon-lm
 
 MAKE=make
 CC=gcc
