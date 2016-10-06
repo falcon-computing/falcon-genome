@@ -13,17 +13,7 @@
 
 namespace fcsgenome {
 
-void sigint_handler(int s){
-
-  DLOG(INFO) << "Caught interrupt, shutting down workers";
-  if (fcsgenome::g_executor) {
-    fcsgenome::g_executor->interrupt();
-  }
-  
-  exit(0); 
-}
-
-int htc_main(int argc, char** argv,
+int ug_main(int argc, char** argv,
     boost::program_options::options_description &opt_desc) 
 {
   namespace po = boost::program_options;
@@ -34,9 +24,9 @@ int htc_main(int argc, char** argv,
   opt_desc.add_options() 
     arg_decl_string("ref,r", "reference genome path")
     arg_decl_string("input,i", "input BAM file or dir")
-    arg_decl_string("output,o", "output gvcf file (if --skip-concat is set"
-                                "the output will be a directory of gvcf files)")
-    ("skip-concat,s", "produce a set of gvcf files instead of one");
+    arg_decl_string("output,o", "output vcf file (if --skip-concat is set"
+                                "the output will be a directory of vcf files)")
+    ("skip-concat,s", "produce a set of vcf files instead of one");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
@@ -57,7 +47,8 @@ int htc_main(int argc, char** argv,
   // finalize argument parsing
   po::notify(cmd_vm);
 
-  std::string temp_dir = conf_temp_dir + "/htc";
+  // the output path will be a directory
+  std::string temp_dir = conf_temp_dir + "/ug";
 
   // TODO: deal with the case where 
   // 1. output_path is a dir but should not be deleted
@@ -77,14 +68,7 @@ int htc_main(int argc, char** argv,
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
 
-  Executor executor("Haplotype Caller", get_config<int>("gatk.htc.nprocs"));
-
-  g_executor = &executor;
-
-  signal(SIGINT, sigint_handler);
-  signal(SIGTERM, sigint_handler);
-
-  bool flag_htc_f = !flag_skip_concat || flag_f;
+  Executor executor("Unified Genotyper", get_config<int>("gatk.ug.nprocs"));
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
     std::string input_file;
     if (boost::filesystem::is_directory(input_path)) {
@@ -96,18 +80,19 @@ int htc_main(int argc, char** argv,
     else {
       input_file = input_path;
     }
-    std::string output_file = get_contig_fname(output_dir, contig, "gvcf");
-    Worker_ptr worker(new HTCWorker(ref_path,
-          intv_paths[contig], input_file,
+    std::string output_file = get_contig_fname(output_dir, contig, "vcf");
+
+    Worker_ptr worker(new UGWorker(ref_path,
+          input_file,
+          intv_paths[contig],
           output_file,
-          contig, flag_htc_f));
+          flag_f));
     output_files[contig] = output_file;
 
-    executor.addTask(worker);
+    executor.addTask(worker, contig==0);
   }
 
   if (!flag_skip_concat) {
-
     bool flag = true;
     { // concat gvcfs
       Worker_ptr worker(new VCFConcatWorker(

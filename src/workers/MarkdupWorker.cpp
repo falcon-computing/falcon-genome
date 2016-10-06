@@ -1,4 +1,3 @@
-#include <glog/logging.h>
 #include <string>
 #include <sys/resource.h>
 
@@ -10,7 +9,7 @@ namespace fcsgenome{
 
 MarkdupWorker::MarkdupWorker(std::string input_path,
     std::string output_path,
-    bool &flag_f): Worker(1, conf_markdup_nthreads)
+    bool &flag_f): Worker(1, get_config<int>("markdup.nt"))
 {
   // check output
   output_file_ = check_output(output_path, flag_f, true);
@@ -25,25 +24,25 @@ void MarkdupWorker::check() {
 void MarkdupWorker::setup() {
   // update limit
   struct rlimit file_limit;
-  file_limit.rlim_cur = conf_markdup_maxfile;
-  file_limit.rlim_max = conf_markdup_maxfile;
+  file_limit.rlim_cur = get_config<int>("markdup.max_files");
+  file_limit.rlim_max = get_config<int>("markdup.max_files");
 
   if (setrlimit(RLIMIT_NOFILE, &file_limit) != 0) {
     throw internalError("Failed to update limit");
   }
   getrlimit(RLIMIT_NOFILE, &file_limit);
-  if (file_limit.rlim_cur != conf_markdup_maxfile || 
-      file_limit.rlim_max != conf_markdup_maxfile) {
+  if (file_limit.rlim_cur != get_config<int>("markdup.max_files") || 
+      file_limit.rlim_max != get_config<int>("markdup.max_files")) {
     throw internalError("Failed to update limit");
   }
 
   // create cmd
   std::stringstream cmd;
-  cmd << conf_sambamba_call << " markdup "
+  cmd << get_config<std::string>("sambamba_path") << " markdup "
       << "-l 1 "
-      << "-t " << conf_markdup_nthreads << " "
-      << "--tmpdir=" << conf_temp_dir << " "
-      << "--overflow-list-size=" << conf_markdup_overflowsize << " ";
+      << "-t " << get_config<int>("markdup.nt") << " "
+      << "--tmpdir=" << get_config<std::string>("temp_dir") << " ";
+      //<< "--overflow-list-size=" << conf_markdup_overflowsize << " ";
   for (int i = 0; i < input_files_.size(); i++) {
     cmd << input_files_[i] << " ";
   }

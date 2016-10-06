@@ -1,8 +1,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
-#include <glog/logging.h>
 #include <sys/resource.h>
+
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -21,9 +21,7 @@ int markdup_main(int argc, char** argv,
 
   opt_desc.add_options() 
     arg_decl_string("input,i", "input file")
-    arg_decl_string("output,o", "output file")
-    ("h,help", "print help messages") 
-    ("f,force", "overwrite output file if exists");
+    arg_decl_string("output,o", "output file");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),

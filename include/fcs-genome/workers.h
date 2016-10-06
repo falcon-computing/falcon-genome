@@ -4,8 +4,9 @@
 #include "workers/BQSRWorker.h"
 #include "workers/BWAWorker.h"
 #include "workers/HTCWorker.h"
+#include "workers/IndelWorker.h"
 #include "workers/MarkdupWorker.h"
-#include "workers/PRWorker.h"
-#include "workers/VCFConcatWorker.h"
+#include "workers/VCFUtilsWorker.h"
+#include "workers/UGWorker.h"
 
 #endif

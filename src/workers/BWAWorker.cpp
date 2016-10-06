@@ -1,4 +1,3 @@
-#include <glog/logging.h>
 #include <string>
 
 #include "fcs-genome/common.h"
@@ -38,7 +37,7 @@ BWAWorker::BWAWorker(std::string ref_path,
   // create cmd
   std::stringstream cmd;
   cmd << "LD_LIBRARY_PATH=" << conf_root_dir << "/lib:$LD_LIBRARY_PATH "
-      << conf_bwa_call << " mem -M "
+      << get_config<std::string>("bwa_path") << " mem -M "
       << "-R \"@RG\\tID:" << read_group << 
                  "\\tSM:" << sample_id << 
                  "\\tPL:" << platform_id << 
@@ -49,7 +48,7 @@ BWAWorker::BWAWorker(std::string ref_path,
       << "--sort "
       << "--output_flag=1 "
       << "--output_dir=\"" << output_path << "\" "
-      << "--max_num_records=" << conf_bwa_maxrecords << " "
+      << "--max_num_records=" << get_config<int>("bwa.max_records") << " "
       << ref_path << " "
       << fq1_path << " "
       << fq2_path;

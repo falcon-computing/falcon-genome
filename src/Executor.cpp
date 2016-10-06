@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 
+
 #include "fcs-genome/common.h"
 #include "fcs-genome/Executor.h"
 
@@ -87,6 +88,11 @@ Executor::Executor(std::string job_name,
   DLOG(INFO) << "Started " << executors_.size() << " workers.";
 }
 
+Executor::~Executor() {
+  ios_work_.reset();
+  executors_.join_all();
+}
+
 void Executor::addTask(Worker_ptr worker, bool wait_for_prev) {
   if (job_stages_.empty() || wait_for_prev) {
     Stage_ptr stage(new Stage(this));
@@ -98,8 +104,10 @@ void Executor::addTask(Worker_ptr worker, bool wait_for_prev) {
 void Executor::run() {
   uint64_t start_ts = getTs();
 
-  create_dir(conf_log_dir);
+  create_dir(get_config<std::string>("log_dir"));
   log_fname_ = get_log_name(job_name_);
+
+  LOG(INFO) << "Start doing " << job_name_;
 
   while (!job_stages_.empty()) {
     job_stages_.front()->run();
@@ -107,6 +115,17 @@ void Executor::run() {
   }
 
   log_time(job_name_, start_ts);
+}
+
+void Executor::stop() {
+  // finish existing jobs
+  ios_work_.reset();
+  executors_.join_all();
+}
+
+void Executor::interrupt() {
+  executors_.interrupt_all();
+  executors_.join_all();
 }
 
 int Executor::execute(Worker_ptr worker, std::string log) {

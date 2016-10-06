@@ -1,14 +1,18 @@
 #include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
+#include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <time.h>
 #include <unistd.h>
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
+#include "fcs-genome/Executor.h"
 
 namespace fcsgenome {
+
+Executor* g_executor = NULL;
 
 std::string get_basename_wo_ext(std::string path) {
   boost::filesystem::wpath file_path(path);
@@ -68,6 +72,16 @@ std::string check_output(std::string path, bool &f, bool require_file) {
               << path << "'";
     // Remove output file
     boost::filesystem::remove_all(path);
+  }
+  else {
+    // check if output dir is writable
+    std::ofstream fout;
+    fout.open(path.c_str());
+    if (!fout) {
+      throw fileNotFound("Cannot write to output path '"+path+"'");
+    }
+    fout.close();
+    remove_path(path);
   }
   return get_absolute_path(path);
 }
@@ -130,7 +144,7 @@ std::string get_log_name(std::string job_name, int idx) {
       });
 
   std::stringstream ss;
-  ss << conf_log_dir << "/"
+  ss << get_config<std::string>("log_dir") << "/"
      << log_name << "-"
      << 1900 + tm_time.tm_year
      << std::setw(2) << std::setfill('0') << 1+tm_time.tm_mon

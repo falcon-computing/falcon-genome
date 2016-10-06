@@ -6,9 +6,14 @@ SRC_DIR := ./src
 CFLAGS 	:= -g -std=c++0x -fPIC -O3
 
 INCLUDES:= -I./include  \
-	   -I$(BOOST_DIR)/include \
-	   -I$(GLOG_DIR)/include \
-	   -I$(GFLAGS_DIR)/include
+	   -I$(GLOG_DIR)/include
+
+ifneq ($(BOOST_DIR),)
+INCLUDES:= $(INCLUDES) -I$(BOOST_DIR)/include
+endif
+ifneq ($(GFLAGS_DIR),)
+INCLUDES:= $(INCLUDES) -I$(GFLAGS_DIR)/include
+endif
 	
 LINK	:= -L$(BOOST_DIR)/lib \
 	   	-lboost_system \
@@ -18,8 +23,8 @@ LINK	:= -L$(BOOST_DIR)/lib \
 		-lboost_regex \
 		-lboost_program_options \
 	   -L$(GLOG_DIR)/lib -lglog \
-	   -L$(GFLAGS_DIR)/lib -lgflags \
 	   -lpthread -lm -ldl -lz -lrt
+#-L$(GFLAGS_DIR)/lib -lgflags \
 
 ifeq ($(RELEASE),)
 ifeq ($(NDEBUG),)
@@ -47,16 +52,19 @@ OBJS	 := $(SRC_DIR)/main.o \
 	    $(SRC_DIR)/config.o \
 	    $(SRC_DIR)/Executor.o \
 	    $(SRC_DIR)/worker-align.o \
-	    $(SRC_DIR)/worker-markdup.o \
 	    $(SRC_DIR)/worker-bqsr.o \
-	    $(SRC_DIR)/worker-htc.o \
 	    $(SRC_DIR)/worker-concat.o \
+	    $(SRC_DIR)/worker-htc.o \
+	    $(SRC_DIR)/worker-indel.o \
+	    $(SRC_DIR)/worker-markdup.o \
+	    $(SRC_DIR)/worker-ug.o \
 	    $(SRC_DIR)/workers/BQSRWorker.o \
 	    $(SRC_DIR)/workers/BWAWorker.o \
 	    $(SRC_DIR)/workers/HTCWorker.o \
+	    $(SRC_DIR)/workers/IndelWorker.o \
 	    $(SRC_DIR)/workers/MarkdupWorker.o \
-	    $(SRC_DIR)/workers/PRWorker.o \
-	    $(SRC_DIR)/workers/VCFConcatWorker.o
+	    $(SRC_DIR)/workers/VCFUtilsWorker.o \
+	    $(SRC_DIR)/workers/UGWorker.o
 
 PROG	 := ./$(BIN_DIR)/fcs-genome
 

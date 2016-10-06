@@ -1,8 +1,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
-#include <glog/logging.h>
 #include <string>
+
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -23,15 +23,14 @@ int align_main(int argc, char** argv,
     arg_decl_string("ref,r", "reference genome path")
     arg_decl_string("fastq1,1", "input pair-end fastq file")
     arg_decl_string("fastq2,2", "input pair-end fastq file")
-    arg_decl_string("output,o", "output file")
-    arg_decl_string("rg,R", "read group id ('ID' in BAM headers)")
-    arg_decl_string("sp,S", "sample id ('SM' in BAM headers)")
-    arg_decl_string("pl,P", "platform id ('PL' in BAM headers)")
-    arg_decl_string("lb,L", "library id ('LB' in BAM headers)")
-    ("align-only", "skip duplicates marking and output "
-     "multiple BAM files in output_dir") 
-    ("help,h", "print help messages")
-    ("force,f", "overwrite output file if exists");
+    arg_decl_string("output,o", "output BAM file (if --align-only is set "
+                                "the output will be a directory of BAM "
+                                "files)")
+    arg_decl_string("rg,R", "read group id ('ID' in BAM header)")
+    arg_decl_string("sp,S", "sample id ('SM' in BAM header)")
+    arg_decl_string("pl,P", "platform id ('PL' in BAM header)")
+    arg_decl_string("lb,L", "library id ('LB' in BAM header)")
+    ("align-only,l", "skip sort and mark duplicates");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
@@ -46,7 +45,7 @@ int align_main(int argc, char** argv,
   bool flag_align_only = get_argument<bool>(cmd_vm, "align-only");
 
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
-      conf_default_ref);
+                              get_config<std::string>("ref_genome"));
   std::string fq1_path    = get_argument<std::string>(cmd_vm, "fastq1");
   std::string fq2_path    = get_argument<std::string>(cmd_vm, "fastq2");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
@@ -59,6 +58,9 @@ int align_main(int argc, char** argv,
   po::notify(cmd_vm);
 
   std::string parts_dir;
+  std::string temp_dir = conf_temp_dir + "/align";
+
+  create_dir(temp_dir);
 
   if (flag_align_only) {
     // Check if output in path already exists but is not a dir
@@ -71,19 +73,19 @@ int align_main(int argc, char** argv,
     parts_dir = output_path + "/" +
       sample_id + "/" +
       read_group;
-    parts_dir = check_output(parts_dir, flag_f);
-    //create_dir(parts_dir);
+    
+    // workaround for output check
+    create_dir(output_path+"/"+sample_id);
   }
   else {
-    // require output to be a file
+    // check output path before alignment
     output_path = check_output(output_path, flag_f, true);
-    parts_dir = output_path + ".parts";
 
-    // Remove parts_dir if it already exists
-    remove_path(parts_dir);
-
-    DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
+    // require output to be a file
+    parts_dir = temp_dir + "/" +
+                get_basename(output_path) + ".parts";
   }
+  DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
   Executor executor("bwa mem");
 

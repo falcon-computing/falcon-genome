@@ -1,5 +1,5 @@
-#ifndef FCSGENOME_WORKERS_VCFCONCATWORKER_H
-#define FCSGENOME_WORKERS_VCFCONCATWORKER_H
+#ifndef FCSGENOME_WORKERS_VCFUTILSWORKER_H
+#define FCSGENOME_WORKERS_VCFUTILSWORKER_H
 
 #include <string>
 #include "fcs-genome/Worker.h"
@@ -35,12 +35,24 @@ class ZIPWorker : public Worker {
 
 class TabixWorker : public Worker {
  public:
-  TabixWorker(std::string input_path);
+  TabixWorker(std::string path):
+    Worker(1, 1), path_(path) {}
 
   void check();
   void setup();
  private:
-  std::string input_file_; 
+  std::string path_; 
+};
+
+class VCFSortWorker : public Worker {
+ public:
+  VCFSortWorker(std::string path): 
+    Worker(1, 1), path_(path) {}
+
+  void check();
+  void setup();
+ private:
+  std::string path_; 
 };
 } // namespace fcsgenome
 #endif

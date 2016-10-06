@@ -3,8 +3,8 @@
 #include <boost/program_options.hpp>
 #include <cmath>
 #include <iomanip>
-#include <glog/logging.h>
 #include <string>
+
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -22,10 +22,9 @@ int concat_main(int argc, char** argv,
   po::variables_map cmd_vm;
 
   opt_desc.add_options() 
-    arg_decl_string("input,i", "input vcf/gvcf folder dir")
-    arg_decl_string("output,o", "output vcf/gvcf file")
-    ("help,h", "print help messages")
-    ("force,f", "overwrite output file if exists");
+    arg_decl_string("input,i", "folder of input vcf/gvcf files")
+    arg_decl_string("output,o", "output vcf/gvcf file (automatically "
+                                "compressed to .vcf.gz/.gvcf.gz)");
 
   // Parse arguments
   po::store(
@@ -46,19 +45,22 @@ int concat_main(int argc, char** argv,
 
   std::vector<std::string> input_files;
   try {
-    get_input_list(input_path, input_files, ".*\.gvcf");
+    get_input_list(input_path, input_files, ".*\\.gvcf");
   } catch (fileNotFound &e) {
     // will throw if cannot find any .vcf files
-    get_input_list(input_path, input_files, ".*\.vcf");
+    get_input_list(input_path, input_files, ".*\\.vcf");
   }
 
-  // TODO: generate intv list automatically
   Executor executor("VCF concat");
   { // concat gvcfs
     Worker_ptr worker(new VCFConcatWorker(
           input_files, output_path,
           flag_f));
     executor.addTask(worker);
+  }
+  { // sort gvcf
+    Worker_ptr worker(new VCFSortWorker(output_path));
+    executor.addTask(worker, true);
   }
   { // bgzip gvcf
     Worker_ptr worker(new ZIPWorker(

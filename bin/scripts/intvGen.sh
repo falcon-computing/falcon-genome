@@ -1,5 +1,7 @@
 #!/bin/bash
 
+skip_chr=0
+
 # Get the input command 
 while [[ $# -gt 0 ]];do
   key="$1"
@@ -11,6 +13,9 @@ while [[ $# -gt 0 ]];do
   -n|--num-partitions)
     num_parts="$2"
     shift
+    ;;
+  -l|--no-pseudo-chromo)
+    skip_chr=1
     ;;
   *)
     # unknown option
@@ -39,10 +44,15 @@ if [ -d $intv_dir ]; then
     exit 0
   fi
 fi
+mkdir -p $intv_dir
 
 # get contig information from ref.dict
 dict_file=$intv_dir/contigs
 cat $ref_dict | grep "@SQ" | awk '{print $2,$3}' | sed -e 's/SN://g' | sed -e 's/LN://g' > $dict_file
+if [ "$skip_chr" -ne 0 ]; then
+  head -n 25 $dict_file > ${dict_file}.new
+  mv ${dict_file}.new $dict_file
+fi
 
 declare -A intv_list
 group_list=(`cat $dict_file | awk '{print $1}'`)

@@ -3,13 +3,17 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
-#include <glog/logging.h>
 #include <iomanip>
 #include <string>
 #include <sys/syscall.h>
 #include <sys/time.h>
 #include <syscall.h>
 #include <time.h>
+
+#ifdef NDEBUG
+#define LOG_HEADER "fcs-genome"
+#endif
+#include <glog/logging.h>
 
 #include "config.h"
 
@@ -57,6 +61,22 @@ public:
     po::value<std::string>(), \
     msg)
 
+#define arg_decl_bool(arg, msg) (arg, \
+    po::value<bool>(), \
+    msg)
+
+#define arg_decl_string_w_def(arg, val, msg) (arg, \
+    po::value<std::string>(&opt_str)->default_value(val), \
+    msg)
+
+#define arg_decl_int_w_def(arg, val, msg) (arg, \
+    po::value<int>(&opt_int)->default_value(val), \
+    msg)
+
+#define arg_decl_bool_w_def(arg, val, msg) (arg, \
+    po::value<bool>(&opt_bool)->default_value(val), \
+    msg)
+
 inline uint64_t getTs() {
   struct timespec tr;
   clock_gettime(CLOCK_REALTIME, &tr);
@@ -77,6 +97,7 @@ inline void log_time(std::string stage_name, uint64_t start_ts) {
 inline void create_dir(std::string path) {
   if (!boost::filesystem::exists(path)) {
     if (!boost::filesystem::create_directories(path)) {
+    //if (!boost::filesystem::exists(path)) {
       throw fileNotFound("Cannot create dir: " + path);
     }
   }
@@ -123,12 +144,31 @@ inline bool get_argument<bool>(
   return vm.count(arg);
 }
 
+template <>
+inline std::string get_argument<std::string>(
+    boost::program_options::variables_map &vm,
+    const char* arg,
+    std::string def_val
+) {
+  if (!vm.count(arg)) {
+    if (def_val.empty()) {
+      throw invalidParam(arg);
+    }
+    else {
+      return def_val;
+    }
+  }
+  else {
+    return vm[arg].as<std::string>();
+  }
+}
+
 inline std::string get_contig_fname(
     std::string base_path,
     int contig,
     std::string ext = "bam") 
 {
-  int n_digits = (int)log10((double)conf_gatk_ncontigs)+1;
+  int n_digits = (int)log10((double)get_config<int>("gatk.ncontigs"))+1;
   std::stringstream ss;
   ss << base_path << "/part-" 
      << std::setw(n_digits) << std::setfill('0') << contig
@@ -136,7 +176,11 @@ inline std::string get_contig_fname(
   return ss.str();
 }
 
-std::string get_basename(std::string path);
+inline std::string get_basename(std::string path) {
+  boost::filesystem::wpath file_path(path);
+  return file_path.filename().string();
+}
+
 std::string get_basename_wo_ext(std::string path);
 std::string get_absolute_path(std::string path);
 std::string check_input(std::string path);
@@ -146,6 +190,11 @@ std::string get_log_name(std::string job_name, int idx = -1);
 void get_input_list(std::string path, 
     std::vector<std::string> &list,
     std::string pattern = ".*");
+
+class Executor;
+class Worker;
+
+extern Executor* g_executor;
 
 } // namespace fcsgenome
 #endif

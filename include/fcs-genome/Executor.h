@@ -42,9 +42,12 @@ class Executor {
  public:
   Executor(std::string job_name,
       int num_executors = 1); 
+  ~Executor();
 
   virtual int execute(Worker_ptr worker, std::string log);
   virtual void run();
+  virtual void stop();
+  virtual void interrupt();
 
   template <typename CompletionHandler>
   void post(CompletionHandler handler) {
