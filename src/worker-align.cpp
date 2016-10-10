@@ -3,7 +3,6 @@
 #include <boost/program_options.hpp>
 #include <string>
 
-
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"

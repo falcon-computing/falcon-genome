@@ -1,11 +1,9 @@
 #include <algorithm>
+#include <iostream>
 #include <string>
-
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
-#include "fcs-genome/Executor.h"
-#include "fcs-genome/workers.h"
 
 // use flexlm
 #ifdef USELICENSE
@@ -43,15 +41,16 @@ int print_help() {
   std::cout << "Commands: " << std::endl;
 
   print_cmd_col("align", "align pair-end FASTQ files into a sorted,");
-  print_cmd_col("          ", "duplicates-marked BAM file");
+  print_cmd_col("     ", "duplicates-marked BAM file");
   print_cmd_col("bqsr", "base recalibration with GATK BaseRecalibrator");
   print_cmd_col("    ", "and GATK PrintReads");
   print_cmd_col("baserecal", "equivalent to GATK BaseRecalibrator");
   print_cmd_col("printreads", "equivalent to GATK PrintReads");
   print_cmd_col("htc", "variant calling with GATK HaplotypeCaller");
   print_cmd_col("indel", "indel realignment with GATK IndelRealigner");
+  print_cmd_col("joint", "joint variant calling with GATK GenotypeGVCFs");
   print_cmd_col("ug", "variant calling with GATK UnifiedGenotyper");
-  //print_cmd_col("gatk", "call GATK routines");
+  print_cmd_col("gatk", "call GATK routines");
 
   return 0;	
 }
@@ -64,9 +63,11 @@ namespace fcsgenome {
   int concat_main(int argc, char** argv, po::options_description &opt_desc);
   int htc_main(int argc, char** argv, po::options_description &opt_desc);
   int ir_main(int argc, char** argv, po::options_description &opt_desc);
+  int joint_main(int argc, char** argv, po::options_description &opt_desc);
   int markdup_main(int argc, char** argv, po::options_description &opt_desc);
   int pr_main(int argc, char** argv, po::options_description &opt_desc);
   int ug_main(int argc, char** argv, po::options_description &opt_desc);
+  int gatk_main(int argc, char** argv, po::options_description &opt_desc);
 }
 
 int main(int argc, char** argv) {
@@ -128,6 +129,9 @@ int main(int argc, char** argv) {
     else if (cmd == "indel" | cmd == "ir") {
       ir_main(argc-1, &argv[1], opt_desc);
     }
+    else if (cmd == "joint") {
+      joint_main(argc-1, &argv[1], opt_desc);
+    }
     else if (cmd == "unifiedgeno" | cmd == "ug") {
       ug_main(argc-1, &argv[1], opt_desc);
     }
@@ -137,10 +141,16 @@ int main(int argc, char** argv) {
     else if (cmd == "concat") {
       concat_main(argc-1, &argv[1], opt_desc);
     }
+    else if (cmd == "gatk") {
+      gatk_main(argc-1, &argv[1], opt_desc);
+    }
     else {
       print_help(); 
       throw silentExit();
     }
+
+    // delete temp dir
+    remove_path(conf_temp_dir);
   }
   catch (helpRequest &e) { 
     std::cerr << "'fcs-genome " << cmd << "' options:" << std::endl;
@@ -184,14 +194,16 @@ int main(int argc, char** argv) {
     LOG(ERROR) << e.what();
     ret = 4;
   }
+  catch (internalError &e) {
+    LOG(ERROR) << "Encountered an error: " << e.what();
+    LOG(ERROR) << "Please contact support@falcon-computing.com for details.";
+    ret = -1;
+  }
   catch (std::runtime_error &e) {
     LOG(ERROR) << "Encountered an internal error: " << e.what();
     LOG(ERROR) << "Please contact support@falcon-computing.com for details.";
     ret = -1;
   }
-
-  // delete temp dir
-  remove_path(conf_temp_dir);
 
 #ifdef USELICENSE
   // release license

@@ -52,9 +52,12 @@ void ZIPWorker::check() {
 void ZIPWorker::setup() {
   // create cmd
   std::stringstream cmd;
-  cmd << get_config<std::string>("bgzip_path") << " -c " 
-      << input_file_ << " "
-      << "> " << output_file_;
+  cmd << get_config<std::string>("bcftools_path") << " norm "
+      << "-m +any " 
+      << "-O z " 
+      << "-o " << output_file_ << " "
+      << input_file_;
+
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
 }

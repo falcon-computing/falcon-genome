@@ -6,7 +6,8 @@ SRC_DIR := ./src
 CFLAGS 	:= -g -std=c++0x -fPIC -O3
 
 INCLUDES:= -I./include  \
-	   -I$(GLOG_DIR)/include
+	   -I$(GLOG_DIR)/include \
+	   -I$(JSONCPP_DIR)/install/include
 
 ifneq ($(BOOST_DIR),)
 INCLUDES:= $(INCLUDES) -I$(BOOST_DIR)/include
@@ -23,6 +24,7 @@ LINK	:= -L$(BOOST_DIR)/lib \
 		-lboost_regex \
 		-lboost_program_options \
 	   -L$(GLOG_DIR)/lib -lglog \
+	   -L$(JSONCPP_DIR) -ljsoncpp \
 	   -lpthread -lm -ldl -lz -lrt
 #-L$(GFLAGS_DIR)/lib -lgflags \
 
@@ -54,12 +56,16 @@ OBJS	 := $(SRC_DIR)/main.o \
 	    $(SRC_DIR)/worker-align.o \
 	    $(SRC_DIR)/worker-bqsr.o \
 	    $(SRC_DIR)/worker-concat.o \
+	    $(SRC_DIR)/worker-gatk.o \
 	    $(SRC_DIR)/worker-htc.o \
 	    $(SRC_DIR)/worker-indel.o \
+	    $(SRC_DIR)/worker-joint.o \
 	    $(SRC_DIR)/worker-markdup.o \
 	    $(SRC_DIR)/worker-ug.o \
 	    $(SRC_DIR)/workers/BQSRWorker.o \
 	    $(SRC_DIR)/workers/BWAWorker.o \
+	    $(SRC_DIR)/workers/CombineGVCFsWorker.o \
+	    $(SRC_DIR)/workers/GenotypeGVCFsWorker.o \
 	    $(SRC_DIR)/workers/HTCWorker.o \
 	    $(SRC_DIR)/workers/IndelWorker.o \
 	    $(SRC_DIR)/workers/MarkdupWorker.o \
