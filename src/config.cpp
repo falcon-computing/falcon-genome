@@ -101,7 +101,7 @@ int init_config() {
     arg_decl_int_w_def("gatk.ug.memory",       8,  "default heap memory in GATK UnifiedGenotyper")
     arg_decl_int_w_def("gatk.joint.nprocs",    32, "default process num in GATK CombineGVCFs")
     arg_decl_int_w_def("gatk.genotype.memory", 4,  "default heap memory in GATK GenotypeGVCFs")
-    arg_decl_bool("gatk.skip_pseudo_chr", "skip pesudo chromosome intervals")
+    arg_decl_bool("gatk.skip_pseudo_chr", "skip pseudo chromosome intervals")
     ;
 
   conf_opt.add(common_opt).add(tools_opt);
@@ -152,7 +152,7 @@ int init_config() {
   DLOG(INFO) << "conf_root_dir = " << conf_root_dir;
   DLOG(INFO) << "conf_temp_dir = " << conf_temp_dir;
   if (get_config<bool>("gatk.skip_pseudo_chr")) {
-    DLOG(INFO) << "skipping pesudo chromosome intervals";
+    DLOG(INFO) << "skipping pseudo chromosome intervals";
   }
 
   return 0;
@@ -196,7 +196,7 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
     cmd << conf_root_dir + "/bin/scripts/intvGen.sh "
         << "-r " << ref_path << " "
         << "-n " << get_config<int>("gatk.ncontigs");
-    if (get_config<bool>("gatk.skip_pesudo_chr")) {
+    if (get_config<bool>("gatk.skip_pseudo_chr")) {
       cmd << " -l";
     }
 

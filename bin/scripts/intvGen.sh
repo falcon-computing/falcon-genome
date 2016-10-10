@@ -33,16 +33,17 @@ fi
 
 intv_dir=$(pwd)/.fcs-genome/intv_$num_parts
 if [ -d $intv_dir ]; then
-  is_ready=1
-  for idx in $(seq 1 $num_parts); do
-    if [ ! -f $intv_dir/intv${idx}.list ]; then
-      is_ready=0
-      break;
-    fi
-  done
-  if [ $is_ready -eq 1 ]; then
-    exit 0
-  fi
+  rm -r $intv_dir
+#  is_ready=1
+#  for idx in $(seq 1 $num_parts); do
+#    if [ ! -f $intv_dir/intv${idx}.list ]; then
+#      is_ready=0
+#      break;
+#    fi
+#  done
+#  if [ $is_ready -eq 1 ]; then
+#    exit 0
+#  fi
 fi
 mkdir -p $intv_dir
 
@@ -68,6 +69,7 @@ done
 
 # number of positions per contig
 contig_npos=$((total_npos / num_parts + 1))
+echo $contig_npos
 
 remain_npos=$contig_npos
 contig_idx=1
@@ -77,9 +79,10 @@ for group in "${group_list[@]}"; do
   group_npos=${intv_list["$group"]}
   npos=$group_npos
   while [ "$npos" -ge "$remain_npos" ]; do
+    echo "npos: $npos"
     ubound=$((remain_npos + lbound - 1))
     echo "$group:$lbound-$ubound" >> $intv_dir/intv${contig_idx}.list
-    lbound=$((remain_npos + 1))
+    lbound=$((ubound + 1))
     npos=$((npos - remain_npos))
     contig_idx=$((contig_idx + 1))
     remain_npos=$contig_npos
