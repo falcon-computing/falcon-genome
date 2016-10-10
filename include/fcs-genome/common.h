@@ -166,11 +166,12 @@ inline std::string get_argument<std::string>(
 inline std::string get_contig_fname(
     std::string base_path,
     int contig,
-    std::string ext = "bam") 
+    std::string ext = "bam",
+    std::string prefix = "part-") 
 {
   int n_digits = (int)log10((double)get_config<int>("gatk.ncontigs"))+1;
   std::stringstream ss;
-  ss << base_path << "/part-" 
+  ss << base_path << "/" << prefix
      << std::setw(n_digits) << std::setfill('0') << contig
      << "." << ext;
   return ss.str();
@@ -181,7 +182,11 @@ inline std::string get_basename(std::string path) {
   return file_path.filename().string();
 }
 
-std::string get_basename_wo_ext(std::string path);
+inline std::string get_basename_wo_ext(std::string path) {
+  boost::filesystem::wpath file_path(path);
+  return file_path.stem().string();
+}
+
 std::string get_absolute_path(std::string path);
 std::string check_input(std::string path);
 std::string check_output(std::string path, bool &f, bool req_file = false);
@@ -189,6 +194,9 @@ std::string get_bin_dir();
 std::string get_log_name(std::string job_name, int idx = -1);
 void get_input_list(std::string path, 
     std::vector<std::string> &list,
+    std::string pattern = ".*");
+
+std::vector<std::string> get_lines(std::string fname,
     std::string pattern = ".*");
 
 class Executor;

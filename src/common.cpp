@@ -14,11 +14,6 @@ namespace fcsgenome {
 
 Executor* g_executor = NULL;
 
-std::string get_basename_wo_ext(std::string path) {
-  boost::filesystem::wpath file_path(path);
-  return file_path.stem().string();
-}
-
 std::string get_absolute_path(std::string path) {
   boost::filesystem::wpath file_path(path);
   if (boost::filesystem::exists(file_path)) {
@@ -178,4 +173,20 @@ unsigned int l_distance(const std::string& s1, const std::string& s2)
   return prevCol[len2];
 }
 
+std::vector<std::string> get_lines(std::string fname, std::string pattern) {
+  std::vector<std::string> lines;
+  std::ifstream fin;
+  fin.open(fname);
+
+  // construct regex
+  boost::regex regex_pattern(pattern, boost::regex::normal);
+
+  std::string line;
+  while (std::getline(fin, line, '\n')) {
+    if (boost::regex_match(line, regex_pattern)) {
+      lines.push_back(line);
+    }
+  }
+  return lines;
+}
 } // namespace fcsgenome

@@ -1,3 +1,4 @@
+#include <boost/tokenizer.hpp>
 #include <fstream>
 #include <string>
 #include <unistd.h>
@@ -169,43 +170,110 @@ int init(const char* argv) {
   return ret;
 }
 
+static inline void write_contig_intv(std::ofstream& fout, 
+    std::string chr, 
+    uint64_t lbound, uint64_t ubound) {
+  fout << chr << ":" << lbound << "-" << ubound << std::endl;
+}
+
 std::vector<std::string> init_contig_intv(std::string ref_path) {
+  int ncontigs = get_config<int>("gatk.ncontigs");
+
   std::stringstream ss;
-  ss << conf_project_dir << "/intv_" << get_config<int>("gatk.ncontigs");
+  ss << conf_temp_dir << "/intv_" << ncontigs;
   std::string intv_dir = ss.str();
+  create_dir(intv_dir);
 
-  bool is_ready = true;
-  std::vector<std::string> intv_paths(get_config<int>("gatk.ncontigs"));
-   
-  for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
-    std::stringstream ss;
-    ss << intv_dir << "/intv" << contig+1 << ".list";
-    intv_paths[contig] = ss.str();
-    if (is_ready && !boost::filesystem::exists(ss.str())) {
-      is_ready = false;
+  // record the intv paths
+  std::vector<std::string> intv_paths(ncontigs);
+  for (int i = 0; i < ncontigs; i++) {
+    intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
+  }
+
+  // read ref.dict file to get contig lengths
+  ref_path = check_input(ref_path);
+  boost::filesystem::wpath path(ref_path);
+  path = path.replace_extension(".dict");
+  std::string dict_path = check_input(path.string());
+
+  // parse ref.dict files
+  std::vector<std::string> dict_lines = get_lines(dict_path, "@SQ.*");
+  std::vector<std::pair<std::string, uint64_t>> dict;
+  uint64_t dict_length = 0;
+  for (int i = 0; i < dict_lines.size(); i++) {
+    if (get_config<bool>("gatk.skip_pseudo_chr") && i >= 25) {
+      break;
+    }
+    typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
+    boost::char_separator<char> space_sep(" \t");
+    boost::char_separator<char> colon_sep(":");
+
+    std::string line = dict_lines[i];
+    tokenizer tok_space{line, space_sep};
+    
+    int idx = 0;
+    std::string chr_name;
+    uint64_t    chr_length = 0;
+    for (tokenizer::iterator it = tok_space.begin(); 
+         it != tok_space.end(); ++it) {
+      // [0] @SQ, [1] SN:contig, [2] LN:length
+      if (idx == 1) {
+        tokenizer tok{*it, colon_sep};
+        tokenizer::iterator field_it = tok.begin();
+        chr_name = *(++field_it);
+      }
+      else if (idx == 2) {
+        tokenizer tok{*it, colon_sep};
+        tokenizer::iterator field_it = tok.begin();
+        chr_length = boost::lexical_cast<uint64_t>(*(++field_it));
+      }
+      idx ++;
+    }
+    dict.push_back(std::make_pair(chr_name, chr_length));
+    dict_length += chr_length;
+    DLOG(INFO) << chr_name << " : " << chr_length;
+  }
+
+  // generate intv.list
+  int contig_idx = 0;
+
+  uint64_t contig_npos = (dict_length+1)/ncontigs; // positions per contig part
+  uint64_t remain_npos = contig_npos;   // remaining positions for partition
+
+  uint64_t lbound = 1;
+  uint64_t ubound = contig_npos;
+
+  std::ofstream fout;
+  fout.open(intv_paths[0]);
+
+  for (int i = 0; i < dict.size(); i++) {
+    std::string chr_name = dict[i].first;
+    uint64_t chr_length = dict[i].second; 
+    uint64_t npos = chr_length;
+
+    // if the number of positions in one chr is larger than one contig part
+    while (npos > remain_npos) {
+      ubound = remain_npos + lbound - 1;
+
+      write_contig_intv(fout, chr_name, lbound, ubound);
+
+      lbound = ubound + 1;
+      npos -= remain_npos;
+      remain_npos = contig_npos;
+
+      fout.close();
+      fout.open(intv_paths[++contig_idx]);
+    }
+    // write remaining positions in the chr to the current contig
+    if (npos > 0) {
+      write_contig_intv(fout, chr_name, lbound, chr_length);
+
+      remain_npos -= npos;
+      lbound = 1; 
     }
   }
-  if (!is_ready) {
-    // remove existing intv_dir and create a new one
-    remove_path(intv_dir);
-    create_dir(intv_dir);
+  fout.close();
 
-    ref_path = check_input(ref_path);
-
-    std::stringstream cmd;
-    cmd << conf_root_dir + "/bin/scripts/intvGen.sh "
-        << "-r " << ref_path << " "
-        << "-n " << get_config<int>("gatk.ncontigs");
-    if (get_config<bool>("gatk.skip_pseudo_chr")) {
-      cmd << " -l";
-    }
-
-    DLOG(INFO) << cmd.str();
-
-    if (system(cmd.str().c_str())) {
-      throw failedCommand("cannot initialize contig intervals");
-    }
-  }
   return intv_paths; 
 }
 } // namespace fcsgenome
