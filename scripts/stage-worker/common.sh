@@ -132,6 +132,15 @@ check_output_dir() {
   rm $dir/.test;
 }
 
+check_ret() {
+  local ret=$?;
+  local msg=$1;
+  if [ $ret -ne 0 ]; then
+    log_error "$1 failed";
+    exit -1
+  fi;
+}
+
 # Create output dir if it does not exist 
 create_dir() {
   local dir=$1
@@ -145,6 +154,27 @@ create_dir() {
   else
     return 1; # did not create dir
   fi;
+}
+
+# Setup interval lists for partitions
+setup_intv() {
+  if [ $# -lt 2 ]; then
+    log_internal;
+    return 1;
+  fi
+  local nparts=$1;
+  local ref=$2;
+  if [ ! -d "$PWD/.fcs-genome/intv_$nparts" ]; then
+    $DIR/intvGen.sh -r $ref -n $nparts;
+  fi;
+}
+
+get_sample_id() {
+  local input_dir=$1;
+  local sample_id=`ls $input_dir/*.gvcf | sed -e 'N;s/^\(.*\).*\n\1.*$/\1\n\1/;D'`;
+  local sample_id=$(basename $sample_id);
+  local sample_id=${sample_id%%.*}
+  echo $sample_id;
 }
 
 # Start manager
@@ -184,8 +214,15 @@ stop_manager() {
 }
 
 kill_process() {
-  kill -5 $(jobs -p);
+  log_info "Caught interruption, cleaning up";
+  kill -5 $(jobs -p) 2> /dev/null;
   exit 1;
+}
+
+kill_task_pid() {
+  log_info "kill $task_pid"
+  kill $task_pid 2> /dev/null
+  exit 1
 }
 
 terminate_process() {
@@ -206,26 +243,25 @@ terminate() {
   log_info "Caught interruption, cleaning up";
   stop_manager;
 
+  # Check run dir
+  for file in ${output_table[@]}; do
+    if [ -e ${file}.pid ]; then
+      local node_name=$(sed "1q;d" ${file}.pid)
+      local bash_pid=$(sed "2q;d" ${file}.pid)
+      #echo "kill $bash_pid on $node_name for $file "
+      log_debug "kill $bash_pid on $node_name for $file "
+      # kill the remote process
+      ssh $node_name "kill $bash_pid 2>/dev/null"
+      rm ${file}.pid -f
+      log_debug "Stopped remote printReads process $bash_pid for $file"
+    fi;
+  done;
+
   # Stop stray processes
   for pid in ${pid_table[@]}; do
     terminate_process "$pid"
   done;
 
-  # Check run dir
-  for file in ${output_table[@]}; do
-    if [ -e ${file}.java.pid ]; then
-      local java_pid=$(cat ${file}.java.pid)
-      terminate_process "$java_pid"
-      rm ${file}.java.pid
-      log_debug "Stopped remote java process $java_pid for $file"
-    fi;
-    if [ -e ${file}.pid ]; then
-      local bash_pid=$(cat ${file}.pid)
-      terminate_process "$bash_pid"
-      rm ${file}.pid
-      log_debug "Stopped remote printReads process $bash_pid for $file"
-    fi;
-  done;
   exit 1;
 }
 

@@ -18,6 +18,7 @@ create_dir $results_dir/rpt
 create_dir $results_dir/bams_pr
 create_dir $results_dir/vcf
 create_dir $results_dir/compare
+create_dir $results_dir/combine
 
 declare -A BASENAME
 BASENAME[1]=na_1M
@@ -98,4 +99,12 @@ for index in $index_list; do
      #exit 1;
   fi
 done
+# Combine vcf result
+fcs-genome cb -i $results_dir/vcf \
+               -o $results_dir/combine
+          
+
+fcs-genome gt -i $results_dir/combine \
+                -o $results_dir/genotyped.vcf
+
 echo "All test finished"

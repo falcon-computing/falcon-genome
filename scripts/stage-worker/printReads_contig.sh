@@ -8,48 +8,48 @@ if [[ $# -lt 5 ]]; then
 fi
 
 ref=$1
-chr=$2
+interval=$2
 input=$3
 BQSR=$4
 output=$5
-shift 5
+contig=$6
+
+shift 6
 user_args=$@
+verbose=3
+stage_name=printReads-contig$contig
 
-stage_name=printReads-chr$chr
+echo $(hostname) >${output}.pid
+echo $BASHPID >> ${output}.pid
 
-echo $BASHPID > ${output}.pid
-
-trap "kill_process" 1 2 3 15 
+trap "kill_task_pid" 1 2 3 9 15 
 
 nthreads=4
-if [[ $chr > 0 && $chr < 3 ]]; then
-    nthreads=8
-fi
-if [[ $chr > 4 && $chr < 9 ]]; then
-    nthreads=6
-fi
-
+#if [[ $chr > 0 && $chr < 3 ]]; then
+#    nthreads=8
+#fi
+#if [[ $chr > 4 && $chr < 9 ]]; then
+#    nthreads=6
+#fi
 start_ts=$(date +%s)
 $JAVA -d64 -Xmx$((nthreads * 2))g -jar $GATK \
     -T PrintReads \
     -R $ref \
-    -I $input \
-    -L $chr \
+    $input \
+    -L $interval \
     -BQSR $BQSR \
     -nct $nthreads \
     $user_args \
     -o $output &
 
-pr_java_pid=$!
-echo $pr_java_pid > ${output}.java.pid
-wait "$pr_java_pid"
+task_pid=$!
+wait "$task_pid"
 
 if [ "$?" -ne "0" ]; then
+  rm ${output}.pid -f
   exit 1;
 fi
 
-rm ${output}.java.pid
-rm ${output}.pid
+rm ${output}.pid -f
 
 end_ts=$(date +%s)
-#log_info "Finishes finishes in $((end_ts - start_ts))s"

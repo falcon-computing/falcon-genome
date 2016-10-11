@@ -96,13 +96,14 @@ if [ ! -z $help_req ];then
   exit 0;
 fi
 
-declare -A chr_bam
-declare -A chr_vcf
+declare -A contig_bam
+declare -A contig_vcf
 declare -A pid_table
 declare -A output_table
 
 vcf_dir_default=$output_dir/vcf
-chr_list="$(seq 1 22) X Y MT"
+nparts=$num_partitions
+contig_list="$(seq 1 $nparts)"
 
 
 # Check the input arguments
@@ -133,71 +134,75 @@ create_dir $vcf_dir
 
 # Check the inputs
 if [ -d "$input" ]; then
-  # Input is a directory, checkout for per-chr data
-  for chr in $chr_list; do
-    chr_bam["$chr"]=${input}/${input_base}.chr${chr}.bam
-    check_input ${chr_bam["$chr"]}
+  # Input is a directory, checkout for per-contig data
+  for contig in $contig_list; do
+    contig_bam["$contig"]=${input}/${input_base}.contig${contig}.bam
+    check_input ${contig_bam["$contig"]}
   done
 else
-  # Input is a single file, use if for all per-chr HTC
+  # Input is a single file, use if for all per-contig HTC
   check_input $input
-  for chr in $chr_list; do
-    chr_bam["$chr"]=$input
+  for contig in $contig_list; do
+    contig_bam["$contig"]=$input
   done
 fi
 
 # Check the outputs
-for chr in $chr_list; do
-  chr_vcf["$chr"]=$vcf_dir/${input_base}.chr${chr}.gvcf
-  check_output ${chr_vcf[$chr]}
+for contig in $contig_list; do
+  contig_vcf["$contig"]=$vcf_dir/${input_base}.contig${contig}.gvcf
+  check_output ${contig_vcf[$contig]}
 done
 
 # Start manager
 start_manager
 
-trap "terminate" 1 2 3 15
+trap "terminate" 1 2 3 9 15
 
 # Start the jobs
 log_info "Start stage for input $input"
 log_info "Output files will be put in $vcf_dir"
 start_ts_total=$(date +%s)
 
-for chr in $chr_list; do
-  $DIR/../fcs-sh "$DIR/haploTC_chr.sh \
-      $ref_fasta \
-      $chr \
-      ${chr_bam[$chr]} \
-      ${chr_vcf[$chr]} \
-      $additional_args" 2> $log_dir/haplotypeCaller_chr${chr}.log &
+# Setup interval lists
+setup_intv $nparts $ref_fasta
 
-  pid_table["$chr"]=$!
-  output_table["$chr"]=${chr_vcf[$chr]}
+for contig in $contig_list; do
+  $DIR/../fcs-sh "$DIR/haploTC_contig.sh \
+      $ref_fasta \
+      $PWD/.fcs-genome/intv_$nparts/intv${contig}.list \
+      ${contig_bam[$contig]} \
+      ${contig_vcf[$contig]} \
+      $contig \
+      $additional_args" 2> $log_dir/haplotypeCaller_contig${contig}.log &
+
+  pid_table["$contig"]=$!
+  output_table["$contig"]=${contig_vcf[$contig]}
 done
 
 # Wait on all the tasks
 log_file=$log_dir/haplotypeCaller.log
 rm -f $log_file
 is_error=0
-for chr in $chr_list; do
-  pid=${pid_table[$chr]}
+for contig in $contig_list; do
+  pid=${pid_table[$contig]}
   wait "${pid}"
   if [ "$?" -gt 0 ]; then
     is_error=1
-    log_error "Stage failed on chromosome $chr"
+    log_error "Stage failed on contig $contig"
   fi
 
   # Concat log and remove the individual ones
-  chr_log=$log_dir/haplotypeCaller_chr${chr}.log
-  cat $chr_log >> $log_file
-  rm -f $chr_log
+  contig_log=$log_dir/haplotypeCaller_contig${contig}.log
+  cat $contig_log >> $log_file
+  rm -f $contig_log
 done
 end_ts=$(date +%s)
 
 # Stop manager
 stop_manager
 
-unset chr_bam
-unset chr_vcf
+unset contig_bam
+unset contig_vcf
 unset pid_table
 unset output_table
 

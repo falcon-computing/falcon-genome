@@ -19,6 +19,10 @@ print_help() {
   echo "  fcs-genome printReads|pr -r <ref.fasta> -i <input.bam> -bqsr calibrate.rpt -o <output_dir>"
   echo "Haploytype Caller:"
   echo "  fcs-genome haplotypeCaller|hptc -r <ref.fasta> -i <input_base> -c <chr_dir> -o <output_dir>"
+  echo "Combine gvcfs:"
+  echo "  fcs-genome combineGVCF|cb -r <ref.fasta> -i <input_dir> -o <output_dir>"
+  echo "Genotype gvcfs:"
+  echo "  fcs-genome genotypeGVCF|gt -r <ref.fasta> -i <input_dir> -o <output.gvcf>"
 }
 
 stage=$1
@@ -35,9 +39,17 @@ else
     shift
     source $DIR/stage-worker/markDup.sh "$@"
     ;;
+  rtc|realignTargetCreator)
+    shift
+    source $DIR/stage-worker/realignerTargetCreator.sh "$@"
+    ;;
+  ir|indelRealigner)
+    shift
+    source $DIR/stage-worker/indelRealigner.sh "$@"
+    ;;
   bqsr|baseRecal|BaseRecalibrator)
     shift
-    source $DIR/stage-worker/baseRecal.sh "$@"
+    source $DIR/stage-worker/baseRecal_sg.sh "$@"
     ;;
   pr|printReads|PrintReads)
     shift
@@ -46,6 +58,22 @@ else
   hptc|haplotypeCaller|HaplotypeCaller)
     shift
     source $DIR/stage-worker/haploTC.sh "$@"
+    ;;
+  concat|concatGVCF)
+    shift
+    source $DIR/stage-worker/concatVCF.sh "$@"
+    ;;
+  cb|combineGVCF)
+    shift
+    source $DIR/stage-worker/combineGVCF.sh "$@"
+    ;;
+  gt|genotypeGVCF)
+    shift
+    source $DIR/stage-worker/genotypeGVCF.sh "$@"
+    ;;
+  ug|unifiedGenotyper)
+    shift
+    source $DIR/stage-worker/unifiedGT.sh "$@"
     ;;
   gatk|picard)
     source $DIR/stage-worker/wrapper.sh "$@"
