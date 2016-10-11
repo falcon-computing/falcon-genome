@@ -66,8 +66,11 @@ int joint_main(int argc, char** argv,
     executor.addTask(worker);
   }
   if (!flag_combine_only) {
-    std::vector<std::string> vcf_parts(get_config<int>("gatk.ncontigs"));
-    for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
+    std::vector<std::string> vcf_parts(get_config<int>("gatk.joint.ncontigs"));
+    for (int contig = 0; 
+         contig < get_config<int>("gatk.joint.ncontigs"); 
+         contig++) 
+    {
       Worker_ptr worker(new GenotypeGVCFsWorker(ref_path,
             get_contig_fname(parts_dir, contig, "gvcf"),
             get_contig_fname(parts_dir, contig, "vcf"),

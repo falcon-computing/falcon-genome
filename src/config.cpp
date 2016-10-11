@@ -100,6 +100,7 @@ int init_config() {
     arg_decl_int_w_def("gatk.ug.nprocs",       16, "default process num in GATK UnifiedGenotyper")
     arg_decl_int_w_def("gatk.ug.nt",           4,  "default thread num in GATK UnifiedGenotyper")
     arg_decl_int_w_def("gatk.ug.memory",       8,  "default heap memory in GATK UnifiedGenotyper")
+    arg_decl_int_w_def("gatk.joint.ncontigs",  32, "default contig partition num in joint genotyping")
     arg_decl_int_w_def("gatk.joint.nprocs",    32, "default process num in GATK CombineGVCFs")
     arg_decl_int_w_def("gatk.genotype.memory", 4,  "default heap memory in GATK GenotypeGVCFs")
     arg_decl_bool("gatk.skip_pseudo_chr", "skip pseudo chromosome intervals")
@@ -231,14 +232,17 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
     }
     dict.push_back(std::make_pair(chr_name, chr_length));
     dict_length += chr_length;
-    DLOG(INFO) << chr_name << " : " << chr_length;
+    //DLOG(INFO) << chr_name << " : " << chr_length;
   }
 
   // generate intv.list
   int contig_idx = 0;
 
-  uint64_t contig_npos = (dict_length+1)/ncontigs; // positions per contig part
+  // positions per contig part
+  uint64_t contig_npos = (dict_length+ncontigs-1)/ncontigs; 
   uint64_t remain_npos = contig_npos;   // remaining positions for partition
+
+  DLOG(INFO) << "contig_npos = " << contig_npos;
 
   uint64_t lbound = 1;
   uint64_t ubound = contig_npos;
