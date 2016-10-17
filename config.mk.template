@@ -1,0 +1,12 @@
+BOOST_DIR=/usr
+GFLAGS_DIR=/usr
+OPENMPI_DIR=
+PROTOBUF_DIR=
+HTSLIB_PATH=
+FLMDIR=
+
+MAKE=make
+CC=gcc
+PP=g++
+AR=ar
+MPIPP=${OPENMPI_DIR}/bin/mpic++
