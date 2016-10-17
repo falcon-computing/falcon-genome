@@ -2,12 +2,17 @@ include config.mk
 
 BIN_DIR := ./bin
 SRC_DIR := ./src
+TOOLS_DIR := ./tools
 
 CFLAGS 	:= -g -std=c++0x -fPIC -O3
 
 INCLUDES:= -I./include  \
 	   -I$(GLOG_DIR)/include \
 	   -I$(JSONCPP_DIR)/install/include
+
+ifeq ($(PREFIX),)
+PREFIX  := ./install
+endif
 
 ifneq ($(BOOST_DIR),)
 INCLUDES:= $(INCLUDES) -I$(BOOST_DIR)/include
@@ -26,7 +31,6 @@ LINK	:= -L$(BOOST_DIR)/lib \
 	   -L$(GLOG_DIR)/lib -lglog \
 	   -L$(JSONCPP_DIR) -ljsoncpp \
 	   -lpthread -lm -ldl -lz -lrt
-#-L$(GFLAGS_DIR)/lib -lgflags \
 
 ifeq ($(RELEASE),)
 ifeq ($(NDEBUG),)
@@ -76,6 +80,11 @@ PROG	 := ./$(BIN_DIR)/fcs-genome
 
 all:	$(PROG)
 
+install:
+	mkdir -p $(PREFIX)/bin; \
+	cp $(PROG) $(PREFIX)/bin; \
+	cp setup.sh $(PREFIX)
+
 release:
 	$(MAKE) RELEASE=1
 
@@ -89,4 +98,4 @@ clean:
 	rm -f $(OBJS)
 	rm -f $(PROG)  
 
-.PHONY: all clean
+.PHONY: all clean install release
