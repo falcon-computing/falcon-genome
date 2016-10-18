@@ -37,7 +37,7 @@ void Stage::run() {
   // wait for tasks to finish
   boost::wait_for_all(pending_tasks_.begin(), pending_tasks_.end()); 
 
-  std::ofstream fout(executor_->log(), std::ios::out|std::ios::ate);
+  std::ofstream fout(executor_->log(), std::ios::out|std::ios::app);
   for (int i = 0; i < logs_.size(); i++) {
     std::ifstream fin(logs_[i], std::ios::in);   
     if (fin) {
