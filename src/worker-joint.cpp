@@ -23,7 +23,9 @@ int joint_main(int argc, char** argv,
     arg_decl_string("input-dir,i", "input dir containing "
                                "[sample_id].gvcf.gz files")
     arg_decl_string("output,o", "output vcf.gz file(s)")
-    ("combine-only,c", "combine GVCFs only and skip genotyping");
+    ("combine-only,c", "combine GVCFs only and skip genotyping")
+    ("skip-combine,g", "genotype GVCFs only and skip combining "
+                       "(for single sample)");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
@@ -36,6 +38,7 @@ int joint_main(int argc, char** argv,
   // Check if required arguments are presented
   bool flag_f            = get_argument<bool>(cmd_vm, "force");
   bool flag_combine_only = get_argument<bool>(cmd_vm, "combine-only");
+  bool flag_skip_combine = get_argument<bool>(cmd_vm, "skip-combine");
 
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
                               get_config<std::string>("ref_genome"));
@@ -47,18 +50,23 @@ int joint_main(int argc, char** argv,
 
   // create temp dir
   std::string parts_dir;
-  if (flag_combine_only) {
-    parts_dir = output_path;
+  if (flag_skip_combine) {
+    parts_dir = input_path;
   }
   else {
-    parts_dir = conf_temp_dir + "/joint/combined";
+    if (flag_combine_only) {
+      parts_dir = output_path;
+    }
+    else {
+      parts_dir = conf_temp_dir + "/joint/combined";
+    }
+    create_dir(parts_dir);
   }
-  create_dir(parts_dir);
 
   // run 
   Executor executor("Joint Genotyping", get_config<int>("gatk.joint.nprocs"));
 
-  { // combine gvcfs
+  if (!flag_skip_combine) { // combine gvcfs
     Worker_ptr worker(new CombineGVCFsWorker(
           ref_path, input_path,
           parts_dir, flag_f));

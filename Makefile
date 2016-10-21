@@ -33,16 +33,10 @@ LINK	:= -L$(BOOST_DIR)/lib \
 	   -lpthread -lm -ldl -lz -lrt
 
 ifeq ($(RELEASE),)
-ifeq ($(NDEBUG),)
 CFLAGS   	:= $(CFLAGS) -g
 else
-CFLAGS   	:= $(CFLAGS) -O2 -DNDEBUG
-endif
-else
 # check FLMDIR
-ifeq ($(FLMDIR),)
-$(error FLMDIR not set properly in Makefile.config)
-endif
+ifneq ($(FLMDIR),)
 # add support for flex license manage
 FLMLIB 		:= -llmgr_trl -lcrvs -lsb -lnoact -llmgr_dongle_stub
 
@@ -51,6 +45,9 @@ INCLUDES 	:= $(INCLUDES) -I$(FLMDIR)
 LINK 	 	:= $(LINK) -L$(FLMDIR) $(FLMLIB) 
 LMDEPS 	 	:= $(FLMDIR)/license.o \
 		   $(FLMDIR)/lm_new.o 
+else
+CFLAGS   	:= $(CFLAGS) -O2 -DNDEBUG
+endif
 endif
 
 OBJS	 := $(SRC_DIR)/main.o \
