@@ -1,9 +1,12 @@
 #include <algorithm>
+#include <boost/thread/lockable_adapter.hpp>
+#include <boost/thread/mutex.hpp>
 #include <iostream>
 #include <string>
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
+#include "fcs-genome/Executor.h"
 
 // use flexlm
 #ifdef USELICENSE
@@ -53,6 +56,17 @@ int print_help() {
   print_cmd_col("gatk", "call GATK routines");
 
   return 0;	
+}
+
+void sigint_handler(int s){
+
+  boost::lock_guard<fcsgenome::Executor> guard(*fcsgenome::g_executor);
+  LOG(INFO) << "Caught interrupt, cleaning up...";
+  if (fcsgenome::g_executor) {
+    delete fcsgenome::g_executor;
+  }
+  
+  exit(0); 
 }
 
 namespace fcsgenome {
@@ -105,6 +119,9 @@ int main(int argc, char** argv) {
     return -1;
   }
 #endif
+
+  signal(SIGINT, sigint_handler);
+
   int ret = 0;
   try {
     // load configurations

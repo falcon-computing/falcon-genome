@@ -12,7 +12,7 @@ UGWorker::UGWorker(std::string ref_path,
       std::string intv_path,
       std::string output_path,
       bool &flag_f):
-  Worker(get_config<int>("gatk.ug.nprocs"), 1),
+  Worker(1, get_config<int>("gatk.ug.nt")),
   ref_path_(ref_path),
   input_path_(input_path),
   intv_path_(intv_path)

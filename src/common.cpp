@@ -14,6 +14,13 @@ namespace fcsgenome {
 
 Executor* g_executor = NULL;
 
+Executor* create_executor(std::string job_name, int num_workers) {
+  Executor* executor = new Executor(job_name, num_workers);
+  g_executor = executor;
+
+  return executor;
+}
+
 std::string get_absolute_path(std::string path) {
   boost::filesystem::wpath file_path(path);
   if (boost::filesystem::exists(file_path)) {
@@ -81,6 +88,31 @@ std::string check_output(std::string path, bool &f, bool require_file) {
   return get_absolute_path(path);
 }
 
+void list_dir(
+    std::string path,
+    std::vector<std::string> &list,
+    std::string pattern) 
+{
+  // construct regex
+  boost::regex regex_pattern(pattern, boost::regex::normal);
+
+  // iterate directory, recursively 
+  // TODO: sort
+  boost::filesystem::directory_iterator end_iter;
+  for (boost::filesystem::directory_iterator iter(path);
+      iter != end_iter; iter++) {
+    if (boost::filesystem::is_directory(iter->status())) {
+      list_dir(iter->path().string(), list, pattern);
+    }
+    else {
+      std::string filename = iter->path().string(); 
+      if (boost::regex_match(filename, regex_pattern)) {
+        list.push_back(filename);
+      }
+    }
+  }
+}
+
 void get_input_list(
     std::string path,
     std::vector<std::string> &list,
@@ -93,24 +125,8 @@ void get_input_list(
     list.push_back(path);
   }
   else {
-    // construct regex
-    boost::regex regex_pattern(pattern, boost::regex::normal);
+    list_dir(path, list, pattern); 
 
-    // iterate directory, recursively 
-    // TODO: sort
-    boost::filesystem::directory_iterator end_iter;
-    for (boost::filesystem::directory_iterator iter(path);
-        iter != end_iter; iter++) {
-      if (boost::filesystem::is_directory(iter->status())) {
-        get_input_list(iter->path().string(), list, pattern);
-      }
-      else {
-        std::string filename = iter->path().string(); 
-        if (boost::regex_match(filename, regex_pattern)) {
-          list.push_back(filename);
-        }
-      }
-    }
     if (list.empty()) {
       throw fileNotFound("Cannot find input file(s) in '" + path + "'");
     }
@@ -152,7 +168,7 @@ std::string get_log_name(std::string job_name, int idx) {
   if (idx >= 0) {
     ss << "." << idx;
   }
-  return ss.str();
+  return get_absolute_path(ss.str());
 }
 
 unsigned int l_distance(const std::string& s1, const std::string& s2) 

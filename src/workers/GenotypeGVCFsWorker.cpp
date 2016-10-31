@@ -35,6 +35,5 @@ void GenotypeGVCFsWorker::setup() {
       << "-o " << output_path_;
 
   cmd_ = cmd.str();
-  DLOG(INFO) << cmd_;
 }
 } // namespace fcsgenome

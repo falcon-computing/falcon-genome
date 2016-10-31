@@ -15,7 +15,9 @@ CombineGVCFsWorker::CombineGVCFsWorker(
 		std::string input_path,
 		std::string output_path,
 		bool &flag_f): 
-	Worker(1),
+  Worker(
+      get_config<bool>("latency_mode") ?  conf_host_list.size() : 1,
+      get_config<int>("gatk.joint.ncontigs")),
 	ref_path_(ref_path),
 	input_path_(input_path)
 {
@@ -205,6 +207,7 @@ void CombineGVCFsWorker::genLoader() {
   loader["do_ping_pong_buffering"] = true;
   loader["size_per_column_partition"] = size_per_column_partition;
   loader["offload_vcf_output_processing"] = true;
+  //loader["vcf_output_format"] = "z";
 
   // write loader to string
   std::ofstream fout;
@@ -238,9 +241,25 @@ void CombineGVCFsWorker::setup() {
 
   // create cmd
   std::stringstream cmd;
-  cmd << get_config<std::string>("mpirun_path") << " " 
-      << "-n " << get_config<int>("gatk.joint.nprocs") << " "
-      << get_config<std::string>("genomicsdb_path") << " "
+  cmd << get_config<std::string>("mpi_path") << "/bin/mpirun " 
+      << "--prefix " << get_config<std::string>("mpi_path") << " "
+      << "-n " << get_config<int>("gatk.joint.nprocs") << " ";
+
+  // set host list
+  if (!conf_host_list.empty()) {
+    cmd << "--host ";
+    for (int i = 0; i < conf_host_list.size(); i++) {
+      cmd << conf_host_list[i];
+      if (i < conf_host_list.size() - 1) {
+        cmd << ",";
+      }
+      else {
+        cmd << " ";
+      }
+    }
+  }
+
+  cmd << get_config<std::string>("genomicsdb_path") << " "
       << loader_json_;
 
   cmd_ = cmd.str();

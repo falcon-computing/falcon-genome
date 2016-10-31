@@ -5,16 +5,19 @@
 #include <string>
 #include "config.h"
 #include "common.h"
+#include "Executor.h"
 
 namespace fcsgenome {
 
-// Base class of worker
+// Base class of a task worker
 class Worker {
+  friend class Executor;
  public:
   Worker(int num_proc = 1,
-         int num_t = INT_MAX): 
+         int num_t = 1): 
     num_process_(num_proc),
-    num_thread_(num_t) {}
+    num_thread_(num_t)
+  {}
 
   virtual void check() {}
   virtual void setup() {}
@@ -27,8 +30,8 @@ class Worker {
   std::string log_fname_;
 
  private:
-  int num_process_;
-  int num_thread_;
+  int num_process_;   // num_processes per task
+  int num_thread_;    // num_thread per task process
 };
 
 typedef boost::shared_ptr<Worker> Worker_ptr;

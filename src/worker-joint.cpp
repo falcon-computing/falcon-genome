@@ -64,14 +64,16 @@ int joint_main(int argc, char** argv,
   }
 
   // run 
-  Executor executor("Joint Genotyping", get_config<int>("gatk.joint.nprocs"));
+  //Executor executor("Joint Genotyping", get_config<int>("gatk.joint.nprocs"));
+  Executor* executor = create_executor("Joint Genotyping", 
+      get_config<int>("gatk.joint.nprocs"));
 
   if (!flag_skip_combine) { // combine gvcfs
     Worker_ptr worker(new CombineGVCFsWorker(
           ref_path, input_path,
           parts_dir, flag_f));
 
-    executor.addTask(worker);
+    executor->addTask(worker);
   }
   if (!flag_combine_only) {
     std::vector<std::string> vcf_parts(get_config<int>("gatk.joint.ncontigs"));
@@ -83,7 +85,7 @@ int joint_main(int argc, char** argv,
             get_contig_fname(parts_dir, contig, "gvcf"),
             get_contig_fname(parts_dir, contig, "vcf"),
             flag_f));
-      executor.addTask(worker, contig == 0);
+      executor->addTask(worker, contig == 0);
       vcf_parts[contig] = get_contig_fname(parts_dir, contig, "vcf");
     }
 
@@ -94,21 +96,21 @@ int joint_main(int argc, char** argv,
       Worker_ptr worker(new VCFConcatWorker(
             vcf_parts, temp_vcf_path,
             flag));
-      executor.addTask(worker, true);
+      executor->addTask(worker, true);
     }
     { // bgzip gvcf
       Worker_ptr worker(new ZIPWorker(
             temp_vcf_path, output_path + ".gz",
             flag_f));
-      executor.addTask(worker, true);
+      executor->addTask(worker, true);
     }
     { // tabix gvcf
       Worker_ptr worker(new TabixWorker(
             output_path + ".gz"));
-      executor.addTask(worker, true);
+      executor->addTask(worker, true);
     }
   }
-  executor.run();
+  executor->run();
 
   return 0;
 }

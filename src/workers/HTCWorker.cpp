@@ -12,7 +12,7 @@ HTCWorker::HTCWorker(std::string ref_path,
       std::string input_path,
       std::string output_path,
       int  contig,
-      bool &flag_f): Worker(get_config<int>("gatk.htc.nprocs"), 1),
+      bool &flag_f): Worker(1, get_config<int>("gatk.htc.nct")),
   ref_path_(ref_path),
   intv_path_(intv_path),
   input_path_(input_path)

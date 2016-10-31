@@ -1,15 +1,34 @@
 #include <algorithm>
 #include <boost/smart_ptr.hpp>
 #include <boost/thread/future.hpp>
+#include <boost/thread/lockable_adapter.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/thread.hpp>
 #include <iostream>
 #include <fstream>
 #include <string>
-
+#include <sys/wait.h>
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/Executor.h"
 
 namespace fcsgenome {
+
+boost::mutex mutex_sig;
+
+// put signal handler here because it will be the worker thread 
+// that catches the signal
+void sigint_handler(int s){
+  boost::lock_guard<boost::mutex> guard(mutex_sig);
+  //DLOG(INFO) << "Caught interrupt in worker";
+  LOG(INFO) << "Caught interrupt, cleaning up...";
+  if (g_executor) {
+    //kill(getppid(), SIGINT); 
+    DLOG(INFO) << "Deleting the executor";
+    delete g_executor;
+  }
+  exit(1);
+}
 
 Stage::Stage(Executor* executor): executor_(executor) {;}
 
@@ -70,7 +89,10 @@ void Stage::runTask(int idx) {
 }
 
 Executor::Executor(std::string job_name,
-    int num_executors): job_name_(job_name), num_executors_(num_executors)
+    int num_executors): 
+  job_name_(job_name), 
+  num_executors_(num_executors),
+  job_id_(0)
 {
   // create thread group
   boost::shared_ptr<boost::asio::io_service> ios(new boost::asio::io_service);
@@ -86,9 +108,38 @@ Executor::Executor(std::string job_name,
         boost::bind(&boost::asio::io_service::run, ios.get()));
   }
   DLOG(INFO) << "Started " << executors_.size() << " workers.";
+
+  DLOG(INFO) << "Executor thread id is " << getpid();
+
+  // create temp dir for the executor
+  temp_dir_ = conf_temp_dir + "/executor";
+  create_dir(temp_dir_);
 }
 
 Executor::~Executor() {
+
+  DLOG(INFO) << "Killing executor";
+
+  // kill all forked processes
+  for (int i = 0; i < job_id_.load(); i++) {
+    std::string script_file = temp_dir_ + "/job-" +
+      std::to_string((long long)i) +
+      ".sh";
+    std::string pid_file = script_file + ".pid";
+
+    std::ifstream fin;
+    fin.open(pid_file);
+    if (fin && !fin.eof()) {
+      int pid;
+      fin >> pid;
+
+      DLOG(INFO) << "Killing pid = " << pid;
+      kill(pid, SIGHUP);
+    }
+    remove_path(pid_file);
+  }
+
+  // wait for worker threads to finish
   ios_work_.reset();
   executors_.join_all();
 }
@@ -129,13 +180,60 @@ void Executor::interrupt() {
 }
 
 int Executor::execute(Worker_ptr worker, std::string log) {
+
+  int job_id = job_id_.fetch_add(1);
+  
+  // setup worker
   worker->setup();
 
-  std::string cmd = worker->getCommand() + " 2> " + log;
-  int ret = system(cmd.c_str());
+  std::string cmd;
 
-  worker->teardown();
+  // launch system calls through ssh if using latency mode
+  if (get_config<bool>("latency_mode") && 
+      worker->num_process_ == 1 &&
+      conf_host_list.size() > 1) 
+  {
+    // construct wrapper script for cmd to record pid
+    std::string script_file = temp_dir_ + "/job-" +
+                              std::to_string((long long)job_id) +
+                              ".sh";
+    std::string pid_file = script_file + ".pid";
+    
+    // generate a script the record the process id
+    std::stringstream cmd_sh;
+    cmd_sh << worker->getCommand()
+           << " 2> " << log
+           << " &" << std::endl;
+    cmd_sh << "pid=$!" << std::endl;
+    cmd_sh << "echo $pid > " << pid_file << std::endl;
+    cmd_sh << "wait \"$pid\"" << std::endl;
+    cmd_sh << "ret=$?" << std::endl;
+    cmd_sh << "rm -f " << pid_file << std::endl;
+    cmd_sh << "exit $ret" << std::endl;
 
-  return ret;
+    DLOG(INFO) << worker->getCommand();
+
+    // write the script to file
+    std::ofstream fout;
+    fout.open(script_file);
+    fout << cmd_sh.rdbuf();
+    fout.close();
+
+    // obtain host name from host_list
+    int host_id = job_id % conf_host_list.size();
+    std::string host = conf_host_list[host_id];
+
+    cmd = "ssh -q " + host + " '/bin/bash -s' < " +
+          script_file;
+  }
+  else {
+    cmd = worker->getCommand() + " 2> " + log;
+    DLOG(INFO) << cmd;
+  }
+
+  signal(SIGINT, sigint_handler);
+
+  // fork command
+  return system(cmd.c_str());
 }
 } // namespace fcsgenome

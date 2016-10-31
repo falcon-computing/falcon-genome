@@ -2,6 +2,7 @@
 #define FCSGENOME_EXECUTOR_H
 
 #include <boost/asio.hpp>
+#include <boost/atomic.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/future.hpp>
 #include <boost/thread/lockable_adapter.hpp>
@@ -38,7 +39,9 @@ class Stage
   std::map<int, int>       status_;
 };
 
-class Executor {
+class Executor
+  : public boost::basic_lockable_adapter<boost::mutex>
+{
  public:
   Executor(std::string job_name,
       int num_executors = 1); 
@@ -58,12 +61,19 @@ class Executor {
 
   void addTask(Worker_ptr worker, bool wait_for_prev = false);
 
- private:
+ protected:
   int                   num_executors_;
   std::string           job_name_;
   std::queue<Stage_ptr> job_stages_; 
   std::string           log_fname_;
+  std::string           temp_dir_;
 
+  boost::atomic<int>               job_id_;
+  //std::map<boost::thread::id, int> thread_table_;
+  std::map<boost::thread::id, int> pid_table_;
+
+ private:
+     
   boost::shared_ptr<boost::asio::io_service> ios_;
   boost::shared_ptr<boost::asio::io_service::work> ios_work_;
   boost::thread_group executors_;

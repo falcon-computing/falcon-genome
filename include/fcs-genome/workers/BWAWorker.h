@@ -17,6 +17,20 @@ class BWAWorker : public Worker {
       std::string platform_id,
       std::string library_id,
       bool &flag_f);
+
+  void check();
+  void setup();
+
+ private:
+  std::string ref_path_;
+  std::string fq1_path_;
+  std::string fq2_path_;
+  std::string output_path_;
+
+  std::string sample_id_;
+  std::string read_group_;
+  std::string platform_id_;
+  std::string library_id_;
 };
 
 } // namespace fcsgenome

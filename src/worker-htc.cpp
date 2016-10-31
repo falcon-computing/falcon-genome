@@ -13,16 +13,6 @@
 
 namespace fcsgenome {
 
-void sigint_handler(int s){
-
-  DLOG(INFO) << "Caught interrupt, shutting down workers";
-  if (fcsgenome::g_executor) {
-    fcsgenome::g_executor->interrupt();
-  }
-  
-  exit(0); 
-}
-
 int htc_main(int argc, char** argv,
     boost::program_options::options_description &opt_desc) 
 {
@@ -78,11 +68,6 @@ int htc_main(int argc, char** argv,
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
 
   Executor executor("Haplotype Caller", get_config<int>("gatk.htc.nprocs"));
-
-  g_executor = &executor;
-
-  signal(SIGINT, sigint_handler);
-  signal(SIGTERM, sigint_handler);
 
   bool flag_htc_f = !flag_skip_concat || flag_f;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {

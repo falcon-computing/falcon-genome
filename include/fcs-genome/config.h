@@ -12,6 +12,8 @@ extern std::string conf_project_dir;
 extern std::string conf_bin_dir;
 extern std::string conf_root_dir;
 extern std::string conf_temp_dir;
+extern std::vector<std::string> conf_host_list;
+extern int main_tid;
 
 extern boost::program_options::variables_map config_vtable;
 

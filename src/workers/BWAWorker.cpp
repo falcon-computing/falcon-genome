@@ -14,18 +14,17 @@ BWAWorker::BWAWorker(std::string ref_path,
       std::string read_group,
       std::string platform_id,
       std::string library_id,
-      bool &flag_f): Worker(1)
+      bool &flag_f):
+  Worker(get_config<bool>("latency_mode") ?  conf_host_list.size() : 1),
+  ref_path_(ref_path),
+  fq1_path_(fq1_path),
+  fq2_path_(fq2_path),
+  sample_id_(sample_id),
+  read_group_(read_group),
+  platform_id_(platform_id),
+  library_id_(library_id)
 {
-  // check input files
-  ref_path    = check_input(ref_path);
-  fq1_path    = check_input(fq1_path);
-  fq2_path    = check_input(fq2_path);
-  output_path = check_output(output_path, flag_f);
-
-  DLOG(INFO) << "ref_genome is " << ref_path;
-  DLOG(INFO) << "fastq1 is " << fq1_path;
-  DLOG(INFO) << "fastq2 is " << fq2_path;
-  DLOG(INFO) << "output is " << output_path;
+  output_path_ = check_output(output_path, flag_f);
 
   if (sample_id.empty() ||
       read_group.empty() || 
@@ -33,27 +32,58 @@ BWAWorker::BWAWorker(std::string ref_path,
       library_id.empty()) {
     throw invalidParam("Invalid @RG info");
   }
-  
+}
+
+void BWAWorker::check() {
+
+  // check input files
+  ref_path_ = check_input(ref_path_);
+  fq1_path_ = check_input(fq1_path_);
+  fq2_path_ = check_input(fq2_path_);
+}
+
+void BWAWorker::setup() {
   // create cmd
   std::stringstream cmd;
-  cmd << "LD_LIBRARY_PATH=" << conf_root_dir << "/lib:$LD_LIBRARY_PATH "
-      << get_config<std::string>("bwa_path") << " mem -M "
-      << "-R \"@RG\\tID:" << read_group << 
-                 "\\tSM:" << sample_id << 
-                 "\\tPL:" << platform_id << 
-                 "\\tLB:" << library_id << "\" "
+  if (!get_config<bool>("latency_mode")) {
+    cmd << "LD_LIBRARY_PATH=" << conf_root_dir << "/lib:$LD_LIBRARY_PATH ";
+  }
+  else {
+    // TODO: here needs to make sure necessary LD_LIBRARY_PATH
+    // is set in user's bash mode
+    cmd << get_config<std::string>("mpi_path") << "/bin/mpirun " 
+        << "--prefix " << get_config<std::string>("mpi_path") << " "
+        << "--bind-to none "
+        << "-np " << conf_host_list.size() << " ";
+
+    // set host list
+    cmd << "--host ";
+    for (int i = 0; i < conf_host_list.size(); i++) {
+      cmd << conf_host_list[i];
+      if (i < conf_host_list.size() - 1) {
+        cmd << ",";
+      }
+      else {
+        cmd << " ";
+      }
+    }
+  }
+  cmd << get_config<std::string>("bwa_path") << " mem -M "
+      << "-R \"@RG\\tID:" << read_group_ << 
+                 "\\tSM:" << sample_id_ << 
+                 "\\tPL:" << platform_id_ << 
+                 "\\tLB:" << library_id_ << "\" "
       << "--logtostderr "
       << "--v=1 "
       << "--offload "
       << "--sort "
       << "--output_flag=1 "
-      << "--output_dir=\"" << output_path << "\" "
+      << "--output_dir=\"" << output_path_ << "\" "
       << "--max_num_records=" << get_config<int>("bwa.max_records") << " "
-      << ref_path << " "
-      << fq1_path << " "
-      << fq2_path;
+      << ref_path_ << " "
+      << fq1_path_ << " "
+      << fq2_path_;
 
   cmd_ = cmd.str();
-  DLOG(INFO) << cmd_;
 }
 } // namespace fcsgenome
