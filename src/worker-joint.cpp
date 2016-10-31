@@ -66,7 +66,7 @@ int joint_main(int argc, char** argv,
   // run 
   //Executor executor("Joint Genotyping", get_config<int>("gatk.joint.nprocs"));
   Executor* executor = create_executor("Joint Genotyping", 
-      get_config<int>("gatk.joint.nprocs"));
+               get_config<int>("gatk.genotype.nprocs"));
 
   if (!flag_skip_combine) { // combine gvcfs
     Worker_ptr worker(new CombineGVCFsWorker(
@@ -77,12 +77,24 @@ int joint_main(int argc, char** argv,
   }
   if (!flag_combine_only) {
     std::vector<std::string> vcf_parts(get_config<int>("gatk.joint.ncontigs"));
+    
+    // tabix gvcf from combine gvcf output
+    for (int contig = 0; 
+         contig < get_config<int>("gatk.joint.ncontigs"); 
+         contig++) 
+    { 
+      Worker_ptr worker(new TabixWorker(
+            get_contig_fname(parts_dir, contig, "gvcf.gz")));
+      executor->addTask(worker, contig == 0);
+    }
+
+    // call gatk genotype gvcfs on each combined gvcf partitions
     for (int contig = 0; 
          contig < get_config<int>("gatk.joint.ncontigs"); 
          contig++) 
     {
       Worker_ptr worker(new GenotypeGVCFsWorker(ref_path,
-            get_contig_fname(parts_dir, contig, "gvcf"),
+            get_contig_fname(parts_dir, contig, "gvcf.gz"),
             get_contig_fname(parts_dir, contig, "vcf"),
             flag_f));
       executor->addTask(worker, contig == 0);
@@ -92,19 +104,19 @@ int joint_main(int argc, char** argv,
     // start concat the vcfs
     bool flag = true;
     std::string temp_vcf_path = parts_dir + "/" + get_basename(output_path);
-    { // concat gvcfs
+    { // concat vcfs
       Worker_ptr worker(new VCFConcatWorker(
             vcf_parts, temp_vcf_path,
             flag));
       executor->addTask(worker, true);
     }
-    { // bgzip gvcf
+    { // bgzip vcf
       Worker_ptr worker(new ZIPWorker(
             temp_vcf_path, output_path + ".gz",
             flag_f));
       executor->addTask(worker, true);
     }
-    { // tabix gvcf
+    { // tabix vcf
       Worker_ptr worker(new TabixWorker(
             output_path + ".gz"));
       executor->addTask(worker, true);

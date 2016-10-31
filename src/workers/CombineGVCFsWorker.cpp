@@ -195,7 +195,7 @@ void CombineGVCFsWorker::genLoader() {
     col_part["begin"] = column_index;
     col_part["workspace"] = temp_dir;
     col_part["array"] = "partition-" + std::to_string((long long)i);
-    col_part["vcf_output_filename"] = get_contig_fname(output_path_, i, "gvcf");
+    col_part["vcf_output_filename"] = get_contig_fname(output_path_, i, "gvcf.gz");
     column_index += part_size;
     loader["column_partitions"].append(col_part);
   }
@@ -207,7 +207,7 @@ void CombineGVCFsWorker::genLoader() {
   loader["do_ping_pong_buffering"] = true;
   loader["size_per_column_partition"] = size_per_column_partition;
   loader["offload_vcf_output_processing"] = true;
-  //loader["vcf_output_format"] = "z";
+  loader["vcf_output_format"] = "z";
 
   // write loader to string
   std::ofstream fout;
@@ -243,7 +243,7 @@ void CombineGVCFsWorker::setup() {
   std::stringstream cmd;
   cmd << get_config<std::string>("mpi_path") << "/bin/mpirun " 
       << "--prefix " << get_config<std::string>("mpi_path") << " "
-      << "-n " << get_config<int>("gatk.joint.nprocs") << " ";
+      << "-n " << get_config<int>("gatk.joint.ncontigs") << " ";
 
   // set host list
   if (!conf_host_list.empty()) {

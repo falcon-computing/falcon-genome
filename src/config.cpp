@@ -106,7 +106,8 @@ int init_config() {
     arg_decl_int_w_def("gatk.ug.nt",           1,  "default thread num in GATK UnifiedGenotyper")
     arg_decl_int_w_def("gatk.ug.memory",       4,  "default heap memory in GATK UnifiedGenotyper")
     arg_decl_int_w_def("gatk.joint.ncontigs",  32, "default contig partition num in joint genotyping")
-    arg_decl_int_w_def("gatk.joint.nprocs",    32, "default process num in GATK CombineGVCFs")
+    arg_decl_int_w_def("gatk.combine.nprocs",  16, "default process num in GATK CombineGVCFs")
+    arg_decl_int_w_def("gatk.genotype.nprocs", 32, "default process num in GATK GenotypeGVCFs")
     arg_decl_int_w_def("gatk.genotype.memory", 4,  "default heap memory in GATK GenotypeGVCFs")
     arg_decl_bool("gatk.skip_pseudo_chr", "skip pseudo chromosome intervals")
     ;

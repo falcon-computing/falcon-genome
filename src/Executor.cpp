@@ -38,6 +38,8 @@ void Stage::add(Worker_ptr worker) {
 }
 
 void Stage::run() {
+  uint64_t start_ts = getTs();
+
   typedef boost::packaged_task<void> task_t;
   std::vector<boost::unique_future<void> > pending_tasks_;
 
@@ -76,6 +78,8 @@ void Stage::run() {
         " failed, please check log: " + executor_->log() +
         " for details");
   }
+  DLOG(INFO) << "Stage finishes in "
+             << getTs() - start_ts << " seconds";
 }
 
 void Stage::runTask(int idx) {
