@@ -196,7 +196,8 @@ std::string get_bin_dir();
 std::string get_log_name(std::string job_name, int idx = -1);
 void get_input_list(std::string path, 
     std::vector<std::string> &list,
-    std::string pattern = ".*");
+    std::string pattern = ".*",
+    bool recursive = false);
 
 std::vector<std::string> get_lines(std::string fname,
     std::string pattern = ".*");

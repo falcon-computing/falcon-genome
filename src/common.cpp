@@ -91,7 +91,8 @@ std::string check_output(std::string path, bool &f, bool require_file) {
 void list_dir(
     std::string path,
     std::vector<std::string> &list,
-    std::string pattern) 
+    std::string pattern,
+    bool recursive) 
 {
   // construct regex
   boost::regex regex_pattern(pattern, boost::regex::normal);
@@ -101,8 +102,8 @@ void list_dir(
   boost::filesystem::directory_iterator end_iter;
   for (boost::filesystem::directory_iterator iter(path);
       iter != end_iter; iter++) {
-    if (boost::filesystem::is_directory(iter->status())) {
-      list_dir(iter->path().string(), list, pattern);
+    if (boost::filesystem::is_directory(iter->status()) && recursive) {
+      list_dir(iter->path().string(), list, pattern, recursive);
     }
     else {
       std::string filename = iter->path().string(); 
@@ -116,7 +117,8 @@ void list_dir(
 void get_input_list(
     std::string path,
     std::vector<std::string> &list,
-    std::string pattern) 
+    std::string pattern,
+    bool recursive) 
 {
   if (!boost::filesystem::exists(path)) {
     throw fileNotFound("Path '" + path + "' does not exist");
@@ -125,7 +127,7 @@ void get_input_list(
     list.push_back(path);
   }
   else {
-    list_dir(path, list, pattern); 
+    list_dir(path, list, pattern, recursive); 
 
     if (list.empty()) {
       throw fileNotFound("Cannot find input file(s) in '" + path + "'");

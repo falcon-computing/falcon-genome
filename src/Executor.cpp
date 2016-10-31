@@ -186,58 +186,64 @@ void Executor::interrupt() {
 int Executor::execute(Worker_ptr worker, std::string log) {
 
   int job_id = job_id_.fetch_add(1);
-  
+
   // setup worker
-  worker->setup();
+  try {
+    worker->setup();
 
-  std::string cmd;
+    std::string cmd;
 
-  // launch system calls through ssh if using latency mode
-  if (get_config<bool>("latency_mode") && 
-      worker->num_process_ == 1 &&
-      conf_host_list.size() > 1) 
-  {
-    // construct wrapper script for cmd to record pid
-    std::string script_file = temp_dir_ + "/job-" +
-                              std::to_string((long long)job_id) +
-                              ".sh";
-    std::string pid_file = script_file + ".pid";
-    
-    // generate a script the record the process id
-    std::stringstream cmd_sh;
-    cmd_sh << worker->getCommand()
-           << " 2> " << log
-           << " &" << std::endl;
-    cmd_sh << "pid=$!" << std::endl;
-    cmd_sh << "echo $pid > " << pid_file << std::endl;
-    cmd_sh << "wait \"$pid\"" << std::endl;
-    cmd_sh << "ret=$?" << std::endl;
-    cmd_sh << "rm -f " << pid_file << std::endl;
-    cmd_sh << "exit $ret" << std::endl;
+    // launch system calls through ssh if using latency mode
+    if (get_config<bool>("latency_mode") && 
+        worker->num_process_ == 1 &&
+        conf_host_list.size() > 1) 
+    {
+      // construct wrapper script for cmd to record pid
+      std::string script_file = temp_dir_ + "/job-" +
+        std::to_string((long long)job_id) +
+        ".sh";
+      std::string pid_file = script_file + ".pid";
 
-    DLOG(INFO) << worker->getCommand();
+      // generate a script the record the process id
+      std::stringstream cmd_sh;
+      cmd_sh << worker->getCommand()
+        << " 2> " << log
+        << " &" << std::endl;
+      cmd_sh << "pid=$!" << std::endl;
+      cmd_sh << "echo $pid > " << pid_file << std::endl;
+      cmd_sh << "wait \"$pid\"" << std::endl;
+      cmd_sh << "ret=$?" << std::endl;
+      cmd_sh << "rm -f " << pid_file << std::endl;
+      cmd_sh << "exit $ret" << std::endl;
 
-    // write the script to file
-    std::ofstream fout;
-    fout.open(script_file);
-    fout << cmd_sh.rdbuf();
-    fout.close();
+      DLOG(INFO) << worker->getCommand();
 
-    // obtain host name from host_list
-    int host_id = job_id % conf_host_list.size();
-    std::string host = conf_host_list[host_id];
+      // write the script to file
+      std::ofstream fout;
+      fout.open(script_file);
+      fout << cmd_sh.rdbuf();
+      fout.close();
 
-    cmd = "ssh -q " + host + " '/bin/bash -s' < " +
-          script_file;
+      // obtain host name from host_list
+      int host_id = job_id % conf_host_list.size();
+      std::string host = conf_host_list[host_id];
+
+      cmd = "ssh -q " + host + " '/bin/bash -s' < " +
+        script_file;
+    }
+    else {
+      cmd = worker->getCommand() + " 2> " + log;
+      DLOG(INFO) << cmd;
+    }
+
+    signal(SIGINT, sigint_handler);
+
+    // fork command
+    return system(cmd.c_str());
+  } 
+  catch (std::runtime_error &e) {
+    DLOG(ERROR) << "Failed to setup job execution, because: " << e.what();
+    return 1;
   }
-  else {
-    cmd = worker->getCommand() + " 2> " + log;
-    DLOG(INFO) << cmd;
-  }
-
-  signal(SIGINT, sigint_handler);
-
-  // fork command
-  return system(cmd.c_str());
 }
 } // namespace fcsgenome

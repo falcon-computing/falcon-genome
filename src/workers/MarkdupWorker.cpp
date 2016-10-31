@@ -18,7 +18,7 @@ MarkdupWorker::MarkdupWorker(std::string input_path,
 
 void MarkdupWorker::check() {
   input_path_ = check_input(input_path_);
-  get_input_list(input_path_, input_files_, ".*/part-[0-9].*");
+  get_input_list(input_path_, input_files_, ".*/part-[0-9].*", true);
 }
 
 void MarkdupWorker::setup() {
