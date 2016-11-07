@@ -91,7 +91,7 @@ int align_main(int argc, char** argv,
   Worker_ptr worker(new BWAWorker(ref_path,
         fq1_path, fq2_path,
         parts_dir,
-        read_group, sample_id,
+        sample_id, read_group,
         platform_id, library_id, flag_f));
 
   executor.addTask(worker);

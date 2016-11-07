@@ -43,6 +43,8 @@ void BQSRWorker::setup() {
       << "-I " << input_path_ << " "
       << "-L " << intv_path_ << " "
       << "-nct " << get_config<int>("gatk.bqsr.nct") << " "
+      // secret option to fix index fopen issue
+      << "--disable_auto_index_creation_and_locking_when_reading_rods "
       << "-o " << output_path_ << " ";
 
   //for (int i = 0; i < input_paths.size(); i++) {

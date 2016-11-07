@@ -32,6 +32,8 @@ void GenotypeGVCFsWorker::setup() {
       << "-T GenotypeGVCFs "
       << "-R " << ref_path_ << " "
       << "--variant " << input_path_ << " "
+      // secret option to fix index fopen issue
+      << "--disable_auto_index_creation_and_locking_when_reading_rods "
       << "-o " << output_path_;
 
   cmd_ = cmd.str();

@@ -44,6 +44,8 @@ void RTCWorker::setup() {
       << "-T RealignerTargetCreator "
       << "-R " << ref_path_ << " "
       << "-nt " << get_config<int>("gatk.rtc.nt") << " "
+      // secret option to fix index fopen issue
+      << "--disable_auto_index_creation_and_locking_when_reading_rods "
       << "-o " << output_path_ << " ";
 
   for (int i = 0; i < known_indels_.size(); i++) {
@@ -101,6 +103,8 @@ void IndelWorker::setup() {
       << "-L " << intv_path_ << " "
       << "-targetIntervals " << target_path_ << " "
       << "-I " << input_path_ << " "
+      // secret option to fix index fopen issue
+      << "--disable_auto_index_creation_and_locking_when_reading_rods "
       << "-o " << output_path_ << " ";
 
   for (int i = 0; i < known_indels_.size(); i++) {

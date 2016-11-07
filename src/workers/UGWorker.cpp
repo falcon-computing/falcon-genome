@@ -37,6 +37,8 @@ void UGWorker::setup() {
       << "-L " << intv_path_ << " "
       << "-nt " << get_config<int>("gatk.ug.nt") << " "
       << "-I " << input_path_ << " "
+      // secret option to fix index fopen issue
+      << "--disable_auto_index_creation_and_locking_when_reading_rods "
       << "-o " << output_path_ << " ";
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
