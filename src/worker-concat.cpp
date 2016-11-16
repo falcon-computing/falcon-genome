@@ -58,10 +58,10 @@ int concat_main(int argc, char** argv,
           flag_f));
     executor.addTask(worker);
   }
-  { // sort gvcf
-    Worker_ptr worker(new VCFSortWorker(output_path));
-    executor.addTask(worker, true);
-  }
+  //{ // sort gvcf
+  //  Worker_ptr worker(new VCFSortWorker(output_path));
+  //  executor.addTask(worker, true);
+  //}
   { // bgzip gvcf
     Worker_ptr worker(new ZIPWorker(
           output_path, output_path+".gz",

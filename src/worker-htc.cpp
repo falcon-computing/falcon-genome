@@ -100,10 +100,10 @@ int htc_main(int argc, char** argv,
             flag));
       executor.addTask(worker, true);
     }
-    { // sort gvcf
-      Worker_ptr worker(new VCFSortWorker(temp_gvcf_path));
-      executor.addTask(worker, true);
-    }
+    //{ // sort gvcf
+    //  Worker_ptr worker(new VCFSortWorker(temp_gvcf_path));
+    //  executor.addTask(worker, true);
+    //}
     { // bgzip gvcf
       Worker_ptr worker(new ZIPWorker(
             temp_gvcf_path, output_path+".gz",
