@@ -8,6 +8,7 @@ CFLAGS 	:= -g -std=c++0x -fPIC -O3
 
 INCLUDES:= -I./include  \
 	   -I$(GLOG_DIR)/include \
+	   -I$(HTSLIB_DIR) \
 	   -I$(JSONCPP_DIR)/install/include
 
 ifeq ($(PREFIX),)
@@ -29,6 +30,7 @@ LINK	:= -L$(BOOST_DIR)/lib \
 		-lboost_regex \
 		-lboost_program_options \
 	   -L$(GLOG_DIR)/lib -lglog \
+	   -L$(HTSLIB_DIR) -lhts \
 	   -L$(JSONCPP_DIR) -ljsoncpp \
 	   -lpthread -lm -ldl -lz -lrt
 
@@ -58,6 +60,7 @@ OBJS	 := $(SRC_DIR)/main.o \
 	    $(SRC_DIR)/worker-bqsr.o \
 	    $(SRC_DIR)/worker-concat.o \
 	    $(SRC_DIR)/worker-gatk.o \
+	    $(SRC_DIR)/worker-hist.o \
 	    $(SRC_DIR)/worker-htc.o \
 	    $(SRC_DIR)/worker-indel.o \
 	    $(SRC_DIR)/worker-joint.o \

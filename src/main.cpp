@@ -19,13 +19,19 @@ void licence_check_out() {
   fc_license_init();
 
   // get a feature
-  if (fc_license_checkout(FALCON_RT, 0)) {
-    throw fcsgenome::internalError("cannot checkout license");
+  int status = 0;
+  while (-4 == (status = fc_license_checkout(FALCON_DNA, 0))) {
+    LOG(INFO) << "Reached maximum allowed instances on this machine, "
+      << "wait for 30 seconds. Please press CTRL+C to exit.";
+    boost::this_thread::sleep_for(boost::chrono::seconds(30));
+  }
+  if (status) {
+    throw fcsgenome::internalError(std::to_string((long long)status));
   }
 }
 
 void licence_check_in() {
-  fc_license_checkin(FALCON_RT);
+  fc_license_checkin(FALCON_DNA);
 
   // cleanup for licensing. call once
   fc_license_cleanup();
@@ -82,6 +88,7 @@ namespace fcsgenome {
   int pr_main(int argc, char** argv, po::options_description &opt_desc);
   int ug_main(int argc, char** argv, po::options_description &opt_desc);
   int gatk_main(int argc, char** argv, po::options_description &opt_desc);
+  int hist_main(int argc, char** argv, po::options_description &opt_desc);
 }
 
 int main(int argc, char** argv) {
@@ -103,6 +110,8 @@ int main(int argc, char** argv) {
   opt_desc.add_options() 
     ("help,h", "print help messages")
     ("force,f", "overwrite output files if they exist");
+    ("checkpoint", "save the output of the command");
+    ("schedule,a", "schedule the command rather than executing it");
 
   std::string cmd(argv[1]);
   // transform all cmd to lower-case
@@ -114,7 +123,7 @@ int main(int argc, char** argv) {
     licence_check_out();
   }
   catch (std::runtime_error &e) {
-    LOG(ERROR) << "Encountered an internal error: " << e.what();
+    LOG(ERROR) << "Cannot connect to the license server: " << e.what();
     LOG(ERROR) << "Please contact support@falcon-computing.com for details.";
     return -1;
   }
@@ -158,6 +167,9 @@ int main(int argc, char** argv) {
     else if (cmd == "concat") {
       concat_main(argc-1, &argv[1], opt_desc);
     }
+    else if (cmd == "hist") {
+      hist_main(argc-1, &argv[1], opt_desc);
+    }
     else if (cmd == "gatk") {
       gatk_main(argc-1, &argv[1], opt_desc);
     }
@@ -166,8 +178,10 @@ int main(int argc, char** argv) {
       throw silentExit();
     }
 
+#ifdef NDEBUG
     // delete temp dir
     remove_path(conf_temp_dir);
+#endif
   }
   catch (helpRequest &e) { 
     std::cerr << "'fcs-genome " << cmd << "' options:" << std::endl;
@@ -211,13 +225,8 @@ int main(int argc, char** argv) {
     LOG(ERROR) << e.what();
     ret = 4;
   }
-  catch (internalError &e) {
-    LOG(ERROR) << "Encountered an error: " << e.what();
-    LOG(ERROR) << "Please contact support@falcon-computing.com for details.";
-    ret = -1;
-  }
   catch (std::runtime_error &e) {
-    LOG(ERROR) << "Encountered an internal error: " << e.what();
+    LOG(ERROR) << "Encountered an error: " << e.what();
     LOG(ERROR) << "Please contact support@falcon-computing.com for details.";
     ret = -1;
   }

@@ -53,9 +53,19 @@ int align_main(int argc, char** argv,
   std::string platform_id = get_argument<std::string>(cmd_vm, "pl");
   std::string library_id  = get_argument<std::string>(cmd_vm, "lb");
 
+  bool flag_schedule = get_argument<bool>(cmd_vm, "schedule");
+
   // finalize argument parsing
   po::notify(cmd_vm);
 
+  if (flag_schedule) {
+    // append stage to job if it exist
+    // output
+  
+    return 0;
+  }
+
+  // start execution
   std::string parts_dir;
   std::string temp_dir = conf_temp_dir + "/align";
 

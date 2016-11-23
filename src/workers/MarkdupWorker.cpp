@@ -41,8 +41,8 @@ void MarkdupWorker::setup() {
   cmd << get_config<std::string>("sambamba_path") << " markdup "
       << "-l 1 "
       << "-t " << get_config<int>("markdup.nt") << " "
-      << "--tmpdir=" << get_config<std::string>("temp_dir") << " ";
-      //<< "--overflow-list-size=" << conf_markdup_overflowsize << " ";
+      << "--tmpdir=" << get_config<std::string>("temp_dir") << " "
+      << "--overflow-list-size=" << get_config<int>("markdup.overflow-list-size") << " ";
   for (int i = 0; i < input_files_.size(); i++) {
     cmd << input_files_[i] << " ";
   }

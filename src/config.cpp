@@ -3,6 +3,10 @@
 #include <string>
 #include <unistd.h>
 
+#define BOOST_NO_CXX11_SCOPED_ENUMS
+#include <boost/filesystem.hpp>
+#undef BOOST_NO_CXX11_SCOPED_ENUMS
+
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 
@@ -84,10 +88,14 @@ int init_config() {
     ;
   
   tools_opt.add_options()
-    arg_decl_int_w_def("bwa.max_records",      10000000, "max num records in each BAM file")
+    arg_decl_bool("bwa.use_fpga", "option to use FPGA for bwa-mem")
+    arg_decl_string_w_def("bwa.fpga_path",     "",       "path to FPGA bitstream of bwa")
+    arg_decl_int_w_def("bwa.max_records",      5000000,  "max num records in each BAM file")
     arg_decl_int_w_def("markdup.max_files",    4096,     "max opened files in markdup")
     arg_decl_int_w_def("markdup.nt",           16, "thread num in markdup")
+    arg_decl_int_w_def("markdup.overflow-list-size", 2000000, "overflow list size in markdup")
     arg_decl_int_w_def("gatk.ncontigs",        32, "default contig partition num in GATK steps")
+    arg_decl_string_w_def("gatk.intv.path",    "", "default path to existing contig intervals")
     arg_decl_int_w_def("gatk.nprocs",          32, "default process num in GATK steps")
     arg_decl_int_w_def("gatk.bqsr.nprocs",     32, "default process num in GATK BaseRecalibrator")
     arg_decl_int_w_def("gatk.bqsr.nct",        1,  "default thread num in  GATK BaseRecalibrator")
@@ -218,6 +226,23 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
   std::vector<std::string> intv_paths(ncontigs);
   for (int i = 0; i < ncontigs; i++) {
     intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
+  }
+
+  // TODO: temporary to use old partition method, need to check
+  // if num_contigs = 32
+  std::string org_intv_dir = get_config<std::string>("gatk.intv.path");
+  if (ncontigs == 32 && !org_intv_dir.empty()) {
+    DLOG(INFO) << "Use original interval files";
+    // copy intv files
+    for (int i = 0; i < ncontigs; i++) {
+      std::string org_intv = get_contig_fname(org_intv_dir, i, "list", "intv");
+      if (boost::filesystem::exists(intv_paths[i])) {
+        break;
+      }
+
+      boost::filesystem::copy_file(org_intv, intv_paths[i]);
+    }
+    return intv_paths;
   }
 
   // read ref.dict file to get contig lengths

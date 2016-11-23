@@ -74,13 +74,20 @@ void BWAWorker::setup() {
                  "\\tPL:" << platform_id_ << 
                  "\\tLB:" << library_id_ << "\" "
       << "--logtostderr "
-      << "--v=1 "
       << "--offload "
       << "--sort "
       << "--output_flag=1 "
+      << "--v=0 "
       << "--output_dir=\"" << output_path_ << "\" "
-      << "--max_num_records=" << get_config<int>("bwa.max_records") << " "
-      << ref_path_ << " "
+      << "--max_num_records=" << get_config<int>("bwa.max_records") << " ";
+  if (get_config<bool>("bwa.use_fpga") &&
+      !get_config<std::string>("bwa.fpga_path").empty()) {
+    cmd << "--use_fpga "
+        << "--max_fpga_thread=3 "
+        << "--chunk_size=10000 "
+        << "--fpga_path=" << get_config<std::string>("bwa.fpga_path") << " ";
+  }
+  cmd << ref_path_ << " "
       << fq1_path_ << " "
       << fq2_path_;
 

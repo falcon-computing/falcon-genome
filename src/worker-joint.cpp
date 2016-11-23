@@ -74,10 +74,7 @@ int joint_main(int argc, char** argv,
           parts_dir, flag_f));
 
     executor->addTask(worker);
-  }
-  if (!flag_combine_only) {
-    std::vector<std::string> vcf_parts(get_config<int>("gatk.joint.ncontigs"));
-    
+
     // tabix gvcf from combine gvcf output
     for (int contig = 0; 
          contig < get_config<int>("gatk.joint.ncontigs"); 
@@ -87,14 +84,21 @@ int joint_main(int argc, char** argv,
             get_contig_fname(parts_dir, contig, "gvcf.gz")));
       executor->addTask(worker, contig == 0);
     }
-
-    // call gatk genotype gvcfs on each combined gvcf partitions
+  }
+  if (!flag_combine_only) {
+    std::vector<std::string> vcf_parts(get_config<int>("gatk.joint.ncontigs"));
+    
+        // call gatk genotype gvcfs on each combined gvcf partitions
     for (int contig = 0; 
          contig < get_config<int>("gatk.joint.ncontigs"); 
          contig++) 
     {
+      std::string suffix = "gvcf.gz";
+      if (flag_skip_combine) {
+        suffix = "gvcf";
+      }
       Worker_ptr worker(new GenotypeGVCFsWorker(ref_path,
-            get_contig_fname(parts_dir, contig, "gvcf.gz"),
+            get_contig_fname(parts_dir, contig, suffix),
             get_contig_fname(parts_dir, contig, "vcf"),
             flag_f));
       executor->addTask(worker, contig == 0);
