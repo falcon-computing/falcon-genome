@@ -74,7 +74,7 @@ void next_bin(const int bin_len,
     bin_pos* bin_pos_batch) 
 {
   int next_pos = pos + bin_len;
-  while (chr < num_chr && next_pos > length[chr]) {
+  while (chr < num_chr - 1 && next_pos > length[chr]) {
     next_pos -= length[chr];
     chr ++;
   }
