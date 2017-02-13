@@ -61,6 +61,8 @@ int print_help() {
   print_cmd_col("ug", "variant calling with GATK UnifiedGenotyper");
   print_cmd_col("gatk", "call GATK routines");
 
+  print_cmd_col("doc", "depthOfCoverage"); //added by pingwen
+
   return 0;	
 }
 
@@ -89,6 +91,8 @@ namespace fcsgenome {
   int ug_main(int argc, char** argv, po::options_description &opt_desc);
   int gatk_main(int argc, char** argv, po::options_description &opt_desc);
   int hist_main(int argc, char** argv, po::options_description &opt_desc);
+
+  int doc_main(int argc, char** argv, po::options_description &opt_desc);
 }
 
 int main(int argc, char** argv) {
@@ -164,6 +168,11 @@ int main(int argc, char** argv) {
     else if (cmd == "htc") {
       htc_main(argc-1, &argv[1], opt_desc);
     }
+
+    else if (cmd == "doc") {   // inserted by pingwen
+      doc_main(argc-1, &argv[1], opt_desc);
+    }
+
     else if (cmd == "concat") {
       concat_main(argc-1, &argv[1], opt_desc);
     }
