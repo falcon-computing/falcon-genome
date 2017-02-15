@@ -11,7 +11,13 @@ class DOCWorker : public Worker {
   DOCWorker(std::string ref_path,
       std::string input_path,
       std::string output_path,
-      bool &flag_f);
+      std::string geneList,
+      std::string intervalList,
+      int depthCutoff,
+      bool &flag_f,
+      bool &flag_baseCoverage,
+      bool &flag_intervalCoverage,
+      bool &flag_sampleSummary);
 
   void check();
   void setup();
@@ -20,6 +26,12 @@ class DOCWorker : public Worker {
   std::string ref_path_;
   std::string input_path_;
   std::string output_path_;
+  std::string geneList_;
+  std::string intervalList_;
+  int depthCutoff_;
+  bool flag_baseCoverage_;
+  bool flag_intervalCoverage_;
+  bool flag_sampleSummary_;
 };
 } // namespace fcsgenome
 #endif
