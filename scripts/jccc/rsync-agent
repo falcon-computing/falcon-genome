@@ -1,0 +1,100 @@
+#!/bin/bash
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+source $DIR/common.sh
+
+# Usage: ./rsync-agent run_id password dest_dir
+if [ $# -lt 3 ]; then
+  echo "$0 run_id password dest_dir"
+  exit 1
+fi
+
+run_id=$1
+password=$2
+dest_dir=$3
+verbose=2
+
+# check dest_dir
+#check_output_dir $dest_dir
+create_dir $dest_dir
+
+# add some randomness to handle two agent running for the same run
+log_file=./rsync-agent-${run_id}.log
+pass_file=./.${run_id}.rsync.pass
+output_file=./.${run_id}.rsync.out
+
+# check if the same run_id is running or not
+lock_dir=/tmp/rsync-${run_id}-lock
+if mkdir $lock_dir; then
+  log_info "Start rsync for $run_id"
+else
+  echo "Another rsync-agent for $run_id is running, exiting..." >&2
+  exit -1
+fi
+
+# check credentials
+echo "$password" > $pass_file
+chmod 600 $pass_file
+rsync \
+    --list-only \
+    --password-file=$pass_file \
+    rsync://${run_id}@pan.pellegrini.mcdb.ucla.edu/$run_id/ \
+    &> /dev/null
+
+if [ $? -ne 0 ]; then
+  log_error "rsync crediential is incorrect"
+  rm -f $pass_file
+  rm -f $output_file
+  rm -rf $lock_dir
+  exit 1
+fi
+log_info "rsync crediential verified, start transfer"
+
+idle_counter=0
+rsync_etime=0
+while true; do
+  # perform rsync first  
+  start_ts=$(date +%s)
+  rsync \
+      -ai \
+      --no-motd \
+      --password-file=$pass_file \
+      --sockopts=SO_RCVBUF=3145728,SO_SNDBUF=314572 \
+      rsync://${run_id}@pan.pellegrini.mcdb.ucla.edu/$run_id/ \
+      $dest_dir > $output_file
+
+  end_ts=$(date +%s)
+  e_time=$((end_ts - start_ts))
+  rsync_etime=$((rsync_etime + e_time))
+
+  log_info "Finished one round of rsync in $e_time sec"
+
+  # check if there is any changes
+  if [ ! -s $output_file ]; then
+    # no changes
+    idle_counter=$((idle_counter + 1))
+    if [ $idle_counter -gt 168 ]; then
+      log_error "Time out on the run, exiting"
+      rm -f $pass_file
+      rm -f $output_file
+      rm -rf $lock_dir
+      exit -1
+    fi
+  else
+    # has change, reset counter
+    idle_counter=0
+  fi
+
+  # check file to see if the run is finished
+  if [ -f $dest_dir/RTAComplete.* ]; then
+    log_info "Transfer is done in $rsync_etime sec"
+    break
+  else
+    log_info "Wait for the next round of rsync"
+    sleep 3600
+  fi
+done
+
+rm -f $pass_file
+rm -f $output_file
+rm -rf $lock_dir

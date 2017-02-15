@@ -1,0 +1,102 @@
+#!/usr/bin/env python
+
+from multiprocessing import Queue
+from subprocess import call
+from threading import Thread
+import argparse
+import getpass
+import json
+import logging
+import os
+import sys, getopt, signal
+import sysv_ipc as ipc
+
+dir = os.path.dirname(os.path.realpath(__file__))
+
+# logger settings
+log_format = "%(asctime)-15s %(levelname)s - %(message)s"
+log_level = logging.DEBUG
+
+# argument settings
+parser = argparse.ArgumentParser(description='Email handler')
+
+parser.add_argument('-i', '--log-path', dest='log_path', nargs='?',
+                     default='', help='path to logging message')
+
+parser.add_argument('-d', '--root-dir', dest='root_dir', nargs='?',
+                     default='./', help='root dir to store the run folders')
+
+parser.add_argument('--in_queue', dest='in_queue', nargs='?',
+                     type=int, default=1027, help='id of the rsync queue')
+
+parser.add_argument('--out_queue', dest='out_queue', nargs='?',
+                     type=int, default=1028, help='id of the demux queue')
+
+args = parser.parse_args()
+
+if args.log_path:
+  logging.basicConfig(filename=args.log_path, format=log_format, level=log_level)
+else:
+  logging.basicConfig(format=log_format, level=log_level)
+
+logger = logging.getLogger('rsync-manager')
+
+def worker_func(msg):
+  data = json.loads(msg)
+  logger.info('start a new task:')
+  logger.info('run_id: ' + data['run_id'] + ' ' +
+              'run_folder: '+ data['run_folder'])
+  ret = call([dir + '/rsync-agent', 
+        'LVrf' + data['run_id'],
+        data['password'],
+        args.root_dir +'/'+ data['run_folder']])
+
+  # check the return signal, only send out next task if run is successful
+  if ret != 0:
+    logger.error('rsync-agent fails for '+data['run_id'])
+    return
+
+  # create new message
+  dmux_msg = json.dumps({'run_id': data['run_id'], 'run_folder': args.root_dir +'/'+ data['run_folder']},
+      sort_keys=True, indent=2, separators=(',', ': '))
+
+  # post task to demux-manager
+  try:
+    logger.info('Opening queue with name ' + str(args.out_queue))
+    demux_q = ipc.MessageQueue(args.out_queue, flags=ipc.IPC_CREAT)
+    demux_q.send(dmux_msg)
+  except ipc.ExistentialError:
+    logger.error("Cannot find demux queue, exiting...")
+
+  logger.info('finished task '+ data['run_id'])
+
+logger.info('Opening queue with name ' + str(args.in_queue))
+q = ipc.MessageQueue(args.in_queue, flags=ipc.IPC_CREAT)
+
+def handler(signum, frame):
+  print 'Signal handler called with signal', signum
+  q.remove()
+  
+signal.signal(signal.SIGINT, handler)
+signal.signal(signal.SIGTERM, handler)
+
+# create thread pool
+task_q = Queue()
+
+def worker():
+  while True:
+    item = task_q.get()
+    logger.info("start doing one task")
+    worker_func(item)
+
+# start workers
+for i in range(2):
+  t = Thread(target=worker)
+  t.daemon = True
+  t.start()
+
+while True:
+  msg, t = q.receive()
+  logger.info("received a mssage")
+  logger.debug(msg)
+  task_q.put(msg)

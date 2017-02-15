@@ -1,0 +1,65 @@
+#!/bin/bash
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+source $DIR/common.sh
+source $DIR/settings.sh
+
+# Usage: ./demux-agent run_id run_folder dest_dir
+if [ $# -lt 3 ]; then
+  echo "$0 run_id run_folder dest_dir"
+  exit 1
+fi
+
+run_id=$1
+run_folder=$2
+dest_dir=$3
+
+verbose=2
+log_file=./demux-agent-${run_id}.log
+
+# check if the same run_id is running or not
+lock_dir=/tmp/demux-${run_id}-lock
+if mkdir $lock_dir; then
+  log_info "Start rsync for $run_id"
+else
+  echo "Another rsync-agent for $run_id is running, exiting..." >&2
+  exit -1
+fi
+
+if [ ! -f $dest_dir/DemuxComplete.txt ]; then
+  create_dir $dest_dir
+  # download samplesheet from remote location
+  counter=0
+  while true; do
+    scp $samplesheet_loc/*${run_id}.csv $run_folder/SampleSheet.csv
+    if [ $counter -gt 24 ]; then
+      log_error "Time out for sample sheet, exiting"
+      rm -rf $lock_dir
+      exit -1
+    fi
+    if [ ! -f $run_folder/SampleSheet.csv ]; then
+      log_info "Did not find sample sheet, wait for an hour..."
+      sleep 3600
+      counter=$((counter + 1))
+    else
+      break
+    fi
+  done
+  
+  log_info "Found sample sheet and start demultiplexing"
+  
+  # TODO add a timer
+  # start demultiplexing
+  start_ts=$(date +%s)
+  bcl2fastq -R $run_folder -o $dest_dir &>> $log_file
+  end_ts=$(date +%s)
+  
+  echo "demux finished" > $dest_dir/DemuxComplete.txt
+  log_info "Finished demultiplexing in $((end_ts - start_ts)) sec"
+
+  # experimental
+  scp -r $dest_dir $remote_fastq_loc
+else
+  log_info "Demultiplexing for $run_id already finished"
+fi
+rm -rf $lock_dir
