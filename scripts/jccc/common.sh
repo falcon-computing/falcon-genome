@@ -9,6 +9,48 @@ upvar() {
   fi;
 }
 
+start_manager() {
+  local bin_name=$1;
+  local pid_fname="/tmp/.${bin_name}.pid";
+  local log_dir=$(pwd)/log;
+  if [ -f $pid_fname ]; then
+    echo "$bin_name is already started"
+    return
+  fi;
+  mkdir -p $log_dir;
+  $DIR/$bin_name \
+    -i "$log_dir/${bin_name}.log" \
+    -d $run_dir &
+
+  local pid=$!;
+  echo $! > $pid_fname;
+  
+  if [[ ! $(ps -p "$pid" -o cmd=) =~ "$bin_name" ]]; then                                        
+     echo "failed to start $bin_name";
+     rm -f $pid_fname;
+  else
+     echo "$bin_name is started";
+  fi;
+}
+
+stop_manager() {
+  local bin_name=$1;
+  local pid_fname="/tmp/.${bin_name}.pid";
+
+  if [ -f $pid_fname ]; then
+    pid=`cat $pid_fname`;
+    rm -f $pid_fname;
+    if [ -z "$pid" ]; then
+      echo "no $bin_name is running";
+    else 
+      kill $pid;
+      echo "$bin_name is stopped";
+    fi;
+  else
+    echo "no $bin_name is running";
+  fi;
+}
+
 # log messge
 log_msg() {
   local level=$1;
@@ -165,42 +207,6 @@ get_sample_id() {
   echo $sample_id;
 }
 
-# Start manager
-start_manager() {
-  if [ ! -z "$manager_pid" ]; then
-    # remove debug information 
-    log_debug "Manager already running"
-    return 1
-  fi;
-  if [ -e "host_file" ]; then
-    local host_file=host_file
-  else
-    local host_file=$DIR/../host_file
-  fi;
-  log_debug "$DIR/../manager/manager --v=0 -h $host_file";
-  $DIR/../manager/manager --v=0 -h $host_file &
-  manager_pid=$!;
-  sleep 1;
-  if [[ ! $(ps -p "$manager_pid" -o comm=) =~ "manager" ]]; then
-    log_debug "Cannot start manager, exiting";
-    log_internal
-    exit -1;
-  fi;
-}
-
-# Stop manager
-stop_manager() {
-  if [ -z "$manager_pid" ]; then
-    log_debug "Manager is not running"
-    return 1
-  fi;
-  ps -p $manager_pid > /dev/null;
-  if [ "$?" == 0 ]; then 
-    kill "$manager_pid "
-  fi
-  manager_pid=;
-}
-
 kill_process() {
   log_info "Caught interruption, cleaning up";
   kill -5 $(jobs -p) 2> /dev/null;
@@ -224,33 +230,6 @@ terminate_process() {
   else
     return 1;
   fi
-}
-
-# Catch the interrupt option to stop manager
-terminate() {
-  log_info "Caught interruption, cleaning up";
-  stop_manager;
-
-  # Check run dir
-  for file in ${output_table[@]}; do
-    if [ -e ${file}.pid ]; then
-      local node_name=$(sed "1q;d" ${file}.pid)
-      local bash_pid=$(sed "2q;d" ${file}.pid)
-      #echo "kill $bash_pid on $node_name for $file "
-      log_debug "kill $bash_pid on $node_name for $file "
-      # kill the remote process
-      ssh $node_name "kill $bash_pid 2>/dev/null"
-      rm ${file}.pid -f
-      log_debug "Stopped remote printReads process $bash_pid for $file"
-    fi;
-  done;
-
-  # Stop stray processes
-  for pid in ${pid_table[@]}; do
-    terminate_process "$pid"
-  done;
-
-  exit 1;
 }
 
 readlink_check() {

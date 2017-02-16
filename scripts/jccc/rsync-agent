@@ -2,6 +2,7 @@
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $DIR/common.sh
+source $DIR/settings.sh
 
 # Usage: ./rsync-agent run_id password dest_dir
 if [ $# -lt 3 ]; then
@@ -19,7 +20,7 @@ verbose=2
 create_dir $dest_dir
 
 # add some randomness to handle two agent running for the same run
-log_file=./rsync-agent-${run_id}.log
+log_file=$log_dir/rsync-agent-${run_id}.log
 pass_file=./.${run_id}.rsync.pass
 output_file=./.${run_id}.rsync.out
 

@@ -1,21 +1,8 @@
 #!/usr/bin/env python
-
-from multiprocessing import Queue
-from subprocess import call
-from threading import Thread
 import argparse
-import getpass
 import json
-import logging
-import os
-import sys, getopt, signal
-import sysv_ipc as ipc
-
-dir = os.path.dirname(os.path.realpath(__file__))
-
-# logger settings
-log_format = "%(asctime)-15s %(levelname)s - %(message)s"
-log_level = logging.DEBUG
+from fcs_manager import QueueManager
+from subprocess import call
 
 # argument settings
 parser = argparse.ArgumentParser(description='Demultiplexing handler')
@@ -30,71 +17,40 @@ parser.add_argument('-n', '--num_agents', dest='num_agents', nargs='?',
                      type=int, default=2, help='num of running agents')
 
 parser.add_argument('--in_queue', dest='in_queue', nargs='?',
-                     type=int, default=1028, help='id of the demux queue')
+                     type=int, default=1029, help='id of the demux queue')
 
 parser.add_argument('--out_queue', dest='out_queue', nargs='?',
-                     type=int, default=1029, help='id of the compute queue')
+                     type=int, default=1030, help='id of the compute queue')
 
 args = parser.parse_args()
 
-if args.log_path:
-  logging.basicConfig(filename=args.log_path, format=log_format, level=log_level)
-else:
-  logging.basicConfig(format=log_format, level=log_level)
-
-logger = logging.getLogger('demux-manager')
-
-def worker_func(msg):
-  data = json.loads(msg)
-  logger.info('start a new demux task:')
-  logger.info('run_id: ' + data['run_id'] + ' ' +
-              'run_folder: '+ data['run_folder'])
-  ret = call([dir + '/demux-agent', 
-        data['run_id'],
-        data['run_folder'],
-        args.root_dir +'/'+ data['run_id']])
-
-  # check the return signal 
-
-  # post task to compute-manager
-  #logger.info('Opening queue with name ' + str(args.out_queue))
-  #try:
-  #  demux_q = ipc.MessageQueue(args.out_queue, flags=ipc.IPC_CREAT)
-  #  demux_q.send(msg)
-  #except ipc.ExistentialError:
-  #  logger.error("Cannot find compute queue, exiting...")
-
-  if ret == 0:
-    logger.info('finished demux task '+ data['run_id'])
-  else:
-    logger.error('demux task '+ data['run_id'] +' failed')
-
-logger.info('Opening demux queue with name ' + str(args.in_queue))
-q = ipc.MessageQueue(args.in_queue, flags=ipc.IPC_CREAT)
-
-def handler(signum, frame):
-  print 'Signal handler called with signal', signum
-  q.remove()
+class DemuxManager(QueueManager):
+  def worker_func(self, msg):
+    data = json.loads(msg)
+    self.logger.info('start a new demux task:')
+    self.logger.info('run_id: ' + data['run_id'] + ' ' +
+                'run_folder: '+ data['run_folder'])
+    ret = call([self.dir + '/demux-agent', 
+          data['run_id'],
+          data['run_folder'],
+          args.root_dir +'/'+ data['run_id']])
   
-signal.signal(signal.SIGINT, handler)
-signal.signal(signal.SIGTERM, handler)
+    # post task to compute-manager
+    #logger.info('Opening queue with name ' + str(args.out_queue))
+    #try:
+    #  demux_q = ipc.MessageQueue(args.out_queue, flags=ipc.IPC_CREAT)
+    #  demux_q.send(msg)
+    #except ipc.ExistentialError:
+    #  logger.error("Cannot find compute queue, exiting...")
+  
+    # check the return signal 
+    if ret == 0:
+      self.logger.info('finished demux task '+ data['run_id'])
+    else:
+      self.logger.error('demux task '+ data['run_id'] +' failed')
 
-# create thread pool
-task_q = Queue()
-
-def worker():
-  while True:
-    item = task_q.get()
-    logger.info("start doing one task")
-    worker_func(item)
-
-# start workers
-for i in range(args.num_agents):
-  t = Thread(target=worker)
-  t.daemon = True
-  t.start()
-
-while True:
-  msg, t = q.receive()
-  logger.info("received a mssage")
-  task_q.put(msg)
+q = DemuxManager(name = "Demux Manager",
+      log_path = args.log_path,
+      qin_id = args.in_queue,
+      num_workers = 2)
+q.listen()
