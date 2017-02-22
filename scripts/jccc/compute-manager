@@ -1,0 +1,73 @@
+#!/usr/bin/env python
+import argparse
+import json
+import csv
+import fileinput as fin
+import re
+import StringIO
+from fcs_manager import QueueManager
+from subprocess import call
+
+# argument settings
+parser = argparse.ArgumentParser(description='Compute handler')
+
+parser.add_argument('-i', '--log-path', dest='log_path', nargs='?',
+                     default='', help='path to logging message')
+
+parser.add_argument('-d', '--root-dir', dest='root_dir', nargs='?',
+                     default='./', help='root dir')
+
+parser.add_argument('--in_queue', dest='in_queue', nargs='?',
+                     type=int, default=1030, help='id of the demux queue')
+
+args = parser.parse_args()
+
+class ComputeManager(QueueManager):
+  def worker_func(self, msg):
+    data = json.loads(msg)
+    self.logger.info('run_id: ' + data['run_id'] + ' ' +
+                'demux_dir: '+ data['demux_dir'])
+
+    # start parsing sample sheet
+    samplesheet_path = data['demux_dir'] + '/SampleSheet.csv'
+    contents = ''
+    with open(samplesheet_path, 'r') as ssheet_file:
+      found_table = 0
+      for line in ssheet_file:
+        if '[data]' in line.lower():
+          found_table = 1
+        elif re.search('\[[A-Za-z].*\]', line):
+          found_table = 0
+        else:
+          if found_table:
+            contents = contents + line
+
+    csv_file = StringIO.StringIO(contents)
+    reader = csv.DictReader(csv_file)
+
+    row_name = 'Description'
+    for row in reader:
+      if row[row_name]:
+        pipeline = row[row_name].lower()
+        sample_id = row['Sample_ID']
+        project_id = row['Sample_Project']
+    
+        self.logger.info('start a compute task for run: '+ data['run_id']
+                        +', sample: '+ sample_id)
+
+        ret = call([self.dir + '/pipelines/'+ pipeline +'.sh',
+                sample_id,
+                data['demux_dir'] +'/'+ project_id,
+                args.root_dir +'/'+ data['run_id'] +'/'+ project_id])
+  
+        # check the return signal 
+        if ret == 0:
+          self.logger.info('finished processing sample '+ sample_id)
+        else:
+          self.logger.info('failed to process sample '+ sample_id)
+
+q = ComputeManager(name = "Compute Manager",
+      log_path = args.log_path,
+      qin_id = args.in_queue,
+      num_workers = 1)
+q.listen()

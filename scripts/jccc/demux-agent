@@ -26,6 +26,11 @@ else
   exit -1
 fi
 
+if [ ! -f $run_folder/SampleSheet.csv ]; then
+  log_error "Cannot find sample sheet in the run_folder"
+  exit -1
+fi
+
 if [ ! -f $dest_dir/DemuxComplete.txt ]; then
   create_dir $dest_dir
  
@@ -37,9 +42,11 @@ if [ ! -f $dest_dir/DemuxComplete.txt ]; then
   echo "demux finished" > $dest_dir/DemuxComplete.txt
   log_info "Finished demultiplexing in $((end_ts - start_ts)) sec"
 
-  # experimental
-  scp -r $dest_dir $remote_fastq_loc &
+  #rm -r $run_folder &
 else
   log_info "Demultiplexing for $run_id already finished"
 fi
+# experimental
+cp $run_folder/SampleSheet.csv $dest_dir
+scp -r $dest_dir $remote_fastq_loc &
 rm -rf $lock_dir

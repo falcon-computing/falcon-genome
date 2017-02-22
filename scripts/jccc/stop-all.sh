@@ -6,3 +6,4 @@ source $DIR/common.sh
 stop_manager "rsync-manager"
 stop_manager "ssheet-manager"
 stop_manager "demux-manager"
+stop_manager "compute-manager"

@@ -11,6 +11,7 @@ upvar() {
 
 start_manager() {
   local bin_name=$1;
+  local root_dir=$2;
   local pid_fname="/tmp/.${bin_name}.pid";
   local log_dir=$(pwd)/log;
   if [ -f $pid_fname ]; then
@@ -20,7 +21,7 @@ start_manager() {
   mkdir -p $log_dir;
   $DIR/$bin_name \
     -i "$log_dir/${bin_name}.log" \
-    -d $run_dir &
+    -d $root_dir &
 
   local pid=$!;
   echo $! > $pid_fname;

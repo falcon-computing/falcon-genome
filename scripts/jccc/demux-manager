@@ -46,11 +46,15 @@ class DemuxManager(QueueManager):
     # check the return signal 
     if ret == 0:
       self.logger.info('finished demux task '+ data['run_id'])
+      out_msg = json.dumps({'run_id': data['run_id'],
+                            'demux_dir': args.root_dir +'/'+ data['run_id']})
+      self.qout.send(out_msg)
     else:
       self.logger.error('demux task '+ data['run_id'] +' failed')
 
 q = DemuxManager(name = "Demux Manager",
       log_path = args.log_path,
       qin_id = args.in_queue,
+      qout_id = args.out_queue,
       num_workers = 2)
 q.listen()
