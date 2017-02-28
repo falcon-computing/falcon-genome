@@ -67,7 +67,7 @@ fi
 $annovar_dir/annotate_variation.pl \
   -buildver hg19 \
   $dest_dir/${sample_id}.vcf.avinput \
-  $annovar_dir/humandb 2>> $log_file
+  $humandb_dir 2>> $log_file
 
 if [ $? -ne 0 ]; then
   log_error "annotate_variation for ${sample_id}.vcf failed"

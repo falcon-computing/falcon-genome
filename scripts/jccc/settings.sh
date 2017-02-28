@@ -1,11 +1,11 @@
-
-samplesheet_loc=wudee@hoffman2.idre.ucla.edu:/u/nobackup/lixuser/shared/sample_sheets
+samplesheet_loc=wudee@hoffman2.idre.ucla.edu:/u/nobackup/lixuser/shared
 remote_fastq_loc=wudee@hoffman2.idre.ucla.edu:/u/nobackup/lixuser/shared/fastq
 remote_vcf_loc=wudee@hoffman2.idre.ucla.edu:/u/nobackup/lixuser/shared/results
 
 tmp_dir=/genome_fs/local/temp
 ref_dir=/genome_fs/local/ref
 annovar_dir=/home/genome/tools/annovar
+humandb_dir=$ref_dir/humandb
 ref_genome=$ref_dir/human_g1k_v37.fasta
 db138_SNPs=$ref_dir/dbsnp_138.b37.vcf
 g1000_indels=$ref_dir/1000G_phase1.indels.b37.vcf

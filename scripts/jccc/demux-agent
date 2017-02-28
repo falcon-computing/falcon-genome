@@ -37,12 +37,18 @@ if [ ! -f $dest_dir/DemuxComplete.txt ]; then
   # start demultiplexing
   start_ts=$(date +%s)
   bcl2fastq -R $run_folder -o $dest_dir &>> $log_file
+
+  if [ $? -ne 0 ]; then
+    log_error "demux failed"
+    exit -1
+  fi
+
   end_ts=$(date +%s)
   
   echo "demux finished" > $dest_dir/DemuxComplete.txt
   log_info "Finished demultiplexing in $((end_ts - start_ts)) sec"
 
-  #rm -r $run_folder &
+  rm -rf $run_folder &
 else
   log_info "Demultiplexing for $run_id already finished"
 fi
