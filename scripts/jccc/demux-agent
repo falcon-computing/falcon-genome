@@ -1,58 +1,151 @@
-#!/bin/bash
+#!/usr/bin/env python
+import argparse
+import csv
+import json
+import fileinput as fin
+import re
+import StringIO
+import sys
+import os
+import errno
+import logging
+import time
+from subprocess import call, Popen
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-source $DIR/common.sh
-source $DIR/settings.sh
+# check arguments
+if len(sys.argv) < 3: 
+  print sys.argv[0] +' run_id run_folder fastq_dir'
+  sys.exit(1)
 
-# Usage: ./demux-agent run_id run_folder dest_dir
-if [ $# -lt 3 ]; then
-  echo "$0 run_id run_folder dest_dir"
-  exit 1
-fi
+run_id = sys.argv[1]
+run_folder = sys.argv[2]
+fastq_dir = sys.argv[3]
+# TODO: load it from conf file
+remote_fastq_dir = 'wudee@hoffman2.idre.ucla.edu:/u/nobackup/lixuser/shared/fastq'
 
-run_id=$1
-run_folder=$2
-dest_dir=$3
+dir = os.path.dirname(os.path.realpath(__file__))
+log_file = dir +'/log/demux-agent.log'
 
-verbose=2
-log_file=$log_dir/demux-agent-${run_id}.log
+# config logging
+log_format = "%(asctime)-15s ["+run_id+"] %(levelname)s - %(message)s"
+logging.basicConfig(filename=log_file, format=log_format, level=logging.INFO)
+logger = logging.getLogger('demux-agent')
 
-# check if the same run_id is running or not
-lock_dir=/tmp/demux-${run_id}-lock
-if mkdir $lock_dir; then
-  log_info "Start demux for $run_id"
-else
-  echo "Another demux-agent for $run_id is running, exiting..." >&2
-  exit -1
-fi
+if os.path.exists(fastq_dir+'/DemuxComplete.txt'):
+  logger.info("demux for run "+run_id+' is already finished')
+  sys.exit(0)
 
-if [ ! -f $run_folder/SampleSheet.csv ]; then
-  log_error "Cannot find sample sheet in the run_folder"
-  exit -1
-fi
+# check if demux for run is already finished
+try:
+  os.makedirs(fastq_dir)
+except OSError as e:
+  if e.errno != errno.EEXIST:
+    raise
 
-if [ ! -f $dest_dir/DemuxComplete.txt ]; then
-  create_dir $dest_dir
- 
-  # start demultiplexing
-  start_ts=$(date +%s)
-  bcl2fastq -R $run_folder -o $dest_dir &>> $log_file
+# open sample sheet
+sample_sheet = run_folder + '/SampleSheet.csv'
 
-  if [ $? -ne 0 ]; then
-    log_error "demux failed"
-    exit -1
-  fi
+# separate header from data
+header = ''
+data = ''
+found_table = 0
 
-  end_ts=$(date +%s)
+try:
+  f = open(sample_sheet, 'r')
+
+  for line in f.readlines():
+    # NOTE: here is an assumption that [data] is the last
+    # 'header' label
+    if not found_table:
+      header += line
   
-  echo "demux finished" > $dest_dir/DemuxComplete.txt
-  log_info "Finished demultiplexing in $((end_ts - start_ts)) sec"
+    if '[data]' in line.lower():
+      found_table = 1
+    elif re.search('\[[A-Za-z].*\]', line):
+      found_table = 0
+    else:
+      if found_table:
+        data = data + line
 
-  rm -rf $run_folder &
-else
-  log_info "Demultiplexing for $run_id already finished"
-fi
-# experimental
-cp $run_folder/SampleSheet.csv $dest_dir
-scp -r $dest_dir $remote_fastq_loc &
-rm -rf $lock_dir
+except IOError as e:
+  logger.error("I/O error({0}): {1}".format(e.errno, e.strerror))
+  sys.exit(2)
+
+# read contents
+csv_file = StringIO.StringIO(data)
+reader = csv.DictReader(csv_file)
+
+sing_idx_table = []
+dual_idx_table = []
+
+for row in reader:
+  if 'index2' in row and row['index2']:
+    dual_idx_table.append(row)
+  else:
+    sing_idx_table.append(row)
+
+# TODO: may further partition them into sub-tables
+table_list = []
+
+if len(sing_idx_table) > 0: 
+  table_list.append(sing_idx_table)
+
+if len(dual_idx_table) > 0: 
+  table_list.append(dual_idx_table)
+
+pid_list = []
+
+start_time = time.time()
+for idx, table in enumerate(table_list):
+  # create sample sheet
+  fname = '{0}/SampleSheet_part{1}.csv'.format(run_folder, idx)
+  with open(fname, 'w+') as fout:
+    fout.write(header)
+    csv_writer = csv.DictWriter(fout, fieldnames = reader.fieldnames)
+    csv_writer.writeheader()
+    csv_writer.writerows(table)
+
+  logger.info('saved sample sheet to '+ fname)
+
+  # start demux in parallel
+  log_fname = '{0}/demux-log-part{1}.log'.format(fastq_dir, idx)
+  log_f = open(log_fname, 'w+')
+
+  p = Popen(['bcl2fastq', 
+      '-R', run_folder,
+      '-o', fastq_dir,
+      '--sample-sheet', fname],
+      stderr=log_f)
+
+  pid_list.append(p)
+  logger.info("started bcf2fastq run for part"+ str(idx))
+
+is_successful = True
+for idx, pid in enumerate(pid_list):
+  ret = pid.wait()
+  if ret != 0:
+    logger.error("bcf2fastq failed for part-"+ str(idx))
+    is_successful = False
+
+if is_successful: 
+  e_time = time.time() - start_time
+  logger.info("demux for {0} finishes in {1} seconds".format(run_id, e_time))
+  with open(fastq_dir+'/DemuxComplete.txt', 'w') as f:
+    f.write("demux finished\n")
+
+  start_time = time.time()
+
+  # rm -rf $run_folder
+  p = Popen(['rm', '-rf', run_folder])
+
+  # scp -r $fastq_dir $remote_fastq_dir
+  call(['rsync', '-ar', './'+ fastq_dir, remote_fastq_dir +'/'])
+  if ret != 0:
+    logger.error("failed to upload run to "+ remote_fastq_dir)
+    # still return as if correct, to allow compute to follow
+
+  p.wait() # wait for rm to finish
+
+  e_time = time.time() - start_time
+  logger.info("uploading fastq results finishes in {0} seconds".format(e_time))
+

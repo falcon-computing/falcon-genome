@@ -14,7 +14,7 @@ parser.add_argument('-d', '--root-dir', dest='root_dir', nargs='?',
                      default='./', help='root dir to store the FASTQ files')
 
 parser.add_argument('-n', '--num_agents', dest='num_agents', nargs='?',
-                     type=int, default=2, help='num of running agents')
+                     type=int, default=12, help='num of running agents')
 
 parser.add_argument('--in_queue', dest='in_queue', nargs='?',
                      type=int, default=1029, help='id of the demux queue')
@@ -30,22 +30,24 @@ class DemuxManager(QueueManager):
     self.logger.info('start a new demux task:')
     self.logger.info('run_id: ' + data['run_id'] + ' ' +
                 'run_folder: '+ data['run_folder'])
+
+    fastq_dir = args.root_dir +'/'+ data['run_id']
     ret = call([self.dir + '/demux-agent', 
           data['run_id'],
           data['run_folder'],
-          args.root_dir +'/'+ data['run_id']])
+          fastq_dir])
   
-    # post task to compute-manager
-    #logger.info('Opening queue with name ' + str(args.out_queue))
-    #try:
-    #  demux_q = ipc.MessageQueue(args.out_queue, flags=ipc.IPC_CREAT)
-    #  demux_q.send(msg)
-    #except ipc.ExistentialError:
-    #  logger.error("Cannot find compute queue, exiting...")
   
     # check the return signal 
     if ret == 0:
       self.logger.info('finished demux task '+ data['run_id'])
+
+      # copy sample sheet to dest_dir
+      call(['cp', 
+            data['run_folder']+'/SampleSheet.csv',
+            fastq_dir])
+
+      # post task to compute-manager
       out_msg = json.dumps({'run_id': data['run_id'],
                             'demux_dir': args.root_dir +'/'+ data['run_id']})
       self.qout.send(out_msg)

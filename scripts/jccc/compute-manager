@@ -45,19 +45,21 @@ class ComputeManager(QueueManager):
     csv_file = StringIO.StringIO(contents)
     reader = csv.DictReader(csv_file)
 
+    successful = True
     row_name = 'Description'
     for row in reader:
       if row[row_name]:
         pipeline = row[row_name].lower()
         sample_id = row['Sample_ID']
         project_id = row['Sample_Project']
+        fastq_dir = data['demux_dir'] +'/'+ project_id
     
         self.logger.info('start a compute task for run: '+ data['run_id']
                         +', sample: '+ sample_id)
 
         ret = call([self.dir + '/pipelines/'+ pipeline +'.sh',
                 sample_id,
-                data['demux_dir'] +'/'+ project_id,
+                fastq_dir,
                 args.root_dir +'/'+ data['run_id'] +'/'+ project_id])
   
         # check the return signal 
@@ -65,6 +67,12 @@ class ComputeManager(QueueManager):
           self.logger.info('finished processing sample '+ sample_id)
         else:
           self.logger.info('failed to process sample '+ sample_id)
+          successful = False
+
+    if successful: 
+      self.logger.info('run '+ data['run_id'] +' is sucessful, cleaning up')
+      # TODO: clean up
+      call(['rm', '-rf', fastq_dir])
 
 q = ComputeManager(name = "Compute Manager",
       log_path = args.log_path,

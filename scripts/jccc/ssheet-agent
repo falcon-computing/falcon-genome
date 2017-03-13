@@ -17,12 +17,12 @@ log_file=$log_dir/ssheet-agent-${run_id}.log
 
 counter=0
 while true; do
-  scp $samplesheet_loc/*${run_id}.csv $run_folder/SampleSheet.csv
-  if [ $counter -gt 24 ]; then
+  if [ $counter -gt 168 ]; then # wait for a week at most
     log_error "Time out for sample sheet, exiting"
     rm -rf $lock_dir
     exit -1
   fi
+  scp $samplesheet_loc/*${run_id}.csv $run_folder/SampleSheet.csv
   if [ ! -f $run_folder/SampleSheet.csv ]; then
     log_info "Did not find sample sheet, wait for an hour..."
     sleep 3600

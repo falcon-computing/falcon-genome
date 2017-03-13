@@ -56,7 +56,7 @@ fi
 
 $annovar_dir/convert2annovar.pl \
   -format vcf4 \
-  $dest_dir/${sample_id}.vcf > $dest_dir/${sample_id}.vcf.avinput \
+  $dest_dir/${sample_id}.vcf > $dest_dir/${sample_id}.avinput \
   2>> $log_file
 
 if [ $? -ne 0 ]; then
@@ -64,13 +64,21 @@ if [ $? -ne 0 ]; then
   exit -1
 fi
 
-$annovar_dir/annotate_variation.pl \
+~/tools/annovar/table_annovar.pl \
   -buildver hg19 \
-  $dest_dir/${sample_id}.vcf.avinput \
+  -remove -protocol refGene,1000g2014oct_all,snp138NonFlagged,ljb23_sift,cosmic70,clinvar_20150330 \
+  -operation g,f,f,f,f,f -nastring na \
+  -out $dest_dir/$sample_id \
+  $dest_dir/${sample_id}.avinput \
   $humandb_dir 2>> $log_file
 
+#$annovar_dir/annotate_variation.pl \
+#  -buildver hg19 \
+#  $dest_dir/${sample_id}.vcf.avinput \
+#  $humandb_dir 2>> $log_file
+
 if [ $? -ne 0 ]; then
-  log_error "annotate_variation for ${sample_id}.vcf failed"
+  log_error "table_annovar for ${sample_id}.vcf failed"
   exit -1
 fi
 

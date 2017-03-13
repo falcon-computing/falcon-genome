@@ -1,0 +1,17 @@
+samplesheet_loc=
+remote_fastq_loc=
+remote_vcf_loc=
+
+tmp_dir=
+ref_dir=
+annovar_dir=
+humandb_dir=
+ref_genome=
+db138_SNPs=
+g1000_indels=
+g1000_gold_standard_indels=
+
+log_dir=$(pwd)/log
+run_dir=
+fastq_dir=
+result_dir=
