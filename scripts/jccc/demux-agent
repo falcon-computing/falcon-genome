@@ -81,8 +81,11 @@ dual_idx_table = []
 for row in reader:
   if 'index2' in row and row['index2']:
     dual_idx_table.append(row)
-  else:
+  elif 'index' in row and row['index']:
     sing_idx_table.append(row)
+  else:
+    # if both indexes are null, ignore the sample
+    logger.warning("ignoring sample {0} without valid index".format(row['Sample_ID']))
 
 # TODO: may further partition them into sub-tables
 table_list = []
