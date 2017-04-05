@@ -46,6 +46,7 @@ import org.broadinstitute.gatk.utils.nanoScheduler.NSMapFunction;
 import org.broadinstitute.gatk.utils.nanoScheduler.NSProgressFunction;
 import org.broadinstitute.gatk.utils.nanoScheduler.NSReduceFunction;
 import org.broadinstitute.gatk.utils.nanoScheduler.NanoScheduler;
+import org.broadinstitute.gatk.utils.nanoScheduler.FCSScheduler;
 import org.broadinstitute.gatk.utils.progressmeter.ProgressMeter;
 import org.broadinstitute.gatk.utils.sam.GATKSAMRecord;
 import org.broadinstitute.gatk.utils.sam.ReadUtils;
@@ -96,7 +97,8 @@ public final class TraverseActiveRegions<M, T> extends TraversalEngine<M,T,Activ
     int maxReadsInMemory = 0;
     ActiveRegionWalker<M, T> walker;
 
-    final NanoScheduler<MapData, M, T> nanoScheduler;
+    //final NanoScheduler<MapData, M, T> nanoScheduler;
+    final FCSScheduler<MapData, M, T> nanoScheduler;
 
     /**
      * Data to use in the ActiveRegionWalker.map function produced by the NanoScheduler input iterator
@@ -123,7 +125,8 @@ public final class TraverseActiveRegions<M, T> extends TraversalEngine<M,T,Activ
      * @param nThreads number of threads
      */
     public TraverseActiveRegions(final int nThreads) {
-        nanoScheduler = new NanoScheduler<>(nThreads);
+        //nanoScheduler = new NanoScheduler<>(nThreads);
+        nanoScheduler = new FCSScheduler<>(nThreads);
         nanoScheduler.setProgressFunction(new NSProgressFunction<MapData>() {
             @Override
             public void progress(MapData lastActiveRegion) {
