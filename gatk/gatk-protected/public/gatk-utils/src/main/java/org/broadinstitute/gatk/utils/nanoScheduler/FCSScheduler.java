@@ -35,6 +35,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.*;
 
+import java.util.concurrent.ArrayBlockingQueue;  
+import java.util.concurrent.BlockingQueue;  
+import java.util.concurrent.LinkedBlockingQueue;
+
 /**
  * Framework for very fine grained MapReduce parallelism
  *
@@ -345,7 +349,8 @@ public class FCSScheduler<InputType, MapType, ReduceType> {
         debugPrint("Executing nanoScheduler");
 
         // start up the master job
-        final MasterJob masterJob = new MasterJob(inputReader, map, initialValue, reduce);
+        //final MasterJob masterJob = new MasterJob(inputReader, map, initialValue, reduce);
+        final FCSMasterJob masterJob = new FCSMasterJob(inputReader, map, initialValue, reduce);
         final Future<ReduceType> reduceResult = masterExecutor.submit(masterJob);
 
         while ( true ) {
@@ -400,6 +405,167 @@ public class FCSScheduler<InputType, MapType, ReduceType> {
             errorTracker.throwErrorIfPending();
         }
     }
+    /**
+     * FCSMaaterJob is similar to MasterJob, but split read and map-reduce
+     */
+    private class FCSMasterJob implements Callable<ReduceType> {
+        final Iterator<InputType> inputReader;
+        final NSMapFunction<InputType, MapType> map;
+        final ReduceType initialValue;
+        final NSReduceFunction<MapType, ReduceType> reduce;
+
+        private FCSMasterJob(Iterator<InputType> inputReader, NSMapFunction<InputType, MapType> map, ReduceType initialValue, NSReduceFunction<MapType, ReduceType> reduce) {
+            this.inputReader = inputReader;
+            this.map = map;
+            this.initialValue = initialValue;
+            this.reduce = reduce;
+        }
+        @Override
+        public ReduceType call() {
+            final BlockingQueue<InputProducer<InputType>.InputValue> readResultQueue
+              = new LinkedBlockingQueue<InputProducer<InputType>.InputValue>(10000);
+            final InputProducer<InputType> inputProducer = new InputProducer<InputType>(inputReader);
+            final MapResultsQueue<MapType> mapResultQueue = new MapResultsQueue<MapType>();
+            final Reducer<MapType, ReduceType> reducer = new Reducer<MapType, ReduceType>(reduce, errorTracker, initialValue);
+            final CountDownLatch runningMapJobs = new CountDownLatch(nThreads);
+
+            try {
+                // submit the read job
+                mapExecutor.submit(new ReadJob(inputProducer, readResultQueue, runningMapJobs));
+                for (int i =0; i < nThreads -1; i++ ) {
+                  mapExecutor.submit(new MapReduceJob(readResultQueue, mapResultQueue, runningMapJobs, map, reducer));
+                }
+                // wait for all of the input and map threads to finish
+                return waitForCompletion(mapResultQueue, runningMapJobs, reducer);
+            } catch (Throwable ex) {
+                errorTracker.notifyOfError(ex);
+                return initialValue;
+            }
+        }
+        /**
+         * Wait until the input thread and all map threads have completed running, and return the final reduce result
+         */
+        private ReduceType waitForCompletion(final MapResultsQueue<MapType> mapResultsQueue,
+                                             final CountDownLatch runningMapJobs,
+                                             final Reducer<MapType, ReduceType> reducer) throws InterruptedException {
+            // wait for all the map threads to finish by waiting on the runningMapJobs latch
+            runningMapJobs.await();
+
+            // do a final reduce here.  This is critically important because the InputMapReduce jobs
+            // no longer block on reducing, so it's possible for all the threads to end with a few
+            // reduce jobs on the queue still to do.  This call ensures that we reduce everything
+            reducer.reduceAsMuchAsPossible(mapResultsQueue, true);
+
+            // wait until we have a final reduce result
+            final ReduceType finalSum = reducer.getReduceResult();
+
+            // everything is finally shutdown, return the final reduce value
+            return finalSum;
+        }
+    }
+
+    private class ReadJob implements Runnable {
+        final InputProducer<InputType> inputProducer;
+        final BlockingQueue<InputProducer<InputType>.InputValue> readResultQueue;
+        final CountDownLatch runningMapJobs;
+
+        private ReadJob(
+            final InputProducer<InputType> inputProducer,
+            final BlockingQueue<InputProducer<InputType>.InputValue> readResultQueue,
+            final CountDownLatch runningMapJobs
+            ) {
+            this.inputProducer = inputProducer;
+            this.readResultQueue = readResultQueue;
+            this.runningMapJobs = runningMapJobs;
+        }
+
+        @Override
+        public void run() {
+             try {
+                boolean done = false;
+                while ( ! done ) {
+                    // get the next item from the input producer
+                    final InputProducer<InputType>.InputValue inputWrapper = inputProducer.next();
+                    readResultQueue.put(inputWrapper);
+                    if ( inputWrapper.isEOFMarker() ) {
+                        done = true;
+                        // Pushed more Marker to let the MapReduceJob in each thread get the end
+                        for (int i=0; i< nThreads -1; i++) {
+                          readResultQueue.put(inputWrapper);
+                        }
+                    }
+                }
+            } catch (Throwable ex) {
+                errorTracker.notifyOfError(ex);
+            } finally {
+                // we finished a read job, release the job queue semaphore
+                runningMapJobs.countDown();
+            }           
+        }
+    }
+
+    private class MapReduceJob implements Runnable {
+        final BlockingQueue<InputProducer<InputType>.InputValue> readResultQueue;
+        final MapResultsQueue<MapType> mapResultQueue;
+        final CountDownLatch runningMapJobs;
+        final NSMapFunction<InputType, MapType> map;
+        final Reducer<MapType, ReduceType> reducer;
+
+        private MapReduceJob(
+            final BlockingQueue<InputProducer<InputType>.InputValue> readResultQueue,
+            final MapResultsQueue<MapType> mapResultQueue,
+            final CountDownLatch runningMapJobs,
+            final NSMapFunction<InputType, MapType> map,
+            final Reducer<MapType, ReduceType> reducer
+            ) {
+            this.readResultQueue = readResultQueue;
+            this.mapResultQueue = mapResultQueue;
+            this.runningMapJobs = runningMapJobs;
+            this.map = map;
+            this.reducer = reducer;
+        }
+
+        @Override
+        public void run() {
+            try {
+                boolean done = false;
+                while ( ! done ) {
+                    // get the next item from the Queue
+                    final InputProducer<InputType>.InputValue inputWrapper = readResultQueue.take();
+
+                    // depending on inputWrapper, actually do some work or not, putting result input result object
+                    final MapResult<MapType> result;
+                    if ( ! inputWrapper.isEOFMarker() ) {
+                        // just skip doing anything if we don't have work to do, which is possible
+                        // because we don't necessarily know how much input there is when we queue
+                        // up our jobs
+                        final InputType input = inputWrapper.getValue();
+
+                        // actually execute the map
+                        final MapType mapValue = map.apply(input);
+
+                        // enqueue the result into the mapResultQueue
+                        result = new MapResult<MapType>(mapValue, inputWrapper.getId());
+
+                        mapResultQueue.put(result);
+
+                        // reduce as much as possible, without blocking, if another thread is already doing reduces
+                        final int nReduced = reducer.reduceAsMuchAsPossible(mapResultQueue, false);
+
+                        updateProgress(inputWrapper.getId(), input);
+                    } else {
+                        done = true;
+                    }
+                }
+            } catch (Throwable ex) {
+                errorTracker.notifyOfError(ex);
+            } finally {
+                // we finished a map job, release the job queue semaphore
+                runningMapJobs.countDown();
+            }
+        }
+    }
+                         
 
     /**
      * MasterJob has the task to enqueue Map jobs and wait for the final reduce
