@@ -107,7 +107,7 @@ int init_config() {
     arg_decl_int_w_def("gatk.htc.nct",         1,  "default thread num in  GATK HaplotypeCaller")
     arg_decl_int_w_def("gatk.htc.memory",      4,  "default heap memory in GATK HaplotypeCaller")
     arg_decl_int_w_def("gatk.indel.nprocs",    32, "default process num in GATK IndelRealigner")
-    arg_decl_int_w_def("gatk.indel.memory",    1,  "default heap memory in GATK IndelRealigner")
+    arg_decl_int_w_def("gatk.indel.memory",    4,  "default heap memory in GATK IndelRealigner")
     arg_decl_int_w_def("gatk.rtc.nt",          16, "default thread num in GATK RealignerTargetCreator")
     arg_decl_int_w_def("gatk.rtc.memory",      48, "default heap memory in GATK RealignerTargetCreator")
     arg_decl_int_w_def("gatk.ug.nprocs",       32, "default process num in GATK UnifiedGenotyper")
@@ -228,10 +228,9 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
     intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
   }
 
-  // TODO: temporary to use old partition method, need to check
-  // if num_contigs = 32
+  // TODO: Use existing intervals specified by user
   std::string org_intv_dir = get_config<std::string>("gatk.intv.path");
-  if (ncontigs == 32 && !org_intv_dir.empty()) {
+  if (!org_intv_dir.empty()) {
     DLOG(INFO) << "Use original interval files";
     // copy intv files
     for (int i = 0; i < ncontigs; i++) {
@@ -286,7 +285,7 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
     }
     dict.push_back(std::make_pair(chr_name, chr_length));
     dict_length += chr_length;
-    //DLOG(INFO) << chr_name << " : " << chr_length;
+    DLOG(INFO) << chr_name << " : " << chr_length;
   }
 
   // generate intv.list
