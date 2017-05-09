@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
   int ret = 0;
   try {
     // load configurations
-    init(argv[0]);
+    init(argv, argc);
 
     // run command
     if (cmd == "align" | cmd == "al") {

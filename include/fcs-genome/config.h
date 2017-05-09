@@ -39,7 +39,7 @@ inline bool get_config(std::string arg) {
   }
 }
 
-int init(const char* argv);
+int init(char** argv, int argc);
 
 std::vector<std::string> init_contig_intv(std::string ref_path);
 
