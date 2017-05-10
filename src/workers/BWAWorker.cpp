@@ -68,18 +68,24 @@ void BWAWorker::setup() {
       }
     }
   }
-  cmd << get_config<std::string>("bwa_path") << " mem -M "
+  cmd << get_config<std::string>("bwa_path") << " mem "
       << "-R \"@RG\\tID:" << read_group_ << 
                  "\\tSM:" << sample_id_ << 
                  "\\tPL:" << platform_id_ << 
                  "\\tLB:" << library_id_ << "\" "
+      << get_config<std::string>("bwa.extra_args") << " "
       << "--logtostderr "
       << "--offload "
-      << "--sort "
       << "--output_flag=1 "
       << "--v=0 "
       << "--output_dir=\"" << output_path_ << "\" "
-      << "--max_num_records=" << get_config<int>("bwa.max_records") << " ";
+      << "--max_batch_records=" << get_config<int>("bwa.num_batches_per_part") << " ";
+  if (get_config<bool>("bwa.use_sort")) {
+    cmd << "--sort ";
+  }
+  if (get_config<bool>("bwa.enforce_order")) {
+    cmd << "--inorder_output ";
+  }
   if (get_config<bool>("bwa.use_fpga") &&
       !get_config<std::string>("bwa.fpga_path").empty()) {
     cmd << "--use_fpga "

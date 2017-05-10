@@ -66,16 +66,16 @@ public:
     po::value<bool>(), \
     msg)
 
+#define arg_decl_bool_w_def(arg, msg) (arg, \
+    po::value<bool>(&opt_bool)->default_value(true), \
+    msg)
+
 #define arg_decl_string_w_def(arg, val, msg) (arg, \
     po::value<std::string>(&opt_str)->default_value(val), \
     msg)
 
 #define arg_decl_int_w_def(arg, val, msg) (arg, \
     po::value<int>(&opt_int)->default_value(val), \
-    msg)
-
-#define arg_decl_bool_w_def(arg, val, msg) (arg, \
-    po::value<bool>(&opt_bool)->default_value(val), \
     msg)
 
 inline uint64_t getTs() {

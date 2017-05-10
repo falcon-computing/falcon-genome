@@ -30,6 +30,7 @@ LINK	:= -L$(BOOST_DIR)/lib \
 		-lboost_regex \
 		-lboost_program_options \
 	   -L$(GLOG_DIR)/lib -lglog \
+	   -L$(GFLAGS_DIR)/lib -lgflags \
 	   -L$(HTSLIB_DIR) -lhts \
 	   -L$(JSONCPP_DIR) -ljsoncpp \
 	   -lpthread -lm -ldl -lz -lrt

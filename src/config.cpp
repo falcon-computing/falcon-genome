@@ -37,6 +37,8 @@ std::set<std::string> config_list{
     "gatk_path"
 };
 
+boost::program_options::options_description conf_opt;
+
 static std::string env_name_mapper(std::string key) {
   // entire string to lowercase
   std::transform(key.begin(), key.end(), key.begin(), ::tolower);
@@ -63,12 +65,12 @@ int init_config() {
 
   namespace po = boost::program_options;
 
-  po::options_description conf_opt;
   po::options_description common_opt("common");
   po::options_description tools_opt("tools");
 
   std::string opt_str;
   int opt_int;
+  bool opt_bool;
 
   common_opt.add_options() 
     arg_decl_string_w_def("temp_dir",        "/tmp",      "temp dir for fast access")
@@ -88,9 +90,12 @@ int init_config() {
     ;
   
   tools_opt.add_options()
-    arg_decl_bool("bwa.use_fpga", "option to use FPGA for bwa-mem")
-    arg_decl_string_w_def("bwa.fpga_path",     "",       "path to FPGA bitstream of bwa")
-    arg_decl_int_w_def("bwa.max_records",      5000000,  "max num records in each BAM file")
+    arg_decl_bool("bwa.use_fpga", "option to enable FPGA for bwa-mem")
+    arg_decl_bool_w_def("bwa.use_sort", "enable sorting in bwa-mem")
+    arg_decl_bool_w_def("bwa.enforce_order", "enforce strict sorting ordering")
+    arg_decl_string_w_def("bwa.fpga_path",     "",       "path to FPGA bitstream for bwa")
+    arg_decl_string_w_def("bwa.extra_args",    "",       "additional arguments to bwa")
+    arg_decl_int_w_def("bwa.num_batches_per_part", 20,  "max num records in each BAM file")
     arg_decl_int_w_def("markdup.max_files",    4096,     "max opened files in markdup")
     arg_decl_int_w_def("markdup.nt",           16, "thread num in markdup")
     arg_decl_int_w_def("markdup.overflow-list-size", 2000000, "overflow list size in markdup")
@@ -146,7 +151,10 @@ int init_config() {
   
   }
   catch (po::error &e) {
+    std::cerr << "fcs-genome configuration options:" << std::endl;
+    std::cerr << conf_opt << std::endl; 
     LOG(ERROR) << "Failed to initialize config: " << e.what();
+
     throw silentExit();
   }
 
@@ -193,9 +201,16 @@ int init_config() {
   return 0;
 }
 
-int init(const char* argv) {
+int init(char** argv, int argc) {
+
   // Intialize configs
   int ret = init_config();
+
+  if (argc > 1 && ::strcmp(argv[1], "conf") == 0) {
+    std::cerr << "fcs-genome configuration options:" << std::endl;
+    std::cerr << conf_opt << std::endl; 
+    throw silentExit();
+  }
 
   // Other starting procedures
   //create_dir(get_config<std::string>("log_dir"));
