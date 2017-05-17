@@ -1,11 +1,16 @@
 #!/bin/bash
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
 PARENTDIR="$(dirname "$DIR")"
-source $PARENTDIR/globals.sh.template
+source $PARENTDIR/globals.sh
 
 sample="$2"
 PATH_TO_BAM="$1"     #/pool/storage/diwu/annovar/LB-2907-TumorDNA.recal.bam
 CODING_REGION_PATH="/curr/niveda/coverage/FCS/hg19_coding_merge.bed"
+
+if [[ $# -ne 2 ]];then
+  echo "Two arguments needed"
+  exit 1
+fi
 
 #Check if the PATH_TO_BAM is a directory containing multiple recalibrated BAM files or a single recalibrated BAM file
 

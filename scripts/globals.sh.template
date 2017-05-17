@@ -27,4 +27,5 @@ BGZIP=
 TABIX=
 BCFTOOLS=
 GenomicsDB=
+BEDTOOLS=/curr/niveda/bedtools2/bin/bedtools
 
