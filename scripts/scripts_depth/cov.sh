@@ -4,8 +4,10 @@ PARENTDIR="$(dirname "$DIR")"
 source $PARENTDIR/globals.sh
 
 sample="$2"
-path_to_bam="$1"     #/pool/storage/diwu/annovar/LB-2907-TumorDNA.recal.bam
+path_to_bam="$1"
 
+#Start
+start_ts_total=$(date +%s)
 print_help() {
   echo "USAGE: $0 <Path_to_BAM> <Sample_Type>"
 }
@@ -19,10 +21,17 @@ log_error() {
   log_msg "ERROR: $1"
 }
 
+log_info() {
+  log_msg "INFO: $1"
+}
+
 if [[ $# -ne 2 ]];then
   print_help
   exit 1
 fi
+
+#Declare array
+declare -A pid_table
 
 #Create directory
 mkdir log_dir
@@ -35,7 +44,8 @@ if [ -d "$path_to_bam" ];then
   do
     if [[ $file =~ bam$ ]];then
       #Ignore duplicates in BAM file | Calculate coverage values 
-      samtools view -b -F 0x400 "$path_to_bam"/"$file" | "$BEDTOOLS" genomecov -ibam stdin -bga > "log_dir/${file}_coverage.bed" &
+      samtools view -b -F 0x400 "$path_to_bam"/"$file" | "$BEDTOOLS" genomecov -ibam stdin -bga >> "log_dir/${file}_coverage.bed" & 
+      
       pid_table["$file"]=$!
     fi
   done
@@ -98,4 +108,9 @@ fi
 
 #Remove intermediate files
 rm ${sample}_coverage.bed
-rm ${sample}_codingcov.bed 
+rm ${sample}_codingcov.bed
+rm -r log_dir
+
+#Time taken
+end_ts=$(date +%s)
+log_info "Finishes in $((end_ts - start_ts_total))s" 
