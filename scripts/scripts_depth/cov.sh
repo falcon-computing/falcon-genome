@@ -4,70 +4,98 @@ PARENTDIR="$(dirname "$DIR")"
 source $PARENTDIR/globals.sh
 
 sample="$2"
-PATH_TO_BAM="$1"     #/pool/storage/diwu/annovar/LB-2907-TumorDNA.recal.bam
-CODING_REGION_PATH="/curr/niveda/coverage/FCS/hg19_coding_merge.bed"
+path_to_bam="$1"     #/pool/storage/diwu/annovar/LB-2907-TumorDNA.recal.bam
+
+print_help() {
+  echo "USAGE: $0 <Path_to_BAM> <Sample_Type>"
+}
+
+log_msg() {
+  local msg=$1
+  >&2 echo "[coverage-stats] $msg"
+}
+
+log_error() {
+  log_msg "ERROR: $1"
+}
 
 if [[ $# -ne 2 ]];then
-  echo "Two arguments needed"
+  print_help
   exit 1
 fi
+
+#Create directory
+mkdir log_dir
 
 #Check if the PATH_TO_BAM is a directory containing multiple recalibrated BAM files or a single recalibrated BAM file
 
 #If directory, then do coverage calculation for each file
-if [ -d "$PATH_TO_BAM" ];then  
-  for file in $(ls "$PATH_TO_BAM")
+if [ -d "$path_to_bam" ];then  
+  for file in $(ls "$path_to_bam")
   do
     if [[ $file =~ bam$ ]];then
       #Ignore duplicates in BAM file | Calculate coverage values 
-      samtools view -b -F 0x400 "$PATH_TO_BAM"/"$file" | "$BEDTOOLS" genomecov -ibam stdin -bga >> "${sample}_coverage.bed"
+      samtools view -b -F 0x400 "$path_to_bam"/"$file" | "$BEDTOOLS" genomecov -ibam stdin -bga > "log_dir/${file}_coverage.bed" &
+      pid_table["$file"]=$!
+    fi
+  done
+  
+  for file in $(ls "$path_to_bam")
+  do
+    if [[ $file =~ bam$ ]];then
+      pid=${pid_table[$file]}
+      wait "${pid}"
       if [[ $? -ne 0 ]]; then
-        echo 'genomecov failed'
+        log_error "Failed to calculate genome coverage for $file"
         exit 1
-      fi
+      fi 
+      file_log=log_dir/${file}_coverage.bed
+      cat $file_log >> ${sample}_coverage.bed
+      rm -f $file_log
     fi
   done
 
 #If single file, then do coverage calculation for only that file
-elif [ -f "$PATH_TO_BAM" ];then
-  samtools view -b -F 0x400 "$PATH_TO_BAM" | "$BEDTOOLS" genomecov -ibam stdin -bga >> "${sample}_coverage.bed" 
+elif [ -f "$path_to_bam" ];then
+  samtools view -b -F 0x400 "$path_to_bam" | "$BEDTOOLS" genomecov -ibam stdin -bga >> "${sample}_coverage.bed" 
   if [[ $? -ne 0 ]]; then
-    echo 'genomecov failed'
+    log_error "Failed to calculate genome coverage for $path_to_bam"
     exit 1
   fi
 
 #If file of that name does not exist, quit
 else
-  echo "$PATH_TO_BAM is not valid"
+  log_error "$path_to_bam is not a valid path"
   exit 1
 fi
 
 #Filter to only coding regions	
-"$BEDTOOLS" intersect -loj -a "$CODING_REGION_PATH" -b "$sample"_coverage.bed > "${sample}_codingcov.bed" 
+"$BEDTOOLS" intersect -loj -a "$coding_region_path" -b "$sample"_coverage.bed > "${sample}_codingcov.bed" 
 if [[ $? -ne 0 ]]; then 
-  echo 'intersect failed'
+  log_error "Failed to filter just coding regions from the genome coverage file"  
   exit 1
 fi
 
 #Coverage stats calculation
 perl cov_calculate.pl $sample 
 if [[ $? -ne 0 ]]; then
-  echo 'stats calculation failed'
+  log_error "Failed to calculate coverage statistics"
   exit 1
 fi
 
 sed -i 's/,$//' "${sample}_${sample}Coverage.csv"
 if [[ $? -ne 0 ]]; then
-  echo 'error manipulating stats file'
+  log_error "Failed to manipulate the coverage statistics file"
   exit 1
 fi
 
 #Coverage stats plot
 python cov_graph.py $sample
 if [[ $? -ne 0 ]]; then
-  echo 'error with plot computation'
+  log_error "Failed to compute coverage plot"
   exit 1
 fi
 
 #Remove intermediate files
-rm *.bed 
+rm ${sample}_coverage.bed
+rm ${sample}_codingcov.bed 
