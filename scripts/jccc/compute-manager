@@ -31,48 +31,70 @@ class ComputeManager(QueueManager):
     # start parsing sample sheet
     samplesheet_path = data['demux_dir'] + '/SampleSheet.csv'
     contents = ''
-    with open(samplesheet_path, 'r') as ssheet_file:
-      found_table = 0
-      for line in ssheet_file:
-        if '[data]' in line.lower():
-          found_table = 1
-        elif re.search('\[[A-Za-z].*\]', line):
-          found_table = 0
-        else:
-          if found_table:
-            contents = contents + line
 
-    csv_file = StringIO.StringIO(contents)
-    reader = csv.DictReader(csv_file)
+    try: 
+      with open(samplesheet_path, 'r') as ssheet_file:
+        found_table = 0
+        for line in ssheet_file:
+          if '[data]' in line.lower():
+            found_table = 1
+          elif re.search('\[[A-Za-z].*\]', line):
+            found_table = 0
+          else:
+            if found_table:
+              contents = contents + line
 
-    successful = True
-    row_name = 'Description'
-    for row in reader:
-      if row[row_name]:
-        pipeline = row[row_name].lower()
-        sample_id = row['Sample_ID']
-        project_id = row['Sample_Project']
-        fastq_dir = data['demux_dir'] +'/'+ project_id
-    
-        self.logger.info('start a compute task for run: '+ data['run_id']
-                        +', sample: '+ sample_id)
+      csv_file = StringIO.StringIO(contents)
+      reader = csv.DictReader(csv_file)
 
-        ret = call([self.dir + '/pipelines/'+ pipeline +'.sh',
-                sample_id,
-                fastq_dir,
-                args.root_dir +'/'+ data['run_id'] +'/'+ project_id])
+      successful = True
+
+      # current marking place for analysis pipeline
+      row_name = 'Description'
+
+      # make sure we only process one sample once
+      completed_samples = {}
+
+      for row in reader:
+        if row[row_name]:
+          pipeline = row[row_name].lower()
+          sample_id = row['Sample_ID']
+          project_id = row['Sample_Project']
+
+          # unique id for a sample in this run
+          sample_key = project_id + '-' + sample_id;
+          if sample_key in completed_samples:
+            self.logger.info("Duplicated processing found for sample "+ sample_id)
+            continue
+
+          fastq_dir = data['demux_dir'] +'/'+ project_id
+      
+          self.logger.info('start a compute task for run: '+ data['run_id']
+                          +', sample: '+ sample_id)
+
+          ret = call([self.dir + '/pipelines/'+ pipeline +'.sh',
+                  sample_id,
+                  fastq_dir,
+                  args.root_dir +'/'+ data['run_id'] +'/'+ project_id])
   
-        # check the return signal 
-        if ret == 0:
-          self.logger.info('finished processing sample '+ sample_id)
-        else:
-          self.logger.info('failed to process sample '+ sample_id)
-          successful = False
+          # check the return signal 
+          if ret == 0:
+            self.logger.info('finished processing sample '+ sample_id)
+            completed_samples[sample_key] = 'done'
+          else:
+            self.logger.info('failed to process sample '+ sample_id)
+            successful = False
 
-    if successful: 
-      self.logger.info('run '+ data['run_id'] +' is sucessful, cleaning up')
-      # TODO: clean up
-      call(['rm', '-rf', fastq_dir])
+      if successful: 
+        self.logger.info('run '+ data['run_id'] +' is sucessful, cleaning up')
+        # TODO: clean up
+        call(['rm', '-rf', fastq_dir])
+      else:
+        raise ValueError('Compute pipeline failed')
+
+    except:
+      self.logger.error('run '+ data['run_id'] +' failed')
+      self.checkpoint(data['run_id']+'.json', msg)
 
 q = ComputeManager(name = "Compute Manager",
       log_path = args.log_path,

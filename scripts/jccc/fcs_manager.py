@@ -6,6 +6,7 @@ import getpass
 import json
 import logging
 import os
+import errno
 import sys, getopt, signal
 import sysv_ipc as ipc
 
@@ -17,6 +18,21 @@ class QueueManager(object):
   # thread pool for workers
   task_q = Queue()
 
+  checkpoint_dir = os.path.expanduser("~")+'/.fcs-genome/checkpoints'
+
+  def mkdir(self, path): 
+    try:
+      os.makedirs(path)
+    except OSError as e:
+      if e.errno != errno.EEXIST:
+        raise
+
+  def checkpoint(self, fname, data):
+    path = self.checkpoint_dir + '/' + fname
+    with open(path, 'w') as fout:
+      fout.write(data)
+    self.logger.info('saving checkpoint to {1}'.format(path))
+
   def worker(self):
     while True:
       item = self.task_q.get()
@@ -27,6 +43,9 @@ class QueueManager(object):
       self.name = kargs['name'] 
     else:
       self.name = 'manager'
+
+    self.checkpoint_dir += '/'+self.name.lower().replace(" ", "-")
+    self.mkdir(self.checkpoint_dir)
 
     # pwd
     self.dir = os.path.dirname(os.path.realpath(__file__))

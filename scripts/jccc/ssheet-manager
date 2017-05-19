@@ -37,6 +37,7 @@ class SsheetManager(QueueManager):
       self.qout.send(msg)
     else:
       self.logger.error('failed to get sample sheet for '+ data['run_id'])
+      self.checkpoint(data['run_id']+'.json', msg)
 
 q = SsheetManager(name = "Samplesheet Manager",
       log_path = args.log_path,

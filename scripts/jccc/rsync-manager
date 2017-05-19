@@ -36,6 +36,7 @@ class RsyncManager(QueueManager):
     # check the return signal, only send out next task if run is successful
     if ret != 0:
       self.logger.error('rsync-agent fails for '+data['run_id'])
+      self.checkpoint(data['run_id']+'.json', msg)
       return
   
     # create new message

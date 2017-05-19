@@ -27,32 +27,35 @@ args = parser.parse_args()
 class DemuxManager(QueueManager):
   def worker_func(self, msg):
     data = json.loads(msg)
-    self.logger.info('start a new demux task:')
-    self.logger.info('run_id: ' + data['run_id'] + ' ' +
-                'run_folder: '+ data['run_folder'])
+    try:
+      self.logger.info('start a new demux task:')
+      self.logger.info('run_id: ' + data['run_id'] + ' ' +
+                  'run_folder: '+ data['run_folder'])
 
-    fastq_dir = args.root_dir +'/'+ data['run_id']
-    ret = call([self.dir + '/demux-agent', 
-          data['run_id'],
-          data['run_folder'],
-          fastq_dir])
-  
-  
-    # check the return signal 
-    if ret == 0:
-      self.logger.info('finished demux task '+ data['run_id'])
-
-      # copy sample sheet to dest_dir
-      call(['cp', 
-            data['run_folder']+'/SampleSheet.csv',
+      fastq_dir = args.root_dir +'/'+ data['run_id']
+      ret = call([self.dir + '/demux-agent', 
+            data['run_id'],
+            data['run_folder'],
             fastq_dir])
+  
+      # check the return signal 
+      if ret == 0:
+        self.logger.info('finished demux task '+ data['run_id'])
 
-      # post task to compute-manager
-      out_msg = json.dumps({'run_id': data['run_id'],
-                            'demux_dir': args.root_dir +'/'+ data['run_id']})
-      self.qout.send(out_msg)
-    else:
+        # copy sample sheet to dest_dir
+        call(['cp', 
+              data['run_folder']+'/SampleSheet.csv',
+              fastq_dir])
+
+        # post task to compute-manager
+        out_msg = json.dumps({'run_id': data['run_id'],
+                              'demux_dir': args.root_dir +'/'+ data['run_id']})
+        self.qout.send(out_msg)
+      else:
+        raise ValueError('run failed')
+    except:
       self.logger.error('demux task '+ data['run_id'] +' failed')
+      self.checkpoint(data['run_id']+'.json', msg)
 
 q = DemuxManager(name = "Demux Manager",
       log_path = args.log_path,

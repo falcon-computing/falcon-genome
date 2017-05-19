@@ -4,6 +4,7 @@ import getpass
 import json
 import logging
 import re
+import os
 import sys, getopt, signal
 import sysv_ipc as ipc
 
@@ -40,6 +41,14 @@ logger = logging.getLogger('mail-agent')
 
 logger.info("Start handling a new email")
 logger.debug(sys.argv)
+
+# project dir to save checkpoints
+checkpoint_dir = os.path.expanduser("~")+'/.fcs-genome/checkpoints/mail-agents'
+try:
+  os.makedirs(checkpoint_dir)
+except OSError as e:
+  if e.errno != errno.EEXIST:
+    raise
 
 contents = []
 match_mail = False
@@ -101,7 +110,9 @@ if args.expect_sender.lower() == args.sender.lower() and match_mail:
     q = ipc.MessageQueue(args.queue, flags=0)
     q.send(msg)
   except ipc.ExistentialError:
-    logger.error("Cannot find rsync-manager queue, exiting...")
+    logger.error("Cannot find rsync-manager queue, saving msg to checkpoint")
+    with open(checkpoint_dir + '/' + run_id +'.json', 'w') as fout:
+      fout.write(msg)
 
 else:
   logger.info("Received a normal mail, saving to " + args.mail_path)

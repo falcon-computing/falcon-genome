@@ -22,8 +22,8 @@ dest_dir=$3
 
 mkdir -p $dest_dir
 
-log_file=$log_dir/dnaseq-${sample_id}.log
-lock_dir=/tmp/dnaseq-${sample_id}-lock
+log_file=$log_dir/wes-${sample_id}.log
+lock_dir=/tmp/wes-${sample_id}-lock
 if mkdir $lock_dir; then
   log_info "Start dnaseq pipeline for $sample_id"
 else
@@ -135,8 +135,9 @@ if [ $? -ne 0 ]; then
   exit -1
 fi
 
-rm -rf $dest_dir &
-
 end_ts=$(date +%s)
 log_info "dnaseq pipeline finishes in $((end_ts - start_ts)) seconds"
+
+# cleanup
+rm -rf $dest_dir
 rm -r $lock_dir

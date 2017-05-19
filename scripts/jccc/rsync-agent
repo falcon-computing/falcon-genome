@@ -52,8 +52,29 @@ fi
 log_info "rsync crediential verified, start transfer"
 
 idle_counter=0
+disk_counter=0
 rsync_etime=0
 while true; do
+  # check disk space
+  freespace=$(df -k $dest_dir | sed -n 2p | awk '{print $4}')
+  while [ $freespace -lt $min_freespace ]; do
+    if [ $disk_counter -gt 24 ]; then
+      log_error "Timeout waiting for disk to freeup, exiting"
+      rm -f $pass_file
+      rm -f $output_file
+      rm -rf $lock_dir
+      exit -2
+    fi
+    log_warn "Disk is almost full, waiting for it to freeup"
+    disk_counter=$(($disk_counter + 1))
+
+    sleep 3600
+
+    freespace=$(df -k $dest_dir | sed -n 2p | awk '{print $4}')
+  done
+  # reset disk counter
+  disk_counter=0
+
   # perform rsync first  
   start_ts=$(date +%s)
   rsync \
