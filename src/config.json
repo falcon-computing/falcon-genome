@@ -1,0 +1,8 @@
+{
+"ref" : "ref_path",
+"fastq" : [
+["fq1_1_path", "fq1_2_path"],
+["f12_1_path", "fq2_2_path"]
+],
+"jobs" : ["bwa", "makdup"]
+}
