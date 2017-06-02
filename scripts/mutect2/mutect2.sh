@@ -69,8 +69,8 @@ done
 
 COMMENT1
 
-tumor_bam=/pool/storage/diwu/annovar/LB-2907-TumorDNA.recal.bam/
-normal_bam=/pool/storage/diwu/annovar/LB-2907-BloodDNA.recal.bam/
+tumor_bam=$1
+#normal_bam=/pool/storage/diwu/annovar/LB-2907-BloodDNA.recal.bam/
 sample="Tumor"
 #Declare array 
 declare -A pid_table
@@ -82,19 +82,17 @@ mkdir outfile
 
 #If directory, then do coverage calculation for each file
 if [ -d "$tumor_bam" ];then
-  if [ -d "$normal_bam" ];then
-    for file in $(ls /pool/storage/diwu/annovar/LB-2907-TumorDNA.recal.bam/)
+  #if [ -d "$normal_bam" ];then
+    for file in $(ls "$tumor_bam")
     do
       if [[ $file =~ bam$ ]];then
         java -jar /curr/diwu/tools/gatk-3.6/GenomeAnalysisTK.jar \
           -T MuTect2 \
           -R /pool/local/ref/human_g1k_v37.fasta \
-          -I:tumor /pool/storage/diwu/annovar/LB-2907-TumorDNA.recal.bam/$file \
-          -I:normal /pool/storage/diwu/annovar/LB-2907-BloodDNA.recal.bam/$file \
+          -I:tumor $tumor_bam/$file \
           --dbsnp /pool/local/ref/dbsnp_138.b37.vcf \
           -L /pool/local/ref/RefSeq_Exon_Intervals_Gene.interval_list \
           -o outfile/${file}_mutect.vcf 
-          -nct 4 &
       
         pid_table["$file"]=$! 
       fi
@@ -113,9 +111,18 @@ if [ -d "$tumor_bam" ];then
         cat $file_log >> Mutect2.vcf
       fi
     done
-  fi
-fi  
+  #fi 
 
+#If single file
+elif [ -f "$tumor_bam" ];then
+  java -jar /curr/diwu/tools/gatk-3.6/GenomeAnalysisTK.jar \
+    -T MuTect2 \
+    -R /pool/local/ref/human_g1k_v37.fasta \
+    -I:tumor $tumor_bam \
+    --dbsnp /pool/local/ref/dbsnp_138.b37.vcf \
+    -L /pool/local/ref/RefSeq_Exon_Intervals_Gene.interval_list \
+    -o Mutect2.vcf 
+fi 
 
 end_ts=$(date +%s)
 echo "Finishes in $((end_ts - start_ts_total))s"
