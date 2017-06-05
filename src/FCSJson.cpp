@@ -17,7 +17,7 @@ void FCSJson::jsonRead () {
 		exit(EXIT_FAILURE);
 	}
 
-	assert(root.size() == 4);
+	assert(root.size() == 5);
 
 	for(auto it1 = root.begin(); it1 != root.end(); ++it1){
 		//std::string str(it1.name());
@@ -40,10 +40,14 @@ void FCSJson::jsonRead () {
 		}
 		else if(it1.name() == "samples") {
 			for(int i = 0; i < root["samples"].size(); ++i)
-				sample_.push_back(root["jobs"][i].asString());
+				samples_.push_back(root["samples"][i].asString());
+		}
+		else if(it1.name() == "knownSites") {
+			for(int i = 0; i< root["knownSites"].size(); ++i)
+				knownSites_.push_back(root["knownSites"][i].asString());
 		}
 		else {
-			std::cerr << "josn file id not  identified!" << std::endl;
+			std::cerr << "json file id not identified!" << std::endl;
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -51,22 +55,27 @@ void FCSJson::jsonRead () {
 
 std::string FCSJson::getFile () { return File_; }
 std::string FCSJson::getRef () { return ref_path_; }
-std::vector<std::vector<std::string> > FCSJson::getFq () { return fqFiles_; }
+std::vector<std::vector<std::string> > FCSJson::getFqs () { return fqFiles_; }
 std::vector<std::string> FCSJson::getJobs () { return jobs_; }
 std::vector<std::string> FCSJson::getSamples () { return samples_; }
+std::vector<std::string> FCSJson::getBams () { return bams_; }
 
 std::vector<std::string> jobs_to_pipeline(const std::vector<std::string> jobs) {
-
 	int maxIndex=-1, minIndex=-1;
-	for(int i=0;i<jobs.size();i++)	 {
+	for(int i = 0; i < jobs.size(); i++)	 {
 		//int index = pipeline.find(jobs.at(i));
 		int index;
 		for(int  n = 0; n < pipeline.size(); n++)
 			if(pipeline.at(n) == jobs.at(i))
 				index = n;
+		if(i == 0) {
+			maxIndex = index;
+			minIndex = index;
+		}
 		if(index > maxIndex) maxIndex = index;
-		if(index < minIndex) minIndex =index;
+		if(index < minIndex) minIndex = index;
 	}
+
 
 	assert(maxIndex !=-1 && minIndex != -1);
 

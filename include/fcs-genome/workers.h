@@ -11,5 +11,6 @@
 #include "workers/VCFUtilsWorker.h"
 #include "workers/UGWorker.h"
 #include "workers/DOCWorker.h"
+#include "workers/FCSJson.h"
 
 #endif

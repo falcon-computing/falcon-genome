@@ -1,8 +1,9 @@
 {
-"ref" : "ref_path",
+"ref" : "/space/scratch/genome/ref/human_g1k_v37.fasta",
+"samples" : ["S1"],
 "fastq" : [
-["fq1_1_path", "fq1_2_path"],
-["f12_1_path", "fq2_2_path"]
+["/space/scratch/genome/fastq/SRR702068_1.fastq.gz", "/space/scratch/genome/fastq/SRR702068_2.fastq.gz"]
 ],
-"jobs" : ["bwa", "makdup"]
+"jobs" : ["align", "markdup", "bqsr"],
+"knownSites" : ["/space/common_mnt/wenp/1000G_phase1.indels.b37.vcf", "/space/common_mnt/wenp/Mills_and_1000G_gold_standard.indels.b37.vcf", "/space/common_mnt/wenp/dbsnp_138.b37.vcf"]
 }

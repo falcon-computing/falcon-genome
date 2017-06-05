@@ -20,20 +20,26 @@ class FCSJson {
 		void jsonRead();
 		std::string getFile();
 		std::string getRef();
-		std::vector<std::vector<std::string> > getFq();
+		std::vector<std::vector<std::string> > getFqs();
 		std::vector<std::string> getJobs();
+		std::vector<std::string> getSamples();
+		std::vector<std::string> getBams();
 	private:
 		std::string File_;
 		std::string ref_path_;
 		std::vector<std::vector<std::string> > fqFiles_;
 		std::vector<std::string> jobs_;
 		std::vector<std::string> samples_;
+		std::vector<std::string> bams_;
+	public:
+		std::vector<std::string> knownSites_;
 };
 
 
 
 
-const std::vector<std::string> pipeline = {"align", "indel", "baserecal", "bqsr", "printreads", "htc"};
+//const std::vector<std::string> pipeline = {"align", "indel", "baserecal", "bqsr", "printreads", "htc"};
+const std::vector<std::string> pipeline = {"align", "markdup", "bqsr", "htc"};
 
 const std::vector<std::string> alignValue = {"bqsr", "baserecal", "printreads", "htc", "indel"};
 const std::vector<std::string> bqsrValue = {"printreads", "htc"};

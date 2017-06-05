@@ -63,6 +63,8 @@ OBJS	 := $(SRC_DIR)/main.o \
 	    $(SRC_DIR)/worker-hist.o \
 	    $(SRC_DIR)/worker-htc.o \
 	    $(SRC_DIR)/worker-doc.o \
+	    $(SRC_DIR)/FCSJson.o \
+	    $(SRC_DIR)/worker-json.o \
 	    $(SRC_DIR)/worker-indel.o \
 	    $(SRC_DIR)/worker-joint.o \
 	    $(SRC_DIR)/worker-markdup.o \
