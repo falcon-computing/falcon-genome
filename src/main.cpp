@@ -44,7 +44,7 @@ void licence_check_in() {
     << std::endl;
 
 int print_help() {
-  std::cout << "Falcon Genome Analysis Toolkit v1.0.3" << std::endl;
+  std::cout << "Falcon Genome Analysis Toolkit " << VERSION << std::endl;
   std::cout << "Usage: fcs-genome [command] <options>" << std::endl;
   std::cout << std::endl;
   std::cout << "Commands: " << std::endl;
@@ -166,9 +166,6 @@ int main(int argc, char** argv) {
     }
     else if (cmd == "concat") {
       concat_main(argc-1, &argv[1], opt_desc);
-    }
-    else if (cmd == "hist") {
-      hist_main(argc-1, &argv[1], opt_desc);
     }
     else if (cmd == "gatk") {
       gatk_main(argc-1, &argv[1], opt_desc);
