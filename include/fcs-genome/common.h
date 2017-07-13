@@ -143,6 +143,12 @@ inline bool get_argument<bool>(
     const char* arg
 ) {
   return vm.count(arg);
+  //if (!vm.count(arg)) {
+  //  return false;
+  //}
+  //else {
+  //  return vm[arg].as<bool>();
+  //}
 }
 
 template <>

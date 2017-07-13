@@ -24,8 +24,8 @@ int joint_main(int argc, char** argv,
                                "[sample_id].gvcf.gz files")
     arg_decl_string("output,o", "output vcf.gz file(s)")
     ("combine-only,c", "combine GVCFs only and skip genotyping")
-    ("skip-combine,g", "genotype GVCFs only and skip combining "
-                       "(for single sample)");
+    ("skip-combine,g", "(deprecated) perform genotype GVCFs only "
+                       "and skip combine GVCFs");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),

@@ -20,13 +20,16 @@ int htc_main(int argc, char** argv,
 
   // Define arguments
   po::variables_map cmd_vm;
+  bool opt_bool = false;
 
   opt_desc.add_options() 
     arg_decl_string("ref,r", "reference genome path")
     arg_decl_string("input,i", "input BAM file or dir")
-    arg_decl_string("output,o", "output gvcf file (if --skip-concat is set"
+    arg_decl_string("output,o", "output GVCF/VCF file (if --skip-concat is set"
                                 "the output will be a directory of gvcf files)")
-    ("skip-concat,s", "produce a set of gvcf files instead of one");
+    ("produce-vcf,v", "produce VCF files from HaplotypeCaller instead of GVCF")
+    // TODO: skip-concat should be deprecated
+    ("skip-concat,s", "(deprecated) produce a set of GVCF/VCF files instead of one");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
@@ -39,6 +42,7 @@ int htc_main(int argc, char** argv,
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force");
   bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat");
+  bool flag_vcf           = get_argument<bool>(cmd_vm, "produce-vcf");
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
                                 get_config<std::string>("ref_genome"));
   std::string input_path  = get_argument<std::string>(cmd_vm, "input");
@@ -81,11 +85,17 @@ int htc_main(int argc, char** argv,
     else {
       input_file = input_path;
     }
-    std::string output_file = get_contig_fname(output_dir, contig, "gvcf");
+    std::string file_ext = "vcf";
+    if (!flag_vcf) {
+      file_ext = "g." + file_ext;
+    }
+    std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new HTCWorker(ref_path,
           intv_paths[contig], input_file,
           output_file,
-          contig, flag_htc_f));
+          contig, 
+          flag_vcf,
+          flag_htc_f));
     output_files[contig] = output_file;
 
     executor.addTask(worker);

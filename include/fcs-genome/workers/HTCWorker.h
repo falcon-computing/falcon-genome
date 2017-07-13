@@ -13,12 +13,14 @@ class HTCWorker : public Worker {
       std::string input_path,
       std::string output_path,
       int contig,
+      bool flag_vcf,
       bool &flag_f);
 
   void check();
   void setup();
 
  private:
+  bool produce_vcf_;
   std::string ref_path_;
   std::string intv_path_;
   std::string input_path_;
