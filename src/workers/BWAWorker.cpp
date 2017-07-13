@@ -49,11 +49,19 @@ void BWAWorker::setup() {
     cmd << "LD_LIBRARY_PATH=" << conf_root_dir << "/lib:$LD_LIBRARY_PATH ";
   }
   else {
-    // TODO: here needs to make sure necessary LD_LIBRARY_PATH
+    // NOTE: Needs to make sure necessary LD_LIBRARY_PATH
     // is set in user's bash mode
     cmd << get_config<std::string>("mpi_path") << "/bin/mpirun " 
         << "--prefix " << get_config<std::string>("mpi_path") << " "
         << "--bind-to none "
+        /* 
+         * This '--mca' option is used to get rid of the problem of
+         * hfi_wait_for_device which causes a 15 sec delay.
+         * This problem could be related to boxes with Intel OmniPath HFI.
+         * Source: 
+         * http://users.open-mpi.narkive.com/7efFnJXR/ompi-users-device-failed-to-appear-connection-timed-out
+         */
+        << "--mca pml ob1 "
         << "-np " << conf_host_list.size() << " ";
 
     // set host list
