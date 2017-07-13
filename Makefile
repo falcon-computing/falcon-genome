@@ -30,7 +30,6 @@ LINK	:= -L$(BOOST_DIR)/lib \
 		-lboost_regex \
 		-lboost_program_options \
 	   -L$(GLOG_DIR)/lib -lglog \
-	   -L$(GFLAGS_DIR)/lib -lgflags \
 	   -L$(HTSLIB_DIR) -lhts \
 	   -L$(JSONCPP_DIR) -ljsoncpp \
 	   -lpthread -lm -ldl -lz -lrt
@@ -53,6 +52,9 @@ CFLAGS   	:= $(CFLAGS) -O2 -DNDEBUG
 endif
 endif
 
+GIT_VERSION := $(shell git describe --abbrev=5 --dirty --always --tags)
+CFLAGS	:= $(CFLAGS) -DVERSION=\"$(GIT_VERSION)\"
+
 OBJS	 := $(SRC_DIR)/main.o \
 	    $(SRC_DIR)/common.o \
 	    $(SRC_DIR)/config.o \
@@ -61,7 +63,6 @@ OBJS	 := $(SRC_DIR)/main.o \
 	    $(SRC_DIR)/worker-bqsr.o \
 	    $(SRC_DIR)/worker-concat.o \
 	    $(SRC_DIR)/worker-gatk.o \
-	    $(SRC_DIR)/worker-hist.o \
 	    $(SRC_DIR)/worker-htc.o \
 	    $(SRC_DIR)/worker-indel.o \
 	    $(SRC_DIR)/worker-joint.o \
