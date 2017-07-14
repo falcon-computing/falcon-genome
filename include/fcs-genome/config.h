@@ -41,7 +41,7 @@ inline bool get_config(std::string arg) {
 
 int init(char** argv, int argc);
 
-std::vector<std::string> init_contig_intv(std::string ref_path);
+std::vector<std::string> init_contig_intv(std::string ref_path, std::string bed_path);
 
 } // namespace fcsgenome
 #endif

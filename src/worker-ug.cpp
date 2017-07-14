@@ -24,6 +24,7 @@ int ug_main(int argc, char** argv,
   opt_desc.add_options() 
     arg_decl_string("ref,r", "reference genome path")
     arg_decl_string("input,i", "input BAM file or dir")
+    arg_decl_string("bed,l", "input bed file to specify range")
     arg_decl_string("output,o", "output vcf file (if --skip-concat is set"
                                 "the output will be a directory of vcf files)")
     ("skip-concat,s", "produce a set of vcf files instead of one");
@@ -42,6 +43,7 @@ int ug_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
                                 get_config<std::string>("ref_genome"));
   std::string input_path  = get_argument<std::string>(cmd_vm, "input");
+  std::string bed_path    = get_argument<std::string>(cmd_vm, "bed", "");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
 
   // finalize argument parsing
@@ -66,7 +68,7 @@ int ug_main(int argc, char** argv,
   create_dir(output_dir);
 
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
-  std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+  std::vector<std::string> intv_paths = init_contig_intv(ref_path, bed_path);
 
   Executor executor("Unified Genotyper", get_config<int>("gatk.ug.nprocs"));
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
