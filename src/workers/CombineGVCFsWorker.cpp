@@ -243,7 +243,9 @@ void CombineGVCFsWorker::setup() {
   std::stringstream cmd;
   cmd << get_config<std::string>("mpi_path") << "/bin/mpirun " 
       << "--prefix " << get_config<std::string>("mpi_path") << " "
-      << "-n " << get_config<int>("gatk.joint.ncontigs") << " ";
+      << "--bind-to none "
+      << "--mca pml ob1 " // same issue as in workers/BWAWorker.cpp
+      << "-np " << get_config<int>("gatk.joint.ncontigs") << " ";
 
   // set host list
   if (!conf_host_list.empty()) {
