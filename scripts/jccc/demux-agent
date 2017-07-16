@@ -20,11 +20,15 @@ if len(sys.argv) < 3:
 run_id = sys.argv[1]
 run_folder = sys.argv[2]
 fastq_dir = sys.argv[3]
-# TODO: load it from conf file
-remote_fastq_dir = 'wudee@hoffman2.idre.ucla.edu:/u/nobackup/lixuser/shared/fastq'
 
-dir = os.path.dirname(os.path.realpath(__file__))
-log_file = dir +'/log/demux-agent.log'
+# TODO: load it from conf file
+remote_user = 'wudee'
+remote_group = 'lixuser'
+remote_fastq_dir = remote_user+'@hoffman2.idre.ucla.edu:/u/nobackup/lixuser/shared/fastq'
+remote_server = remote_user+'@hoffman2.idre.ucla.edu'
+
+#dir = os.path.dirname(os.path.realpath(__file__))
+log_file = './log/demux-agent.log'
 
 # config logging
 log_format = "%(asctime)-15s ["+run_id+"] %(levelname)s - %(message)s"
@@ -48,23 +52,21 @@ try:
   data = ''
   found_table = 0
   
-  try:
-    f = open(sample_sheet, 'r')
+  f = open(sample_sheet, 'r')
   
-    for line in f.readlines():
-      # NOTE: here is an assumption that [data] is the last
-      # 'header' label
-      if not found_table:
-        header += line
-    
-      if '[data]' in line.lower():
-        found_table = 1
-      elif re.search('\[[A-Za-z].*\]', line):
-        found_table = 0
-      else:
-        if found_table:
-          data = data + line
+  for line in f.readlines():
+    # NOTE: here is an assumption that [data] is the last
+    # 'header' label
+    if not found_table:
+      header += line
   
+    if '[data]' in line.lower():
+      found_table = 1
+    elif re.search('\[[A-Za-z].*\]', line):
+      found_table = 0
+    else:
+      if found_table:
+        data = data + line
   
   # read contents
   csv_file = StringIO.StringIO(data)
@@ -144,6 +146,7 @@ try:
     if ret != 0:
       logger.error("bcf2fastq failed for part-"+ str(idx))
       is_successful = False
+      raise # exit before the next steps 
   
   if is_successful: 
     e_time = time.time() - start_time
@@ -164,6 +167,17 @@ try:
     if ret != 0:
       logger.error("failed to upload run to "+ remote_fastq_dir)
       # still return as if correct, to allow compute to follow
+    
+    # modify ownership
+    owner_str = remote_user+':'+remote_group
+    call(['ssh', remote_server, 'chown '+owner_str+' '+remote_fastq_dir+' -R'])
+    if ret != 0:
+      logger.error("failed to upload run to "+ remote_fastq_dir)
+    
+    # scp transfer complete $remote_fastq
+    call(['ssh', remote_server, 'echo complete > '+remote_fastq_dir+'/TransferComplete.txt'])
+    if ret != 0:
+      logger.error("failed to mark run finish")
   
     p.wait() # wait for rm to finish
   
