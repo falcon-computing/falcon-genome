@@ -109,9 +109,11 @@ int main(int argc, char** argv) {
 
   opt_desc.add_options() 
     ("help,h", "print help messages")
-    ("force,f", "overwrite output files if they exist");
-    ("checkpoint", "save the output of the command");
-    ("schedule,a", "schedule the command rather than executing it");
+    ("force,f", "overwrite output files if they exist")
+    ("extra-options,O", po::value<std::vector<std::string> >(),
+     "extra options for the command");
+    //("checkpoint", "save the output of the command");
+    //("schedule,a", "schedule the command rather than executing it");
 
   std::string cmd(argv[1]);
   // transform all cmd to lower-case

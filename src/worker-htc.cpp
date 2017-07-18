@@ -48,6 +48,11 @@ int htc_main(int argc, char** argv,
   std::string input_path  = get_argument<std::string>(cmd_vm, "input");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
 
+  std::vector<std::string> extra_opts;
+  if (cmd_vm.count("extra-options")) {
+    extra_opts = cmd_vm["extra-options"].as<std::vector<std::string>>();
+  }
+
   // finalize argument parsing
   po::notify(cmd_vm);
 
@@ -93,6 +98,7 @@ int htc_main(int argc, char** argv,
     Worker_ptr worker(new HTCWorker(ref_path,
           intv_paths[contig], input_file,
           output_file,
+          extra_opts,
           contig, 
           flag_vcf,
           flag_htc_f));
