@@ -216,6 +216,27 @@ void CombineGVCFsWorker::genLoader() {
   DLOG(INFO) << "Written loader to " << loader_json_;
 }
 
+void CombineGVCFsWorker::genHostlist() {
+
+  // set host list
+  if (!conf_host_list.empty()) {
+    // assume an even distribute of processes
+    int total_slots = get_config<int>("gatk.joint.ncontigs");
+    int slots_per_host = total_slots / conf_host_list.size();
+
+    host_list_ = temp_dir_ + "/hostfile";
+    std::ofstream fout;
+    fout.open(host_list_);
+
+    for (int i = 0; i < conf_host_list.size(); i++) {
+      fout << conf_host_list[i] << " "
+           << "slots=" << slots_per_host << "\n";
+      DLOG(INFO) << conf_host_list[i] << " "
+           << "slots=" << slots_per_host << "\n";
+    }
+  }
+}
+
 void CombineGVCFsWorker::check() {
 
   // check all paths
@@ -233,6 +254,9 @@ void CombineGVCFsWorker::check() {
   
   // 3. generate loader.json
   genLoader();
+
+  // 4. generate host list
+  genHostlist();
 }
  
 void CombineGVCFsWorker::setup() {
@@ -246,19 +270,8 @@ void CombineGVCFsWorker::setup() {
       << "--bind-to none "
       << "--mca pml ob1 " // same issue as in workers/BWAWorker.cpp
       << "-np " << get_config<int>("gatk.joint.ncontigs") << " ";
-
-  // set host list
   if (!conf_host_list.empty()) {
-    cmd << "--host ";
-    for (int i = 0; i < conf_host_list.size(); i++) {
-      cmd << conf_host_list[i];
-      if (i < conf_host_list.size() - 1) {
-        cmd << ",";
-      }
-      else {
-        cmd << " ";
-      }
-    }
+    cmd << "--hostfile " << host_list_ << " ";
   }
 
   cmd << get_config<std::string>("genomicsdb_path") << " "

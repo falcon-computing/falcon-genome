@@ -20,6 +20,7 @@ class CombineGVCFsWorker : public Worker {
   void genVid();
   void genCallSet();
   void genLoader();
+  void genHostlist();
 
   std::string ref_path_;
   std::string input_path_;
@@ -30,6 +31,7 @@ class CombineGVCFsWorker : public Worker {
   std::string vid_json_;
   std::string callset_json_;
   std::string loader_json_;
+  std::string host_list_;
 };
 } // namespace fcsgenome
 #endif
