@@ -356,12 +356,12 @@ std::vector<std::string> init_contig_intv(std::string ref_path, std::string bed_
     fin.open(bed_path);
     std::string line;
     uint64_t totalLen = 0;
-    while(getline(fin, line)) {
-      if(line.empty()) continue;
+    while (getline(fin, line)) {
+      if (line.empty()) continue;
       std::istringstream iss(line);
       std::string info;
       std::vector<std::string> infos;
-      while(iss >> info) {
+      while (iss >> info) {
         infos.push_back(info);
       }
       totalLen += (stol(infos[2]) - stol(infos[1]) + 1);
@@ -370,7 +370,7 @@ std::vector<std::string> init_contig_intv(std::string ref_path, std::string bed_
 
     int contig_idx = 0;
     
-    uint64_t contig_npos = (totalLen -1)/ncontigs;
+    uint64_t contig_npos = totalLen / ncontigs;
     uint64_t remain_npos = contig_npos;
 
     DLOG(INFO) << "contig_npos = " << contig_npos;
@@ -381,35 +381,31 @@ std::vector<std::string> init_contig_intv(std::string ref_path, std::string bed_
     fin.open(bed_path);
     std::ofstream fout;
     fout.open(intv_paths[0]);
-    while(getline(fin,line)) {
-      if(line.empty()) continue;
+    while (getline(fin,line)) {
+      if (line.empty()) continue;
       std::istringstream iss(line);
       std::string info;
       std::vector<std::string> infos;
-      while(iss >> info) {
+      while (iss >> info) {
         infos.push_back(info);
       }
       std::string chr_name = infos[0];
       lbound = stol(infos[1]);
-      ubound = stol(infos[2]);
       uint64_t curLen = (stol(infos[2]) - stol(infos[1]) + 1);
-      if (curLen > remain_npos) {
+      while (curLen > remain_npos) {
         ubound = remain_npos + lbound - 1;
 	write_contig_intv(fout, chr_name, lbound, ubound);
 	fout.close();
 	fout.open(intv_paths[++contig_idx]);
-	lbound = ubound + 1;
-	ubound = stol(infos[2]);
-	write_contig_intv(fout, chr_name, lbound, ubound);
-
+	curLen -= remain_npos;
 	remain_npos = contig_npos;
-	remain_npos -= (ubound - lbound + 1);
+	lbound = ubound + 1;
       }
-      else {
-        write_contig_intv(fout, chr_name, lbound, ubound);
-
-	remain_npos -= (ubound - lbound + 1);
-      }
+      ubound = stol(infos[2]);
+      write_contig_intv(fout, chr_name, lbound, ubound);
+      remain_npos -= (ubound - lbound + 1);
+      if (0 == remain_npos)
+      	remain_npos = contig_npos;
     }
     fout.close();
 

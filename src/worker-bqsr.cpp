@@ -110,7 +110,7 @@ int baserecal_main(int argc, char** argv,
   opt_desc.add_options() 
     arg_decl_string("ref,r", "reference genome path")
     arg_decl_string("input,i", "input BAM file or dir")
-    arg_decl_string("bed,l", "input bed file to specify range")
+    arg_decl_string("intervals,L", "input file to specify intervals [bed format]")
     arg_decl_string("output,o", "output BQSR file")
     ("knownSites,K", po::value<std::vector<std::string> >(),
      "known sites for base recalibration");
@@ -128,7 +128,7 @@ int baserecal_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
                                 get_config<std::string>("ref_genome"));
   std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string bed_path    = get_argument<std::string>(cmd_vm, "bed", "");
+  std::string bed_path    = get_argument<std::string>(cmd_vm, "intervals", "");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
 
   std::vector<std::string> known_sites = get_argument<
@@ -162,7 +162,7 @@ int pr_main(int argc, char** argv,
     arg_decl_string("ref,r", "reference genome path")
     arg_decl_string("bqsr,b", "input BQSR file")
     arg_decl_string("input,i", "input BAM file or dir")
-    arg_decl_string("bed,l", "input bed file to specify range")
+    arg_decl_string("intervals,L", "input file to specify intervals [bed format]")
     arg_decl_string("output,o", "output BAM files");
 
   // Parse arguments
@@ -179,7 +179,7 @@ int pr_main(int argc, char** argv,
                                 get_config<std::string>("ref_genome"));
   std::string bqsr_path   = get_argument<std::string>(cmd_vm, "bqsr");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string bed_path    = get_argument<std::string>(cmd_vm, "bed", "");
+  std::string bed_path    = get_argument<std::string>(cmd_vm, "intervals", "");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
 
   // finalize argument parsing
@@ -209,7 +209,7 @@ int bqsr_main(int argc, char** argv,
     arg_decl_string("bqsr,b", "output BQSR file (if left blank no file will "
                               "be produced")
     arg_decl_string("input,i", "input BAM file or dir")
-    arg_decl_string("bed,l", "input bed file to specify range")
+    arg_decl_string("intervals,L", "input file to specify intervals [bed format]")
     arg_decl_string("output,o", "output directory of BAM files")
     ("knownSites,K", po::value<std::vector<std::string> >(),
      "known sites for base recalibration");
@@ -228,7 +228,7 @@ int bqsr_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", 
                                 get_config<std::string>("ref_genome"));
   std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string bed_path    = get_argument<std::string>(cmd_vm, "bed", "");
+  std::string bed_path    = get_argument<std::string>(cmd_vm, "intervals", "");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
 
   std::string temp_dir = conf_temp_dir + "/bqsr";

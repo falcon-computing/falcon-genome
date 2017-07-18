@@ -24,7 +24,7 @@ int htc_main(int argc, char** argv,
   opt_desc.add_options() 
     arg_decl_string("ref,r", "reference genome path")
     arg_decl_string("input,i", "input BAM file or dir")
-    arg_decl_string("bed,l", "input bed file to specify range")
+    arg_decl_string("intervals,L", "input file to specify intervals [bed format]")
     arg_decl_string("output,o", "output gvcf file (if --skip-concat is set"
                                 "the output will be a directory of gvcf files)")
     ("skip-concat,s", "produce a set of gvcf files instead of one");
@@ -43,7 +43,7 @@ int htc_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
                                 get_config<std::string>("ref_genome"));
   std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string bed_path    = get_argument<std::string>(cmd_vm, "bed", "");
+  std::string bed_path    = get_argument<std::string>(cmd_vm, "intervals", "");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
 
   // finalize argument parsing
@@ -93,7 +93,25 @@ int htc_main(int argc, char** argv,
     executor.addTask(worker);
   }
 
+  for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
+    // bgzip sub gvcf file for concat
+    Worker_ptr worker(new ZIPWorker(
+          output_files[contig], output_files[contig]+".gz",
+	  flag_f));
+    executor.addTask(worker, contig == 0);
+  }
+
+  for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
+    // tabix sub gvcf file for concat
+    Worker_ptr worker(new TabixWorker(
+          output_files[contig]+".gz"));
+    executor.addTask(worker, contig == 0);
+  }
+
   if (!flag_skip_concat) {
+    
+    for (int i = 0; i < output_files.size(); i++)
+      output_files[i] += ".gz";
 
     bool flag = true;
     { // concat gvcfs
