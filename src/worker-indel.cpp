@@ -24,6 +24,7 @@ int ir_main(int argc, char** argv,
   opt_desc.add_options() 
     arg_decl_string("ref,r", "reference genome path")
     arg_decl_string("input,i", "input BAM file or dir")
+    arg_decl_string("intervals,L", "input file to specify intervals [bed format]")
     arg_decl_string("output,o", "output diretory of BAM files")
     ("known,K", po::value<std::vector<std::string> >(),
      "known indels for realignment");
@@ -41,6 +42,7 @@ int ir_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
                                 get_config<std::string>("ref_genome"));
   std::string input_path  = get_argument<std::string>(cmd_vm, "input");
+  std::string bed_path    = get_argument<std::string>(cmd_vm, "intervals", "");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
   std::string target_path = input_path + ".intervals";
 
@@ -62,7 +64,7 @@ int ir_main(int argc, char** argv,
     executor.addTask(worker, true);
   }
 
-  std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+  std::vector<std::string> intv_paths = init_contig_intv(ref_path, bed_path);
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
     std::string input_file;
     if (boost::filesystem::is_directory(input_path)) {

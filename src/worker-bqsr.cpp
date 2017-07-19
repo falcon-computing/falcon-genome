@@ -17,10 +17,11 @@ static void baserecalAddWorkers(Executor &executor,
     std::string &ref_path,
     std::vector<std::string> &known_sites,
     std::string &input_path,
+    std::string &bed_path,
     std::string &output_path,
     bool flag_f) 
 {
-  std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+  std::vector<std::string> intv_paths = init_contig_intv(ref_path, bed_path);
   std::vector<std::string> bqsr_paths(get_config<int>("gatk.ncontigs"));
 
   // compute bqsr for each contigs
@@ -70,11 +71,12 @@ static void removePartialBQSR(std::string bqsr_path) {
 static void prAddWorkers(Executor &executor,
     std::string &ref_path,
     std::string &input_path,
+    std::string &bed_path,
     std::string &bqsr_path,
     std::string &output_path,
     bool flag_f) 
 {
-  std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+  std::vector<std::string> intv_paths = init_contig_intv(ref_path, bed_path);
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
     // handle input as directory
     std::string input_file;
@@ -108,6 +110,7 @@ int baserecal_main(int argc, char** argv,
   opt_desc.add_options() 
     arg_decl_string("ref,r", "reference genome path")
     arg_decl_string("input,i", "input BAM file or dir")
+    arg_decl_string("intervals,L", "input file to specify intervals [bed format]")
     arg_decl_string("output,o", "output BQSR file")
     ("knownSites,K", po::value<std::vector<std::string> >(),
      "known sites for base recalibration");
@@ -125,6 +128,7 @@ int baserecal_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
                                 get_config<std::string>("ref_genome"));
   std::string input_path  = get_argument<std::string>(cmd_vm, "input");
+  std::string bed_path    = get_argument<std::string>(cmd_vm, "intervals", "");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
 
   std::vector<std::string> known_sites = get_argument<
@@ -136,7 +140,7 @@ int baserecal_main(int argc, char** argv,
   Executor executor("Base Recalibrator", get_config<int>("gatk.bqsr.nprocs"));
 
   baserecalAddWorkers(executor, ref_path, known_sites,
-      input_path, output_path, flag_f);
+      input_path, bed_path, output_path, flag_f);
 
   executor.run();
 
@@ -158,6 +162,7 @@ int pr_main(int argc, char** argv,
     arg_decl_string("ref,r", "reference genome path")
     arg_decl_string("bqsr,b", "input BQSR file")
     arg_decl_string("input,i", "input BAM file or dir")
+    arg_decl_string("intervals,L", "input file to specify intervals [bed format]")
     arg_decl_string("output,o", "output BAM files");
 
   // Parse arguments
@@ -174,6 +179,7 @@ int pr_main(int argc, char** argv,
                                 get_config<std::string>("ref_genome"));
   std::string bqsr_path   = get_argument<std::string>(cmd_vm, "bqsr");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input");
+  std::string bed_path    = get_argument<std::string>(cmd_vm, "intervals", "");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
 
   // finalize argument parsing
@@ -185,7 +191,7 @@ int pr_main(int argc, char** argv,
   Executor executor("Print Reads", get_config<int>("gatk.pr.nprocs"));
   
   prAddWorkers(executor, ref_path, 
-      input_path, bqsr_path, output_path, flag_f);
+      input_path, bed_path, bqsr_path, output_path, flag_f);
   
   executor.run();
 }
@@ -203,6 +209,7 @@ int bqsr_main(int argc, char** argv,
     arg_decl_string("bqsr,b", "output BQSR file (if left blank no file will "
                               "be produced")
     arg_decl_string("input,i", "input BAM file or dir")
+    arg_decl_string("intervals,L", "input file to specify intervals [bed format]")
     arg_decl_string("output,o", "output directory of BAM files")
     ("knownSites,K", po::value<std::vector<std::string> >(),
      "known sites for base recalibration");
@@ -221,6 +228,7 @@ int bqsr_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", 
                                 get_config<std::string>("ref_genome"));
   std::string input_path  = get_argument<std::string>(cmd_vm, "input");
+  std::string bed_path    = get_argument<std::string>(cmd_vm, "intervals", "");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
 
   std::string temp_dir = conf_temp_dir + "/bqsr";
@@ -250,10 +258,10 @@ int bqsr_main(int argc, char** argv,
 
   // first, do base recal
   baserecalAddWorkers(executor, ref_path, known_sites,
-      input_path, bqsr_path, flag_f);
+      input_path, bed_path, bqsr_path, flag_f);
 
   prAddWorkers(executor, ref_path, 
-      input_path, bqsr_path, output_path, flag_f);
+      input_path, bed_path, bqsr_path, output_path, flag_f);
   
   executor.run();
 
