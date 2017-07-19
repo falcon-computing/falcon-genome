@@ -9,7 +9,7 @@ CFLAGS 	:= -g -std=c++0x -fPIC -O3
 INCLUDES:= -I./include  \
 	   -I$(GLOG_DIR)/include \
 	   -I$(HTSLIB_DIR) \
-	   -I$(JSONCPP_DIR)/install/include
+	   -I$(JSONCPP_DIR)/include
 
 ifeq ($(PREFIX),)
 PREFIX  := ./install
@@ -31,7 +31,7 @@ LINK	:= -L$(BOOST_DIR)/lib \
 		-lboost_program_options \
 	   -L$(GLOG_DIR)/lib -lglog \
 	   -L$(HTSLIB_DIR) -lhts \
-	   -L$(JSONCPP_DIR) -ljsoncpp \
+	   -L$(JSONCPP_DIR)/lib -ljsoncpp \
 	   -lpthread -lm -ldl -lz -lrt
 
 ifeq ($(RELEASE),)
@@ -79,6 +79,7 @@ OBJS	 := $(SRC_DIR)/main.o \
 	    $(SRC_DIR)/workers/UGWorker.o
 
 PROG	 := ./$(BIN_DIR)/fcs-genome
+DEPS	 := ./deps/.ready
 
 all:	$(PROG)
 
@@ -90,10 +91,13 @@ install:
 release:
 	$(MAKE) RELEASE=1
 
-$(PROG): $(OBJS) $(LMDEPS)
+$(DEPS): ./deps/get-all.sh
+	./deps/get-all.sh
+
+$(PROG): $(OBJS) $(LMDEPS) 
 	$(PP) $(OBJS) $(LMDEPS) -o $@ $(LINK)
 
-$(SRC_DIR)/%.o:	$(SRC_DIR)/%.cpp
+$(SRC_DIR)/%.o:	$(SRC_DIR)/%.cpp $(DEPS)
 	$(CC) -c $(CFLAGS) $(INCLUDES) $< -o $@
 
 clean:
