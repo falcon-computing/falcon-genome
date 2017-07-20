@@ -11,11 +11,15 @@ HTCWorker::HTCWorker(std::string ref_path,
       std::string intv_path,
       std::string input_path,
       std::string output_path,
+      std::vector<std::string> extra_opts,
       int  contig,
+      bool flag_vcf,
       bool &flag_f): Worker(1, get_config<int>("gatk.htc.nct")),
+  produce_vcf_(flag_vcf),
   ref_path_(ref_path),
   intv_path_(intv_path),
-  input_path_(input_path)
+  input_path_(input_path),
+  extra_opts_(extra_opts)
 {
   // check input/output files
   output_path_ = check_output(output_path, flag_f);
@@ -36,13 +40,18 @@ void HTCWorker::setup() {
       << "-jar " << get_config<std::string>("gatk_path") << " "
       << "-T HaplotypeCaller "
       << "-R " << ref_path_ << " "
-      << "-I " << input_path_ << " "
-      << "--emitRefConfidence GVCF "
-      << "--variant_index_type LINEAR "
+      << "-I " << input_path_ << " ";
+  if (!produce_vcf_) {
+    cmd << "--emitRefConfidence GVCF ";
+  }
+  cmd << "--variant_index_type LINEAR "
       << "--variant_index_parameter 128000 "
       << "-L " << intv_path_ << " "
       << "-nct " << get_config<int>("gatk.htc.nct") << " "
       << "-o " << output_path_ << " ";
+  for (int i = 0; i < extra_opts_.size(); i++) {
+    cmd << extra_opts_[i] << " ";
+  }
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
