@@ -10,7 +10,7 @@ fcs-genome
 ```
 
 ## Commands and Options
-## Name
+### Name
    align
 ### Description
    Maps pair-ended FASTQ sequences against a large reference genome sequence. The resulting BAM file is sorted, with duplicates marked. 
