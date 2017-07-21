@@ -25,7 +25,7 @@ void VCFConcatWorker::check() {
 void VCFConcatWorker::setup() {
   // create cmd
   std::stringstream cmd;
-  cmd << get_config<std::string>("bcftools_path") << " concat " 
+  cmd << get_config<std::string>("bcftools_path") << " concat -a " 
       << "-o " << output_file_ << " ";
   for (int i = 0; i < input_files_.size(); i++) {
     cmd << input_files_[i] << " ";

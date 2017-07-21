@@ -104,6 +104,31 @@ int joint_main(int argc, char** argv,
       executor->addTask(worker, contig == 0);
       vcf_parts[contig] = get_contig_fname(parts_dir, contig, "vcf");
     }
+    for (int contig = 0;
+         contig < get_config<int>("gatk.joint.ncontigs");
+	 contig++)
+    {
+      Worker_ptr worker(new ZIPWorker(
+            vcf_parts[contig], vcf_parts[contig]+".gz", flag_f));
+      executor->addTask(worker, contig == 0);
+    }
+
+    for (int contig = 0;
+          contig < get_config<int>("gatk.joint.ncontigs");
+	  contig++)
+    {
+      Worker_ptr worker(new TabixWorker(
+      vcf_parts[contig]+".gz"));
+      executor->addTask(worker, contig == 0);
+    }
+
+    {
+
+    for (auto& vcf_part : vcf_parts)
+      vcf_part += ".gz";
+
+    }
+      
 
     // start concat the vcfs
     bool flag = true;
