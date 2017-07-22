@@ -10,7 +10,8 @@ namespace fcsgenome {
 VCFConcatWorker::VCFConcatWorker(
       std::vector<std::string> &input_files,
       std::string output_path,
-      bool &flag_f): Worker(1, 1), input_files_(input_files)
+      bool &flag_a,
+      bool &flag_f): Worker(1, 1), input_files_(input_files), flag_a_(flag_a)
 {
   // check output files
   output_file_ = check_output(output_path, flag_f);
@@ -25,8 +26,14 @@ void VCFConcatWorker::check() {
 void VCFConcatWorker::setup() {
   // create cmd
   std::stringstream cmd;
-  cmd << get_config<std::string>("bcftools_path") << " concat -a " 
-      << "-o " << output_file_ << " ";
+  if(flag_a_) {
+    cmd << get_config<std::string>("bcftools_path") << " concat -a " 
+        << "-o " << output_file_ << " ";
+  }
+  else {
+    cmd << get_config<std::string>("bcftools_path") << " concat " 
+        << "-o " << output_file_ << " ";
+  }
   for (int i = 0; i < input_files_.size(); i++) {
     cmd << input_files_[i] << " ";
   }

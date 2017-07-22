@@ -94,10 +94,11 @@ int ug_main(int argc, char** argv,
 
   if (!flag_skip_concat) {
     bool flag = true;
+    bool flag_a = false;
     { // concat gvcfs
       Worker_ptr worker(new VCFConcatWorker(
             output_files, temp_gvcf_path,
-            flag));
+            flag_a, flag));
       executor.addTask(worker, true);
     }
     //{ // sort gvcf

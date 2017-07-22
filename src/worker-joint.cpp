@@ -132,11 +132,12 @@ int joint_main(int argc, char** argv,
 
     // start concat the vcfs
     bool flag = true;
+    bool flag_a = true;
     std::string temp_vcf_path = parts_dir + "/" + get_basename(output_path);
     { // concat vcfs
       Worker_ptr worker(new VCFConcatWorker(
             vcf_parts, temp_vcf_path,
-            flag));
+            flag_a, flag));
       executor->addTask(worker, true);
     }
     { // bgzip vcf

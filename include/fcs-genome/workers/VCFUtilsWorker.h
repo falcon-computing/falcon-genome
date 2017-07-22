@@ -11,6 +11,7 @@ class VCFConcatWorker : public Worker {
   VCFConcatWorker(
       std::vector<std::string> &input_files,
       std::string output_path,
+      bool &flag_a,
       bool &flag_f);
 
   void check();
@@ -18,6 +19,7 @@ class VCFConcatWorker : public Worker {
  private:
   std::vector<std::string> input_files_;
   std::string output_file_; 
+  bool flag_a_;
 };
 
 class ZIPWorker : public Worker {
