@@ -53,9 +53,11 @@ int concat_main(int argc, char** argv,
 
   Executor executor("VCF concat");
   { // concat gvcfs
+    // TODO: auto detect the input and decide flag_a
+    bool flag_a = false;
     Worker_ptr worker(new VCFConcatWorker(
           input_files, output_path,
-          flag_f));
+          flag_a, flag_f));
     executor.addTask(worker);
   }
   //{ // sort gvcf
