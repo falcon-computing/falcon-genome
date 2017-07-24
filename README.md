@@ -27,7 +27,7 @@ Equivalent to BWA-MEM, this command maps pair-ended FASTQ sequences against a la
 | -r [--ref] arg | reference genome path |
 | -1 [--fastq1] arg | input pair-end fastq file |
 | -2 [--fastq2] arg | input pair-end fastq file |
-| -o [--output] arg | output BAM file |
+| -o [--output] arg | output BAM file (if --align-only is set, the output will be a directory of BAM files |
 | -R [--rg] arg | read group ID ('ID' in BAM header) |
 | -S [--sp] arg | sample ID ('SM' in BAM header) |
 | -P [--pl] arg | platform ID ('PL' in BAM header) |
