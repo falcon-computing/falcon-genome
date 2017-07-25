@@ -47,6 +47,7 @@ Equivalent to BWA-MEM, this command maps pair-ended FASTQ sequences against a la
 | -L [--lb] arg | library ID ('LB' in BAM header) |
 | -l [--align-only] | skip mark duplicates |
 
+---
 ### Mark Duplicates 
 ```
 fcs-genome markdup <options>
@@ -61,6 +62,7 @@ Equivalent to Picard's MarkDuplicates, this tool tags duplicate reads in a BAM f
 | -i [--input] arg | input file |
 | -o [--output] arg | output file |
 
+---
 ### Indel Realignment
 ```
 fcs-genome indel <options>
@@ -77,6 +79,7 @@ Equivalent to GATK IndelRealigner. This command takes a BAM file as an input and
 | -o [--output] arg | output directory of BAM files |
 | -K [--known] arg | known indels for realignment|
 
+---
 ### Base Recalibration + Print Reads
 ```
 fcs-genome bqsr <options>
@@ -94,6 +97,7 @@ The equivalent of GATK's BaseRecalibrator followed by GATK's PrintReads, this co
 | -o [--output] arg | output directory of BAM files |
 | -K [--knownSites] arg | known sites for base recalibration |
 
+---
 ### Base Recalibration 
 ```
 fcs-genome baserecal <options>
@@ -110,6 +114,7 @@ This equivalent of GATK's BaseRecalibrator gives per-base score estimates of err
 | -o [--output] arg | output BQSR file |
 | -K [--knownSites] arg | known sites for base recalibration |
 
+---
 ### Print Reads
 ```
 fcs-genome printreads <options>
@@ -126,6 +131,7 @@ Equivalent to GATK's PrintReads, this tool manipulates BAM files. It takes the o
 | -i [--input] arg | input BAM file or dir |
 | -o [--output] arg | output BAM files |
 
+---
 ### Haplotype Caller
 ```
 fcs-genome htc <options>
@@ -142,6 +148,7 @@ Equivalent to GATK's Haplotype Caller, this tool calls germline SNPs and indels 
 | -o [--output] arg | output gvcf file |
 | -s [--skip-concat] | produce a set of gvcf files instead of one |
 
+---
 ### Joint Genotyping
 ``` 
 fcs-genome joint <options>
@@ -159,6 +166,7 @@ Equivalent of GATK's GenotypeGVCFs, this tool takes in gVCF files as input. The 
 | -c [--combine-only] | combine GVCFs only and skip genotyping |
 | -g [--skip-combine] | genotype GVCFs only and skip combining (for single sample) |
 
+---
 ### Unified Genotyper
 ```
 fcs-genome ug <options>
@@ -175,6 +183,7 @@ Equivalent to GATK's UnifiedGenotyper, this tool is also used to perform SNP and
 | -o [--output] arg | output vcf file (if --skip-concat is set, the output will be a directory of vcf files) |
 | -s [--skip-concat] | produce a set of vcf files instead of one |
 
+---
 ### GATK
 ```
 fcs-genome gatk <options>
