@@ -7,21 +7,21 @@ Variant calling pipeline for germline mutations adopting GATK's Best Practices a
 fcs-genome align -r ref.fasta -1 input_1.fastq -2 input_2.fastq -o aln.sorted.bam \
   --rg RG_ID --sp sample_id --pl platform --lb library 
 
-fcs-genome markdup -i aln.sorted.bam -o aln.marked.bam <br />
+fcs-genome markdup -i aln.sorted.bam -o aln.marked.bam 
 
-fcs-genome indel -r ref.fasta -i aln.sorted.bam -o indel.bam <br />
+fcs-genome indel -r ref.fasta -i aln.sorted.bam -o indel.bam
 
-fcs-genome bqsr -r ref.fasta -i indel.bam -o recal.bam <br />
+fcs-genome bqsr -r ref.fasta -i indel.bam -o recal.bam
 
-fcs-genome baserecal -r ref.fasta -i indel.bam -o recalibration_report.grp <br /> 
+fcs-genome baserecal -r ref.fasta -i indel.bam -o recalibration_report.grp 
 
-fcs-genome printreads -r ref.fasta -b recalibration_report.grp -i indel.bam -o recal.bam <br />
+fcs-genome printreads -r ref.fasta -b recalibration_report.grp -i indel.bam -o recal.bam 
 
-fcs-genome htc -r ref.fasta -i recal.bam -o final.gvcf <br />
+fcs-genome htc -r ref.fasta -i recal.bam -o final.gvcf
 
-fcs-genome joint -r ref.fasta -i final.gvcf -o final.vcf <br />
+fcs-genome joint -r ref.fasta -i final.gvcf -o final.vcf 
 
-fcs-genome ug -r ref.fasta -i recal.bam -o final.vcf <br />
+fcs-genome ug -r ref.fasta -i recal.bam -o final.vcf
 
 fcs-genome gatk -T analysisType 
 ```
