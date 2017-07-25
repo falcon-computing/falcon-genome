@@ -29,7 +29,7 @@ int align_main(int argc, char** argv,
     arg_decl_string("sp,S", "sample id ('SM' in BAM header)")
     arg_decl_string("pl,P", "platform id ('PL' in BAM header)")
     arg_decl_string("lb,L", "library id ('LB' in BAM header)")
-    ("align-only,l", "skip sort and mark duplicates");
+    ("align-only,l", "skip mark duplicates");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),

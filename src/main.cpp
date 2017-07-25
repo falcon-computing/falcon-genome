@@ -51,6 +51,7 @@ int print_help() {
 
   print_cmd_col("align", "align pair-end FASTQ files into a sorted,");
   print_cmd_col("     ", "duplicates-marked BAM file");
+  print_cmd_col("markdup", "mark duplicates in an aligned BAM file");
   print_cmd_col("bqsr", "base recalibration with GATK BaseRecalibrator");
   print_cmd_col("    ", "and GATK PrintReads");
   print_cmd_col("baserecal", "equivalent to GATK BaseRecalibrator");
