@@ -186,7 +186,7 @@ Equivalent to GATK's UnifiedGenotyper, this tool is also used to perform SNP and
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite output files if they exist |
-| -O [--extra-options] | the "<key> <value>" arguments from the user is used as arguments for GATK |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -r [--ref] arg | reference genome path |
 | -i [--input] arg | input BAM file or dir |
 | -o [--output] arg | output vcf file (if --skip-concat is set, the output will be a directory of vcf files) |
