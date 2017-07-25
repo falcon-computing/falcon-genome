@@ -37,7 +37,7 @@ Equivalent to BWA-MEM, this command maps pair-ended FASTQ sequences against a la
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite output files if they exist |
-| -O [--extra-options] | the "<key> <value>" arguments from the user is used as arguments for GATK |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -r [--ref] arg | reference genome path |
 | -1 [--fastq1] arg | input pair-end fastq file |
 | -2 [--fastq2] arg | input pair-end fastq file |
@@ -60,7 +60,7 @@ Equivalent to Picard's MarkDuplicates, this tool tags duplicate reads in a BAM f
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite output files if they exist |
-| -O [--extra-options] | the "<key> <value>" arguments from the user is used as arguments for GATK |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -i [--input] arg | input file |
 | -o [--output] arg | output file |
 
@@ -76,7 +76,7 @@ Equivalent to GATK IndelRealigner. This command takes a BAM file as an input and
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite output files if they exist |
-| -O [--extra-options] | the "<key> <value>" arguments from the user is used as arguments for GATK |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -r [--ref] arg | reference genome path |
 | -i [--input] arg | input BAM file or dir |
 | -o [--output] arg | output directory of BAM files |
@@ -94,7 +94,7 @@ The equivalent of GATK's BaseRecalibrator followed by GATK's PrintReads, this co
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite output files if they exist |
-| -O [--extra-options] | the "<key> <value>" arguments from the user is used as arguments for GATK |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -r [--ref] arg | reference genome path |
 | -b [-bqsr] arg | output BQSR file (if left blank, no file will be produced) |
 | -i [--input] arg | input BAM file or dir |
@@ -113,7 +113,7 @@ This equivalent of GATK's BaseRecalibrator gives per-base score estimates of err
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite ouput files, if they exist |
-| -O [--extra-options] | the "<key> <value>" arguments from the user is used as arguments for GATK |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -r [--ref] arg | reference genome path |
 | -i [--input] arg | input BAM file or dir |
 | -o [--output] arg | output BQSR file |
@@ -131,7 +131,7 @@ Equivalent to GATK's PrintReads, this tool manipulates BAM files. It takes the o
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite output files if they exist |
-| -O [--extra-options] | the "<key> <value>" arguments from the user is used as arguments for GATK |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -r [--ref] arg | reference genome path |
 | -b [--bqsr] arg | input BQSR file |
 | -i [--input] arg | input BAM file or dir |
@@ -149,7 +149,7 @@ Equivalent to GATK's Haplotype Caller, this tool calls germline SNPs and indels 
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite output files if they exist |
-| -O [--extra-options] | the "<key> <value>" arguments from the user is used as arguments for GATK |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -r [--ref] arg | reference genome path |
 | -i [--input] arg | input BAM file or dir |
 | -o [--output] arg | output GVCF file |
@@ -167,7 +167,7 @@ Equivalent of GATK's GenotypeGVCFs, this tool takes in gVCF files as input. The 
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite output files if they exist |
-| -O [--extra-options] | the "<key> <value>" arguments from the user is used as arguments for GATK |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -r [--ref] arg | reference genome path |
 | -i [--input-dir] arg | input dir containing [sample_id].gvcf.gz files |
 | -o [--output] arg | output vcf.gz file(s) |
