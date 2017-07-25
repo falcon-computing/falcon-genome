@@ -1,22 +1,59 @@
 # fcs-genome pipeline
+## Table of Contents
+[Description](#Description) <br />
+[Quick Start](#Quick-Start) <br />
+Commands and Options <br />
++ [Alignment](#Alignment) <br />
++ [Mark Duplicates](#Mark-Duplicates) <br />
++ [Indel Realignment](#Indel-Realignment) <br />
++ [Base Recalibration + Print Reads](#Base-Recalibration-Print-Reads) <br />
++ [Base Recalibration](#Base-Recalibration) <br />
++ [Print Reads](#Print-Reads) <br />
++ [Haplotype Caller](#Haplotype-Caller) <br />
++ [Joint Genotyping](#Joint-Genotyping) <br />
++ [Unified Genotyper](#Unified-Genotyper) <br />
++ [GATK](#GATK) <br />
+
+[Multiple FASTQ files as input](#Multiple-FASTQ-files-as-Input-for-Alignment-only)
+  
 ## Description
 Variant calling pipeline for germline mutations adopting GATK's Best Practices along with Falcon's FPGA acceleration techniques to significantly improve performance.
-
-## Quick Start
-fcs-genome align -r ref.fasta -1 input_1.fastq -2 input_2.fastq -o aln.sorted.bam --rg RG_ID --sp sample_id --pl platform --lb library <br /> 
+## Synopsis
+```
+fcs-genome align -r ref.fasta -1 input_1.fastq -2 input_2.fastq -o aln.sorted.bam --rg RG_ID --sp sample_id --pl platform --lb library <br />
+```
+```
 fcs-genome markdup -i aln.sorted.bam -o aln.marked.bam <br />
+```
+```
 fcs-genome indel -r ref.fasta -i aln.sorted.bam -o indel.bam <br />
+```
+```
 fcs-genome bqsr -r ref.fasta -i indel.bam -o recal.bam <br />
+```
+```
 fcs-genome baserecal -r ref.fasta -i indel.bam -o recalibration_report.grp <br /> 
+```
+```
 fcs-genome printreads -r ref.fasta -b recalibration_report.grp -i indel.bam -o recal.bam <br />
+```
+```
 fcs-genome htc -r ref.fasta -i recal.bam -o final.gvcf <br />
+```
+```
 fcs-genome joint -r ref.fasta -i final.gvcf -o final.vcf <br />
+```
+```
 fcs-genome ug -r ref.fasta -i recal.bam -o final.vcf <br />
+```
+```
 fcs-genome gatk -T analysisType 
+```
 ## Commands and Options
 ### Alignment
-#### Name
-align
+```
+fcs-genome align <options>
+```
 #### Description
 Equivalent to BWA-MEM, this command maps pair-ended FASTQ sequences against a large reference genome sequence. The resulting BAM file is sorted, with duplicates marked. 
 #### Options
@@ -35,8 +72,9 @@ Equivalent to BWA-MEM, this command maps pair-ended FASTQ sequences against a la
 | -l [--align-only] | skip mark duplicates |
 
 ### Mark Duplicates 
-#### Name
-markdup
+```
+fcs-genome markdup <options>
+```
 #### Description
 Equivalent to Picard's MarkDuplicates, this tool tags duplicate reads in a BAM file. Duplicate reads refer to those that originate in a single fragment of DNA.
 #### Options
@@ -48,8 +86,9 @@ Equivalent to Picard's MarkDuplicates, this tool tags duplicate reads in a BAM f
 | -o [--output] arg | output file |
 
 ### Indel Realignment
-#### Name
-indel
+```
+fcs-genome indel <options>
+```
 #### Description
 Equivalent to GATK IndelRealigner. This command takes a BAM file as an input and performs local realignment of reads. Presence of  insertions or deletions in the genome compared to the reference genome may be the cause of mismatches in the alignment. To prevent these from being mistaken as SNP's, this step is done.
 #### Options
@@ -63,8 +102,9 @@ Equivalent to GATK IndelRealigner. This command takes a BAM file as an input and
 | -K [--known] arg | known indels for realignment|
 
 ### Base Recalibration + Print Reads
-#### Name
-bqsr
+```
+fcs-genome bqsr <options>
+```
 #### Description
 The equivalent of GATK's BaseRecalibrator followed by GATK's PrintReads, this command implements Base Quality Score Recalibration (BQSR) and outputs the result in recalibrated BAM files.
 #### Options
@@ -79,8 +119,9 @@ The equivalent of GATK's BaseRecalibrator followed by GATK's PrintReads, this co
 | -K [--knownSites] arg | known sites for base recalibration |
 
 ### Base Recalibration 
-#### Name
-baserecal
+```
+fcs-genome baserecal <options>
+```
 #### Description
 This equivalent of GATK's BaseRecalibrator gives per-base score estimates of errors caused by sequencing machines. Taking an input of BAM files containing data that requires recalibration, the output file is a table generated based on user-specified covariates such as read group and reported quality score.  
 #### Options
@@ -94,8 +135,9 @@ This equivalent of GATK's BaseRecalibrator gives per-base score estimates of err
 | -K [--knownSites] arg | known sites for base recalibration |
 
 ### Print Reads
-#### Name
-printreads
+```
+fcs-genome printreads <options>
+```
 #### Description
 Equivalent to GATK's PrintReads, this tool manipulates BAM files. It takes the output of BQSR and one or more BAM files to result in processed and recalibrated BAM files.
 #### Option
@@ -109,8 +151,9 @@ Equivalent to GATK's PrintReads, this tool manipulates BAM files. It takes the o
 | -o [--output] arg | output BAM files |
 
 ### Haplotype Caller
-#### Name
-htc
+```
+fcs-genome htc <options>
+```
 #### Description
 Equivalent to GATK's Haplotype Caller, this tool calls germline SNPs and indels through local de-novo assembly of haplotypes in regions that show variation from reference, producing a genomic VCF (gVCF) file. To get a VCF file as output, include the option --produce-vcf.
 #### Options
@@ -124,8 +167,9 @@ Equivalent to GATK's Haplotype Caller, this tool calls germline SNPs and indels 
 | -s [--skip-concat] | produce a set of gvcf files instead of one |
 
 ### Joint Genotyping
-#### Name 
-joint
+``` 
+fcs-genome joint <options>
+```
 #### Description
 Equivalent of GATK's GenotypeGVCFs, this tool takes in gVCF files as input. The files are then merged, re-genotyped and re-annotated resulting in a combined, genotyped VCF file.
 #### Options
@@ -140,8 +184,9 @@ Equivalent of GATK's GenotypeGVCFs, this tool takes in gVCF files as input. The 
 | -g [--skip-combine] | genotype GVCFs only and skip combining (for single sample) |
 
 ### Unified Genotyper
-#### Name
-ug
+```
+fcs-genome ug <options>
+```
 #### Description 
 Equivalent to GATK's UnifiedGenotyper, this tool is also used to perform SNP and indel calling, taking in read data from BAM files as an input and producing raw, unfiltered VCF files as output.
 #### Options
@@ -155,8 +200,9 @@ Equivalent to GATK's UnifiedGenotyper, this tool is also used to perform SNP and
 | -s [--skip-concat] | produce a set of vcf files instead of one |
 
 ### GATK
-#### Name
-gatk
+```
+fcs-genome gatk <options>
+```
 #### Description
 The Genome Analysis Toolkit- which handles and processes genomic data from any organism, with any level of ploidy is the standard for SNP and indel indentification for DNA and RNAseq data. 
 
