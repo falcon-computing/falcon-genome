@@ -1,20 +1,4 @@
 # fcs-genome pipeline
-## Table of Contents
-[Description](#Description) <br />
-[Quick Start](#Quick-Start) <br />
-Commands and Options <br />
-+ [Alignment](#Alignment) <br />
-+ [Mark Duplicates](#Mark-Duplicates) <br />
-+ [Indel Realignment](#Indel-Realignment) <br />
-+ [Base Recalibration + Print Reads](#Base-Recalibration-Print-Reads) <br />
-+ [Base Recalibration](#Base-Recalibration) <br />
-+ [Print Reads](#Print-Reads) <br />
-+ [Haplotype Caller](#Haplotype-Caller) <br />
-+ [Joint Genotyping](#Joint-Genotyping) <br />
-+ [Unified Genotyper](#Unified-Genotyper) <br />
-+ [GATK](#GATK) <br />
-
-[Multiple FASTQ files as input](#Multiple-FASTQ-files-as-Input-for-Alignment-only)
   
 ## Description
 Variant calling pipeline for germline mutations adopting GATK's Best Practices along with Falcon's FPGA acceleration techniques to significantly improve performance.
