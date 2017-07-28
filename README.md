@@ -25,6 +25,44 @@ fcs-genome ug -r ref.fasta -i recal.bam -o final.vcf
 
 fcs-genome gatk -T analysisType 
 ```
+
+## Case Example: Same Sample Data Stored in Multiple FASTQ files
+#### Description
+In cases where the same sample is distributed over multiple lanes in the sequencing machine- thereby having different read group names- multiple FASTQ files will correspond to that sample. In such cases, alignment for each paired-end sequence data is run in parallel, with the results stored in a parent directory. This entire directory is then taken as input for MarkDuplicates, resulting in a combined, sorted BAM file with the duplicates marked.  
+#### Example
+```
+for i in $(seq 0 $((num_groups - 1))); do 
+  #Each paired sequence data, represented by fastq_1 and fastq_2 are aligned iteratively
+  #The output is stored in the directory $tmp_dir/$sample_id
+  
+  fastq_1=${fastq_files[$(($i * 2))]}           
+  fastq_2=${fastq_files[$(($i * 2 + 1))]}
+
+  read_group=`echo $(basename $fastq_1) | sed 's/\_R1.*//'`
+  library=$sample_id
+
+  fcs-genome align \
+      -1 $fastq_1 \
+      -2 $fastq_2 \
+      -o $tmp_dir/$sample_id \
+      -r $ref_genome \
+      --align-only \
+      -S $sample_id \
+      -R $read_group \
+      -L $library \
+      -P Illumina \
+      -f 2>> $log_file
+done
+
+#The directory containing the alignment- $tmp_dir/$sample_id, is taken as input for MarkDuplicates.
+#The output is a combined, sorted BAM file- $sample_id.bam
+
+fcs-genome markDup \
+    -i ${tmp_dir}/$sample_id \
+    -o ${tmp_dir}/${sample_id}.bam \
+    -f 2>> $log_file 
+```
+
 ## Commands and Options
 ### Alignment
 ```
@@ -200,34 +238,5 @@ fcs-genome gatk <options>
 #### Description
 The Genome Analysis Toolkit developed by the Broad Institute - which handles and processes genomic data from any organism, with any level of ploidy, is the standard for SNP and indel indentification for DNA and RNAseq data. Apart from variant discovery, genotyping and ensuring data quality assurance is also done. GATK provides a Best Practices workflow for variant discovery that ensures the most accurate results.
 
-## Multiple FASTQ files as Input for Alignment only
-#### Description
-In case the option of --align-only is used and the merging of sorted BAM files and Mark Duplicates is to be done seperately, each partitioned fastq file is taken as an input for alignment. The result is a parent folder containing sub-folders with the same name as the read group, which is unique for each partioned aligned, BAM file. This parent folder is then taken as an input for mark duplicates.
-#### Example
-```
-for i in $(seq 0 $((num_groups - 1))); do 
-  fastq_1=${fastq_files[$(($i * 2))]}
-  fastq_2=${fastq_files[$(($i * 2 + 1))]}
 
-  read_group=`echo $(basename $fastq_1) | sed 's/\_R1.*//'`
-  library=$sample_id
-
-  fcs-genome align \
-      -1 $fastq_1 \
-      -2 $fastq_2 \
-      -o $tmp_dir/$sample_id \
-      -r $ref_genome \
-      --align-only \
-      -S $sample_id \
-      -R $read_group \
-      -L $library \
-      -P Illumina \
-      -f 2>> $log_file
-done
-
-fcs-genome markDup \
-    -i ${tmp_dir}/$sample_id \
-    -o ${tmp_dir}/${sample_id}.bam \
-    -f 2>> $log_file 
-```
 
