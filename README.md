@@ -54,7 +54,7 @@ for i in $(seq 0 $((num_groups - 1))); do
       -f 2>> $log_file
 done
 
-#Each alignment file, following the part-n naming convention, is taken as input for MArkDuplicates
+#Each alignment file, following the part-n naming convention, is taken as input for MarkDuplicates
 #The output is a combined, sorted BAM file- $sample_id.bam
 
 fcs-genome markDup \
