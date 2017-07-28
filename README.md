@@ -28,12 +28,12 @@ fcs-genome gatk -T analysisType
 
 ## Case Example: Same Sample Data Stored in Multiple FASTQ files
 #### Description
-In cases where the same sample is distributed over multiple lanes in the sequencing machine- thereby having different read group names- multiple FASTQ files will correspond to that sample. In such cases, alignment for each paired-end sequence data is run in parallel, with the results stored in a parent directory. This entire directory is then taken as input for MarkDuplicates, resulting in a combined, sorted BAM file with the duplicates marked.  
+In cases where the same sample is distributed over multiple lanes in the sequencing machine- thereby having different read group names- multiple FASTQ files will correspond to that sample. In such cases, alignment for each paired-end sequence data is run in parallel, with the results stored in a parent directory and each file named by the convention part-n. This entire directory is then taken as input for MarkDuplicates, resulting in a combined, sorted BAM file with the duplicates marked.  
 #### Example
 ```
 for i in $(seq 0 $((num_groups - 1))); do 
   #Each paired sequence data, represented by fastq_1 and fastq_2 are aligned iteratively
-  #The output is stored in the directory $tmp_dir/$sample_id
+  #The output is stored in the directory $tmp_dir/$sample_id with the file name part-n
   
   fastq_1=${fastq_files[$(($i * 2))]}           
   fastq_2=${fastq_files[$(($i * 2 + 1))]}
@@ -54,7 +54,7 @@ for i in $(seq 0 $((num_groups - 1))); do
       -f 2>> $log_file
 done
 
-#The directory containing the alignment- $tmp_dir/$sample_id, is taken as input for MarkDuplicates.
+#Each alignment file, following the part-n naming convention, is taken as input for MArkDuplicates
 #The output is a combined, sorted BAM file- $sample_id.bam
 
 fcs-genome markDup \
