@@ -6,17 +6,18 @@
 }
 
 @test "Check pipeline script without arguments" {
-  run ../pipeline/wgs.sh
+  run $pipeline
   [ "$status" != "0" ]
-  [ "${lines[0]}" == "USAGE: ../pipeline/wgs.sh [Fastq_file_path] [Platform] [Library] [Path_to_Output_dir]" ]
+  [ "${lines[0]}" == "USAGE: $pipeline [Fastq_file_path] [Platform] [Library] [Path_to_Output_dir]" ]
 }
 
 @test "Check pipeline script with an invalid argument for the FASTQ input" {
-  run ../pipeline/wgs.sh /curr/niveda/test_fastq/wrong Illumina Lib1 /curr/niveda/Testing
+  run $pipeline $test_fastq/wrong Illumina Lib1 $output
   [ "$status" != "0" ]
 }
 
 @test "Check pipeline with small input FASTQ file" {
-  run ../pipeline/wgs.sh /curr/niveda/test_fastq/small Illumina Lib1 /curr/niveda/Testing
+  run $pipeline $test_fastq/small Illumina Lib1 $output
   [ "$status" == "0" ]
 }
+
