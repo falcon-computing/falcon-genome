@@ -20,5 +20,5 @@ chmod 777 $DIR/env/bats/libexec/*
 export PATH=$PATH:$DIR/env/bats/libexec
 
 # Run bats tests
-$BATS daily/
+$BATS daily_tests/
 ~            
