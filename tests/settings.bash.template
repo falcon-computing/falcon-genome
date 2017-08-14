@@ -12,6 +12,3 @@ DIR=$(cd "$( dirname "${BASHSOURCE[0]}" )" && pwd)
 test_fastq="${DIR}/daily/data"
 output="${DIR}/daily/output"
 BATS="${DIR}/env/bats/bin/bats"
-
-fcs_genome="${DIR}/../bin/fcs-genome"
-source fcs_genome
