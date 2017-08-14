@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load ~/dnaseq/tests/settings.bash
+load "${BATS_TEST_DIRNAME}/../settings.bash"
 
 @test "Check for fcs-genome" {
   usage=$(fcs-genome | head -n 1)
