@@ -76,7 +76,9 @@ OBJS	 := $(SRC_DIR)/main.o \
 	    $(SRC_DIR)/workers/IndelWorker.o \
 	    $(SRC_DIR)/workers/MarkdupWorker.o \
 	    $(SRC_DIR)/workers/VCFUtilsWorker.o \
-	    $(SRC_DIR)/workers/UGWorker.o
+	    $(SRC_DIR)/workers/UGWorker.o \
+            $(SRC_DIR)/worker-mutect2.o \
+            $(SRC_DIR)/workers/Mutect2Worker.o
 
 PROG	 := ./$(BIN_DIR)/fcs-genome
 DEPS	 := ./deps/.ready

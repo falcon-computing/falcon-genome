@@ -10,5 +10,6 @@
 #include "workers/MarkdupWorker.h"
 #include "workers/VCFUtilsWorker.h"
 #include "workers/UGWorker.h"
+#include "workers/Mutect2Worker.h"
 
 #endif
