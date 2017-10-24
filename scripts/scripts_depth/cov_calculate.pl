@@ -15,6 +15,8 @@ print $MYOUTFILE2 "SAMPLE,AVG_COV,>=0,>=5,>=10,>=15,>=20,>=25,>=30,>=35,>=40,>=4
 
 my $total=0;
 my $total_cov=0;
+my $total_avg=0;
+my $n_avg=0;
 my @total_cov;
 my $count=0;
 my $prev_chr;
@@ -63,11 +65,13 @@ while(my $line= <$INPUTFILE>)
       for(my $i=0;$i<=100;$i=$i+5)
       {
       	$total_cov[$i]= defined $total_cov[$i] ? $total_cov[$i] : 0;
-      	print $MYOUTFILE $total_cov[$i],"\t";
+      	print $MYOUTFILE (($total_cov[$i]/$total)*100),"\t";
       }
       print $MYOUTFILE "\n";	
-      $csv_total+=$total;		
+      $csv_total+=$total;
+      $csv_total_cov+=$total_cov;		
       $total=0;
+      $total_cov=0;
       for(my $i=0; $i<scalar(@total_cov); $i++)
       {
       	$csv_total_cov[$i] = defined $csv_total_cov[$i] ? $csv_total_cov[$i] : 0;
@@ -101,12 +105,12 @@ print $MYOUTFILE $prev_chr,"\t",$prev_start,"\t",$prev_stop,"\t",$total_cov,"\t"
 for(my $i=0;$i<=100;$i=$i+5)
 {
   $total_cov[$i]= defined $total_cov[$i] ? $total_cov[$i] : 0;
-  print $MYOUTFILE $total_cov[$i],"\t";
+  print $MYOUTFILE (($total_cov[$i]/$total)*100),"\t";
 }
 print $MYOUTFILE "\n";
 
 #Average values for the entire sample are written into an output file
-  print $MYOUTFILE2 "$sample",",";
+  print $MYOUTFILE2 "$sample",",",($csv_total_cov/$csv_total),",";
   for(my $i=0;$i<=100;$i=$i+5)
   {
     $csv_total_cov[$i] = defined $csv_total_cov[$i] ? $csv_total_cov[$i] : 0;
