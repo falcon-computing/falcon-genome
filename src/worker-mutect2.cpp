@@ -27,8 +27,9 @@ int mutect2_main(int argc, char** argv,
     arg_decl_string("normal,n", "input normal BAM file or dir")
     arg_decl_string("tumor,t", "input tumor BAM file or dir")
     arg_decl_string("output,o", "output VCF file")
-    ("dbsnp", po::value<std::vector<std::string> >(),
-     "dbSNP for Mutect2");
+    arg_decl_string("dbsnp", "dbSNP for Mutect2")
+    ("skip-concat,s", "produce a set of VCF files instead of one");
+    
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
       cmd_vm);
@@ -39,16 +40,13 @@ int mutect2_main(int argc, char** argv,
 
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force");
+  bool flag_skip_concat    = get_argument<bool>(cmd_vm, "skip-concat");
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
                                 get_config<std::string>("ref_genome"));
-  std::string input_path1  = get_argument<std::string>(cmd_vm, "normal");
-  std::string input_path2  = get_argument<std::string>(cmd_vm, "tumor");
+  std::string input_path1 = get_argument<std::string>(cmd_vm, "normal");
+  std::string input_path2 = get_argument<std::string>(cmd_vm, "tumor");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
-
-  std::vector<std::string> dbsnp_path;
-  if (cmd_vm.count("dbsnp")) {
-    dbsnp_path = cmd_vm["dbsnp"].as<std::vector<std::string>>();
-  }
+  std::string dbsnp_path  = get_argument<std::string>(cmd_vm, "dbsnp");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -57,8 +55,12 @@ int mutect2_main(int argc, char** argv,
   create_dir(temp_dir);
 
   std::string output_dir;
-  output_dir = check_output(output_path, flag_f);
-
+  if (flag_skip_concat) {
+    output_dir = check_output(output_path, flag_f);
+  }
+  else {
+    output_dir = check_output(output_path, flag_f);
+  }
   std::string temp_gvcf_path = output_dir + "/" + get_basename(output_path);
 
   create_dir(output_dir);
@@ -68,6 +70,7 @@ int mutect2_main(int argc, char** argv,
 
   Executor executor("Mutect2", get_config<int>("gatk.mutect2.nprocs"));
   
+  bool flag_mutect2_f = !flag_skip_concat | flag_f;  
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
     std::string input_file1;
     std::string input_file2;
@@ -91,12 +94,35 @@ int mutect2_main(int argc, char** argv,
           output_file,
           dbsnp_path,
           contig,
-          flag_f));
+          flag_mutect2_f));
     output_files[contig] = output_file;
 
     executor.addTask(worker);
   }
+  
+  if (!flag_skip_concat) {
 
+    bool flag = true;
+    bool flag_a = false;
+    { // concat gvcfs
+      Worker_ptr worker(new VCFConcatWorker(
+            output_files, temp_gvcf_path,
+            flag_a, flag));
+      executor.addTask(worker, true);
+    }
+    
+    { // bgzip gvcf
+      Worker_ptr worker(new ZIPWorker(
+        temp_gvcf_path, output_path+".gz",
+        flag_f));
+      executor.addTask(worker, true);
+    }
+    { // tabix gvcf
+      Worker_ptr worker(new TabixWorker(
+        output_path + ".gz"));
+      executor.addTask(worker, true);
+    }
+  }
   executor.run();
 
   return 0;
