@@ -88,18 +88,26 @@ void BWAWorker::setup() {
       << "--v=0 "
       << "--output_dir=\"" << output_path_ << "\" "
       << "--max_batch_records=" << get_config<int>("bwa.num_batches_per_part") << " ";
+
+  if (get_config<int>("bwa.nt") > 0) {
+    cmd << "--t=" << get_config<int>("bwa.nt") << " ";
+  }
+
   if (get_config<bool>("bwa.use_sort")) {
     cmd << "--sort ";
   }
+
   if (get_config<bool>("bwa.enforce_order")) {
     cmd << "--inorder_output ";
   }
+
   if (get_config<bool>("bwa.use_fpga") &&
-      !get_config<std::string>("bwa.fpga_path").empty()) {
+      !get_config<std::string>("bwa.fpga.bit_path").empty() &&
+      !get_config<std::string>("bwa.fpga.pac_path").empty()) 
+  {
     cmd << "--use_fpga "
-        << "--max_fpga_thread=3 "
-        << "--chunk_size=10000 "
-        << "--fpga_path=" << get_config<std::string>("bwa.fpga_path") << " ";
+        << "--fpga_path=" << get_config<std::string>("bwa.fpga.bit_path") << " "
+        << "--pac_path=" << get_config<std::string>("bwa.fpga.pac_path") << " ";
   }
   cmd << ref_path_ << " "
       << fq1_path_ << " "
