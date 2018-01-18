@@ -158,9 +158,11 @@ int init_config() {
     throw silentExit();
   }
 
+  std::string username("");
+  username = std::getenv("USER");
   conf_temp_dir = get_config<std::string>("temp_dir") +
                   "/fcs-genome-" +
-                  std::string(std::getenv("USER")) +
+                  username +
                   "-" +
                   std::to_string((long long)getpid());
 
