@@ -4,7 +4,7 @@ BIN_DIR := ./bin
 SRC_DIR := ./src
 TOOLS_DIR := ./tools
 
-CFLAGS 	:= -g -std=c++0x -fPIC -O3
+CFLAGS 	:= -std=c++0x -fPIC -O3
 
 INCLUDES:= -I./include  \
 	   -I$(GLOG_DIR)/include \
