@@ -25,6 +25,44 @@ fcs-genome ug -r ref.fasta -i recal.bam -o final.vcf
 
 fcs-genome gatk -T analysisType 
 ```
+
+## Case Example: Same Sample Data Stored in Multiple FASTQ files
+#### Description
+In cases where the same sample is distributed over multiple lanes in the sequencing machine- thereby having different read group names- multiple FASTQ files will correspond to that sample. In such cases, alignment for each paired-end sequence data is run in parallel, with the results stored in a parent directory and each file named by the convention part-n. This entire directory is then taken as input for MarkDuplicates, resulting in a combined, sorted BAM file with the duplicates marked.  
+#### Example
+```
+for i in $(seq 0 $((num_groups - 1))); do 
+  #Each paired sequence data, represented by fastq_1 and fastq_2 are aligned iteratively
+  #The output is stored in the directory $tmp_dir/$sample_id with the file name part-n
+  
+  fastq_1=${fastq_files[$(($i * 2))]}           
+  fastq_2=${fastq_files[$(($i * 2 + 1))]}
+
+  read_group=`echo $(basename $fastq_1) | sed 's/\_R1.*//'`
+  library=$sample_id
+
+  fcs-genome align \
+      -1 $fastq_1 \
+      -2 $fastq_2 \
+      -o $tmp_dir/$sample_id \
+      -r $ref_genome \
+      --align-only \
+      -S $sample_id \
+      -R $read_group \
+      -L $library \
+      -P Illumina \
+      -f 2>> $log_file
+done
+
+#Each alignment file, following the part-n naming convention, is taken as input for MarkDuplicates
+#The output is a combined, sorted BAM file- $sample_id.bam
+
+fcs-genome markDup \
+    -i ${tmp_dir}/$sample_id \
+    -o ${tmp_dir}/${sample_id}.bam \
+    -f 2>> $log_file 
+```
+
 ## Commands and Options
 ### Alignment
 ```
@@ -37,6 +75,7 @@ Equivalent to BWA-MEM, this command maps pair-ended FASTQ sequences against a la
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite output files if they exist |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -r [--ref] arg | reference genome path |
 | -1 [--fastq1] arg | input pair-end fastq file |
 | -2 [--fastq2] arg | input pair-end fastq file |
@@ -59,6 +98,7 @@ Equivalent to Picard's MarkDuplicates, this tool tags duplicate reads in a BAM f
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite output files if they exist |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -i [--input] arg | input file |
 | -o [--output] arg | output file |
 
@@ -74,6 +114,7 @@ Equivalent to GATK IndelRealigner. This command takes a BAM file as an input and
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite output files if they exist |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -r [--ref] arg | reference genome path |
 | -i [--input] arg | input BAM file or dir |
 | -o [--output] arg | output directory of BAM files |
@@ -91,6 +132,7 @@ The equivalent of GATK's BaseRecalibrator followed by GATK's PrintReads, this co
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite output files if they exist |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -r [--ref] arg | reference genome path |
 | -b [-bqsr] arg | output BQSR file (if left blank, no file will be produced) |
 | -i [--input] arg | input BAM file or dir |
@@ -109,6 +151,7 @@ This equivalent of GATK's BaseRecalibrator gives per-base score estimates of err
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite ouput files, if they exist |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -r [--ref] arg | reference genome path |
 | -i [--input] arg | input BAM file or dir |
 | -o [--output] arg | output BQSR file |
@@ -126,6 +169,7 @@ Equivalent to GATK's PrintReads, this tool manipulates BAM files. It takes the o
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite output files if they exist |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -r [--ref] arg | reference genome path |
 | -b [--bqsr] arg | input BQSR file |
 | -i [--input] arg | input BAM file or dir |
@@ -143,10 +187,11 @@ Equivalent to GATK's Haplotype Caller, this tool calls germline SNPs and indels 
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite output files if they exist |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -r [--ref] arg | reference genome path |
 | -i [--input] arg | input BAM file or dir |
-| -o [--output] arg | output gvcf file |
-| -s [--skip-concat] | produce a set of gvcf files instead of one |
+| -o [--output] arg | output GVCF file |
+| -v [--produce-vcf] | produce VCF files from Haplotype Caller instead of GVCF |
 
 ---
 ### Joint Genotyping
@@ -159,7 +204,8 @@ Equivalent of GATK's GenotypeGVCFs, this tool takes in gVCF files as input. The 
 | Command | Description |
 | --- | --- |
 | -h [--help] | print help messages |
-| - f [--force] | overwrite output files if they exist |
+| -f [--force] | overwrite output files if they exist |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -r [--ref] arg | reference genome path |
 | -i [--input-dir] arg | input dir containing [sample_id].gvcf.gz files |
 | -o [--output] arg | output vcf.gz file(s) |
@@ -178,6 +224,7 @@ Equivalent to GATK's UnifiedGenotyper, this tool is also used to perform SNP and
 | --- | --- |
 | -h [--help] | print help messages |
 | -f [--force] | overwrite output files if they exist |
+| -O [--extra-options] | the "[key] [value]" arguments from the user is used as arguments for GATK |
 | -r [--ref] arg | reference genome path |
 | -i [--input] arg | input BAM file or dir |
 | -o [--output] arg | output vcf file (if --skip-concat is set, the output will be a directory of vcf files) |
@@ -189,36 +236,7 @@ Equivalent to GATK's UnifiedGenotyper, this tool is also used to perform SNP and
 fcs-genome gatk <options>
 ```
 #### Description
-The Genome Analysis Toolkit- which handles and processes genomic data from any organism, with any level of ploidy is the standard for SNP and indel indentification for DNA and RNAseq data. 
+The Genome Analysis Toolkit developed by the Broad Institute - which handles and processes genomic data from any organism, with any level of ploidy, is the standard for SNP and indel indentification for DNA and RNAseq data. Apart from variant discovery, genotyping and ensuring data quality assurance is also done. GATK provides a Best Practices workflow for variant discovery that ensures the most accurate results.
 
-## Multiple FASTQ files as Input for Alignment only
-#### Description
-In case the option of --align-only is used and the merging of sorted BAM files and Mark Duplicates is to be done seperately, each partitioned fastq file is taken as an input for alignment. The result is a parent folder containing sub-folders with the same name as the read group, which is unique for each partioned aligned, BAM file. This parent folder is then taken as an input for mark duplicates.
-#### Example
-```
-for i in $(seq 0 $((num_groups - 1))); do 
-  fastq_1=${fastq_files[$(($i * 2))]}
-  fastq_2=${fastq_files[$(($i * 2 + 1))]}
 
-  read_group=`echo $(basename $fastq_1) | sed 's/\_R1.*//'`
-  library=$sample_id
-
-  fcs-genome align \
-      -1 $fastq_1 \
-      -2 $fastq_2 \
-      -o $tmp_dir/$sample_id \
-      -r $ref_genome \
-      --align-only \
-      -S $sample_id \
-      -R $read_group \
-      -L $library \
-      -P Illumina \
-      -f 2>> $log_file
-done
-
-fcs-genome markDup \
-    -i ${tmp_dir}/$sample_id \
-    -o ${tmp_dir}/${sample_id}.bam \
-    -f 2>> $log_file 
-```
 
