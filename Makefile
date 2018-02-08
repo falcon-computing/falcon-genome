@@ -34,8 +34,11 @@ LINK	:= -L$(BOOST_DIR)/lib \
 	   -L$(JSONCPP_DIR)/lib -ljsoncpp \
 	   -lpthread -lm -ldl -lz -lrt
 
+GIT_VERSION := $(shell git describe --abbrev=5 --dirty --always --tags)
+
 ifeq ($(RELEASE),)
 CFLAGS   	:= $(CFLAGS) -g
+GIT_VERSION	:= $(GIT_VERSION)-dev
 else
 # check FLMDIR
 ifneq ($(FLMDIR),)
@@ -52,7 +55,6 @@ CFLAGS   	:= $(CFLAGS) -O2 -DNDEBUG
 endif
 endif
 
-GIT_VERSION := $(shell git describe --abbrev=5 --dirty --always --tags)
 CFLAGS	:= $(CFLAGS) -DVERSION=\"$(GIT_VERSION)\"
 
 OBJS	 := $(SRC_DIR)/main.o \
@@ -88,8 +90,8 @@ install:
 	cp $(PROG) $(PREFIX)/bin; \
 	cp setup.sh $(PREFIX)
 
-release:
-	$(MAKE) RELEASE=1
+dist: 	$(PROG)
+	aws s3 cp $(PROG) $(AWS_REPO)/fcs-genome-$(GIT_VERSION)
 
 $(DEPS): ./deps/get-all.sh
 	./deps/get-all.sh

@@ -81,11 +81,10 @@ void BWAWorker::setup() {
                  "\\tSM:" << sample_id_ << 
                  "\\tPL:" << platform_id_ << 
                  "\\tLB:" << library_id_ << "\" "
-      << get_config<std::string>("bwa.extra_args") << " "
       << "--logtostderr "
       << "--offload "
       << "--output_flag=1 "
-      << "--v=0 "
+      << "--v=" << get_config<int>("bwa.verbose") << " "
       << "--output_dir=\"" << output_path_ << "\" "
       << "--max_batch_records=" << get_config<int>("bwa.num_batches_per_part") << " ";
 
@@ -109,6 +108,8 @@ void BWAWorker::setup() {
         << "--fpga_path=" << get_config<std::string>("bwa.fpga.bit_path") << " "
         << "--pac_path=" << get_config<std::string>("bwa.fpga.pac_path") << " ";
   }
+  cmd << get_config<std::string>("bwa.extra_args") << " ";
+
   cmd << ref_path_ << " "
       << fq1_path_ << " "
       << fq2_path_;
