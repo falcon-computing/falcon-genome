@@ -45,7 +45,7 @@ int ir_main(int argc, char** argv,
   std::string target_path = input_path + ".intervals";
 
   std::vector<std::string> known_indels = get_argument<
-    std::vector<std::string> >(cmd_vm, "known");
+    std::vector<std::string> >(cmd_vm, "known", std::vector<std::string>());
 
   // finalize argument parsing
   po::notify(cmd_vm);

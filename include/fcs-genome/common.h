@@ -58,6 +58,10 @@ public:
 };
 
 // Macros for argument definition
+#define arg_decl_int(arg, msg) (arg, \
+    po::value<int>(), \
+    msg)
+
 #define arg_decl_string(arg, msg) (arg, \
     po::value<std::string>(), \
     msg)
