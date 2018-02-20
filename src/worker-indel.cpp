@@ -47,6 +47,9 @@ int ir_main(int argc, char** argv,
   std::vector<std::string> known_indels = get_argument<
     std::vector<std::string> >(cmd_vm, "known", std::vector<std::string>());
 
+  std::vector<std::string> extra_opts = 
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+
   // finalize argument parsing
   po::notify(cmd_vm);
 
@@ -78,6 +81,7 @@ int ir_main(int argc, char** argv,
           intv_paths[contig],
           input_file, target_path,
           get_contig_fname(output_path, contig),
+          extra_opts,
           flag_f));
     executor.addTask(worker, contig==0);
   }

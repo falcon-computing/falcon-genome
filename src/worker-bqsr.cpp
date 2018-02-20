@@ -16,6 +16,7 @@ namespace fcsgenome {
 static void baserecalAddWorkers(Executor &executor,
     std::string &ref_path,
     std::vector<std::string> &known_sites,
+    std::vector<std::string> &extra_opts,
     std::string &input_path,
     std::string &output_path,
     bool flag_f) 
@@ -47,6 +48,7 @@ static void baserecalAddWorkers(Executor &executor,
     Worker_ptr worker(new BQSRWorker(ref_path, known_sites,
           intv_paths[contig],
           input_file, bqsr_paths[contig], 
+          extra_opts,
           contig, flag_f));
 
     executor.addTask(worker, contig == 0);
@@ -72,6 +74,7 @@ static void prAddWorkers(Executor &executor,
     std::string &input_path,
     std::string &bqsr_path,
     std::string &output_path,
+    std::vector<std::string> &extra_opts,
     bool flag_f) 
 {
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
@@ -91,6 +94,7 @@ static void prAddWorkers(Executor &executor,
           intv_paths[contig], bqsr_path,
           input_file,
           get_contig_fname(output_path, contig),
+          extra_opts,
           contig, flag_f));
 
     executor.addTask(worker, contig == 0);
@@ -130,12 +134,15 @@ int baserecal_main(int argc, char** argv,
   std::vector<std::string> known_sites = get_argument<
     std::vector<std::string> >(cmd_vm, "knownSites");
 
+  std::vector<std::string> extra_opts = 
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+
   // finalize argument parsing
   po::notify(cmd_vm);
 
   Executor executor("Base Recalibrator", get_config<int>("gatk.bqsr.nprocs"));
 
-  baserecalAddWorkers(executor, ref_path, known_sites,
+  baserecalAddWorkers(executor, ref_path, known_sites, extra_opts,
       input_path, output_path, flag_f);
 
   executor.run();
@@ -176,6 +183,9 @@ int pr_main(int argc, char** argv,
   std::string input_path  = get_argument<std::string>(cmd_vm, "input");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
 
+  std::vector<std::string> extra_opts = 
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+
   // finalize argument parsing
   po::notify(cmd_vm);
 
@@ -185,7 +195,7 @@ int pr_main(int argc, char** argv,
   Executor executor("Print Reads", get_config<int>("gatk.pr.nprocs"));
   
   prAddWorkers(executor, ref_path, 
-      input_path, bqsr_path, output_path, flag_f);
+      input_path, bqsr_path, output_path, extra_opts, flag_f);
   
   executor.run();
 }
@@ -223,6 +233,9 @@ int bqsr_main(int argc, char** argv,
   std::string input_path  = get_argument<std::string>(cmd_vm, "input");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
 
+  std::vector<std::string> extra_opts = 
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+
   std::string temp_dir = conf_temp_dir + "/bqsr";
   create_dir(temp_dir);
 
@@ -249,11 +262,11 @@ int bqsr_main(int argc, char** argv,
   Executor executor("Base Recalibration", get_config<int>("gatk.bqsr.nprocs"));
 
   // first, do base recal
-  baserecalAddWorkers(executor, ref_path, known_sites,
+  baserecalAddWorkers(executor, ref_path, known_sites, extra_opts,
       input_path, bqsr_path, flag_f);
 
   prAddWorkers(executor, ref_path, 
-      input_path, bqsr_path, output_path, flag_f);
+      input_path, bqsr_path, output_path, extra_opts, flag_f);
   
   executor.run();
 

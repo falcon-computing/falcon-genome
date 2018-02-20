@@ -97,7 +97,6 @@ int init_config() {
     arg_decl_bool_w_def("bwa.enforce_order", "enforce strict sorting ordering")
     arg_decl_string_w_def("bwa.fpga.bit_path", "", "path to FPGA bitstream for bwa")
     arg_decl_string_w_def("bwa.fpga.pac_path", "", "path to PAC reference used by FPGA for bwa")
-    arg_decl_string_w_def("bwa.extra_args",    "", "additional arguments to bwa")
     arg_decl_int_w_def("bwa.num_batches_per_part", 20,  "max num records in each BAM file")
 
     arg_decl_int_w_def("markdup.max_files",    4096,     "max opened files in markdup")
