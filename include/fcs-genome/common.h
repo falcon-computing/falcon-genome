@@ -174,6 +174,19 @@ inline std::string get_argument<std::string>(
   }
 }
 
+template <>
+inline std::vector<std::string> get_argument<std::vector<std::string>>(
+    boost::program_options::variables_map &vm,
+    const char* arg
+) {
+  if (!vm.count(arg)) {
+    return std::vector<std::string>(); 
+  }
+  else {
+    return vm[arg].as<std::vector<std::string>>();
+  }
+}
+
 inline std::string get_contig_fname(
     std::string base_path,
     int contig,

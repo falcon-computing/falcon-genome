@@ -14,9 +14,11 @@ class Worker {
   friend class Executor;
  public:
   Worker(int num_proc = 1,
-         int num_t = 1): 
+         int num_t = 1,
+         std::vector<std::string> extra_opts = std::vector<std::string>()):
     num_process_(num_proc),
-    num_thread_(num_t)
+    num_thread_(num_t),
+    extra_opts_(extra_opts)
   {}
 
   virtual void check() {}
@@ -28,6 +30,7 @@ class Worker {
  protected:
   std::string cmd_;
   std::string log_fname_;
+  std::vector<std::string> extra_opts_;
 
  private:
   int num_process_;   // num_processes per task

@@ -12,8 +12,10 @@ BQSRWorker::BQSRWorker(std::string ref_path,
       std::string intv_path,
       std::string input_path,
       std::string output_path,
+      std::vector<std::string> extra_opts,
       int  contig,
-      bool &flag_f): Worker(1, get_config<int>("gatk.bqsr.nct")),
+      bool &flag_f): 
+  Worker(1, get_config<int>("gatk.bqsr.nct"), extra_opts),
   ref_path_(ref_path),
   intv_path_(intv_path),
   input_path_(input_path),
@@ -53,6 +55,10 @@ void BQSRWorker::setup() {
   for (int i = 0; i < known_sites_.size(); i++) {
     cmd << "-knownSites " << known_sites_[i] << " ";
   }
+  for (int i = 0; i < extra_opts_.size(); i++) {
+    cmd << extra_opts_[i] << " ";
+  }
+  cmd << "1> /dev/null";
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
@@ -91,8 +97,10 @@ PRWorker::PRWorker(std::string ref_path,
       std::string bqsr_path,
       std::string input_path,
       std::string output_path,
+      std::vector<std::string> extra_opts,
       int  contig,
-      bool &flag_f): Worker(1, get_config<int>("gatk.pr.nct")),
+      bool &flag_f): 
+  Worker(1, get_config<int>("gatk.pr.nct"), extra_opts),
   ref_path_(ref_path),
   intv_path_(intv_path),
   bqsr_path_(bqsr_path),
@@ -124,8 +132,12 @@ void PRWorker::setup() {
       << "-BQSR " << bqsr_path_ << " "
       << "-L " << intv_path_ << " "
       << "-nct " << get_config<int>("gatk.pr.nct") << " "
-      << "-o " << output_path_ << " "
-      << "1> /dev/null";
+      << "-o " << output_path_ << " ";
+
+  for (int i = 0; i < extra_opts_.size(); i++) {
+    cmd << extra_opts_[i] << " ";
+  }
+  cmd << "1> /dev/null";
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;

@@ -53,17 +53,11 @@ int align_main(int argc, char** argv,
   std::string platform_id = get_argument<std::string>(cmd_vm, "pl");
   std::string library_id  = get_argument<std::string>(cmd_vm, "lb");
 
-  bool flag_schedule = get_argument<bool>(cmd_vm, "schedule");
+  std::vector<std::string> extra_opts = 
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
 
   // finalize argument parsing
   po::notify(cmd_vm);
-
-  if (flag_schedule) {
-    // append stage to job if it exist
-    // output
-  
-    return 0;
-  }
 
   // start execution
   std::string parts_dir;
@@ -101,6 +95,7 @@ int align_main(int argc, char** argv,
   Worker_ptr worker(new BWAWorker(ref_path,
         fq1_path, fq2_path,
         parts_dir,
+        extra_opts,
         sample_id, read_group,
         platform_id, library_id, flag_f));
 

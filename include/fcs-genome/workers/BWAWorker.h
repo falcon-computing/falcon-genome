@@ -12,6 +12,7 @@ class BWAWorker : public Worker {
       std::string fq1_path,
       std::string fq2_path,
       std::string output_path,
+      std::vector<std::string> extra_opts,
       std::string sample_id,
       std::string read_group,
       std::string platform_id,
