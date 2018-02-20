@@ -10,12 +10,14 @@ BWAWorker::BWAWorker(std::string ref_path,
       std::string fq1_path,
       std::string fq2_path,
       std::string output_path,
+      std::vector<std::string> extra_opts,
       std::string sample_id,
       std::string read_group,
       std::string platform_id,
       std::string library_id,
       bool &flag_f):
-  Worker(get_config<bool>("latency_mode") ?  conf_host_list.size() : 1),
+  Worker(get_config<bool>("latency_mode") ? conf_host_list.size() : 1, 
+         1, extra_opts),
   ref_path_(ref_path),
   fq1_path_(fq1_path),
   fq2_path_(fq2_path),
@@ -108,7 +110,9 @@ void BWAWorker::setup() {
         << "--fpga_path=" << get_config<std::string>("bwa.fpga.bit_path") << " "
         << "--pac_path=" << get_config<std::string>("bwa.fpga.pac_path") << " ";
   }
-  cmd << get_config<std::string>("bwa.extra_args") << " ";
+  for (int i = 0; i < extra_opts_.size(); i++) {
+    cmd << extra_opts_[i] << " ";
+  }
 
   cmd << ref_path_ << " "
       << fq1_path_ << " "

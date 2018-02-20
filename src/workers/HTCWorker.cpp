@@ -14,12 +14,12 @@ HTCWorker::HTCWorker(std::string ref_path,
       std::vector<std::string> extra_opts,
       int  contig,
       bool flag_vcf,
-      bool &flag_f): Worker(1, get_config<int>("gatk.htc.nct")),
+      bool &flag_f): 
+  Worker(1, get_config<int>("gatk.htc.nct"), extra_opts),
   produce_vcf_(flag_vcf),
   ref_path_(ref_path),
   intv_path_(intv_path),
-  input_path_(input_path),
-  extra_opts_(extra_opts)
+  input_path_(input_path)
 {
   // check input/output files
   output_path_ = check_output(output_path, flag_f);
@@ -52,6 +52,7 @@ void HTCWorker::setup() {
   for (int i = 0; i < extra_opts_.size(); i++) {
     cmd << extra_opts_[i] << " ";
   }
+  cmd << "1> /dev/null";
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
