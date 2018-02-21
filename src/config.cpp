@@ -86,6 +86,8 @@ int init_config() {
     arg_decl_string_w_def("genomicsdb_path", conf_root_dir+"/tools/bin/vcf2tiledb", "path to GenomicsDB")
     arg_decl_string_w_def("gatk_path",       conf_root_dir+"/tools/package/GenomeAnalysisTK.jar", "path to gatk.jar")
     arg_decl_string_w_def("hosts", "",       "host list for scale-out mode")
+    arg_decl_bool("bwa.scaleout_mode",       "enable scale-out mode for bwa")
+    arg_decl_bool("gatk.scalout_mode",       "enable scale-out mode for gatk")
     arg_decl_bool("latency_mode",            "scale-out mode to minimize latency")
     ;
   
@@ -179,7 +181,9 @@ int init_config() {
   check_input(get_config<std::string>("gatk_path"));
 
   // parse host list
-  if (get_config<bool>("latency_mode")) {
+  if (get_config<bool>("bwa.scaleout_mode") || 
+      get_config<bool>("gatk.scaleout_mode") ||
+      get_config<bool>("latency_mode")) {
     std::string hosts = get_config<std::string>("hosts");
 
     typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
