@@ -70,8 +70,8 @@ public:
     po::value<bool>(), \
     msg)
 
-#define arg_decl_bool_w_def(arg, msg) (arg, \
-    po::value<bool>(&opt_bool)->default_value(true), \
+#define arg_decl_bool_w_def(arg, val, msg) (arg, \
+    po::value<bool>(&opt_bool)->default_value(val), \
     msg)
 
 #define arg_decl_string_w_def(arg, val, msg) (arg, \

@@ -4,7 +4,8 @@ BIN_DIR := ./bin
 SRC_DIR := ./src
 TOOLS_DIR := ./tools
 
-CFLAGS 	:= -std=c++0x -fPIC -O3
+CFLAGS 	:= -std=c++0x -fPIC -O3 \
+	   -DBOOST_NO_CXX11_SCOPED_ENUMS
 
 INCLUDES:= -I./include  \
 	   -I$(GLOG_DIR)/include \
@@ -106,4 +107,4 @@ clean:
 	rm -f $(OBJS)
 	rm -f $(PROG)  
 
-.PHONY: all clean install release
+.PHONY: all clean install dist

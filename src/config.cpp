@@ -1,11 +1,10 @@
 #include <boost/tokenizer.hpp>
+#include <boost/thread.hpp>
 #include <fstream>
 #include <string>
 #include <unistd.h>
 
-#define BOOST_NO_CXX11_SCOPED_ENUMS
 #include <boost/filesystem.hpp>
-#undef BOOST_NO_CXX11_SCOPED_ENUMS
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -63,6 +62,13 @@ int init_config() {
   std::string g_conf_fname = conf_root_dir + "/fcs-genome.conf";
   std::string l_conf_fname = "fcs-genome.conf";
 
+  // get cpu number
+  int ncpu = boost::thread::hardware_concurrency();
+  int def_ncontigs = 32;
+  int def_nprocs = ncpu < def_ncontigs ? ncpu : def_ncontigs;
+  DLOG(INFO) << "Found " << ncpu << " total threads on this node, "
+             << "set default gatk nprocs = " << def_nprocs;
+
   namespace po = boost::program_options;
 
   po::options_description common_opt("common");
@@ -88,41 +94,44 @@ int init_config() {
     arg_decl_string_w_def("hosts", "",       "host list for scale-out mode")
     arg_decl_bool("bwa.scaleout_mode",       "enable scale-out mode for bwa")
     arg_decl_bool("gatk.scalout_mode",       "enable scale-out mode for gatk")
-    arg_decl_bool("latency_mode",            "scale-out mode to minimize latency")
+    arg_decl_bool_w_def("latency_mode", false, "enable sorting in bwa-mem")
     ;
   
   tools_opt.add_options()
-    arg_decl_int_w_def("bwa.verbose", 0, "verbose level of bwa output")
-    arg_decl_int_w_def("bwa.nt", -1, "number of threads for bwa-mem")
-    arg_decl_bool("bwa.use_fpga", "option to enable FPGA for bwa-mem")
-    arg_decl_bool_w_def("bwa.use_sort", "enable sorting in bwa-mem")
-    arg_decl_bool_w_def("bwa.enforce_order", "enforce strict sorting ordering")
-    arg_decl_string_w_def("bwa.fpga.bit_path", "", "path to FPGA bitstream for bwa")
-    arg_decl_string_w_def("bwa.fpga.pac_path", "", "path to PAC reference used by FPGA for bwa")
-    arg_decl_int_w_def("bwa.num_batches_per_part", 20,  "max num records in each BAM file")
+    arg_decl_int_w_def("bwa.verbose",              0,     "verbose level of bwa output")
+    arg_decl_int_w_def("bwa.nt",                   -1,    "number of threads for bwa-mem")
+    arg_decl_int_w_def("bwa.num_batches_per_part", 20,    "max num records in each BAM file")
+    arg_decl_bool_w_def("bwa.use_fpga",            false, "option to enable FPGA for bwa-mem")
+    arg_decl_bool_w_def("bwa.use_sort",            true,  "enable sorting in bwa-mem")
+    arg_decl_bool_w_def("bwa.enforce_order",       true,  "enforce strict sorting ordering")
+    arg_decl_string_w_def("bwa.fpga.bit_path",     "",    "path to FPGA bitstream for bwa")
+    arg_decl_string_w_def("bwa.fpga.pac_path",     "",    "path to PAC reference used by FPGA for bwa")
 
-    arg_decl_int_w_def("markdup.max_files",    4096,     "max opened files in markdup")
-    arg_decl_int_w_def("markdup.nt",           16, "thread num in markdup")
+    arg_decl_int_w_def("markdup.max_files",    4096, "max opened files in markdup")
+    arg_decl_int_w_def("markdup.nt",           16,   "thread num in markdup")
     arg_decl_int_w_def("markdup.overflow-list-size", 2000000, "overflow list size in markdup")
-    arg_decl_int_w_def("gatk.ncontigs",        32, "default contig partition num in GATK steps")
+
     arg_decl_string_w_def("gatk.intv.path",    "", "default path to existing contig intervals")
-    arg_decl_int_w_def("gatk.nprocs",          16, "default process num in GATK steps")
-    arg_decl_int_w_def("gatk.bqsr.nprocs",     16, "default process num in GATK BaseRecalibrator")
-    arg_decl_int_w_def("gatk.bqsr.nct",        1,  "default thread num in  GATK BaseRecalibrator")
-    arg_decl_int_w_def("gatk.bqsr.memory",     8,  "default heap memory in GATK BaseRecalibrator")
-    arg_decl_int_w_def("gatk.pr.nprocs",       16, "default process num in GATK PrintReads")
-    arg_decl_int_w_def("gatk.pr.nct",          1,  "default thread num in  GATK PrintReads")
-    arg_decl_int_w_def("gatk.pr.memory",       8,  "default heap memory in GATK PrintReads")
-    arg_decl_int_w_def("gatk.htc.nprocs",      16, "default process num in GATK HaplotypeCaller")
-    arg_decl_int_w_def("gatk.htc.nct",         1,  "default thread num in  GATK HaplotypeCaller")
-    arg_decl_int_w_def("gatk.htc.memory",      8,  "default heap memory in GATK HaplotypeCaller")
-    arg_decl_int_w_def("gatk.indel.nprocs",    16, "default process num in GATK IndelRealigner")
-    arg_decl_int_w_def("gatk.indel.memory",    8,  "default heap memory in GATK IndelRealigner")
+    arg_decl_int_w_def("gatk.ncontigs", def_ncontigs, "default contig partition num in GATK steps")
+    arg_decl_int_w_def("gatk.nprocs",   def_nprocs,   "default process num in GATK steps")
+    arg_decl_int_w_def("gatk.nct",             1,  "default thread number in GATK steps (deprecated)")
+    arg_decl_int_w_def("gatk.memory",          8,  "default heap memory in GATK steps")
+    arg_decl_int("gatk.bqsr.nprocs",               "default process num in GATK BaseRecalibrator")
+    arg_decl_int("gatk.bqsr.nct",                  "default thread num in  GATK BaseRecalibrator")
+    arg_decl_int("gatk.bqsr.memory",               "default heap memory in GATK BaseRecalibrator")
+    arg_decl_int("gatk.pr.nprocs",                 "default process num in GATK PrintReads")
+    arg_decl_int("gatk.pr.nct",                    "default thread num in  GATK PrintReads")
+    arg_decl_int("gatk.pr.memory",                 "default heap memory in GATK PrintReads")
+    arg_decl_int("gatk.htc.nprocs",                "default process num in GATK HaplotypeCaller")
+    arg_decl_int("gatk.htc.nct",                   "default thread num in  GATK HaplotypeCaller")
+    arg_decl_int("gatk.htc.memory",                "default heap memory in GATK HaplotypeCaller")
+    arg_decl_int("gatk.indel.nprocs",              "default process num in GATK IndelRealigner")
+    arg_decl_int("gatk.indel.memory",              "default heap memory in GATK IndelRealigner")
+    arg_decl_int("gatk.ug.nprocs",                 "default process num in GATK UnifiedGenotyper")
+    arg_decl_int("gatk.ug.nt",                     "default thread num in GATK UnifiedGenotyper")
+    arg_decl_int("gatk.ug.memory",                 "default heap memory in GATK UnifiedGenotyper")
     arg_decl_int_w_def("gatk.rtc.nt",          16, "default thread num in GATK RealignerTargetCreator")
     arg_decl_int_w_def("gatk.rtc.memory",      48, "default heap memory in GATK RealignerTargetCreator")
-    arg_decl_int_w_def("gatk.ug.nprocs",       16, "default process num in GATK UnifiedGenotyper")
-    arg_decl_int_w_def("gatk.ug.nt",           1,  "default thread num in GATK UnifiedGenotyper")
-    arg_decl_int_w_def("gatk.ug.memory",       8,  "default heap memory in GATK UnifiedGenotyper")
     arg_decl_int_w_def("gatk.joint.ncontigs",  32, "default contig partition num in joint genotyping")
     arg_decl_int_w_def("gatk.combine.nprocs",  16, "default process num in GATK CombineGVCFs")
     arg_decl_int_w_def("gatk.genotype.nprocs", 32, "default process num in GATK GenotypeGVCFs")
@@ -163,6 +172,26 @@ int init_config() {
     throw silentExit();
   }
 
+  // check on the GATK parameters
+  // TODO
+
+  // set parameters based on dependency
+  set_config<bool>("bwa.scaleout_mode", "latency_mode");
+  set_config<bool>("gatk.scaleout_mode", "latency_mode");
+
+  set_config<int>("gatk.bqsr.nprocs",  "gatk.nprocs");
+  set_config<int>("gatk.pr.nprocs",    "gatk.nprocs");
+  set_config<int>("gatk.htc.nprocs",   "gatk.nprocs");
+  set_config<int>("gatk.indel.nprocs", "gatk.nprocs");
+  set_config<int>("gatk.ug.nprocs",    "gatk.nprocs");
+
+  set_config<int>("gatk.bqsr.memory",  "gatk.memory");
+  set_config<int>("gatk.pr.memory",    "gatk.memory");
+  set_config<int>("gatk.htc.memory",   "gatk.memory");
+  set_config<int>("gatk.indel.memory", "gatk.memory");
+  set_config<int>("gatk.ug.memory",    "gatk.memory");
+
+  // create temp dir
   std::string username("");
   username = std::getenv("USER");
   conf_temp_dir = get_config<std::string>("temp_dir") +
@@ -180,7 +209,7 @@ int init_config() {
   check_input(get_config<std::string>("genomicsdb_path"));
   check_input(get_config<std::string>("gatk_path"));
 
-  // parse host list
+  // parse host list if scaleout_mode is selected
   if (get_config<bool>("bwa.scaleout_mode") || 
       get_config<bool>("gatk.scaleout_mode") ||
       get_config<bool>("latency_mode")) {

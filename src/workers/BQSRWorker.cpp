@@ -15,7 +15,9 @@ BQSRWorker::BQSRWorker(std::string ref_path,
       std::vector<std::string> extra_opts,
       int  contig,
       bool &flag_f): 
-  Worker(1, get_config<int>("gatk.bqsr.nct"), extra_opts),
+  Worker(1, 
+         get_config<int>("gatk.bqsr.nct", "gatk.nct"), 
+         extra_opts),
   ref_path_(ref_path),
   intv_path_(intv_path),
   input_path_(input_path),
@@ -38,13 +40,13 @@ void BQSRWorker::setup() {
   // create cmd
   std::stringstream cmd;
   cmd << get_config<std::string>("java_path") << " "
-      << "-Xmx" << get_config<int>("gatk.bqsr.memory") << "g "
+      << "-Xmx" << get_config<int>("gatk.bqsr.memory", "gatk.memory") << "g "
       << "-jar " << get_config<std::string>("gatk_path") << " "
       << "-T BaseRecalibrator "
       << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " "
       << "-L " << intv_path_ << " "
-      << "-nct " << get_config<int>("gatk.bqsr.nct") << " "
+      << "-nct " << get_config<int>("gatk.bqsr.nct", "gatk.nct") << " "
       // secret option to fix index fopen issue
       << "--disable_auto_index_creation_and_locking_when_reading_rods "
       << "-o " << output_path_ << " ";
@@ -100,7 +102,7 @@ PRWorker::PRWorker(std::string ref_path,
       std::vector<std::string> extra_opts,
       int  contig,
       bool &flag_f): 
-  Worker(1, get_config<int>("gatk.pr.nct"), extra_opts),
+  Worker(1, get_config<int>("gatk.pr.nct", "gatk.nct"), extra_opts),
   ref_path_(ref_path),
   intv_path_(intv_path),
   bqsr_path_(bqsr_path),
@@ -124,14 +126,14 @@ void PRWorker::setup() {
   // create cmd
   std::stringstream cmd;
   cmd << get_config<std::string>("java_path") << " "
-      << "-Xmx" << get_config<int>("gatk.pr.memory") << "g "
+      << "-Xmx" << get_config<int>("gatk.pr.memory", "gatk.memory") << "g "
       << "-jar " << get_config<std::string>("gatk_path") << " "
       << "-T PrintReads "
       << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " "
       << "-BQSR " << bqsr_path_ << " "
       << "-L " << intv_path_ << " "
-      << "-nct " << get_config<int>("gatk.pr.nct") << " "
+      << "-nct " << get_config<int>("gatk.pr.nct", "gatk.nct") << " "
       << "-o " << output_path_ << " ";
 
   for (int i = 0; i < extra_opts_.size(); i++) {
