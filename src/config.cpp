@@ -127,6 +127,9 @@ int init_config() {
     arg_decl_int_w_def("gatk.combine.nprocs",  16, "default process num in GATK CombineGVCFs")
     arg_decl_int_w_def("gatk.genotype.nprocs", 32, "default process num in GATK GenotypeGVCFs")
     arg_decl_int_w_def("gatk.genotype.memory", 4,  "default heap memory in GATK GenotypeGVCFs")
+    arg_decl_int_w_def("gatk.mutect2.nprocs",      32, "default process num in GATK Mutect2")
+    arg_decl_int_w_def("gatk.mutect2.nct",         1,  "default thread num in  GATK Mutect2")
+    arg_decl_int_w_def("gatk.mutect2.memory",      4,  "default heap memory in GATK Mutect2")
     arg_decl_bool("gatk.skip_pseudo_chr", "skip pseudo chromosome intervals")
     ;
 
