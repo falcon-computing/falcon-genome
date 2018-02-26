@@ -13,13 +13,15 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
       std::string input_path2,
       std::string output_path,
       std::string dbsnp_path,
+      std::string cosmic_path,
       int  contig,
       bool &flag_f): Worker(1, get_config<int>("gatk.mutect2.nct")),
   ref_path_(ref_path),
   intv_path_(intv_path),
   input_path1_(input_path1),
   input_path2_(input_path2),
-  dbsnp_path_(dbsnp_path)
+  dbsnp_path_(dbsnp_path),
+  cosmic_path_(cosmic_path)
 {
   // check input/output files
   output_path_ = check_output(output_path, flag_f);
@@ -31,6 +33,7 @@ void Mutect2Worker::check() {
   input_path1_ = check_input(input_path1_);
   input_path2_ = check_input(input_path2_);
   dbsnp_path_ = check_input(dbsnp_path_);
+  cosmic_path_ = check_input(cosmic_path_);
 }
 
 void Mutect2Worker::setup() {
@@ -50,7 +53,8 @@ void Mutect2Worker::setup() {
       << "-L " << intv_path_ << " "
       << "-nct " << get_config<int>("gatk.mutect2.nct") << " "
       << "-o " << output_path_ << " "
-      << "--dbsnp " << dbsnp_path_ << " ";
+      << "--dbsnp " << dbsnp_path_ << " "
+      << "--cosmic " << cosmic_path_ << " ";
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
