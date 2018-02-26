@@ -35,7 +35,7 @@ LINK	:= -L$(BOOST_DIR)/lib \
 	   -L$(JSONCPP_DIR)/lib -ljsoncpp \
 	   -lpthread -lm -ldl -lz -lrt
 
-GIT_VERSION := $(shell git describe --abbrev=5 --dirty --always --tags)
+GIT_VERSION := $(shell git describe --tags | sed 's/\(.*\)-.*/\1/')
 
 ifeq ($(RELEASE),)
 CFLAGS   	:= $(CFLAGS) -g
