@@ -28,6 +28,7 @@ int mutect2_main(int argc, char** argv,
     arg_decl_string("tumor,t", "input tumor BAM file or dir")
     arg_decl_string("output,o", "output VCF file")
     arg_decl_string("dbsnp", "dbSNP for Mutect2")
+    arg_decl_string("cosmic", "cosmic for Mutect2")
     ("skip-concat,s", "produce a set of VCF files instead of one");
     
   // Parse arguments
@@ -47,7 +48,8 @@ int mutect2_main(int argc, char** argv,
   std::string input_path2 = get_argument<std::string>(cmd_vm, "tumor");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
   std::string dbsnp_path  = get_argument<std::string>(cmd_vm, "dbsnp");
-
+  std::string cosmic_path  = get_argument<std::string>(cmd_vm, "cosmic");
+    
   // finalize argument parsing
   po::notify(cmd_vm);
 
@@ -93,6 +95,7 @@ int mutect2_main(int argc, char** argv,
           intv_paths[contig], input_file1, input_file2,
           output_file,
           dbsnp_path,
+          cosmic_path,
           contig,
           flag_mutect2_f));
     output_files[contig] = output_file;
