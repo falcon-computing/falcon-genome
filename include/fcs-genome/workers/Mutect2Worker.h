@@ -15,6 +15,7 @@ class Mutect2Worker : public Worker {
       std::string input_path2,
       std::string output_path,
       std::string dbsnp_path,
+      std::string cosmic_path,
       int contig,
       bool &flag_f);
 
@@ -28,6 +29,7 @@ class Mutect2Worker : public Worker {
   std::string input_path2_;
   std::string output_path_;
   std::string dbsnp_path_;
+  std::string cosmic_path_;
 };
 } // namespace fcsgenome
 #endif
