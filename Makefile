@@ -1,50 +1,39 @@
-BIN_DIR := ./bin
-SRC_DIR := ./src
-TOOLS_DIR := ./tools
-TEST_DIR := ./test
+BIN_DIR 	:= ./bin
+SRC_DIR 	:= ./src
+TOOLS_DIR 	:= ./tools
+TEST_DIR 	:= ./test
 
-GLOG_DIR=./deps/glog-0.3.3
-GTEST_DIR=./deps/googletest
-OPENMPI_DIR=./deps/openmpi-1.10.2
-HTSLIB_DIR=./deps/htslib-1.3.1
-JSONCPP_DIR=./deps/jsoncpp-1.7.7
-FLMDIR=./deps/falcon-lm
+GLOG_DIR	:= ./deps/glog-0.3.3
+GTEST_DIR	:= ./deps/googletest
+OPENMPI_DIR	:= ./deps/openmpi-1.10.2
+HTSLIB_DIR	:= ./deps/htslib-1.3.1
+JSONCPP_DIR	:= ./deps/jsoncpp-1.7.7
+FLMDIR		:= ./deps/falcon-lm
 
 include config.mk
 
-CFLAGS 	:= -std=c++0x -fPIC -O3
 
-INCLUDES:= -I./include  \
-	   -I$(GLOG_DIR)/include \
-	   -I$(HTSLIB_DIR) \
-	   -I$(JSONCPP_DIR)/include \
-	   -I$(GTEST_DIR)/include
+CFLAGS 		:= -std=c++0x -fPIC -O3
 
-ifeq ($(PREFIX),)
-PREFIX  := ./install
-endif
-
-ifneq ($(BOOST_DIR),)
-INCLUDES:= $(INCLUDES) -I$(BOOST_DIR)/include
-endif
-ifneq ($(GFLAGS_DIR),)
-INCLUDES:= $(INCLUDES) -I$(GFLAGS_DIR)/include
-endif
+INCLUDES	:= -I./include  \
+		   -I$(GLOG_DIR)/include \
+		   -I$(HTSLIB_DIR) \
+		   -I$(JSONCPP_DIR)/include \
+		   -I$(GTEST_DIR)/include
 	
-LINK	:= -L$(BOOST_DIR)/lib \
-	   	-lboost_system \
-		-lboost_thread \
-		-lboost_iostreams \
-		-lboost_filesystem \
-		-lboost_regex \
-		-lboost_program_options \
-	   -L$(GLOG_DIR)/lib -lglog \
-	   -L$(GTEST_DIR)/lib -lgtest \
-	   -L$(HTSLIB_DIR) -lhts \
-	   -L$(JSONCPP_DIR)/lib -ljsoncpp \
-	   -lpthread -lm -ldl -lz -lrt
+LINK		:= -lboost_system \
+		   -lboost_thread \
+		   -lboost_iostreams \
+		   -lboost_filesystem \
+		   -lboost_regex \
+		   -lboost_program_options \
+		   -L$(GLOG_DIR)/lib -lglog \
+		   -L$(GTEST_DIR)/lib -lgtest \
+		   -L$(HTSLIB_DIR) -lhts \
+		   -L$(JSONCPP_DIR)/lib -ljsoncpp \
+		   -lpthread -lm -ldl -lz -lrt
 
-GIT_VERSION := $(shell git describe --abbrev=5 --dirty --always --tags)
+GIT_VERSION := $(shell git describe --tags | sed 's/\(.*\)-.*/\1/')
 
 ifeq ($(RELEASE),)
 CFLAGS   	:= $(CFLAGS) -g
