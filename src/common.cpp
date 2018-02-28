@@ -38,9 +38,15 @@ std::string get_absolute_path(std::string path) {
 }
 
 // Check input file exist and return absolute path
-std::string check_input(std::string path) {
+std::string check_input(std::string path, bool req) {
   if (!boost::filesystem::exists(path)) {
-    throw fileNotFound("Cannot find " + path);
+    if (req) {
+      throw fileNotFound("Cannot find " + path);
+    }
+    else {
+      LOG(WARNING) << "Cannot find " << path;
+      return path;
+    }
   }
   return get_absolute_path(path);
 }
