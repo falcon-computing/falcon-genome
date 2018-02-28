@@ -162,7 +162,6 @@ int init_config() {
       }
     }
     po::notify(config_vtable);
-  
   }
   catch (po::error &e) {
     std::cerr << "fcs-genome configuration options:" << std::endl;

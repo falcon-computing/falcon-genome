@@ -69,6 +69,7 @@ void set_config(std::string arg, std::string def_arg) {
 }
 
 int init(char** argv, int argc);
+int init_config();
 
 std::vector<std::string> init_contig_intv(std::string ref_path);
 
