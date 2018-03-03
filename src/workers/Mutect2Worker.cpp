@@ -9,17 +9,17 @@ namespace fcsgenome {
 
 Mutect2Worker::Mutect2Worker(std::string ref_path,
       std::string intv_path,
-      std::string input_path1,
-      std::string input_path2,
+      std::string normal_path,
+      std::string tumor_path,
       std::string output_path,
-      std::string dbsnp_path,
-      std::string cosmic_path,
+      std::vector<std::string> &dbsnp_path,
+      std::vector<std::string> &cosmic_path,
       int  contig,
       bool &flag_f): Worker(1, get_config<int>("gatk.mutect2.nct")),
   ref_path_(ref_path),
   intv_path_(intv_path),
-  input_path1_(input_path1),
-  input_path2_(input_path2),
+  normal_path_(normal_path),
+  tumor_path_(tumor_path),
   dbsnp_path_(dbsnp_path),
   cosmic_path_(cosmic_path)
 {
@@ -30,10 +30,14 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
 void Mutect2Worker::check() {
   ref_path_   = check_input(ref_path_);
   intv_path_  = check_input(intv_path_);
-  input_path1_ = check_input(input_path1_);
-  input_path2_ = check_input(input_path2_);
-  dbsnp_path_ = check_input(dbsnp_path_);
-  cosmic_path_ = check_input(cosmic_path_);
+  normal_path_ = check_input(normal_path_);
+  tumor_path_ = check_input(tumor_path_);
+  for(int i = 0; i < dbsnp_path_.size(); i++) {
+    dbsnp_path_[i] = check_input(dbsnp_path_[i]);
+  }
+  for(int j = 0; j < cosmic_path_.size(); j++) {
+    cosmic_path_[j] = check_input(cosmic_path_[j]);
+  }
 }
 
 void Mutect2Worker::setup() {
@@ -45,16 +49,21 @@ void Mutect2Worker::setup() {
       << "-jar " << get_config<std::string>("gatk_path") << " "
       << "-T MuTect2 "
       << "-R " << ref_path_ << " "
-      << "-I:normal " << input_path1_ << " "
-      << "-I:tumor " << input_path2_ << " ";
+      << "-I:normal " << normal_path_ << " "
+      << "-I:tumor " << tumor_path_ << " ";
 
   cmd << "--variant_index_type LINEAR "
       << "--variant_index_parameter 128000 "
       << "-L " << intv_path_ << " "
       << "-nct " << get_config<int>("gatk.mutect2.nct") << " "
-      << "-o " << output_path_ << " "
-      << "--dbsnp " << dbsnp_path_ << " "
-      << "--cosmic " << cosmic_path_ << " ";
+      << "-o " << output_path_ << " ";
+
+  for (int i = 0; i < dbsnp_path_.size(); i++) {    
+      cmd << "--dbsnp " << dbsnp_path_[i] << " ";
+  }
+  for (int j = 0; j < cosmic_path_.size(); j++) {
+      cmd << "--cosmic " << cosmic_path_[j] << " ";
+  }
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;

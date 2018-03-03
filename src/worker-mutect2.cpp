@@ -27,8 +27,8 @@ int mutect2_main(int argc, char** argv,
     arg_decl_string("normal,n", "input normal BAM file or dir")
     arg_decl_string("tumor,t", "input tumor BAM file or dir")
     arg_decl_string("output,o", "output VCF file")
-    arg_decl_string("dbsnp", "dbSNP for Mutect2")
-    arg_decl_string("cosmic", "cosmic for Mutect2")
+    ("dbsnp", po::value<std::vector<std::string> >(), "dbsnp for Mutect2")
+    ("cosmic", po::value<std::vector<std::string> >(), "cosmic for Mutect2")
     ("skip-concat,s", "produce a set of VCF files instead of one");
     
   // Parse arguments
@@ -44,12 +44,12 @@ int mutect2_main(int argc, char** argv,
   bool flag_skip_concat    = get_argument<bool>(cmd_vm, "skip-concat");
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
                                 get_config<std::string>("ref_genome"));
-  std::string input_path1 = get_argument<std::string>(cmd_vm, "normal");
-  std::string input_path2 = get_argument<std::string>(cmd_vm, "tumor");
+  std::string normal_path = get_argument<std::string>(cmd_vm, "normal");
+  std::string tumor_path = get_argument<std::string>(cmd_vm, "tumor");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
-  std::string dbsnp_path  = get_argument<std::string>(cmd_vm, "dbsnp");
-  std::string cosmic_path  = get_argument<std::string>(cmd_vm, "cosmic");
-    
+  std::vector<std::string> dbsnp_path = get_argument<std::vector<std::string> >(cmd_vm, "dbsnp", std::vector<std::string>());
+  std::vector<std::string> cosmic_path = get_argument<std::vector<std::string> >(cmd_vm, "cosmic", std::vector<std::string>());
+ 
   // finalize argument parsing
   po::notify(cmd_vm);
 
@@ -74,25 +74,25 @@ int mutect2_main(int argc, char** argv,
   
   bool flag_mutect2_f = !flag_skip_concat | flag_f;  
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
-    std::string input_file1;
-    std::string input_file2;
-    if (boost::filesystem::is_directory(input_path1)) {
+    std::string normal_file;
+    std::string tumor_file;
+    if (boost::filesystem::is_directory(normal_path)) {
       // if input is a directory, automatically go into contig mode
-      input_file1 = get_contig_fname(input_path1, contig);
+      normal_file = get_contig_fname(normal_path, contig);
     }
     else {
-      input_file1 = input_path1;
+      normal_file = normal_path;
     }
-    if (boost::filesystem::is_directory(input_path2)) {
-      input_file2 = get_contig_fname(input_path2, contig);
+    if (boost::filesystem::is_directory(tumor_path)) {
+      tumor_file = get_contig_fname(tumor_path, contig);
     }
     else {
-      input_file2 = input_path2;
+      tumor_file = tumor_path;
     }
     std::string file_ext = "vcf";
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new Mutect2Worker(ref_path,
-          intv_paths[contig], input_file1, input_file2,
+          intv_paths[contig], normal_file, tumor_file,
           output_file,
           dbsnp_path,
           cosmic_path,
