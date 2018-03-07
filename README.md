@@ -238,5 +238,25 @@ fcs-genome gatk <options>
 #### Description
 The Genome Analysis Toolkit developed by the Broad Institute - which handles and processes genomic data from any organism, with any level of ploidy, is the standard for SNP and indel indentification for DNA and RNAseq data. Apart from variant discovery, genotyping and ensuring data quality assurance is also done. GATK provides a Best Practices workflow for variant discovery that ensures the most accurate results.
 
+---
+### Mutect2
+```
+fcs-genome mutect2 <options>
+```
+#### Description
+Equivalent to GATK's Mutect2, this tool calls somatic variants- both somatic single nucleotide (SNVs) as well as insertion and deletion variants (indels). In addition to taking tumor BAM files as input, the tool also requires the inclusion of a matched normal (--normal). Mutect2 uses the normals as prefilters for the allelic sites.
+#### Options
+| Command | Description |
+| --- | --- |
+| -h [--help] | print help messages |
+| -f [--force] | overwrite output files if they exist |
+| -O [--extra-options] | extra options for the command |
+| -r [--ref] | reference genome path |
+| -n [--normal] | input normal BAM file or dir |
+| -t [--tumor] | input tumor BAM file or dir |
+| -o [--output] | output VCF file |
+| --dbsnp | Optional. dbsnp for Mutect2 |
+| --cosmic | Optional. cosmic for Mutect2 |
+| -s [--skip-concat] | produce a set of VCF files instead of one |
 
-
+---
