@@ -69,7 +69,7 @@ void set_config(std::string arg, std::string def_arg) {
 }
 
 int init(char** argv, int argc);
-int init_config();
+int init_config(boost::program_options::options_description conf_opt);
 
 std::vector<std::string> init_contig_intv(std::string ref_path);
 
