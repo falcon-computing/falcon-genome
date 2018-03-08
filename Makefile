@@ -12,8 +12,8 @@ FLMDIR		:= ./deps/falcon-lm
 
 include config.mk
 
-
-CFLAGS 		:= -std=c++0x -fPIC -O3
+CFLAGS 		:= -std=c++0x -fPIC -O3 \
+		   -DBOOST_NO_CXX11_SCOPED_ENUMS
 
 INCLUDES	:= -I./include  \
 		   -I$(GLOG_DIR)/include \
@@ -54,7 +54,7 @@ CFLAGS   	:= $(CFLAGS) -O2 -DNDEBUG
 endif
 endif
 
-CFLAGS	:= $(CFLAGS) -DVERSION=\"$(GIT_VERSION)\"
+CFLAGS	 := $(CFLAGS) -DVERSION=\"$(GIT_VERSION)\"
 
 OBJS	 := $(SRC_DIR)/common.o \
 	    $(SRC_DIR)/config.o \
@@ -116,6 +116,8 @@ $(TEST_DIR)/%.o: $(TEST_DIR)/%.cpp $(DEPS)
 
 clean:
 	rm -f $(OBJS)
+	rm -f $(SRC_DIR)/main.o
+	rm -f $(TEST_DIR)/main.o
 	rm -f $(PROG)  
 
 .PHONY: all clean install dist test runtest

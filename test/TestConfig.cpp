@@ -30,8 +30,39 @@ TEST_F(TestConfig, DefaultValues) {
     return;
   }
 
-  fcs::init_config();
+  fcs::init(NULL, 0);
   ASSERT_TRUE(fcs::config_vtable.count("temp_dir"));
   ASSERT_TRUE(fcs::config_vtable.count("log_dir"));
   ASSERT_TRUE(fcs::config_vtable.count("gatk.nprocs"));
 }
+
+TEST_F(TestConfig, GATKNprocs) {
+
+  fcs::init(NULL, 0); 
+
+  int ncontigs = 32;
+  int nprocs = fcs::get_config<int>("gatk.nprocs");
+  int nct    = fcs::get_config<int>("gatk.nct");
+  int memory = fcs::get_config<int>("gatk.memory");
+
+  // nprocs <= ncontigs
+  ASSERT_LE(nprocs, ncontigs);
+
+  ASSERT_EQ(nprocs, fcs::get_config<int>("gatk.bqsr.nprocs"));
+  ASSERT_EQ(nprocs, fcs::get_config<int>("gatk.pr.nprocs"));
+  ASSERT_EQ(nprocs, fcs::get_config<int>("gatk.htc.nprocs"));
+  ASSERT_EQ(nprocs, fcs::get_config<int>("gatk.indel.nprocs"));
+  ASSERT_EQ(nprocs, fcs::get_config<int>("gatk.ug.nprocs"));
+
+  ASSERT_EQ(nct, fcs::get_config<int>("gatk.bqsr.nct"));
+  ASSERT_EQ(nct, fcs::get_config<int>("gatk.pr.nct"));
+  ASSERT_EQ(nct, fcs::get_config<int>("gatk.htc.nct"));
+  ASSERT_EQ(nct, fcs::get_config<int>("gatk.ug.nt"));
+
+  ASSERT_EQ(memory, fcs::get_config<int>("gatk.bqsr.memory"));
+  ASSERT_EQ(memory, fcs::get_config<int>("gatk.pr.memory"));
+  ASSERT_EQ(memory, fcs::get_config<int>("gatk.htc.memory"));
+  ASSERT_EQ(memory, fcs::get_config<int>("gatk.indel.memory"));
+  ASSERT_EQ(memory, fcs::get_config<int>("gatk.ug.memory"));
+}
+
