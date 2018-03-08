@@ -116,6 +116,8 @@ $(TEST_DIR)/%.o: $(TEST_DIR)/%.cpp $(DEPS)
 
 clean:
 	rm -f $(OBJS)
+	rm -f $(SRC_DIR)/main.o
+	rm -f $(TEST_DIR)/main.o
 	rm -f $(PROG)  
 
 .PHONY: all clean install dist test runtest
