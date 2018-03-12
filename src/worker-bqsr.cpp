@@ -140,7 +140,8 @@ int baserecal_main(int argc, char** argv,
   // finalize argument parsing
   po::notify(cmd_vm);
 
-  Executor executor("Base Recalibrator", get_config<int>("gatk.bqsr.nprocs"));
+  Executor executor("Base Recalibrator", 
+                    get_config<int>("gatk.bqsr.nprocs"));
 
   baserecalAddWorkers(executor, ref_path, known_sites, extra_opts,
       input_path, output_path, flag_f);
@@ -192,7 +193,8 @@ int pr_main(int argc, char** argv,
   // the output path will be a directory
   create_dir(output_path);
 
-  Executor executor("Print Reads", get_config<int>("gatk.pr.nprocs"));
+  Executor executor("Print Reads", 
+                    get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
   
   prAddWorkers(executor, ref_path, 
       input_path, bqsr_path, output_path, extra_opts, flag_f);
@@ -259,7 +261,8 @@ int bqsr_main(int argc, char** argv,
   // the output path will be a directory
   create_dir(output_path);
 
-  Executor executor("Base Recalibration", get_config<int>("gatk.bqsr.nprocs"));
+  Executor executor("Base Recalibration", 
+                    get_config<int>("gatk.bqsr.nprocs"));
 
   // first, do base recal
   baserecalAddWorkers(executor, ref_path, known_sites, extra_opts,

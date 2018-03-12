@@ -68,7 +68,9 @@ int ug_main(int argc, char** argv,
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
 
-  Executor executor("Unified Genotyper", get_config<int>("gatk.ug.nprocs"));
+  Executor executor("Unified Genotyper", 
+                    get_config<int>("gatk.ug.nprocs", "gatk.nprocs"));
+
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
     std::string input_file;
     if (boost::filesystem::is_directory(input_path)) {
