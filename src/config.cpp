@@ -52,11 +52,6 @@ static std::string env_name_mapper(std::string key) {
 
 int init_config(boost::program_options::options_description conf_opt) {
 
-  // static settings
-  conf_bin_dir      = get_bin_dir();
-  conf_root_dir     = conf_bin_dir + "/..";
-  conf_project_dir  = get_absolute_path(".fcs-genome");
-
   std::string g_conf_fname = conf_root_dir + "/fcs-genome.conf";
   std::string l_conf_fname = "fcs-genome.conf";
 
@@ -165,7 +160,10 @@ int init_config(boost::program_options::options_description conf_opt) {
 }
 
 int init(char** argv, int argc) {
-
+  // static settings
+  conf_bin_dir      = get_bin_dir();
+  conf_root_dir     = conf_bin_dir + "/..";
+  conf_project_dir  = get_absolute_path(".fcs-genome");
   namespace po = boost::program_options;
 
   po::options_description conf_opt;
