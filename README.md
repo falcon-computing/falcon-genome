@@ -10,7 +10,7 @@ Like the GATK Best Practices, the workflow follows two phases of analysis:
 
 ## Quick Start 
 ### Installation
-####Software Prerequisites
+#### Software Prerequisites
 
 #### System Setup
 ..+ Software for Falcon Genomics is installed in ```/usr/local/falcon/```
@@ -37,7 +37,7 @@ sample_id=
 platform= Illumina
 output_dir=
 
-# Alignment to reference. 
+# Alignment to reference
 # Input=FASTQ, OUTPUT= BAM. Command fcs-genome align also sorts the aligned BAM file and marks duplicates unless --align-only is specified as a parameter
 fcs-genome align \
         --ref $ref_genome \
@@ -46,7 +46,7 @@ fcs-genome align \
         --output $output_dir/${sample_id}_marked.bam \
         --rg ${sample_id} --sp ${sample_id} --pl $platform --lb ${sample_id}
 
-# Base Recalibration. 
+# Base Recalibration
 # Input=BAM file with duplicates marked, OUTPUT=Recalibrated BAM file. Command fcs-genome bqsr performs GATK's Base Recalibration and Print Reads in a single command.
 fcs-genome bqsr \
         --ref $ref_genome \
@@ -57,6 +57,7 @@ fcs-genome bqsr \
         --knownSites $g1000_gold_standard_indels   
 
 # Haplotype Caller
+# Input=Recalibrated BAM, OUTPUT=VCF file. Command fcs-genome htc performs germline variant calling with default output format as GVCF. A VCF file is produced when parameter --produce-vcf is specified.
 fcs-genome htc \
         --ref $ref_genome \
         --input $output_dir/${sample_id}_recalibrated.bam \
