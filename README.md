@@ -1,7 +1,68 @@
-# fcs-genome pipeline
-  
-## Description
-Variant calling pipeline for germline mutations adopting GATK's Best Practices along with Falcon's FPGA acceleration techniques to significantly improve performance.
+# fcs-genome pipeline  
+##Contents
+
+## Overview
+The fcs-genome pipeline allows for variant calling for both germline and somatic mutations adopting GATK's Best Practices along with Falcon's FPGA acceleration techniques to significantly improve performance. The general pattern of the pipeline workflow starts with raw sequence reads, and proceeds to obtain a filtered set of variants that can be annotated for further analysis.
+
+Like the GATK Best Practices, the workflow follows two phases of analysis:
+1. Data pre-processing - The raw sequence reads in the FASTQ format are converted to BAM files through alignment to the reference using a BWA-like tool. The BAM files are made analysis-ready through the application of the fcs-genome version of correctional tools such as IndelRealigner and Base Recalibrator to account for biases.
+2. Variant Calling - Variant calls, either germline or somatic, are made using the tools equivalent to GATK's Haplotype Caller and Mutect2 respectively. This produces files in either GVCF/VCF format.
+
+## Quick Start 
+### Installation
+####Software Prerequisites
+
+#### System Setup
+..+ Software for Falcon Genomics is installed in ```/usr/local/falcon/```
+..+ System information must be stored in ```/usr/local/falcon/fcs-genome.conf```
+..+ Paths to reference, known sites and input FASTQ files are required as parameters for the pipeline
+
+### Example
+#### HTC pipeline
+This pipeline starts with raw sequence data in the FASTQ format as input, aligns the sequences to the reference sequence, marks duplicate reads in the aligned BAM file, recalibrates reads based on per-base quality score based on sequencing machine biases, and performs germline variant calling.
+```
+#Export fcs-genome and other required tools to the PATH
+source /usr/bin/falcon/setup.sh 
+
+#Define input paths
+ref_dir=
+
+ref_genome=$ref_dir/human_g1k_v37.fasta
+db138_SNPs=$ref_dir/dbsnp_138.b37.vcf  #Optional
+g1000_indels=$ref_dir/1000G_phase1.indels.b37.vcf  #Optional
+g1000_gold_standard_indels=$ref_dir/Mills_and_1000G_gold_standard.indels.b37.vcf #Optional
+
+fastq_dir=
+sample_id=
+platform= Illumina
+output_dir=
+
+# Alignment to reference. 
+# Input=FASTQ, OUTPUT= BAM. Command fcs-genome align also sorts the aligned BAM file and marks duplicates unless --align-only is specified as a parameter
+fcs-genome align \
+        --ref $ref_genome \
+        --fastq1 ${fastq_dir}/${sample_id}_1.fastq.gz \
+        --fastq2 ${fastq_dir}/${sample_id}_2.fastq.gz \
+        --output $output_dir/${sample_id}_marked.bam \
+        --rg ${sample_id} --sp ${sample_id} --pl $platform --lb ${sample_id}
+
+# Base Recalibration. 
+# Input=BAM file with duplicates marked, OUTPUT=Recalibrated BAM file. Command fcs-genome bqsr performs GATK's Base Recalibration and Print Reads in a single command.
+fcs-genome bqsr \
+        --ref $ref_genome \
+        --input $output_dir/${sample_id}_marked.bam \
+        --output $output_dir/${sample_id}_recalibrated.bam \
+        --knownSites $db138_SNPs \
+        --knownSites $g1000_indels \
+        --knownSites $g1000_gold_standard_indels   
+
+# Haplotype Caller
+fcs-genome htc \
+        --ref $ref_genome \
+        --input $output_dir/${sample_id}_recalibrated.bam \
+        --output ${sample_id}.vcf --produce-vcf
+```
+
 ## Synopsis
 ```
 fcs-genome align -r ref.fasta -1 input_1.fastq -2 input_2.fastq -o aln.sorted.bam \
@@ -31,7 +92,7 @@ fcs-genome gatk -T analysisType
 fcs-genome align <options>
 ```
 #### Description
-Equivalent to BWA-MEM, this command maps pair-ended FASTQ sequences against a large reference genome sequence. The resulting BAM file is sorted, with duplicates marked. 
+Equivalent to BWA-MEM, this command maps pair-ended FASTQ sequences against a large reference genome sequence. The resulting BAM file is sorted, with duplicates marked.
 #### Options
 | Command | Description |
 | --- | --- |
