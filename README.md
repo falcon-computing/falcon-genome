@@ -13,9 +13,9 @@ Like the GATK Best Practices, the workflow follows two phases of analysis:
 #### Software Prerequisites
 
 #### System Setup
-..+ Software for Falcon Genomics is installed in ```/usr/local/falcon/```
-..+ System information must be stored in ```/usr/local/falcon/fcs-genome.conf```
-..+ Paths to reference, known sites and input FASTQ files are required as parameters for the pipeline
++ Software for Falcon Genomics is installed in ```/usr/local/falcon/```
++ System information must be stored in ```/usr/local/falcon/fcs-genome.conf```
++ Paths to reference, known sites and input FASTQ files are required as parameters for the pipeline
 
 ### Example
 #### HTC pipeline
