@@ -104,7 +104,7 @@ fcs-genome joint -r ref.fasta -i final.gvcf -o final.vcf
 ```
 fcs-genome ug -r ref.fasta -i recal.bam -o final.vcf
 ```
-###
+### Perform Specific Analysis in GATK (use --help to see analysisType available)
 ```
 fcs-genome gatk -T analysisType 
 ```
