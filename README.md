@@ -64,27 +64,48 @@ fcs-genome htc \
         --output ${sample_id}.vcf --produce-vcf
 ```
 
-## Synopsis
+## Quick Usage
+### Generating a Marked Duplicates BAM file from Paired-End FASTQ files
 ```
-fcs-genome align -r ref.fasta -1 input_1.fastq -2 input_2.fastq -o aln.sorted.bam \
+fcs-genome align -r ref.fasta -1 input_1.fastq -2 input_2.fastq -o aln.marked_sorted.bam \
   --rg RG_ID --sp sample_id --pl platform --lb library 
-
-fcs-genome markdup -i aln.sorted.bam -o aln.marked.bam 
-
-fcs-genome indel -r ref.fasta -i aln.sorted.bam -o indel.bam
-
-fcs-genome bqsr -r ref.fasta -i indel.bam -o recal.bam
-
-fcs-genome baserecal -r ref.fasta -i indel.bam -o recalibration_report.grp 
-
+```
+### Generating a Marked Duplicates BAM file from a Sorted BAM file.
+```
+fcs-genome markdup -i aln.sorted.bam -o aln.marked_sorted.bam 
+```
+### Performing Indel Re-alignment from a Marked Duplicates BAM file. 
+```
+fcs-genome indel -r ref.fasta -i aln.marked_sorted.bam -o indel.bam
+```
+### Performing Base Quality Score Recalibration from a BAM file with known sites defined in fileX.vcf (X=1...N)
+```
+fcs-genome bqsr -r ref.fasta -i indel.bam -o recal.bam \
+   -K file1.vcf -K file2.vcf ... -K fileN.vcf
+```
+### Generating Base Recalibration Report from a BAM file with known sites defined in fileX.vcf (X=1...N)
+```
+fcs-genome baserecal -r ref.fasta -i indel.bam -o recalibration_report.grp \
+   -K file1.vcf -K file2.vcf ... -K fileN.vcf
+```
+### Write out sequence read data (for filtering, merging, subsetting etc)
+```
 fcs-genome printreads -r ref.fasta -b recalibration_report.grp -i indel.bam -o recal.bam 
-
+```
+### Generating Genomic VCF file from a BAM file with Haplotype Caller 
+```
 fcs-genome htc -r ref.fasta -i recal.bam -o final.gvcf
-
+```
+### Generating a VCF file from a gVCF file using joint option
+```
 fcs-genome joint -r ref.fasta -i final.gvcf -o final.vcf 
-
+```
+### Generating a VCF file from a BAM file using ug (UnifiedGenotyper) option: 
+```
 fcs-genome ug -r ref.fasta -i recal.bam -o final.vcf
-
+```
+###
+```
 fcs-genome gatk -T analysisType 
 ```
 ## Commands and Options
