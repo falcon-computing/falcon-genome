@@ -2,20 +2,20 @@
 ##Contents
 
 ## Overview
-The fcs-genome pipeline allows for variant calling for both germline and somatic mutations adopting GATK's Best Practices along with Falcon's FPGA acceleration techniques to significantly improve performance. The general pattern of the pipeline workflow starts with raw sequence reads, and proceeds to obtain a filtered set of variants that can be annotated for further analysis.
+The fcs-genome pipelines allow for variant calling for both germline and somatic mutations, accelerating GATK Best Practices pipelines using Falcon's FPGA acceleration technology to significantly improve performance. The general pattern of the workflow pipeline starts with raw sequence reads, and proceeds to obtain a filtered set of variants that can be annotated for further analysis.
 
 Like the GATK Best Practices, the workflow follows two phases of analysis:
-1. Data pre-processing - The raw sequence reads in the FASTQ format are converted to BAM files through alignment to the reference using a BWA-like tool. The BAM files are made analysis-ready through the application of the fcs-genome version of correctional tools such as IndelRealigner and Base Recalibrator to account for biases.
-2. Variant Calling - Variant calls, either germline or somatic, are made using the tools equivalent to GATK's Haplotype Caller and Mutect2 respectively. This produces files in either GVCF/VCF format.
+1. Data pre-processing - The raw sequence reads in the FASTQ format are converted to BAM files through alignment to the reference using BWA-MEM. The BAM files are made analysis-ready through the application of the fcs-genome version of correctional tools such as IndelRealigner and Base Recalibrator to account for biases.
+2. Variant Calling - Variant calls, either germline or somatic, are made using the tools equivalent to GATK's Haplotype Caller and Mutect2 respectively. This produces files in either GVCF or VCF format.
 
 ## Quick Start 
 ### Installation
 #### Software Prerequisites
 
 #### System Setup
-+ Software for Falcon Genomics is installed in ```/usr/local/falcon/```
++ Software for falcon-genome is installed in ```/usr/local/falcon/```
 + System information must be stored in ```/usr/local/falcon/fcs-genome.conf```
-+ Paths to reference, known sites and input FASTQ files are required as parameters for the pipeline
++ Paths to the reference, known sites and input FASTQ files are required as parameters for the pipeline
 
 ### Example
 #### HTC pipeline
