@@ -107,12 +107,10 @@ void BWAWorker::setup() {
   }
 
   if (get_config<bool>("bwa.use_fpga") &&
-      !get_config<std::string>("bwa.fpga.bit_path").empty() &&
-      !get_config<std::string>("bwa.fpga.pac_path").empty()) 
+      !get_config<std::string>("bwa.fpga.bit_path").empty())
   {
     cmd << "--use_fpga "
-        << "--fpga_path=" << get_config<std::string>("bwa.fpga.bit_path") << " "
-        << "--pac_path=" << get_config<std::string>("bwa.fpga.pac_path") << " ";
+        << "--fpga_path=" << get_config<std::string>("bwa.fpga.bit_path") << " ";
   }
   for (int i = 0; i < extra_opts_.size(); i++) {
     cmd << extra_opts_[i] << " ";
