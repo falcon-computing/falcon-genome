@@ -121,13 +121,13 @@ int init_config(boost::program_options::options_description conf_opt) {
                   std::to_string((long long)getpid());
 
   // check tool files
-  check_input(get_config<std::string>("bwa_path"));
-  check_input(get_config<std::string>("sambamba_path"));
-  check_input(get_config<std::string>("bcftools_path"));
-  check_input(get_config<std::string>("bgzip_path"));
-  check_input(get_config<std::string>("tabix_path"));
-  check_input(get_config<std::string>("genomicsdb_path"));
-  check_input(get_config<std::string>("gatk_path"));
+  check_input(get_config<std::string>("bwa_path"), false);
+  check_input(get_config<std::string>("sambamba_path"), false);
+  check_input(get_config<std::string>("bcftools_path"), false);
+  check_input(get_config<std::string>("bgzip_path"), false);
+  check_input(get_config<std::string>("tabix_path"), false);
+  check_input(get_config<std::string>("genomicsdb_path"), false);
+  check_input(get_config<std::string>("gatk_path"), false);
 
   // parse host list if scaleout_mode is selected
   if (get_config<bool>("bwa.scaleout_mode") || 

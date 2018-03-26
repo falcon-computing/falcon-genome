@@ -213,7 +213,7 @@ inline std::string get_basename_wo_ext(std::string path) {
 
 Executor* create_executor(std::string job_name, int num_workers = 1);
 std::string get_absolute_path(std::string path);
-std::string check_input(std::string path, bool req = false);
+std::string check_input(std::string path, bool req = true);
 std::string check_output(std::string path, bool &f, bool req_file = false);
 std::string get_bin_dir();
 std::string get_log_name(std::string job_name, int idx = -1);
