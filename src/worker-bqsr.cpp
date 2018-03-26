@@ -242,6 +242,7 @@ int bqsr_main(int argc, char** argv,
   create_dir(temp_dir);
 
   bool delete_bqsr;
+  delete_bqsr = false;
   std::string bqsr_path;
   try {
     bqsr_path = get_argument<std::string>(cmd_vm, "bqsr");
