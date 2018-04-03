@@ -64,6 +64,9 @@ OBJS	 := $(SRC_DIR)/common.o \
 	    $(SRC_DIR)/worker-concat.o \
 	    $(SRC_DIR)/worker-gatk.o \
 	    $(SRC_DIR)/worker-htc.o \
+	    $(SRC_DIR)/worker-doc.o \
+	    $(SRC_DIR)/FCSJson.o \
+	    $(SRC_DIR)/worker-json.o \
 	    $(SRC_DIR)/worker-indel.o \
 	    $(SRC_DIR)/worker-joint.o \
 	    $(SRC_DIR)/worker-markdup.o \
@@ -73,6 +76,7 @@ OBJS	 := $(SRC_DIR)/common.o \
 	    $(SRC_DIR)/workers/CombineGVCFsWorker.o \
 	    $(SRC_DIR)/workers/GenotypeGVCFsWorker.o \
 	    $(SRC_DIR)/workers/HTCWorker.o \
+	    $(SRC_DIR)/workers/DOCWorker.o \
 	    $(SRC_DIR)/workers/IndelWorker.o \
 	    $(SRC_DIR)/workers/MarkdupWorker.o \
 	    $(SRC_DIR)/workers/VCFUtilsWorker.o \

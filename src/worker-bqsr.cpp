@@ -1,19 +1,8 @@
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/program_options.hpp>
-#include <cmath>
-#include <iomanip>
-#include <string>
-
-
-#include "fcs-genome/common.h"
-#include "fcs-genome/config.h"
-#include "fcs-genome/Executor.h"
-#include "fcs-genome/workers.h"
+#include "worker-bqsr.h"
 
 namespace fcsgenome {
 
-static void baserecalAddWorkers(Executor &executor,
+void baserecalAddWorkers(Executor &executor,
     std::string &ref_path,
     std::vector<std::string> &known_sites,
     std::vector<std::string> &extra_opts,
@@ -60,7 +49,7 @@ static void baserecalAddWorkers(Executor &executor,
   executor.addTask(worker, true);
 }
 
-static void removePartialBQSR(std::string bqsr_path) {
+void removePartialBQSR(std::string bqsr_path) {
   // delete all partial contig bqsr
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
     std::stringstream ss;
@@ -69,7 +58,7 @@ static void removePartialBQSR(std::string bqsr_path) {
   }
 }
 
-static void prAddWorkers(Executor &executor,
+void prAddWorkers(Executor &executor,
     std::string &ref_path,
     std::string &input_path,
     std::string &bqsr_path,
