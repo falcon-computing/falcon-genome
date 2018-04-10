@@ -34,24 +34,49 @@ void HTCWorker::check() {
 void HTCWorker::setup() {
 
   // create cmd
-  std::stringstream cmd;
+  std::stringstream cmd; 
   cmd << get_config<std::string>("java_path") << " "
       << "-Xmx" << get_config<int>("gatk.htc.memory", "gatk.memory") << "g "
       << "-jar " << get_config<std::string>("gatk_path") << " "
       << "-T HaplotypeCaller "
       << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " ";
-  if (!produce_vcf_) {
-    cmd << "--emitRefConfidence GVCF ";
-  }
-  cmd << "--variant_index_type LINEAR "
-      << "--variant_index_parameter 128000 "
-      << "-L " << intv_path_ << " "
+  std::map<std::string, std::string>::iterator it;
+    if (!produce_vcf_) {
+      it = extra_opts_.find("--emitRefConfidence");
+      if(it != extra_opts_.end()) {
+        cmd << it->first << " " << it->second << " ";
+        extra_opts_.erase(it);
+      }
+      else {
+        cmd << "--emitRefConfidence GVCF ";
+      }
+    }  
+    
+    it = extra_opts_.find("--variant_index_type");
+    if (it != extra_opts_.end()) {
+      cmd << it->first << " " << it->second << " ";
+      extra_opts_.erase(it);
+    }
+    else {
+      cmd << "--variant_index_type LINEAR ";
+    }
+    
+    it = extra_opts_.find("--variant_index_parameter");
+    if (it != extra_opts_.end()) {
+      cmd << it->first << " " << it->second << " ";
+      extra_opts_.erase(it);
+    }
+    else {
+      cmd << "--variant_index_parameter 128000 ";
+    }
+ 
+  cmd << "-L " << intv_path_ << " "
       << "-nct " << get_config<int>("gatk.htc.nct", "gatk.nct") << " "
       << "-o " << output_path_ << " ";
-  for (int i = 0; i < extra_opts_.size(); i++) {
-    cmd << extra_opts_[i] << " ";
-  }
+  for (it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
+    cmd << it->first << " " << it->second << " ";
+  } 
   cmd << "1> /dev/null";
 
   cmd_ = cmd.str();
