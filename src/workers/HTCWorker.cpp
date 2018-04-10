@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -41,42 +42,31 @@ void HTCWorker::setup() {
       << "-T HaplotypeCaller "
       << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " ";
-  std::map<std::string, std::string>::iterator it;
-    if (!produce_vcf_) {
-      it = extra_opts_.find("--emitRefConfidence");
-      if(it != extra_opts_.end()) {
-        cmd << it->first << " " << it->second << " ";
-        extra_opts_.erase(it);
-      }
-      else {
-        cmd << "--emitRefConfidence GVCF ";
-      }
-    }  
-    
-    it = extra_opts_.find("--variant_index_type");
-    if (it != extra_opts_.end()) {
-      cmd << it->first << " " << it->second << " ";
-      extra_opts_.erase(it);
+  
+  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
+    cmd << it-> first << " ";
+    if (!it->second.empty()) {
+      cmd << it->second << " ";
     }
-    else {
-      cmd << "--variant_index_type LINEAR ";
+  }
+  
+  if (!produce_vcf_) {
+    if (!extra_opts_.count("--emitRefConfidence") && !extra_opts_.count("-ERC")) {
+      // if the user has not specified the same arg in extra options, use our default values
+      cmd << "emitRefConfidence GVCF ";
     }
-    
-    it = extra_opts_.find("--variant_index_parameter");
-    if (it != extra_opts_.end()) {
-      cmd << it->first << " " << it->second << " ";
-      extra_opts_.erase(it);
-    }
-    else {
-      cmd << "--variant_index_parameter 128000 ";
-    }
- 
+  }
+  if (!extra_opts_.count("--variant_index_type")) {
+    cmd << "--variant_index_type LINEAR ";
+  }
+  if (!extra_opts_.count("--variant_index_parameter")) {
+    cmd << "--variant_index_parameter 128000 ";
+  }
+  
   cmd << "-L " << intv_path_ << " "
       << "-nct " << get_config<int>("gatk.htc.nct", "gatk.nct") << " "
       << "-o " << output_path_ << " ";
-  for (it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
-    cmd << it->first << " " << it->second << " ";
-  } 
+
   cmd << "1> /dev/null";
 
   cmd_ = cmd.str();
