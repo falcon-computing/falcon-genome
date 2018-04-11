@@ -53,7 +53,7 @@ void HTCWorker::setup() {
   if (!produce_vcf_) {
     if (!extra_opts_.count("--emitRefConfidence") && !extra_opts_.count("-ERC")) {
       // if the user has not specified the same arg in extra options, use our default values
-      cmd << "emitRefConfidence GVCF ";
+      cmd << "--emitRefConfidence GVCF ";
     }
   }
   if (!extra_opts_.count("--variant_index_type")) {
