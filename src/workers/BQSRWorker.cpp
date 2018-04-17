@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -57,8 +58,11 @@ void BQSRWorker::setup() {
   for (int i = 0; i < known_sites_.size(); i++) {
     cmd << "-knownSites " << known_sites_[i] << " ";
   }
-  for (int i = 0; i < extra_opts_.size(); i++) {
-    cmd << extra_opts_[i] << " ";
+  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
+    cmd << it->first << " ";
+    if (!it->second.empty()) {
+      cmd << it->second << " ";
+    }
   }
   cmd << "1> /dev/null";
 
@@ -136,8 +140,11 @@ void PRWorker::setup() {
       << "-nct " << get_config<int>("gatk.pr.nct", "gatk.nct") << " "
       << "-o " << output_path_ << " ";
 
-  for (int i = 0; i < extra_opts_.size(); i++) {
-    cmd << extra_opts_[i] << " ";
+  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
+    cmd << it->first << " ";
+    if (!it->second.empty()) {
+      cmd << it->second << " ";
+    }
   }
   cmd << "1> /dev/null";
 
