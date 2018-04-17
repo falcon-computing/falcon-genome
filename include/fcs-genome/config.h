@@ -2,6 +2,7 @@
 #define FCSGENOME_CONFIG_H
 
 #include <boost/program_options.hpp>
+#include <boost/thread.hpp>
 #include <glog/logging.h>
 #include <string>
 #include "fcs-genome/common.h"
@@ -68,6 +69,22 @@ void set_config(std::string arg, std::string def_arg) {
   }
 }
 
+static inline int get_sys_memory() {
+  uint64_t pages     = sysconf(_SC_PHYS_PAGES);
+  uint64_t page_size = sysconf(_SC_PAGE_SIZE);
+  return pages * page_size / 1024 / 1024 / 1024 + 1;
+}
+
+static int global_cpu_num = boost::thread::hardware_concurrency();
+static int global_memory_size = get_sys_memory();
+
+void calc_gatk_default_config(int & nprocs, int & memory,
+    int cpu_num = global_cpu_num,
+    int memory_size = global_memory_size);
+
+int check_nprocs_config(std::string key, int cpu_num = global_cpu_num);
+int check_memory_config(std::string key, int memory_size = global_memory_size);
+ 
 int init(char** argv, int argc);
 int init_config(boost::program_options::options_description conf_opt);
 

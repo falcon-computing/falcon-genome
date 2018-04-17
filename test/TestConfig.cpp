@@ -66,3 +66,62 @@ TEST_F(TestConfig, GATKNprocs) {
   ASSERT_EQ(memory, fcs::get_config<int>("gatk.ug.memory"));
 }
 
+TEST_F(TestConfig, AutoTuneNprocsMemory) {
+  // TEST 1: 4, 16
+  int nprocs = 32;
+  int memory = 4;
+
+  fcs::calc_gatk_default_config(nprocs, memory, 32, 128);
+  ASSERT_EQ(32, nprocs);
+  ASSERT_EQ(4, memory);
+
+  fcs::calc_gatk_default_config(nprocs, memory, 4, 32);
+  ASSERT_EQ(4, nprocs);
+  ASSERT_EQ(8, memory);
+
+  fcs::calc_gatk_default_config(nprocs, memory, 16, 120);
+  ASSERT_EQ(16, nprocs);
+  ASSERT_EQ(6, memory);
+
+  fcs::calc_gatk_default_config(nprocs, memory, 28, 112);
+  ASSERT_EQ(16, nprocs);
+  ASSERT_EQ(6, memory);
+
+  fcs::calc_gatk_default_config(nprocs, memory, 32, 224);
+  ASSERT_EQ(32, nprocs);
+  ASSERT_EQ(6, memory);
+
+  fcs::calc_gatk_default_config(nprocs, memory, 32, 192);
+  ASSERT_EQ(32, nprocs);
+  ASSERT_EQ(6, memory);
+}
+
+TEST_F(TestConfig, CheckNprocsAndMemory) {
+
+  // set values through env
+  FILE* fout = fopen("fcs-genome.conf", "w+");
+  ASSERT_EQ(NULL, !fout) << "Cannot write to fcs-genome.conf";
+
+  fprintf(fout, "gatk.bqsr.nprocs = 16\n");
+  fprintf(fout, "gatk.bqsr.memory = 2\n");
+  fprintf(fout, "gatk.pr.nprocs = 16\n");
+  fprintf(fout, "gatk.pr.memory = 4\n");
+  fprintf(fout, "gatk.htc.nprocs = 16\n");
+  fprintf(fout, "gatk.htc.memory = 8\n");
+  fclose(fout);
+
+  fcs::init(NULL, 0); 
+
+  std::remove("fcs-genome.conf");
+
+  ASSERT_EQ(0, fcs::check_nprocs_config("bqsr", 16));
+  ASSERT_EQ(1, fcs::check_nprocs_config("bqsr", 8));
+  ASSERT_EQ(1, fcs::check_memory_config("bqsr", 32));
+
+  ASSERT_EQ(0, fcs::check_memory_config("pr", 64));
+  ASSERT_EQ(1, fcs::check_memory_config("pr", 60));
+
+  ASSERT_EQ(0, fcs::check_memory_config("htc", 128));
+  ASSERT_EQ(0, fcs::check_memory_config("htc", 124));
+  ASSERT_EQ(1, fcs::check_memory_config("htc", 120));
+}
