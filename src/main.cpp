@@ -10,32 +10,7 @@
 
 // use flexlm
 #ifdef USELICENSE
-#include "license.h"
-#endif
-
-#ifdef USELICENSE
-void licence_check_out() {
-  // initialize for licensing. call once
-  fc_license_init();
-
-  // get a feature
-  int status = 0;
-  while (-4 == (status = fc_license_checkout(FALCON_DNA, 0))) {
-    LOG(INFO) << "Reached maximum allowed instances on this machine, "
-      << "wait for 30 seconds. Please press CTRL+C to exit.";
-    boost::this_thread::sleep_for(boost::chrono::seconds(30));
-  }
-  if (status) {
-    throw fcsgenome::internalError(std::to_string((long long)status));
-  }
-}
-
-void licence_check_in() {
-  fc_license_checkin(FALCON_DNA);
-
-  // cleanup for licensing. call once
-  fc_license_cleanup();
-}
+#include "falcon-lic/license.h"
 #endif
 
 #define print_cmd_col(str1, str2) std::cout \
@@ -121,12 +96,9 @@ int main(int argc, char** argv) {
   std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
 
 #ifdef USELICENSE
-  try {
-    // check license
-    licence_check_out();
-  }
-  catch (std::runtime_error &e) {
-    LOG(ERROR) << "Cannot connect to the license server: " << e.what();
+  int licret = falconlic::license_verify();
+  if (licret != 0) {
+    LOG(ERROR) << "Cannot verify license: " << licret;
     LOG(ERROR) << "Please contact support@falcon-computing.com for details.";
     return -1;
   }
@@ -230,11 +202,6 @@ int main(int argc, char** argv) {
     LOG(ERROR) << "Please contact support@falcon-computing.com for details.";
     ret = -1;
   }
-
-#ifdef USELICENSE
-  // release license
-  licence_check_in();
-#endif
 
   return ret;
 }
