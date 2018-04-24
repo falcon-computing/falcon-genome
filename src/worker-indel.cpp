@@ -47,6 +47,9 @@ int ir_main(int argc, char** argv,
   std::vector<std::string> known_indels = get_argument<
     std::vector<std::string> >(cmd_vm, "known", std::vector<std::string>());
 
+  std::vector<std::string> extra_opts = 
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+
   // finalize argument parsing
   po::notify(cmd_vm);
 
@@ -54,7 +57,8 @@ int ir_main(int argc, char** argv,
   output_path = check_output(output_path, flag_f);
   create_dir(output_path);
 
-  Executor executor("Indel Realignment", get_config<int>("gatk.indel.nprocs"));
+  Executor executor("Indel Realignment", 
+                    get_config<int>("gatk.indel.nprocs", "gatk.nprocs"));
 
   { // realign target creator
     Worker_ptr worker(new RTCWorker(ref_path, known_indels,
@@ -78,6 +82,7 @@ int ir_main(int argc, char** argv,
           intv_paths[contig],
           input_file, target_path,
           get_contig_fname(output_path, contig),
+          extra_opts,
           flag_f));
     executor.addTask(worker, contig==0);
   }
