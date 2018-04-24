@@ -59,6 +59,7 @@ Please check the GATK documentation for all extra options available. The tables 
 (\*): Required
 
 ### Common Options Among Methods
+
 | Option | Alternative | Argument | Description | 
 | --- | --- | --- | --- |
 | -h | --help | | print help messages |
@@ -67,6 +68,7 @@ Please check the GATK documentation for all extra options available. The tables 
 
 ### fcs-genome align
 Perform alignment using the Burrows-Wheeler Algorithm. It is the equivalent of bwa-mem. By default, mark duplicates are performed. If –align-only is set, no mark duplicate will be performed.
+
 | Option | Alternative | Argument | Description |
 | --- | --- | --- | --- |
 | -r | --ref | String(\*) | reference genome path |
@@ -81,6 +83,7 @@ Perform alignment using the Burrows-Wheeler Algorithm. It is the equivalent of b
 
 ### fcs-genome markdup
 Takes a BAM file and mark duplicates the reads.
+
 | Option | Alternative | Argument | Description |
 | --- | --- | --- | --- |
 | -i | --input | String(\*) | input BAM file |
@@ -88,6 +91,7 @@ Takes a BAM file and mark duplicates the reads.
 
 ### fcs-genome indel 
 Take a BAM file and perform indel re-alignment.
+
 | Option | Alternative | Argument | Description |
 | --- | --- | --- | --- |
 | -r | --ref | String(\*) | reference genome path |
@@ -97,6 +101,7 @@ Take a BAM file and perform indel re-alignment.
 
 ### fcs-genome bqsr 
 Take a BAM file and perform Base Quality Score Recalibration. It can be performed within a region defined in the “--knownSites” option. If --bqsr is set, a report is generated.
+
 | Option | Alternative | Argument | Description |
 | --- | --- | --- | --- |
 | -r | --ref | String(\*) | reference genome path |
@@ -107,6 +112,7 @@ Take a BAM file and perform Base Quality Score Recalibration. It can be performe
 
 ### fcs-genome baserecal
 Take a BAM file and generate a Base Quality Score Recalibration.  
+
 | Option | Alternative | Argument | Description |
 | --- | --- | --- | --- |
 | -r | --ref | String(\*) | reference genome path |
@@ -116,6 +122,7 @@ Take a BAM file and generate a Base Quality Score Recalibration.
 
 ### fcs-genome printreads
 Take a BAM file and filter reads according to some settings defined in –extra-options. 
+
 | Option | Alternative | Argument | Description |
 | --- | --- | --- | --- |
 | -r | --ref | String(\*) | reference genome path |
@@ -125,6 +132,7 @@ Take a BAM file and filter reads according to some settings defined in –extra-
 
 ### fcs-genome htc 
 Take a BAM file and generate a gVCF file by default.  If --produce-vcf is set, a VCF file is generated instead of gVCF.
+
 | Option | Alternative | Argument | Description |
 | --- | --- | --- | --- |
 | -r | --ref | String(\*) | reference genome path |
@@ -135,6 +143,7 @@ Take a BAM file and generate a gVCF file by default.  If --produce-vcf is set, a
 
 ### fcs-genome ug
 This method is the equivalent of UnifiedGenotype in GATK. It takes a BAM file as an input and generates a VCF file.  It accepts options from GATK through --extra-options
+
 | Option | Alternative | Argument | Description |
 | --- | --- | --- | --- |
 | -r | --ref | String(\*) | reference genome path |
@@ -144,6 +153,7 @@ This method is the equivalent of UnifiedGenotype in GATK. It takes a BAM file as
 
 ### fcs-genome joint 
 This method performs a joint variant calling from a set of VCF files.
+
 | Option | Alternative | Argument | Description |
 | --- | --- | --- | --- |
 | -r | --ref | String(\*) | reference genome path |
