@@ -13,6 +13,7 @@ class BQSRWorker : public Worker {
       std::string intv_path,
       std::string input_path,
       std::string output_path,
+      std::vector<std::string> extra_opts,
       int contig,
       bool &flag_f);
 
@@ -47,6 +48,7 @@ class PRWorker : public Worker {
       std::string bqsr_path,
       std::string input_path,
       std::string output_path,
+      std::vector<std::string> extra_opts,
       int contig, bool &flag_f);
 
   void check();

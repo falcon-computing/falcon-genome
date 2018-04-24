@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -12,8 +13,12 @@ BQSRWorker::BQSRWorker(std::string ref_path,
       std::string intv_path,
       std::string input_path,
       std::string output_path,
+      std::vector<std::string> extra_opts,
       int  contig,
-      bool &flag_f): Worker(1, get_config<int>("gatk.bqsr.nct")),
+      bool &flag_f): 
+  Worker(1, 
+         get_config<int>("gatk.bqsr.nct", "gatk.nct"), 
+         extra_opts),
   ref_path_(ref_path),
   intv_path_(intv_path),
   input_path_(input_path),
@@ -36,13 +41,13 @@ void BQSRWorker::setup() {
   // create cmd
   std::stringstream cmd;
   cmd << get_config<std::string>("java_path") << " "
-      << "-Xmx" << get_config<int>("gatk.bqsr.memory") << "g "
+      << "-Xmx" << get_config<int>("gatk.bqsr.memory", "gatk.memory") << "g "
       << "-jar " << get_config<std::string>("gatk_path") << " "
       << "-T BaseRecalibrator "
       << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " "
       << "-L " << intv_path_ << " "
-      << "-nct " << get_config<int>("gatk.bqsr.nct") << " "
+      << "-nct " << get_config<int>("gatk.bqsr.nct", "gatk.nct") << " "
       // secret option to fix index fopen issue
       << "--disable_auto_index_creation_and_locking_when_reading_rods "
       << "-o " << output_path_ << " ";
@@ -53,6 +58,13 @@ void BQSRWorker::setup() {
   for (int i = 0; i < known_sites_.size(); i++) {
     cmd << "-knownSites " << known_sites_[i] << " ";
   }
+  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
+    cmd << it->first << " ";
+    if (!it->second.empty()) {
+      cmd << it->second << " ";
+    }
+  }
+  cmd << "1> /dev/null";
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
@@ -91,8 +103,10 @@ PRWorker::PRWorker(std::string ref_path,
       std::string bqsr_path,
       std::string input_path,
       std::string output_path,
+      std::vector<std::string> extra_opts,
       int  contig,
-      bool &flag_f): Worker(1, get_config<int>("gatk.pr.nct")),
+      bool &flag_f): 
+  Worker(1, get_config<int>("gatk.pr.nct", "gatk.nct"), extra_opts),
   ref_path_(ref_path),
   intv_path_(intv_path),
   bqsr_path_(bqsr_path),
@@ -116,16 +130,23 @@ void PRWorker::setup() {
   // create cmd
   std::stringstream cmd;
   cmd << get_config<std::string>("java_path") << " "
-      << "-Xmx" << get_config<int>("gatk.pr.memory") << "g "
+      << "-Xmx" << get_config<int>("gatk.pr.memory", "gatk.memory") << "g "
       << "-jar " << get_config<std::string>("gatk_path") << " "
       << "-T PrintReads "
       << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " "
       << "-BQSR " << bqsr_path_ << " "
       << "-L " << intv_path_ << " "
-      << "-nct " << get_config<int>("gatk.pr.nct") << " "
-      << "-o " << output_path_ << " "
-      << "1> /dev/null";
+      << "-nct " << get_config<int>("gatk.pr.nct", "gatk.nct") << " "
+      << "-o " << output_path_ << " ";
+
+  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
+    cmd << it->first << " ";
+    if (!it->second.empty()) {
+      cmd << it->second << " ";
+    }
+  }
+  cmd << "1> /dev/null";
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;

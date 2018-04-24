@@ -19,6 +19,10 @@ extern boost::program_options::variables_map config_vtable;
 
 class internalError;
 
+inline bool check_config(std::string arg) {
+  return config_vtable.count(arg);
+}
+
 template <typename T>
 inline T get_config(std::string arg) {
   if (!config_vtable.count(arg)) {
@@ -39,7 +43,33 @@ inline bool get_config(std::string arg) {
   }
 }
 
+// get config with fall-back default config
+template <typename T>
+inline T get_config(std::string arg, std::string def_arg) {
+  if (!config_vtable.count(arg)) {
+    return get_config<T>(def_arg);
+  }
+  else {
+    return get_config<T>(arg);
+  }
+}
+
+// set config when it's not set
+template <typename T>
+void set_config(std::string arg, std::string def_arg) {
+  if (!config_vtable.count(arg)) {
+    if (!config_vtable.count(def_arg)) {
+      throw internalError("missing conf '"+def_arg+"'");
+    }
+    config_vtable.insert(std::make_pair(arg, config_vtable[def_arg]));
+    DLOG(INFO) << "setting " << arg << " with value of " << get_config<T>(def_arg);
+
+    boost::program_options::notify(config_vtable);
+  }
+}
+
 int init(char** argv, int argc);
+int init_config(boost::program_options::options_description conf_opt);
 
 std::vector<std::string> init_contig_intv(std::string ref_path);
 

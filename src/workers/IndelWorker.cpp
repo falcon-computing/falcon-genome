@@ -65,7 +65,9 @@ IndelWorker::IndelWorker(std::string ref_path,
       std::string input_path,
       std::string target_path,
       std::string output_path,
-      bool &flag_f): Worker(1, 1),
+      std::vector<std::string> extra_opts,
+      bool &flag_f): 
+  Worker(1, 1, extra_opts),
   ref_path_(ref_path),
   known_indels_(known_indels),
   intv_path_(intv_path),
@@ -81,12 +83,6 @@ void IndelWorker::check() {
   target_path_ = check_input(target_path_);
 
   input_path_  = check_input(input_path_);
-  //if (boost::filesystem::is_directory(input_path_)) {
-  //  get_input_list(input_path_, input_files_, ".*/part-[0-9].bam");
-  //}
-  //else {
-  //  input_files_.push_back(input_path_);
-  //}
   for (int i = 0; i < known_indels_.size(); i++) {
     known_indels_[i] = check_input(known_indels_[i]);
   }
@@ -96,7 +92,7 @@ void IndelWorker::setup() {
   
   std::stringstream cmd;
   cmd << get_config<std::string>("java_path") << " "
-      << "-Xmx" << get_config<int>("gatk.indel.memory") << "g "
+      << "-Xmx" << get_config<int>("gatk.indel.memory", "gatk.memory") << "g "
       << "-jar " << get_config<std::string>("gatk_path") << " "
       << "-T IndelRealigner "
       << "-R " << ref_path_ << " "
@@ -110,6 +106,14 @@ void IndelWorker::setup() {
   for (int i = 0; i < known_indels_.size(); i++) {
     cmd << "-known " << known_indels_[i] << " ";
   }
+
+  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
+    cmd << it->first << " ";
+    if (!it->second.empty()) {
+      cmd << it->second << " ";
+    }
+  }
+  cmd << "1> /dev/null";
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;

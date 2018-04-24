@@ -48,10 +48,8 @@ int htc_main(int argc, char** argv,
   std::string input_path  = get_argument<std::string>(cmd_vm, "input");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
 
-  std::vector<std::string> extra_opts;
-  if (cmd_vm.count("extra-options")) {
-    extra_opts = cmd_vm["extra-options"].as<std::vector<std::string>>();
-  }
+  std::vector<std::string> extra_opts = 
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -76,7 +74,8 @@ int htc_main(int argc, char** argv,
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
 
-  Executor executor("Haplotype Caller", get_config<int>("gatk.htc.nprocs"));
+  Executor executor("Haplotype Caller", 
+                    get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
 
   bool flag_htc_f = !flag_skip_concat || flag_f;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
