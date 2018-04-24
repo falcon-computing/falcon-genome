@@ -6,6 +6,7 @@ Symmetric to the GATK Best Practices pipelines, the typical workflow starts with
 The second step is to recalibrate base quality score to account for biases caused by the sequencing machine. The Falcon pipeline command for this is fcs-genome bqsr. Its GATK equivalent first runs the GATK BaseRecalibrator, which produces a table of recalibrated reads, followed by GATK PrintReads which implements the table of recalibrated reads to produce a new, analysis-ready BAM file. The final step is germline variant calling, implementing the command fcs-genome htc which corresponds to GATK HaplotypeCaller.
 
 ![alt text](resource/fcs-genome-workflow.jpeg)
+Figure 1: Figure 1. Side-by-side analysis of the Falcon Accelerated Pipeline and the GATK Best Practices Pipeline: The middle panel indicates the general workflow starting with 1. Mapping the FASTQ sequences to the reference 2. Recalibrating base quality score and finally 3. Calling germline variants. The upper and lower panels illustrate the command-line implementation of the workflow using the Falcon Accelerated Pipeline and GATK Best Practices Pipeline respectively.
 
 This User Guide provides details on the setup of the Falcon Genome pipeline, command-line usage and a step-by-step example to run the variant calling pipeline. 
 
