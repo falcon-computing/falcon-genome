@@ -47,7 +47,7 @@ The software package of the Falcon Accelerated Genomics Pipelines is self-contai
 [fcs-genome] ERROR: Please contact support@falcon-computing.com for details.
 + Obtaining the Reference and its index: The reference and its index can be downloaded from the Broad Institute website using the following FTP link: 
 ftp://gsapubftp-anonymous@ftp.broadinstitute.org/bundle/  
-To take full advantage of the FPGA acceleration provided by the Falcon Genome image, the reference genome needs to be preprocessed by running the script $FALCON_DIR/prepare-ref.sh <path-to-fasta>. This step is optional, and the regular reference genome files (FASTA) will still work without processing. The processed reference genome, on the other hand, will also work for other software such as BWA, Picard, GATK, etc. 
+To take full advantage of the FPGA acceleration provided by the Falcon Genome image, the reference genome needs to be preprocessed by running the script /usr/local/falcon/prepare-ref.sh <path-to-fasta>. This step is optional, and the regular reference genome files (FASTA) will still work without processing. The processed reference genome, on the other hand, will also work for other software such as BWA, Picard, GATK, etc. 
 + Optional arguments: GATK relies on files with known variants in its processing. For example, known variant files including the 1000 Genome indel sites, the Mills indel sites and the dbSNP sites can be given as additional parameters for the pipeline steps. These can also be downloaded from the Broad Institute website.
 
 ## Synopsis
