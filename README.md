@@ -64,7 +64,7 @@ fcs-genome baserecal -r ref.fasta -i indel.bam -o recalibration_report.grp
 fcs-genome printreads -r ref.fasta -b recalibration_report.grp -i indel.bam \
   -o recal.bam 
 fcs-genome htc -r ref.fasta -i recal.bam -o final.gvcf
-fcs-genome joint -r ref.fasta -i final.gvcf -o final.vcf 
+fcs-genome joint -r ref.fasta -i final.gvcf.gz -o final.vcf 
 fcs-genome ug -r ref.fasta -i recal.bam -o final.vcf
 -fcs-genome gatk -T analysisType
  
