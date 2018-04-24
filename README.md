@@ -1,30 +1,11 @@
 # Falcon Accelerated Genomics Pipeline User Guide
 
-##Table of Contents
-
-+ [Introduction](##Introduction)
-+ [System Requirements and Installation](##system-requirements-and-installation)
-  + Software Prerequisites
-  + System Setup
-  + Preparation
-+ Synopsis
-  + Common Options among methods
-  + fcs-genome align 
-  + fcs-genome markdup
-  + fcs-genome indel
-  + fcs-genome bqsr
-  + fcs-genome baserecal
-  + fcs-genome printreads
-  + fcs-genome htc
-  + fcs-genome ug
-  + fcs-genome joint
-  + fcs-genome gatk
-+ Quick Start
-  + Generating a Marked  
 ## Introduction
 The Falcon Accelerated Genomics Pipelines (FAGP) comprising the fcs-genome software allows for variant calling for both germline and somatic mutations based on the GATK Best Practices pipelines. The performance of the pipelines is significantly improved with Falcon's acceleration technologies. 
 Symmetric to the GATK Best Practices pipelines, the typical workflow starts with raw FASTQ sequence paired-end reads and proceeds to obtain a filtered set of variants that can be annotated for further analysis. The figure below depicts the flow of the germline variant calling pipeline. Beginning with paired-end FASTQ sequence files, the first step is to map the sequences to the reference. The resulting mapped BAM file is sorted, and duplicates are marked. This step performed using the command fcs-genome align, is equivalent to BWA-MEM, samtools sort and picard MarkDuplicates of the GATK Best Practices pipelines. 
 The second step is to recalibrate base quality score to account for biases caused by the sequencing machine. The Falcon pipeline command for this is fcs-genome bqsr. Its GATK equivalent first runs the GATK BaseRecalibrator, which produces a table of recalibrated reads, followed by GATK PrintReads which implements the table of recalibrated reads to produce a new, analysis-ready BAM file. The final step is germline variant calling, implementing the command fcs-genome htc which corresponds to GATK HaplotypeCaller.
+
+![alt text](resource/fcs-genome workflow.jpeg)
 
 This User Guide provides details on the setup of the Falcon Genome pipeline, command-line usage and a step-by-step example to run the variant calling pipeline. 
 
