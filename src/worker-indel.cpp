@@ -36,6 +36,10 @@ int ir_main(int argc, char** argv,
     throw helpRequest();
   } 
 
+  // check configurations
+  check_nprocs_config("indel");
+  check_memory_config("indel");
+
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force");
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",

@@ -36,6 +36,10 @@ int ug_main(int argc, char** argv,
     throw helpRequest();
   } 
 
+  // check configurations
+  check_nprocs_config("ug");
+  check_memory_config("ug");
+
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force");
   bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat");
