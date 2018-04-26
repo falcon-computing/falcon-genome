@@ -39,6 +39,10 @@ int htc_main(int argc, char** argv,
     throw helpRequest();
   } 
 
+  // check configurations
+  check_nprocs_config("htc");
+  check_memory_config("htc");
+
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force");
   bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat");

@@ -140,6 +140,10 @@ int baserecal_main(int argc, char** argv,
   // finalize argument parsing
   po::notify(cmd_vm);
 
+  // check configurations
+  check_nprocs_config("bqsr");
+  check_memory_config("bqsr");
+
   Executor executor("Base Recalibrator", 
                     get_config<int>("gatk.bqsr.nprocs"));
 
@@ -190,6 +194,10 @@ int pr_main(int argc, char** argv,
   // finalize argument parsing
   po::notify(cmd_vm);
 
+  // check configurations
+  check_nprocs_config("pr");
+  check_memory_config("pr");
+
   // the output path will be a directory
   create_dir(output_path);
 
@@ -228,6 +236,12 @@ int bqsr_main(int argc, char** argv,
     throw helpRequest();
   } 
 
+  // check configurations
+  check_nprocs_config("bqsr");
+  check_memory_config("bqsr");
+  check_nprocs_config("pr");
+  check_memory_config("pr");
+
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force");
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", 
@@ -242,6 +256,7 @@ int bqsr_main(int argc, char** argv,
   create_dir(temp_dir);
 
   bool delete_bqsr;
+  delete_bqsr = false;
   std::string bqsr_path;
   try {
     bqsr_path = get_argument<std::string>(cmd_vm, "bqsr");

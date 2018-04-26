@@ -36,6 +36,10 @@ int ug_main(int argc, char** argv,
     throw helpRequest();
   } 
 
+  // check configurations
+  check_nprocs_config("ug");
+  check_memory_config("ug");
+
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force");
   bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat");
@@ -43,6 +47,9 @@ int ug_main(int argc, char** argv,
                                 get_config<std::string>("ref_genome"));
   std::string input_path  = get_argument<std::string>(cmd_vm, "input");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
+  
+  std::vector<std::string> extra_opts = 
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -88,6 +95,7 @@ int ug_main(int argc, char** argv,
           input_file,
           intv_paths[contig],
           output_file,
+          extra_opts,
           flag_f));
     output_files[contig] = output_file;
 
