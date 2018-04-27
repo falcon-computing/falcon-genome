@@ -96,11 +96,18 @@ int main(int argc, char** argv) {
   std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
 
 #ifdef USELICENSE
-  int licret = falconlic::license_verify();
+  namespace fc   = falconlic;
+  namespace fclm = falconlic::flexlm;
+
+  //fc::set_verbose(3);
+  fc::enable_flexlm();
+  fclm::add_feature(fclm::FALCON_DNA);
+
+  int licret = fc::license_verify();
   if (licret != 0) {
     LOG(ERROR) << "Cannot verify license: " << licret;
     LOG(ERROR) << "Please contact support@falcon-computing.com for details.";
-    return -1;
+    return licret;
   }
 #endif
 
@@ -203,5 +210,8 @@ int main(int argc, char** argv) {
     ret = -1;
   }
 
+#ifdef USELICENSE
+  fc::license_clean();
+#endif
   return ret;
 }
