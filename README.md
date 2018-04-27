@@ -179,7 +179,7 @@ This method performs a joint variant calling from a set of VCF files.
 | -g | --skip-combine | | (deprecated) perform genotype gVCFs only and skip combine gVCF |
 
 ### fcs-genome gatk
-This method emulates the original GATK command.  Please refer the GATK documentation for additional details. 
+This method emulates the original GATK command and as such, there is no Falcon provided acceleration. Please refer the GATK documentation for additional details. 
 
 ## Quick Start
 The examples below were written in BASH script and quickly tested using an instance of 16-cores (Intel(R) Xeon(R) CPU E5-2686 v4 @ 2.30GHz, 2 threads per core).   Each example below can be saved in a file and be submitted to the server as follows:
