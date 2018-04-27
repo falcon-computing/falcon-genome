@@ -8,7 +8,7 @@ GTEST_DIR	:= ./deps/googletest
 OPENMPI_DIR	:= ./deps/openmpi-1.10.2
 HTSLIB_DIR	:= ./deps/htslib-1.3.1
 JSONCPP_DIR	:= ./deps/jsoncpp-1.7.7
-FLMDIR		:= /curr/diwu/prog/internal/falcon-lic
+FLMDIR		:= ./deps/falcon-lic
 
 include config.mk
 
