@@ -15,6 +15,8 @@ int gatk_main(int argc, char** argv,
 {
 
   std::stringstream cmd;
+  LOG(WARNING) << "Running original GATK without Falcon acceleration";
+
   cmd << get_config<std::string>("java_path") << " "
       << "-Xmx8g "
       << "-jar " << get_config<std::string>("gatk_path") << " ";
