@@ -1,10 +1,9 @@
+#include <boost/filesystem.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/thread.hpp>
 #include <fstream>
 #include <string>
 #include <unistd.h>
-
-#include <boost/filesystem.hpp>
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -35,7 +34,6 @@ std::set<std::string> config_list{
     "gatk_path"
 };
 
-
 static std::string env_name_mapper(std::string key) {
   // entire string to lowercase
   std::transform(key.begin(), key.end(), key.begin(), ::tolower);
@@ -48,6 +46,66 @@ static std::string env_name_mapper(std::string key) {
     }
   }
   return std::string();
+}
+
+void calc_gatk_default_config(
+    int & nprocs,
+    int & memory,
+    int cpu_num,
+    int memory_size) {
+
+  nprocs = 32;
+  memory = 4;
+
+  // allow some extra room for JVM memory, very empirical
+  double memory_margin = 0.05; 
+
+  while (nprocs > cpu_num) {
+    nprocs /= 2; 
+  }
+  // first increase memory if necessary
+  while (nprocs * (memory+2) < memory_size * (1+memory_margin)) {
+    memory += 2;
+  }
+  // then decrease nprocs if necessary
+  while (nprocs * memory > memory_size) {
+    // TODO: decrease by 2x could be too aggresive
+    nprocs /= 2;
+  }
+}
+
+int check_nprocs_config(std::string key, int cpu_num) {
+  int val = get_config<int>("gatk." + key + ".nprocs");
+  if (val > cpu_num) {
+    LOG(WARNING) << "Using too many threads for current command.";
+    LOG(WARNING) << "- number of cpu cores = " << cpu_num;
+    LOG(WARNING) << "- gatk." << key << ".nprocs = " << val;
+
+    return 1;
+  }
+  return 0;
+}
+
+int check_memory_config(std::string key, int memory_size) {
+  int nprocs = get_config<int>("gatk." + key + ".nprocs");
+  int memory = get_config<int>("gatk." + key + ".memory");
+  int total_memory = nprocs*memory;
+
+  if (memory < 4) {
+    LOG(WARNING) << "gatk." << key << ".memory(" << memory << ") "
+                 << "value is too low, recommand value is 4gb";
+    return 1;
+  }
+  else if (total_memory> memory_size*(1+0.05)) {
+    LOG(WARNING) << "Using too much memory for current command, "
+                 << "processes may be killed by OS.";
+    LOG(WARNING) << "  - memory size = " << memory_size << "gb";
+    LOG(WARNING) << "  - gatk." << key << ".nprocs = " << nprocs;
+    LOG(WARNING) << "  - gatk." << key << ".memory = " << memory << "gb";
+
+    return 1;
+  }
+  return 0;
 }
 
 int init_config(boost::program_options::options_description conf_opt) {
@@ -86,9 +144,6 @@ int init_config(boost::program_options::options_description conf_opt) {
 
     throw silentExit();
   }
-
-  // check on the GATK parameters
-  // TODO
 
   // set parameters based on dependency
   set_config<bool>("bwa.scaleout_mode", "latency_mode");
@@ -174,12 +229,22 @@ int init(char** argv, int argc) {
   int opt_int;
   bool opt_bool;
 
-  // get cpu number
-  int ncpu = boost::thread::hardware_concurrency();
+  // system info
+  int cpu_num     = boost::thread::hardware_concurrency();
+  int memory_size = get_sys_memory();
+
+  DLOG(INFO) << "System has " << cpu_num << " total threads on this node";
+  DLOG(INFO) << "System has " << memory_size << " gb memory";
+
+  // calculate default num_cpu and memory
   int def_ncontigs = 32;
-  int def_nprocs = ncpu < def_ncontigs ? ncpu : def_ncontigs;
-  DLOG(INFO) << "Found " << ncpu << " total threads on this node, "
-             << "set default gatk nprocs = " << def_nprocs;
+  int def_nprocs   = 32;
+  int def_memory   = 4;
+
+  calc_gatk_default_config(def_nprocs, def_memory, cpu_num, memory_size);
+
+  DLOG(INFO) << "Default gatk.nprocs = " << def_nprocs;
+  DLOG(INFO) << "Default gatk.memory = " << def_memory;
 
   common_opt.add_options() 
     arg_decl_string_w_def("temp_dir",        "/tmp",      "temp dir for fast access")
@@ -201,24 +266,24 @@ int init(char** argv, int argc) {
   tools_opt.add_options()
     arg_decl_int_w_def("bwa.verbose",              0,     "verbose level of bwa output")
     arg_decl_int_w_def("bwa.nt",                   -1,    "number of threads for bwa-mem")
-    arg_decl_int_w_def("bwa.num_batches_per_part", 20,    "max num records in each BAM file")
+    arg_decl_int_w_def("bwa.num_batches_per_part", 40,    "max num records in each BAM file")
     arg_decl_bool_w_def("bwa.use_fpga",            false, "option to enable FPGA for bwa-mem")
     arg_decl_bool_w_def("bwa.use_sort",            true,  "enable sorting in bwa-mem")
-    arg_decl_bool_w_def("bwa.enforce_order",       true,  "enforce strict sorting ordering")
-    arg_decl_string_w_def("bwa.fpga.bit_path",     "",    "path to FPGA bitstream for bwa")
-    arg_decl_string_w_def("bwa.fpga.pac_path",     "",    "path to PAC reference used by FPGA for bwa")
+    arg_decl_bool_w_def("bwa.enforce_order",       false,  "enforce strict sorting ordering")
+    arg_decl_string_w_def("bwa.fpga.bit_path",     conf_root_dir+"/tools/package/bitstream.xclbin", "path to FPGA bitstream for bwa")
+    arg_decl_string_w_def("bwa.fpga.pac_path",     "",    "(deprecated) path to PAC reference used by FPGA for bwa")
     arg_decl_bool("bwa.scaleout_mode", "enable scale-out mode for bwa")
 
     arg_decl_int_w_def("markdup.max_files",    4096, "max opened files in markdup")
-    arg_decl_int_w_def("markdup.nt",           16,   "thread num in markdup")
+    arg_decl_int_w_def("markdup.nt",           (16 > cpu_num ? cpu_num : 16),   "thread num in markdup")
     arg_decl_int_w_def("markdup.overflow-list-size", 2000000, "overflow list size in markdup")
 
     arg_decl_bool("gatk.scalout_mode", "enable scale-out mode for gatk")
     arg_decl_string_w_def("gatk.intv.path",    "", "default path to existing contig intervals")
     arg_decl_int_w_def("gatk.ncontigs", def_ncontigs, "default contig partition num in GATK steps")
     arg_decl_int_w_def("gatk.nprocs",   def_nprocs,   "default process num in GATK steps")
+    arg_decl_int_w_def("gatk.memory",   def_memory,   "default heap memory in GATK steps")
     arg_decl_int_w_def("gatk.nct",             1,  "default thread number in GATK steps (deprecated)")
-    arg_decl_int_w_def("gatk.memory",          8,  "default heap memory in GATK steps")
     arg_decl_int("gatk.bqsr.nprocs",               "default process num in GATK BaseRecalibrator")
     arg_decl_int("gatk.bqsr.nct",                  "default thread num in  GATK BaseRecalibrator")
     arg_decl_int("gatk.bqsr.memory",               "default heap memory in GATK BaseRecalibrator")
@@ -233,12 +298,12 @@ int init(char** argv, int argc) {
     arg_decl_int("gatk.ug.nprocs",                 "default process num in GATK UnifiedGenotyper")
     arg_decl_int("gatk.ug.nt",                     "default thread num in GATK UnifiedGenotyper")
     arg_decl_int("gatk.ug.memory",                 "default heap memory in GATK UnifiedGenotyper")
-    arg_decl_int_w_def("gatk.rtc.nt",          16, "default thread num in GATK RealignerTargetCreator")
-    arg_decl_int_w_def("gatk.rtc.memory",      48, "default heap memory in GATK RealignerTargetCreator")
+    arg_decl_int_w_def("gatk.rtc.nt",          (16 > cpu_num ? cpu_num : 16), "default thread num in GATK RealignerTargetCreator")
+    arg_decl_int_w_def("gatk.rtc.memory",      (48 > memory_size ? memory_size: 48), "default heap memory in GATK RealignerTargetCreator")
     arg_decl_int_w_def("gatk.joint.ncontigs",  32, "default contig partition num in joint genotyping")
-    arg_decl_int_w_def("gatk.combine.nprocs",  16, "default process num in GATK CombineGVCFs")
-    arg_decl_int_w_def("gatk.genotype.nprocs", 32, "default process num in GATK GenotypeGVCFs")
-    arg_decl_int_w_def("gatk.genotype.memory", 4,  "default heap memory in GATK GenotypeGVCFs")
+    arg_decl_int_w_def("gatk.combine.nprocs",  def_nprocs, "default process num in GATK CombineGVCFs")
+    arg_decl_int_w_def("gatk.genotype.nprocs", def_nprocs, "default process num in GATK GenotypeGVCFs")
+    arg_decl_int_w_def("gatk.genotype.memory", def_memory, "default heap memory in GATK GenotypeGVCFs")
     arg_decl_bool("gatk.skip_pseudo_chr", "skip pseudo chromosome intervals")
     ;
 
