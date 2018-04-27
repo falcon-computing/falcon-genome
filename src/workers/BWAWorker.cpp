@@ -16,7 +16,9 @@ BWAWorker::BWAWorker(std::string ref_path,
       std::string platform_id,
       std::string library_id,
       bool &flag_f):
-  Worker(get_config<bool>("latency_mode") ? conf_host_list.size() : 1, 
+  Worker(get_config<bool>("bwa.scaleout_mode") || 
+         get_config<bool>("latency_mode") 
+         ? conf_host_list.size() : 1, 
          1, extra_opts),
   ref_path_(ref_path),
   fq1_path_(fq1_path),
@@ -47,10 +49,8 @@ void BWAWorker::check() {
 void BWAWorker::setup() {
   // create cmd
   std::stringstream cmd;
-  if (!get_config<bool>("latency_mode")) {
-    cmd << "LD_LIBRARY_PATH=" << conf_root_dir << "/lib:$LD_LIBRARY_PATH ";
-  }
-  else {
+  if (get_config<bool>("bwa.scaleout_mode") ||
+      get_config<bool>("latency_mode")) {
     // NOTE: Needs to make sure necessary LD_LIBRARY_PATH
     // is set in user's bash mode
     cmd << get_config<std::string>("mpi_path") << "/bin/mpirun " 
@@ -64,6 +64,7 @@ void BWAWorker::setup() {
          * http://users.open-mpi.narkive.com/7efFnJXR/ompi-users-device-failed-to-appear-connection-timed-out
          */
         << "--mca pml ob1 "
+        << "--allow-run-as-root "
         << "-np " << conf_host_list.size() << " ";
 
     // set host list
@@ -77,6 +78,9 @@ void BWAWorker::setup() {
         cmd << " ";
       }
     }
+  }
+  else {
+    cmd << "LD_LIBRARY_PATH=" << conf_root_dir << "/lib:$LD_LIBRARY_PATH ";
   }
   cmd << get_config<std::string>("bwa_path") << " mem "
       << "-R \"@RG\\tID:" << read_group_ << 
@@ -103,15 +107,16 @@ void BWAWorker::setup() {
   }
 
   if (get_config<bool>("bwa.use_fpga") &&
-      !get_config<std::string>("bwa.fpga.bit_path").empty() &&
-      !get_config<std::string>("bwa.fpga.pac_path").empty()) 
+      !get_config<std::string>("bwa.fpga.bit_path").empty())
   {
     cmd << "--use_fpga "
-        << "--fpga_path=" << get_config<std::string>("bwa.fpga.bit_path") << " "
-        << "--pac_path=" << get_config<std::string>("bwa.fpga.pac_path") << " ";
+        << "--fpga_path=" << get_config<std::string>("bwa.fpga.bit_path") << " ";
   }
-  for (int i = 0; i < extra_opts_.size(); i++) {
-    cmd << extra_opts_[i] << " ";
+  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
+    cmd << it->first << " ";
+    if (!it->second.empty()) {
+      cmd << it->second << " ";
+    }
   }
 
   cmd << ref_path_ << " "

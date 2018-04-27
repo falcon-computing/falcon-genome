@@ -92,7 +92,7 @@ void IndelWorker::setup() {
   
   std::stringstream cmd;
   cmd << get_config<std::string>("java_path") << " "
-      << "-Xmx" << get_config<int>("gatk.indel.memory") << "g "
+      << "-Xmx" << get_config<int>("gatk.indel.memory", "gatk.memory") << "g "
       << "-jar " << get_config<std::string>("gatk_path") << " "
       << "-T IndelRealigner "
       << "-R " << ref_path_ << " "
@@ -107,8 +107,11 @@ void IndelWorker::setup() {
     cmd << "-known " << known_indels_[i] << " ";
   }
 
-  for (int i = 0; i < extra_opts_.size(); i++) {
-    cmd << extra_opts_[i] << " ";
+  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
+    cmd << it->first << " ";
+    if (!it->second.empty()) {
+      cmd << it->second << " ";
+    }
   }
   cmd << "1> /dev/null";
 

@@ -39,6 +39,10 @@ int htc_main(int argc, char** argv,
     throw helpRequest();
   } 
 
+  // check configurations
+  check_nprocs_config("htc");
+  check_memory_config("htc");
+
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force");
   bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat");
@@ -74,7 +78,8 @@ int htc_main(int argc, char** argv,
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
 
-  Executor executor("Haplotype Caller", get_config<int>("gatk.htc.nprocs"));
+  Executor executor("Haplotype Caller", 
+                    get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
 
   bool flag_htc_f = !flag_skip_concat || flag_f;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {

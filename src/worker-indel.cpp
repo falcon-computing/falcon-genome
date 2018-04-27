@@ -36,6 +36,10 @@ int ir_main(int argc, char** argv,
     throw helpRequest();
   } 
 
+  // check configurations
+  check_nprocs_config("indel");
+  check_memory_config("indel");
+
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force");
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
@@ -57,7 +61,8 @@ int ir_main(int argc, char** argv,
   output_path = check_output(output_path, flag_f);
   create_dir(output_path);
 
-  Executor executor("Indel Realignment", get_config<int>("gatk.indel.nprocs"));
+  Executor executor("Indel Realignment", 
+                    get_config<int>("gatk.indel.nprocs", "gatk.nprocs"));
 
   { // realign target creator
     Worker_ptr worker(new RTCWorker(ref_path, known_indels,

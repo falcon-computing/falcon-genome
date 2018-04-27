@@ -1,11 +1,9 @@
+#include <boost/filesystem.hpp>
 #include <boost/tokenizer.hpp>
+#include <boost/thread.hpp>
 #include <fstream>
 #include <string>
 #include <unistd.h>
-
-#define BOOST_NO_CXX11_SCOPED_ENUMS
-#include <boost/filesystem.hpp>
-#undef BOOST_NO_CXX11_SCOPED_ENUMS
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -18,10 +16,9 @@ std::string conf_root_dir;
 std::string conf_temp_dir;
 int main_tid = -1;
 
-std::vector<std::string> conf_host_list;
-
 boost::program_options::variables_map config_vtable;
 
+std::vector<std::string> conf_host_list;
 std::set<std::string> config_list{
     "temp_dir",
     "log_dir",
@@ -37,8 +34,6 @@ std::set<std::string> config_list{
     "gatk_path"
 };
 
-boost::program_options::options_description conf_opt;
-
 static std::string env_name_mapper(std::string key) {
   // entire string to lowercase
   std::transform(key.begin(), key.end(), key.begin(), ::tolower);
@@ -53,85 +48,72 @@ static std::string env_name_mapper(std::string key) {
   return std::string();
 }
 
-int init_config() {
+void calc_gatk_default_config(
+    int & nprocs,
+    int & memory,
+    int cpu_num,
+    int memory_size) {
 
-  // static settings
-  conf_bin_dir      = get_bin_dir();
-  conf_root_dir     = conf_bin_dir + "/..";
-  conf_project_dir  = get_absolute_path(".fcs-genome");
+  nprocs = 32;
+  memory = 4;
+
+  // allow some extra room for JVM memory, very empirical
+  double memory_margin = 0.05; 
+
+  while (nprocs > cpu_num) {
+    nprocs /= 2; 
+  }
+  // first increase memory if necessary
+  while (nprocs * (memory+2) < memory_size * (1+memory_margin)) {
+    memory += 2;
+  }
+  // then decrease nprocs if necessary
+  while (nprocs * memory > memory_size) {
+    // TODO: decrease by 2x could be too aggresive
+    nprocs /= 2;
+  }
+}
+
+int check_nprocs_config(std::string key, int cpu_num) {
+  int val = get_config<int>("gatk." + key + ".nprocs");
+  if (val > cpu_num) {
+    LOG(WARNING) << "Using too many threads for current command.";
+    LOG(WARNING) << "- number of cpu cores = " << cpu_num;
+    LOG(WARNING) << "- gatk." << key << ".nprocs = " << val;
+
+    return 1;
+  }
+  return 0;
+}
+
+int check_memory_config(std::string key, int memory_size) {
+  int nprocs = get_config<int>("gatk." + key + ".nprocs");
+  int memory = get_config<int>("gatk." + key + ".memory");
+  int total_memory = nprocs*memory;
+
+  if (memory < 4) {
+    LOG(WARNING) << "gatk." << key << ".memory(" << memory << ") "
+                 << "value is too low, recommand value is 4gb";
+    return 1;
+  }
+  else if (total_memory> memory_size*(1+0.05)) {
+    LOG(WARNING) << "Using too much memory for current command, "
+                 << "processes may be killed by OS.";
+    LOG(WARNING) << "  - memory size = " << memory_size << "gb";
+    LOG(WARNING) << "  - gatk." << key << ".nprocs = " << nprocs;
+    LOG(WARNING) << "  - gatk." << key << ".memory = " << memory << "gb";
+
+    return 1;
+  }
+  return 0;
+}
+
+int init_config(boost::program_options::options_description conf_opt) {
 
   std::string g_conf_fname = conf_root_dir + "/fcs-genome.conf";
   std::string l_conf_fname = "fcs-genome.conf";
 
   namespace po = boost::program_options;
-
-  po::options_description common_opt("common");
-  po::options_description tools_opt("tools");
-
-  std::string opt_str;
-  int opt_int;
-  bool opt_bool;
-
-  common_opt.add_options() 
-    arg_decl_string_w_def("temp_dir",        "/tmp",      "temp dir for fast access")
-    arg_decl_string_w_def("log_dir",         "./log",     "log dir")
-    arg_decl_string_w_def("ref_genome",      "",          "default reference genome path")
-    arg_decl_string_w_def("java_path",       "java -d64", "java binary")
-    arg_decl_string_w_def("mpi_path",        "/usr/lib64/openmpi",                  "path to mpi installation")
-    arg_decl_string_w_def("bwa_path",        conf_root_dir+"/tools/bin/bwa-bin",    "path to bwa binary")
-    arg_decl_string_w_def("sambamba_path",   conf_root_dir+"/tools/bin/sambamba",   "path to sambamba")
-    arg_decl_string_w_def("bcftools_path",   conf_root_dir+"/tools/bin/bcftools",   "path to bcftools")
-    arg_decl_string_w_def("bgzip_path",      conf_root_dir+"/tools/bin/bgzip",      "path to bgzip")
-    arg_decl_string_w_def("tabix_path",      conf_root_dir+"/tools/bin/tabix",      "path to tabix")
-    arg_decl_string_w_def("genomicsdb_path", conf_root_dir+"/tools/bin/vcf2tiledb", "path to GenomicsDB")
-    arg_decl_string_w_def("gatk_path",       conf_root_dir+"/tools/package/GenomeAnalysisTK.jar", "path to gatk.jar")
-    arg_decl_string_w_def("hosts", "",       "host list for scale-out mode")
-    arg_decl_bool("latency_mode",            "scale-out mode to minimize latency")
-    ;
-  
-  tools_opt.add_options()
-    arg_decl_int_w_def("bwa.verbose", 0, "verbose level of bwa output")
-    arg_decl_int_w_def("bwa.nt", -1, "number of threads for bwa-mem")
-    arg_decl_bool("bwa.use_fpga", "option to enable FPGA for bwa-mem")
-    arg_decl_bool_w_def("bwa.use_sort", "enable sorting in bwa-mem")
-    arg_decl_bool_w_def("bwa.enforce_order", "enforce strict sorting ordering")
-    arg_decl_string_w_def("bwa.fpga.bit_path", "", "path to FPGA bitstream for bwa")
-    arg_decl_string_w_def("bwa.fpga.pac_path", "", "path to PAC reference used by FPGA for bwa")
-    arg_decl_int_w_def("bwa.num_batches_per_part", 20,  "max num records in each BAM file")
-
-    arg_decl_int_w_def("markdup.max_files",    4096,     "max opened files in markdup")
-    arg_decl_int_w_def("markdup.nt",           16, "thread num in markdup")
-    arg_decl_int_w_def("markdup.overflow-list-size", 2000000, "overflow list size in markdup")
-    arg_decl_int_w_def("gatk.ncontigs",        32, "default contig partition num in GATK steps")
-    arg_decl_string_w_def("gatk.intv.path",    "", "default path to existing contig intervals")
-    arg_decl_int_w_def("gatk.nprocs",          16, "default process num in GATK steps")
-    arg_decl_int_w_def("gatk.bqsr.nprocs",     16, "default process num in GATK BaseRecalibrator")
-    arg_decl_int_w_def("gatk.bqsr.nct",        1,  "default thread num in  GATK BaseRecalibrator")
-    arg_decl_int_w_def("gatk.bqsr.memory",     8,  "default heap memory in GATK BaseRecalibrator")
-    arg_decl_int_w_def("gatk.pr.nprocs",       16, "default process num in GATK PrintReads")
-    arg_decl_int_w_def("gatk.pr.nct",          1,  "default thread num in  GATK PrintReads")
-    arg_decl_int_w_def("gatk.pr.memory",       8,  "default heap memory in GATK PrintReads")
-    arg_decl_int_w_def("gatk.htc.nprocs",      16, "default process num in GATK HaplotypeCaller")
-    arg_decl_int_w_def("gatk.htc.nct",         1,  "default thread num in  GATK HaplotypeCaller")
-    arg_decl_int_w_def("gatk.htc.memory",      8,  "default heap memory in GATK HaplotypeCaller")
-    arg_decl_int_w_def("gatk.indel.nprocs",    16, "default process num in GATK IndelRealigner")
-    arg_decl_int_w_def("gatk.indel.memory",    8,  "default heap memory in GATK IndelRealigner")
-    arg_decl_int_w_def("gatk.rtc.nt",          16, "default thread num in GATK RealignerTargetCreator")
-    arg_decl_int_w_def("gatk.rtc.memory",      48, "default heap memory in GATK RealignerTargetCreator")
-    arg_decl_int_w_def("gatk.ug.nprocs",       16, "default process num in GATK UnifiedGenotyper")
-    arg_decl_int_w_def("gatk.ug.nt",           1,  "default thread num in GATK UnifiedGenotyper")
-    arg_decl_int_w_def("gatk.ug.memory",       8,  "default heap memory in GATK UnifiedGenotyper")
-    arg_decl_int_w_def("gatk.joint.ncontigs",  32, "default contig partition num in joint genotyping")
-    arg_decl_int_w_def("gatk.combine.nprocs",  16, "default process num in GATK CombineGVCFs")
-    arg_decl_int_w_def("gatk.genotype.nprocs", 32, "default process num in GATK GenotypeGVCFs")
-    arg_decl_int_w_def("gatk.genotype.memory", 4,  "default heap memory in GATK GenotypeGVCFs")
-    arg_decl_int_w_def("gatk.mutect2.nprocs",      32, "default process num in GATK Mutect2")
-    arg_decl_int_w_def("gatk.mutect2.nct",         1,  "default thread num in  GATK Mutect2")
-    arg_decl_int_w_def("gatk.mutect2.memory",      4,  "default heap memory in GATK Mutect2")
-    arg_decl_bool("gatk.skip_pseudo_chr", "skip pseudo chromosome intervals")
-    ;
-
-  conf_opt.add(common_opt).add(tools_opt);
 
   try {
     // 1st priority: get conf from environment variables
@@ -154,7 +136,6 @@ int init_config() {
       }
     }
     po::notify(config_vtable);
-  
   }
   catch (po::error &e) {
     std::cerr << "fcs-genome configuration options:" << std::endl;
@@ -164,6 +145,28 @@ int init_config() {
     throw silentExit();
   }
 
+  // set parameters based on dependency
+  set_config<bool>("bwa.scaleout_mode", "latency_mode");
+  set_config<bool>("gatk.scaleout_mode", "latency_mode");
+
+  set_config<int>("gatk.bqsr.nprocs",  "gatk.nprocs");
+  set_config<int>("gatk.pr.nprocs",    "gatk.nprocs");
+  set_config<int>("gatk.htc.nprocs",   "gatk.nprocs");
+  set_config<int>("gatk.indel.nprocs", "gatk.nprocs");
+  set_config<int>("gatk.ug.nprocs",    "gatk.nprocs");
+
+  set_config<int>("gatk.bqsr.nct", "gatk.nct");
+  set_config<int>("gatk.pr.nct",   "gatk.nct");
+  set_config<int>("gatk.htc.nct",  "gatk.nct");
+  set_config<int>("gatk.ug.nt",    "gatk.nct");
+
+  set_config<int>("gatk.bqsr.memory",  "gatk.memory");
+  set_config<int>("gatk.pr.memory",    "gatk.memory");
+  set_config<int>("gatk.htc.memory",   "gatk.memory");
+  set_config<int>("gatk.indel.memory", "gatk.memory");
+  set_config<int>("gatk.ug.memory",    "gatk.memory");
+
+  // create temp dir
   std::string username("");
   username = std::getenv("USER");
   conf_temp_dir = get_config<std::string>("temp_dir") +
@@ -173,16 +176,18 @@ int init_config() {
                   std::to_string((long long)getpid());
 
   // check tool files
-  check_input(get_config<std::string>("bwa_path"));
-  check_input(get_config<std::string>("sambamba_path"));
-  check_input(get_config<std::string>("bcftools_path"));
-  check_input(get_config<std::string>("bgzip_path"));
-  check_input(get_config<std::string>("tabix_path"));
-  check_input(get_config<std::string>("genomicsdb_path"));
-  check_input(get_config<std::string>("gatk_path"));
+  check_input(get_config<std::string>("bwa_path"), false);
+  check_input(get_config<std::string>("sambamba_path"), false);
+  check_input(get_config<std::string>("bcftools_path"), false);
+  check_input(get_config<std::string>("bgzip_path"), false);
+  check_input(get_config<std::string>("tabix_path"), false);
+  check_input(get_config<std::string>("genomicsdb_path"), false);
+  check_input(get_config<std::string>("gatk_path"), false);
 
-  // parse host list
-  if (get_config<bool>("latency_mode")) {
+  // parse host list if scaleout_mode is selected
+  if (get_config<bool>("bwa.scaleout_mode") || 
+      get_config<bool>("gatk.scaleout_mode") ||
+      get_config<bool>("latency_mode")) {
     std::string hosts = get_config<std::string>("hosts");
 
     typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
@@ -210,9 +215,105 @@ int init_config() {
 }
 
 int init(char** argv, int argc) {
+  // static settings
+  conf_bin_dir      = get_bin_dir();
+  conf_root_dir     = conf_bin_dir + "/..";
+  conf_project_dir  = get_absolute_path(".fcs-genome");
+  namespace po = boost::program_options;
+
+  po::options_description conf_opt;
+  po::options_description common_opt("common");
+  po::options_description tools_opt("tools");
+
+  std::string opt_str;
+  int opt_int;
+  bool opt_bool;
+
+  // system info
+  int cpu_num     = boost::thread::hardware_concurrency();
+  int memory_size = get_sys_memory();
+
+  DLOG(INFO) << "System has " << cpu_num << " total threads on this node";
+  DLOG(INFO) << "System has " << memory_size << " gb memory";
+
+  // calculate default num_cpu and memory
+  int def_ncontigs = 32;
+  int def_nprocs   = 32;
+  int def_memory   = 4;
+
+  calc_gatk_default_config(def_nprocs, def_memory, cpu_num, memory_size);
+
+  DLOG(INFO) << "Default gatk.nprocs = " << def_nprocs;
+  DLOG(INFO) << "Default gatk.memory = " << def_memory;
+
+  common_opt.add_options() 
+    arg_decl_string_w_def("temp_dir",        "/tmp",      "temp dir for fast access")
+    arg_decl_string_w_def("log_dir",         "./log",     "log dir")
+    arg_decl_string_w_def("ref_genome",      "",          "default reference genome path")
+    arg_decl_string_w_def("java_path",       "java -d64", "java binary")
+    arg_decl_string_w_def("mpi_path",        "/usr/lib64/openmpi",                  "path to mpi installation")
+    arg_decl_string_w_def("bwa_path",        conf_root_dir+"/tools/bin/bwa-bin",    "path to bwa binary")
+    arg_decl_string_w_def("sambamba_path",   conf_root_dir+"/tools/bin/sambamba",   "path to sambamba")
+    arg_decl_string_w_def("bcftools_path",   conf_root_dir+"/tools/bin/bcftools",   "path to bcftools")
+    arg_decl_string_w_def("bgzip_path",      conf_root_dir+"/tools/bin/bgzip",      "path to bgzip")
+    arg_decl_string_w_def("tabix_path",      conf_root_dir+"/tools/bin/tabix",      "path to tabix")
+    arg_decl_string_w_def("genomicsdb_path", conf_root_dir+"/tools/bin/vcf2tiledb", "path to GenomicsDB")
+    arg_decl_string_w_def("gatk_path",       conf_root_dir+"/tools/package/GenomeAnalysisTK.jar", "path to gatk.jar")
+    arg_decl_string_w_def("hosts", "",       "host list for scale-out mode")
+    arg_decl_bool_w_def("latency_mode", false, "enable sorting in bwa-mem")
+    ;
+  
+  tools_opt.add_options()
+    arg_decl_int_w_def("bwa.verbose",              0,     "verbose level of bwa output")
+    arg_decl_int_w_def("bwa.nt",                   -1,    "number of threads for bwa-mem")
+    arg_decl_int_w_def("bwa.num_batches_per_part", 40,    "max num records in each BAM file")
+    arg_decl_bool_w_def("bwa.use_fpga",            false, "option to enable FPGA for bwa-mem")
+    arg_decl_bool_w_def("bwa.use_sort",            true,  "enable sorting in bwa-mem")
+    arg_decl_bool_w_def("bwa.enforce_order",       false,  "enforce strict sorting ordering")
+    arg_decl_string_w_def("bwa.fpga.bit_path",     conf_root_dir+"/tools/package/bitstream.xclbin", "path to FPGA bitstream for bwa")
+    arg_decl_string_w_def("bwa.fpga.pac_path",     "",    "(deprecated) path to PAC reference used by FPGA for bwa")
+    arg_decl_bool("bwa.scaleout_mode", "enable scale-out mode for bwa")
+
+    arg_decl_int_w_def("markdup.max_files",    4096, "max opened files in markdup")
+    arg_decl_int_w_def("markdup.nt",           (16 > cpu_num ? cpu_num : 16),   "thread num in markdup")
+    arg_decl_int_w_def("markdup.overflow-list-size", 2000000, "overflow list size in markdup")
+
+    arg_decl_bool("gatk.scalout_mode", "enable scale-out mode for gatk")
+    arg_decl_string_w_def("gatk.intv.path",    "", "default path to existing contig intervals")
+    arg_decl_int_w_def("gatk.ncontigs", def_ncontigs, "default contig partition num in GATK steps")
+    arg_decl_int_w_def("gatk.nprocs",   def_nprocs,   "default process num in GATK steps")
+    arg_decl_int_w_def("gatk.memory",   def_memory,   "default heap memory in GATK steps")
+    arg_decl_int_w_def("gatk.nct",             1,  "default thread number in GATK steps (deprecated)")
+    arg_decl_int("gatk.bqsr.nprocs",               "default process num in GATK BaseRecalibrator")
+    arg_decl_int("gatk.bqsr.nct",                  "default thread num in  GATK BaseRecalibrator")
+    arg_decl_int("gatk.bqsr.memory",               "default heap memory in GATK BaseRecalibrator")
+    arg_decl_int("gatk.pr.nprocs",                 "default process num in GATK PrintReads")
+    arg_decl_int("gatk.pr.nct",                    "default thread num in  GATK PrintReads")
+    arg_decl_int("gatk.pr.memory",                 "default heap memory in GATK PrintReads")
+    arg_decl_int("gatk.htc.nprocs",                "default process num in GATK HaplotypeCaller")
+    arg_decl_int("gatk.htc.nct",                   "default thread num in  GATK HaplotypeCaller")
+    arg_decl_int("gatk.htc.memory",                "default heap memory in GATK HaplotypeCaller")
+    arg_decl_int("gatk.indel.nprocs",              "default process num in GATK IndelRealigner")
+    arg_decl_int("gatk.indel.memory",              "default heap memory in GATK IndelRealigner")
+    arg_decl_int("gatk.ug.nprocs",                 "default process num in GATK UnifiedGenotyper")
+    arg_decl_int("gatk.ug.nt",                     "default thread num in GATK UnifiedGenotyper")
+    arg_decl_int("gatk.ug.memory",                 "default heap memory in GATK UnifiedGenotyper")
+    arg_decl_int_w_def("gatk.rtc.nt",          (16 > cpu_num ? cpu_num : 16), "default thread num in GATK RealignerTargetCreator")
+    arg_decl_int_w_def("gatk.rtc.memory",      (48 > memory_size ? memory_size: 48), "default heap memory in GATK RealignerTargetCreator")
+    arg_decl_int_w_def("gatk.joint.ncontigs",  32, "default contig partition num in joint genotyping")
+    arg_decl_int_w_def("gatk.mutect2.nprocs",      32, "default process num in GATK Mutect2")
+    arg_decl_int_w_def("gatk.mutect2.nct",         1,  "default thread num in  GATK Mutect2")
+    arg_decl_int_w_def("gatk.mutect2.memory",      4,  "default heap memory in GATK Mutect2")
+    arg_decl_int_w_def("gatk.combine.nprocs",  def_nprocs, "default process num in GATK CombineGVCFs")
+    arg_decl_int_w_def("gatk.genotype.nprocs", def_nprocs, "default process num in GATK GenotypeGVCFs")
+    arg_decl_int_w_def("gatk.genotype.memory", def_memory, "default heap memory in GATK GenotypeGVCFs")
+    arg_decl_bool("gatk.skip_pseudo_chr", "skip pseudo chromosome intervals")
+    ;
+
+  conf_opt.add(common_opt).add(tools_opt);
 
   // Intialize configs
-  int ret = init_config();
+  int ret = init_config(conf_opt);
 
   if (argc > 1 && ::strcmp(argv[1], "conf") == 0) {
     std::cerr << "fcs-genome configuration options:" << std::endl;

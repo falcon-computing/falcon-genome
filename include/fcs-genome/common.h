@@ -70,8 +70,8 @@ public:
     po::value<bool>(), \
     msg)
 
-#define arg_decl_bool_w_def(arg, msg) (arg, \
-    po::value<bool>(&opt_bool)->default_value(true), \
+#define arg_decl_bool_w_def(arg, val, msg) (arg, \
+    po::value<bool>(&opt_bool)->default_value(val), \
     msg)
 
 #define arg_decl_string_w_def(arg, val, msg) (arg, \
@@ -213,7 +213,7 @@ inline std::string get_basename_wo_ext(std::string path) {
 
 Executor* create_executor(std::string job_name, int num_workers = 1);
 std::string get_absolute_path(std::string path);
-std::string check_input(std::string path);
+std::string check_input(std::string path, bool req = true);
 std::string check_output(std::string path, bool &f, bool req_file = false);
 std::string get_bin_dir();
 std::string get_log_name(std::string job_name, int idx = -1);
