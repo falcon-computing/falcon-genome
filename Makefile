@@ -76,7 +76,9 @@ OBJS	 := $(SRC_DIR)/common.o \
 	    $(SRC_DIR)/workers/IndelWorker.o \
 	    $(SRC_DIR)/workers/MarkdupWorker.o \
 	    $(SRC_DIR)/workers/VCFUtilsWorker.o \
-	    $(SRC_DIR)/workers/UGWorker.o
+	    $(SRC_DIR)/workers/UGWorker.o \
+            $(SRC_DIR)/worker-mutect2.o \
+            $(SRC_DIR)/workers/Mutect2Worker.o
 
 TEST_OBJS := $(TEST_DIR)/TestConfig.o
 

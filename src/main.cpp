@@ -57,6 +57,7 @@ int print_help() {
   print_cmd_col("baserecal", "equivalent to GATK BaseRecalibrator");
   print_cmd_col("printreads", "equivalent to GATK PrintReads");
   print_cmd_col("htc", "variant calling with GATK HaplotypeCaller");
+  print_cmd_col("mutect2", "(Experimental) somatic variant calling with GATK Mutect2");
   print_cmd_col("indel", "indel realignment with GATK IndelRealigner");
   print_cmd_col("joint", "joint variant calling with GATK GenotypeGVCFs");
   print_cmd_col("ug", "variant calling with GATK UnifiedGenotyper");
@@ -90,6 +91,7 @@ namespace fcsgenome {
   int ug_main(int argc, char** argv, po::options_description &opt_desc);
   int gatk_main(int argc, char** argv, po::options_description &opt_desc);
   int hist_main(int argc, char** argv, po::options_description &opt_desc);
+  int mutect2_main(int argc, char** argv, po::options_description &opt_desc);
 }
 
 int main(int argc, char** argv) {
@@ -173,6 +175,9 @@ int main(int argc, char** argv) {
     else if (cmd == "gatk") {
       gatk_main(argc-1, &argv[1], opt_desc);
     }
+    else if (cmd == "mutect2") {
+      mutect2_main(argc-1, &argv[1], opt_desc);
+    }
     else {
       print_help(); 
       throw silentExit();
@@ -184,7 +189,11 @@ int main(int argc, char** argv) {
 #endif
   }
   catch (helpRequest &e) { 
-    std::cerr << "'fcs-genome " << cmd << "' options:" << std::endl;
+    std::cerr << "'fcs-genome " << cmd;
+    if (cmd == "mutect2") {
+      std::cerr << "(Experimental)";
+    } 
+    std::cerr << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
 
     // delete temp dir
@@ -194,14 +203,22 @@ int main(int argc, char** argv) {
   }
   catch (invalidParam &e) { 
     LOG(ERROR) << "Missing argument '--" << e.what() << "'";
-    std::cerr << "'fcs-genome " << cmd << "' options:" << std::endl;
+    std::cerr << "'fcs-genome " << cmd;
+    if (cmd == "mutect2") {
+      std::cerr << "(Experimental)";
+    }
+    std::cerr << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
 
     ret = 1;
   }
   catch (boost::program_options::error &e) { 
     LOG(ERROR) << "Failed to parse arguments, " << e.what();
-    std::cerr << "'fcs-genome " << cmd << "' options:" << std::endl;
+    std::cerr << "'fcs-genome " << cmd;
+    if (cmd == "mutect2") {
+      std::cerr << "(Experimental)";
+    }
+    std::cerr << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
 
     // delete temp dir
