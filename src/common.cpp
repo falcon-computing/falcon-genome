@@ -44,8 +44,8 @@ std::string check_input(std::string path, bool req) {
       throw fileNotFound("Cannot find " + path);
     }
     else {
-       LOG(WARNING) << "Cannot find " << path;
-       return path;
+      LOG(WARNING) << "Cannot find " << path;
+      return path;
     }
   }
   return get_absolute_path(path);
