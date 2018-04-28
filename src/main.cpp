@@ -190,9 +190,6 @@ int main(int argc, char** argv) {
   }
   catch (helpRequest &e) { 
     std::cerr << "'fcs-genome " << cmd;
-    if (cmd == "mutect2") {
-      std::cerr << "(Experimental)";
-    } 
     std::cerr << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
 
@@ -204,9 +201,6 @@ int main(int argc, char** argv) {
   catch (invalidParam &e) { 
     LOG(ERROR) << "Missing argument '--" << e.what() << "'";
     std::cerr << "'fcs-genome " << cmd;
-    if (cmd == "mutect2") {
-      std::cerr << "(Experimental)";
-    }
     std::cerr << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
 
@@ -215,9 +209,6 @@ int main(int argc, char** argv) {
   catch (boost::program_options::error &e) { 
     LOG(ERROR) << "Failed to parse arguments, " << e.what();
     std::cerr << "'fcs-genome " << cmd;
-    if (cmd == "mutect2") {
-      std::cerr << "(Experimental)";
-    }
     std::cerr << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
 
