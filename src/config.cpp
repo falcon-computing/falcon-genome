@@ -68,7 +68,7 @@ void calc_gatk_default_config(
     memory += 2;
   }
   // then decrease nprocs if necessary
-  while (nprocs * memory > memory_size) {
+  while (nprocs * memory > memory_size * (1+memory_margin)) {
     // TODO: decrease by 2x could be too aggresive
     nprocs /= 2;
   }
