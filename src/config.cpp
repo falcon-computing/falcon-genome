@@ -68,7 +68,7 @@ void calc_gatk_default_config(
     memory += 2;
   }
   // then decrease nprocs if necessary
-  while (nprocs * memory > memory_size) {
+  while (nprocs * memory > memory_size * (1+memory_margin)) {
     // TODO: decrease by 2x could be too aggresive
     nprocs /= 2;
   }
@@ -152,17 +152,20 @@ int init_config(boost::program_options::options_description conf_opt) {
   set_config<int>("gatk.bqsr.nprocs",  "gatk.nprocs");
   set_config<int>("gatk.pr.nprocs",    "gatk.nprocs");
   set_config<int>("gatk.htc.nprocs",   "gatk.nprocs");
+  set_config<int>("gatk.mutect2.nprocs",   "gatk.nprocs");
   set_config<int>("gatk.indel.nprocs", "gatk.nprocs");
   set_config<int>("gatk.ug.nprocs",    "gatk.nprocs");
 
   set_config<int>("gatk.bqsr.nct", "gatk.nct");
   set_config<int>("gatk.pr.nct",   "gatk.nct");
   set_config<int>("gatk.htc.nct",  "gatk.nct");
+  set_config<int>("gatk.mutect2.nct",  "gatk.nct");
   set_config<int>("gatk.ug.nt",    "gatk.nct");
 
   set_config<int>("gatk.bqsr.memory",  "gatk.memory");
   set_config<int>("gatk.pr.memory",    "gatk.memory");
   set_config<int>("gatk.htc.memory",   "gatk.memory");
+  set_config<int>("gatk.mutect2.memory",   "gatk.memory");
   set_config<int>("gatk.indel.memory", "gatk.memory");
   set_config<int>("gatk.ug.memory",    "gatk.memory");
 
@@ -293,6 +296,9 @@ int init(char** argv, int argc) {
     arg_decl_int("gatk.htc.nprocs",                "default process num in GATK HaplotypeCaller")
     arg_decl_int("gatk.htc.nct",                   "default thread num in  GATK HaplotypeCaller")
     arg_decl_int("gatk.htc.memory",                "default heap memory in GATK HaplotypeCaller")
+    arg_decl_int("gatk.mutect2.nprocs",            "default process num in GATK Mutect2")
+    arg_decl_int("gatk.mutect2.nct",               "default thread num in  GATK Mutect2")
+    arg_decl_int("gatk.mutect2.memory",            "default heap memory in GATK Mutect2")
     arg_decl_int("gatk.indel.nprocs",              "default process num in GATK IndelRealigner")
     arg_decl_int("gatk.indel.memory",              "default heap memory in GATK IndelRealigner")
     arg_decl_int("gatk.ug.nprocs",                 "default process num in GATK UnifiedGenotyper")

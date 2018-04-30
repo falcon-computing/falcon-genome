@@ -94,6 +94,10 @@ TEST_F(TestConfig, AutoTuneNprocsMemory) {
   fcs::calc_gatk_default_config(nprocs, memory, 32, 192);
   ASSERT_EQ(32, nprocs);
   ASSERT_EQ(6, memory);
+
+  fcs::calc_gatk_default_config(nprocs, memory, 48, 252);
+  ASSERT_EQ(32, nprocs);
+  ASSERT_EQ(8, memory);
 }
 
 TEST_F(TestConfig, CheckNprocsAndMemory) {
