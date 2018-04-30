@@ -32,11 +32,11 @@ int print_help() {
   print_cmd_col("baserecal", "equivalent to GATK BaseRecalibrator");
   print_cmd_col("printreads", "equivalent to GATK PrintReads");
   print_cmd_col("htc", "variant calling with GATK HaplotypeCaller");
+  print_cmd_col("mutect2", "(Experimental) somatic variant calling with GATK Mutect2");
   print_cmd_col("indel", "indel realignment with GATK IndelRealigner");
   print_cmd_col("joint", "joint variant calling with GATK GenotypeGVCFs");
   print_cmd_col("ug", "variant calling with GATK UnifiedGenotyper");
   print_cmd_col("gatk", "call GATK routines");
-  print_cmd_col("mutect2", "somatic variant calling with GATK Mutect2");
 
   return 0;	
 }
@@ -171,7 +171,8 @@ int main(int argc, char** argv) {
 #endif
   }
   catch (helpRequest &e) { 
-    std::cerr << "'fcs-genome " << cmd << "' options:" << std::endl;
+    std::cerr << "'fcs-genome " << cmd;
+    std::cerr << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
 
     // delete temp dir
@@ -181,14 +182,16 @@ int main(int argc, char** argv) {
   }
   catch (invalidParam &e) { 
     LOG(ERROR) << "Missing argument '--" << e.what() << "'";
-    std::cerr << "'fcs-genome " << cmd << "' options:" << std::endl;
+    std::cerr << "'fcs-genome " << cmd;
+    std::cerr << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
 
     ret = 1;
   }
   catch (boost::program_options::error &e) { 
     LOG(ERROR) << "Failed to parse arguments, " << e.what();
-    std::cerr << "'fcs-genome " << cmd << "' options:" << std::endl;
+    std::cerr << "'fcs-genome " << cmd;
+    std::cerr << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
 
     // delete temp dir

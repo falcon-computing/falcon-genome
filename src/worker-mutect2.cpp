@@ -27,8 +27,8 @@ int mutect2_main(int argc, char** argv,
     arg_decl_string("normal,n", "input normal BAM file or dir")
     arg_decl_string("tumor,t", "input tumor BAM file or dir")
     arg_decl_string("output,o", "output VCF file")
-    ("dbsnp", po::value<std::vector<std::string> >(), "dbsnp for Mutect2")
-    ("cosmic", po::value<std::vector<std::string> >(), "cosmic for Mutect2")
+    ("dbsnp", po::value<std::vector<std::string> >(), "list of dbsnp files for Mutect2")
+    ("cosmic", po::value<std::vector<std::string> >(), "list of cosmic files for Mutect2")
     ("skip-concat,s", "produce a set of VCF files instead of one");
     
   // Parse arguments
@@ -38,6 +38,10 @@ int mutect2_main(int argc, char** argv,
   if (cmd_vm.count("help")) { 
     throw helpRequest();
   } 
+  
+  // Check configurations
+  check_nprocs_config("mutect2");
+  check_memory_config("mutect2");
 
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force");
@@ -49,7 +53,7 @@ int mutect2_main(int argc, char** argv,
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
   std::vector<std::string> dbsnp_path = get_argument<std::vector<std::string> >(cmd_vm, "dbsnp", std::vector<std::string>());
   std::vector<std::string> cosmic_path = get_argument<std::vector<std::string> >(cmd_vm, "cosmic", std::vector<std::string>());
- 
+  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options"); 
   // finalize argument parsing
   po::notify(cmd_vm);
 
@@ -94,6 +98,7 @@ int mutect2_main(int argc, char** argv,
     Worker_ptr worker(new Mutect2Worker(ref_path,
           intv_paths[contig], normal_file, tumor_file,
           output_file,
+          extra_opts,
           dbsnp_path,
           cosmic_path,
           contig,

@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -12,10 +13,11 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
       std::string normal_path,
       std::string tumor_path,
       std::string output_path,
+      std::vector<std::string> extra_opts,
       std::vector<std::string> &dbsnp_path,
       std::vector<std::string> &cosmic_path,
       int  contig,
-      bool &flag_f): Worker(1, get_config<int>("gatk.mutect2.nct")),
+      bool &flag_f): Worker(1, get_config<int>("gatk.mutect2.nct", "gatk.nct"), extra_opts),
   ref_path_(ref_path),
   intv_path_(intv_path),
   normal_path_(normal_path),
@@ -45,17 +47,30 @@ void Mutect2Worker::setup() {
   // create cmd
   std::stringstream cmd;
   cmd << get_config<std::string>("java_path") << " "
-      << "-Xmx" << get_config<int>("gatk.mutect2.memory") << "g "
+      << "-Xmx" << get_config<int>("gatk.mutect2.memory", "gatk.memory") << "g "
       << "-jar " << get_config<std::string>("gatk_path") << " "
       << "-T MuTect2 "
       << "-R " << ref_path_ << " "
       << "-I:normal " << normal_path_ << " "
       << "-I:tumor " << tumor_path_ << " ";
-
-  cmd << "--variant_index_type LINEAR "
-      << "--variant_index_parameter 128000 "
-      << "-L " << intv_path_ << " "
-      << "-nct " << get_config<int>("gatk.mutect2.nct") << " "
+ 
+  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
+    cmd << it-> first << " ";
+    if (!it->second.empty()) {
+      cmd << it->second << " ";
+    }
+  }
+  
+  if(!extra_opts_.count("--variant_index_type")) {
+    cmd << "--variant_index_type LINEAR ";
+  }
+  
+  if (!extra_opts_.count("--variant_index_parameter")) {
+    cmd << "--variant_index_parameter 128000 ";
+  }
+   
+  cmd << "-L " << intv_path_ << " "
+      << "-nct " << get_config<int>("gatk.mutect2.nct", "gatk.nct") << " "
       << "-o " << output_path_ << " ";
 
   for (int i = 0; i < dbsnp_path_.size(); i++) {    

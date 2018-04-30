@@ -14,6 +14,7 @@ class Mutect2Worker : public Worker {
       std::string normal_path,
       std::string tumor_path,
       std::string output_path,
+      std::vector<std::string> extra_opts,
       std::vector<std::string> &dbsnp_path,
       std::vector<std::string> &cosmic_path,
       int contig,
