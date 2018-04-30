@@ -46,6 +46,10 @@ CFLAGS   	:= $(CFLAGS) -DNDEBUG -DUSELICENSE
 INCLUDES 	:= $(INCLUDES) -I$(FLMDIR)/include
 LINK 	 	:= -L$(FLMDIR)/lib -lfalcon_license \
 		   $(LINK) 
+ifneq ($(DEPLOYMENT),) # config license client for a cloud
+CFLAGS       := $(CFLAGS) -DDEPLOYMENT=$(DEPLOYMENT)
+GIT_VERSION  := $(GIT_VERSION)-$(DEPLOYMENT)
+endif
 else
 CFLAGS   	:= $(CFLAGS) -O2 -DNDEBUG
 endif
