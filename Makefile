@@ -8,7 +8,7 @@ GTEST_DIR	:= ./deps/googletest
 OPENMPI_DIR	:= ./deps/openmpi-1.10.2
 HTSLIB_DIR	:= ./deps/htslib-1.3.1
 JSONCPP_DIR	:= ./deps/jsoncpp-1.7.7
-FLMDIR		:= ./deps/falcon-lm
+FLMDIR		:= ./deps/falcon-lic
 
 include config.mk
 
@@ -42,13 +42,14 @@ else
 # check FLMDIR
 ifneq ($(FLMDIR),)
 # add support for flex license manage
-FLMLIB 		:= -llmgr_trl -lcrvs -lsb -lnoact -llmgr_dongle_stub
-
 CFLAGS   	:= $(CFLAGS) -DNDEBUG -DUSELICENSE
-INCLUDES 	:= $(INCLUDES) -I$(FLMDIR)
-LINK 	 	:= $(LINK) -L$(FLMDIR) $(FLMLIB) 
-LMDEPS 	 	:= $(FLMDIR)/license.o \
-		   $(FLMDIR)/lm_new.o 
+INCLUDES 	:= $(INCLUDES) -I$(FLMDIR)/include
+LINK 	 	:= -L$(FLMDIR)/lib -lfalcon_license \
+		   $(LINK) 
+ifneq ($(DEPLOYMENT),) # config license client for a cloud
+CFLAGS       := $(CFLAGS) -DDEPLOYMENT=$(DEPLOYMENT)
+GIT_VERSION  := $(GIT_VERSION)-$(DEPLOYMENT)
+endif
 else
 CFLAGS   	:= $(CFLAGS) -O2 -DNDEBUG
 endif
@@ -104,8 +105,8 @@ runtest: test
 $(DEPS): ./deps/get-all.sh
 	./deps/get-all.sh
 
-$(PROG): $(OBJS) $(LMDEPS) $(SRC_DIR)/main.o
-	$(PP) $(SRC_DIR)/main.o $(OBJS) $(LMDEPS) -o $@ $(LINK)
+$(PROG): $(OBJS) $(SRC_DIR)/main.o
+	$(PP) $(SRC_DIR)/main.o $(OBJS) -o $@ $(LINK)
 
 $(TEST): $(OBJS) $(TEST_OBJS) $(TEST_DIR)/main.o
 	$(PP) $(TEST_DIR)/main.o $(OBJS) $(TEST_OBJS) -o $@ $(LINK)
