@@ -41,21 +41,11 @@ std::string get_absolute_path(std::string path) {
 std::string check_input(std::string path, bool req) {
   if (!boost::filesystem::exists(path)) {
     if (req) {
-      if (path == "") {
-        throw fileNotFound("Please set path for all arguments");
-      }
-      else {
-        throw fileNotFound("Cannot find " + path);
-      }
+      throw fileNotFound("Cannot find " + path);
     }
     else {
-      if (path == "") {
-        LOG(WARNING) << "Please set path for all arguments" ;
-      }
-      else {
-        LOG(WARNING) << "Cannot find " << path;
-        return path;
-      }
+      LOG(WARNING) << "Cannot find " << path;
+      return path;
     }
   }
   return get_absolute_path(path);

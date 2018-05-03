@@ -57,6 +57,12 @@ public:
     std::runtime_error(what_arg) {;}
 };
 
+class pathEmpty : public std::runtime_error {
+public:
+  explicit pathEmpty(const std::string& what_arg):
+    std::runtime_error(what_arg) {;}
+};
+
 // Macros for argument definition
 #define arg_decl_int(arg, msg) (arg, \
     po::value<int>(), \
@@ -123,9 +129,14 @@ inline T get_argument(
     throw invalidParam(arg);
   }
   else {
-    return vm[arg].as<T>();
+    if (vm[arg].as<T>() == "") {
+      throw pathEmpty(arg);
+    }
+    else {
+      return vm[arg].as<T>();
+    }
+    }
   }
-}
 
 template <class T>
 inline T get_argument(
@@ -170,9 +181,15 @@ inline std::string get_argument<std::string>(
     }
   }
   else {
-    return vm[arg].as<std::string>();
+    if (vm[arg].as<std::string>() == "") {
+      throw pathEmpty(arg);
+    }
+    else {
+      return vm[arg].as<std::string>();
+    }
+    }
   }
-}
+
 
 template <>
 inline std::vector<std::string> get_argument<std::vector<std::string>>(

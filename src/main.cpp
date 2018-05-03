@@ -225,6 +225,12 @@ int main(int argc, char** argv) {
     LOG(ERROR) << e.what();
     ret = 4;
   }
+  
+  catch (pathEmpty &e) {
+    LOG(ERROR) << "Path empty for argument: " << e.what();
+    ret = 1;
+  }
+
   catch (std::runtime_error &e) {
     LOG(ERROR) << "Encountered an error: " << e.what();
     LOG(ERROR) << "Please contact support@falcon-computing.com for details.";
