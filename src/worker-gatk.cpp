@@ -15,6 +15,7 @@ int gatk_main(int argc, char** argv,
 {
 
   std::stringstream cmd;
+  std::stringstream cmd_log;
   LOG(WARNING) << "Running original GATK without Falcon acceleration";
 
   cmd << get_config<std::string>("java_path") << " "
@@ -22,7 +23,9 @@ int gatk_main(int argc, char** argv,
       << "-jar " << get_config<std::string>("gatk_path") << " ";
   for (int i = 1; i < argc; i++) {
     cmd << argv[i] << " ";
+    cmd_log << argv[i] << " ";
   }
+  LOG(INFO) << "fcs-genome gatk " << cmd_log.str();
   DLOG(INFO) << cmd.str();
   return system(cmd.str().c_str());
 }

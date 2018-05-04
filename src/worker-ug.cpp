@@ -50,6 +50,13 @@ int ug_main(int argc, char** argv,
   
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+  
+  std::stringstream cmd;
+  cmd << "fcs-genome ug --ref " << ref_path << " --input " << input_path << " --output " << output_path;
+  for ( std::vector<std::string>::const_iterator i = extra_opts.begin(); i != extra_opts.end(); ++i) {
+     cmd << *i << " ";
+  }
+  LOG(INFO) << cmd.str();
 
   // finalize argument parsing
   po::notify(cmd_vm);

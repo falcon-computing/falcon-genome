@@ -27,7 +27,7 @@ int ir_main(int argc, char** argv,
     arg_decl_string("output,o", "output diretory of BAM files")
     ("known,K", po::value<std::vector<std::string> >(),
      "known indels for realignment");
-
+  
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
       cmd_vm);
@@ -53,6 +53,16 @@ int ir_main(int argc, char** argv,
 
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+  
+  std::stringstream cmd;
+  cmd << "fcs-genome indel --ref " << ref_path << " --input " << input_path << " --output " << output_path << " -L " << target_path;
+  for ( std::vector<std::string>::const_iterator i = known_indels.begin(); i != known_indels.end(); ++i) {
+     cmd << *i << " ";
+   }
+  for ( std::vector<std::string>::const_iterator i = extra_opts.begin(); i != extra_opts.end(); ++i) {
+     cmd << *i << " ";
+   } 
+   LOG(INFO) << cmd.str() ;
 
   // finalize argument parsing
   po::notify(cmd_vm);

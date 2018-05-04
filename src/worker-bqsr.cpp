@@ -136,7 +136,7 @@ int baserecal_main(int argc, char** argv,
 
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
-
+  
   // finalize argument parsing
   po::notify(cmd_vm);
 
@@ -190,7 +190,14 @@ int pr_main(int argc, char** argv,
 
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
-
+  
+  std::stringstream cmd; 
+  cmd << "fcs-genome printreads --ref " << ref_path << " --bqsr " << bqsr_path << " --input " << input_path << " --output " << output_path;
+  for ( std::vector<std::string>::const_iterator i = extra_opts.begin(); i != extra_opts.end(); ++i) {
+     cmd << *i << " ";
+   }
+   LOG(INFO) << cmd.str();
+  
   // finalize argument parsing
   po::notify(cmd_vm);
 
@@ -251,6 +258,13 @@ int bqsr_main(int argc, char** argv,
 
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+  
+std::stringstream cmd;
+  cmd << "fcs-genome bqsr --ref " << ref_path << " --input " << input_path << " --output " << output_path ;
+  for ( std::vector<std::string>::const_iterator i = extra_opts.begin(); i != extra_opts.end(); ++i) {
+     cmd << *i << " ";
+   }
+   LOG(INFO) << cmd.str() ;
 
   std::string temp_dir = conf_temp_dir + "/bqsr";
   create_dir(temp_dir);
