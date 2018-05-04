@@ -13,6 +13,10 @@
 #include "license.h"
 #endif
 
+#ifndef TEST_FRIENDS_LIST
+#define TEST_FRIENDS_LIST
+#endif
+
 #ifdef USELICENSE
 void licence_check_out() {
   // initialize for licensing. call once
@@ -119,7 +123,7 @@ int main(int argc, char** argv) {
   std::string cmd(argv[1]);
   // transform all cmd to lower-case
   std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
-
+  
 #ifdef USELICENSE
   try {
     // check license
@@ -193,7 +197,7 @@ int main(int argc, char** argv) {
     ret = 0;
   }
   catch (invalidParam &e) { 
-    LOG(ERROR) << "Missing argument '--" << e.what() << "'";
+    LOG(INFO) << "Missing argument '--" << e.what() << "'";
     std::cerr << "'fcs-genome " << cmd << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
 
@@ -227,7 +231,7 @@ int main(int argc, char** argv) {
   }
   
   catch (pathEmpty &e) {
-    LOG(ERROR) << "Path empty for argument: " << e.what();
+    LOG(ERROR) << "Argument " << e.what() << " cannot be empty";
     ret = 1;
   }
 
