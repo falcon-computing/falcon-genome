@@ -42,12 +42,12 @@ void Stage::run() {
 
   typedef boost::packaged_task<void> task_t;
   std::vector<boost::unique_future<void> > pending_tasks_;
-  //Post_task()
+  
   // post all tasks
   for (int i = 0; i < tasks_.size(); i++) {
     tasks_[i]->check();
     
-  boost::lock_guard<Stage> guard(*this);
+ 
   boost::shared_ptr<task_t> task = boost::make_shared<task_t>(
       boost::bind(&Stage::runTask, this, i));
 
