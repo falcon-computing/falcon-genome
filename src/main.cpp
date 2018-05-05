@@ -138,7 +138,13 @@ int main(int argc, char** argv) {
   try {
     // load configurations
     init(argv, argc);
-
+     
+    std::stringstream cmd_log;
+    for (int i = 0; i < argc; i++) {
+      cmd_log << argv[i] << " ";
+    }
+    LOG(INFO) << "Arguments: " << cmd_log.str();   
+  
     // run command
     if (cmd == "align" | cmd == "al") {
       align_main(argc-1, &argv[1], opt_desc);

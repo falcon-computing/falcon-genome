@@ -35,10 +35,6 @@ int markdup_main(int argc, char** argv,
   bool        flag_f      = get_argument<bool>(cmd_vm, "force");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
-  
-  std::stringstream cmd;
-  cmd << "fcs-genome markdup --input " << input_path << " --output " << output_path ;
-  LOG(INFO) << cmd.str();
 
   po::notify(cmd_vm);
 

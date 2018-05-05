@@ -40,7 +40,7 @@ int align_main(int argc, char** argv,
   } 
 
   // Check if required arguments are presented
-  bool flag_f          = get_argument<bool>(cmd_vm, "force", "-f");
+  bool flag_f          = get_argument<bool>(cmd_vm, "force");
   bool flag_align_only = get_argument<bool>(cmd_vm, "align-only");
 
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
@@ -56,13 +56,6 @@ int align_main(int argc, char** argv,
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
   
-  std::stringstream cmd;  
-  cmd << "fcs-genome align --ref " << ref_path << " --fastq1 " << fq1_path << " --fastq2 " << fq2_path << " --output " << output_path << " --rg " << read_group << " --sp " << sample_id << " --pl " << platform_id << " --lb " << library_id;
-  for ( std::vector<std::string>::const_iterator i = extra_opts.begin(); i != extra_opts.end(); ++i) {
-     cmd << *i << " ";
-   }
-   LOG(INFO) << cmd.str() ;
-
   // finalize argument parsing
   po::notify(cmd_vm);
 

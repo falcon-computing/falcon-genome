@@ -45,10 +45,6 @@ int joint_main(int argc, char** argv,
   std::string input_path  = get_argument<std::string>(cmd_vm, "input-dir");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
 
-  std::stringstream cmd;
-  cmd << "fcs-genome joint --ref " << ref_path << " --input " << input_path << " --output " << output_path;
-  LOG(INFO) << cmd.str();
-
   // finalize argument parsing
   po::notify(cmd_vm);
 
