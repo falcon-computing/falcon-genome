@@ -47,7 +47,14 @@ void Stage::run() {
   for (int i = 0; i < tasks_.size(); i++) {
     tasks_[i]->check();
     
-    postTask(i);   
+  boost::lock_guard<Stage> guard(*this);
+  boost::shared_ptr<task_t> task = boost::make_shared<task_t>(
+      boost::bind(&Stage::runTask, this, i));
+
+  boost::unique_future<void> fut = task->get_future();
+  pending_tasks_.push_back(std::move(fut));
+
+  executor_->post(boost::bind(&task_t::operator(), task));    
   }
   // wait for tasks to finish
   boost::wait_for_all(pending_tasks_.begin(), pending_tasks_.end()); 
@@ -76,22 +83,9 @@ void Stage::run() {
              << getTs() - start_ts << " seconds";
 }
 
-void Stage::postTask(int idx) {
-  boost::lock_guard<Stage> guard(*this);
-  boost::shared_ptr<task_t> task = boost::make_shared<task_t>(
-      boost::bind(&Stage::runTask, this, i));
-
-  boost::unique_future<void> fut = task->get_future();
-  pending_tasks_.push_back(std::move(fut));
-
-  executor_->post(boost::bind(&task_t::operator(), task)); 
-}
-
 void Stage::runTask(int idx) {
   int ret = executor_->execute(tasks_[idx], logs_[idx]);
-  if (ret) { // check return value based on task and restart in case of failure(out of memory)
-  //restart=3
-  //Tasks to restart pushed to end of queue (Stage::run())
+  if (ret) { 
     DLOG(ERROR) << "Task " << idx << " in stage"
                 << " failed with error code " << ret;
     boost::lock_guard<Stage> guard(*this);
@@ -157,7 +151,7 @@ Executor::~Executor() {
 
 void Executor::addTask(Worker_ptr worker, bool wait_for_prev) {
   if (job_stages_.empty() || wait_for_prev) {
-    Stage_ptr stage(new Stage(this)); //Add another arg- for task
+    Stage_ptr stage(new Stage(this)); 
     job_stages_.push(stage);
   }
   job_stages_.back()->add(worker);
