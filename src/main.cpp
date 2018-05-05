@@ -10,32 +10,7 @@
 
 // use flexlm
 #ifdef USELICENSE
-#include "license.h"
-#endif
-
-#ifdef USELICENSE
-void licence_check_out() {
-  // initialize for licensing. call once
-  fc_license_init();
-
-  // get a feature
-  int status = 0;
-  while (-4 == (status = fc_license_checkout(FALCON_DNA, 0))) {
-    LOG(INFO) << "Reached maximum allowed instances on this machine, "
-      << "wait for 30 seconds. Please press CTRL+C to exit.";
-    boost::this_thread::sleep_for(boost::chrono::seconds(30));
-  }
-  if (status) {
-    throw fcsgenome::internalError(std::to_string((long long)status));
-  }
-}
-
-void licence_check_in() {
-  fc_license_checkin(FALCON_DNA);
-
-  // cleanup for licensing. call once
-  fc_license_cleanup();
-}
+#include "falcon-lic/license.h"
 #endif
 
 #define print_cmd_col(str1, str2) std::cout \
@@ -57,6 +32,7 @@ int print_help() {
   print_cmd_col("baserecal", "equivalent to GATK BaseRecalibrator");
   print_cmd_col("printreads", "equivalent to GATK PrintReads");
   print_cmd_col("htc", "variant calling with GATK HaplotypeCaller");
+  print_cmd_col("mutect2", "(Experimental) somatic variant calling with GATK Mutect2");
   print_cmd_col("indel", "indel realignment with GATK IndelRealigner");
   print_cmd_col("joint", "joint variant calling with GATK GenotypeGVCFs");
   print_cmd_col("ug", "variant calling with GATK UnifiedGenotyper");
@@ -90,6 +66,7 @@ namespace fcsgenome {
   int ug_main(int argc, char** argv, po::options_description &opt_desc);
   int gatk_main(int argc, char** argv, po::options_description &opt_desc);
   int hist_main(int argc, char** argv, po::options_description &opt_desc);
+  int mutect2_main(int argc, char** argv, po::options_description &opt_desc);
 }
 
 int main(int argc, char** argv) {
@@ -121,14 +98,21 @@ int main(int argc, char** argv) {
   std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
 
 #ifdef USELICENSE
-  try {
-    // check license
-    licence_check_out();
-  }
-  catch (std::runtime_error &e) {
-    LOG(ERROR) << "Cannot connect to the license server: " << e.what();
+  namespace fc   = falconlic;
+#if DEPLOYMENT == aws
+  fc::enable_aws();
+#elif DEPLOYMENT == hwc
+  fc::enable_hwc();
+#endif
+  fc::enable_flexlm();
+
+  namespace fclm = falconlic::flexlm;
+  fclm::add_feature(fclm::FALCON_DNA);
+  int licret = fc::license_verify();
+  if (licret != fc::SUCCESS) {
+    LOG(ERROR) << "Cannot authorize software usage: " << licret;
     LOG(ERROR) << "Please contact support@falcon-computing.com for details.";
-    return -1;
+    return licret;
   }
 #endif
 
@@ -179,6 +163,9 @@ int main(int argc, char** argv) {
     else if (cmd == "gatk") {
       gatk_main(argc-1, &argv[1], opt_desc);
     }
+    else if (cmd == "mutect2") {
+      mutect2_main(argc-1, &argv[1], opt_desc);
+    }
     else {
       print_help(); 
       throw silentExit();
@@ -190,7 +177,8 @@ int main(int argc, char** argv) {
 #endif
   }
   catch (helpRequest &e) { 
-    std::cerr << "'fcs-genome " << cmd << "' options:" << std::endl;
+    std::cerr << "'fcs-genome " << cmd;
+    std::cerr << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
 
     // delete temp dir
@@ -200,14 +188,16 @@ int main(int argc, char** argv) {
   }
   catch (invalidParam &e) { 
     LOG(ERROR) << "Missing argument '--" << e.what() << "'";
-    std::cerr << "'fcs-genome " << cmd << "' options:" << std::endl;
+    std::cerr << "'fcs-genome " << cmd;
+    std::cerr << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
 
     ret = 1;
   }
   catch (boost::program_options::error &e) { 
     LOG(ERROR) << "Failed to parse arguments, " << e.what();
-    std::cerr << "'fcs-genome " << cmd << "' options:" << std::endl;
+    std::cerr << "'fcs-genome " << cmd;
+    std::cerr << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
 
     // delete temp dir
@@ -244,9 +234,7 @@ int main(int argc, char** argv) {
   }
 
 #ifdef USELICENSE
-  // release license
-  licence_check_in();
+  fc::license_clean();
 #endif
-
   return ret;
 }

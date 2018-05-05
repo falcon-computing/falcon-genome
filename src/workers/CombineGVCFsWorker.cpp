@@ -269,6 +269,7 @@ void CombineGVCFsWorker::setup() {
       << "--prefix " << get_config<std::string>("mpi_path") << " "
       << "--bind-to none "
       << "--mca pml ob1 " // same issue as in workers/BWAWorker.cpp
+      << "--allow-run-as-root "
       << "-np " << get_config<int>("gatk.joint.ncontigs") << " ";
   if (!conf_host_list.empty()) {
     cmd << "--hostfile " << host_list_ << " ";
