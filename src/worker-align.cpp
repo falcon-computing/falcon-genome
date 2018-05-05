@@ -55,7 +55,7 @@ int align_main(int argc, char** argv,
 
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
-  
+
   // finalize argument parsing
   po::notify(cmd_vm);
 

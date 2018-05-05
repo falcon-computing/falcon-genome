@@ -27,7 +27,7 @@ int ir_main(int argc, char** argv,
     arg_decl_string("output,o", "output diretory of BAM files")
     ("known,K", po::value<std::vector<std::string> >(),
      "known indels for realignment");
-  
+
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
       cmd_vm);

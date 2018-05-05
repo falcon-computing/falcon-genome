@@ -136,7 +136,7 @@ int baserecal_main(int argc, char** argv,
 
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
-  
+
   // finalize argument parsing
   po::notify(cmd_vm);
 
@@ -190,7 +190,7 @@ int pr_main(int argc, char** argv,
 
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
-   
+
   // finalize argument parsing
   po::notify(cmd_vm);
 
@@ -251,7 +251,7 @@ int bqsr_main(int argc, char** argv,
 
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
-  
+
   std::string temp_dir = conf_temp_dir + "/bqsr";
   create_dir(temp_dir);
 
