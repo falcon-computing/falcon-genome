@@ -3,6 +3,7 @@
 #include <boost/thread.hpp>
 #include <fstream>
 #include <string>
+#include <sys/statvfs.h>
 #include <unistd.h>
 
 #include "fcs-genome/common.h"
@@ -177,7 +178,34 @@ int init_config(boost::program_options::options_description conf_opt) {
                   username +
                   "-" +
                   std::to_string((long long)getpid());
+  
+  // check available space in temp dir
+  using namespace boost::filesystem;
+ // space_info si = space(get_config<std::string>("temp_dir"));
+  struct statvfs diskData;
+  //fix path to tmp
+  statvfs("/tmp/",&diskData);
+  unsigned long long available = (diskData.f_bavail * diskData.f_frsize);
+  //DLOG(INFO) << si.available; 
+  DLOG(INFO) << available;  
 
+  size_t size_fastq=0;
+  //fix path to fastq
+  for(recursive_directory_iterator it("/pool/storage/fastq"); 
+    it!=recursive_directory_iterator();
+    ++it)
+  {
+    if(!is_directory(*it))
+      size_fastq+=file_size(*it);
+  }
+  DLOG(INFO) << size_fastq;
+ 
+  if (available< 2*size_fastq) {
+    LOG(ERROR) << "Not enough space in temporary storage. Ideally, size of temp dir = 2 * size of input files";
+
+    throw silentExit();
+  }
+    
   // check tool files
   check_input(get_config<std::string>("bwa_path"), false);
   check_input(get_config<std::string>("sambamba_path"), false);
