@@ -84,6 +84,7 @@ int main(int argc, char** argv) {
 
   namespace po = boost::program_options;
   po::options_description opt_desc;
+  namespace cls = po::command_line_style;
 
   opt_desc.add_options() 
     ("help,h", "print help messages")
@@ -169,6 +170,25 @@ int main(int argc, char** argv) {
     else {
       print_help(); 
       throw silentExit();
+    }
+
+    po::parsed_options const intermediate = po::parse_command_line(argc,argv,opt_desc);
+
+    for (auto& entry : intermediate.options)
+    {
+      po::option_description const& opt = opt_desc.find(entry.string_key, false, false, false);
+      std::cout << "\nActual tokens involved: ";
+      for (auto& tok : entry.original_tokens)
+        std::cout << "'" << tok << "' ";
+      for (std::string const& v : entry.value)
+        std::cout << "\nAssociated value: " << v;
+
+      std::cout << "\n-----------------------------------------------------------\n";
+      std::cout << "opt.format_name()        : "        << opt.format_name()                                      << "\n";
+      std::cout << "opt.long_name()          : "        << opt.long_name()                                        << "\n";
+      std::cout << "opt.canonical_display_name('-'): "  << opt.canonical_display_name(cls::allow_dash_for_short)  << "\n";
+      std::cout << "opt.canonical_display_name('/'): "  << opt.canonical_display_name(cls::allow_slash_for_short) << "\n";
+      std::cout << "opt.canonical_display_name('--'): " << opt.canonical_display_name(cls::allow_long)            << "\n";
     }
 
 #ifdef NDEBUG
