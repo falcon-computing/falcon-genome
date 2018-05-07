@@ -5,6 +5,7 @@
 #include <boost/program_options.hpp>
 #include <iomanip>
 #include <string>
+#include <vector>
 #include <sys/syscall.h>
 #include <sys/time.h>
 #include <syscall.h>
@@ -200,7 +201,13 @@ inline std::vector<std::string> get_argument<std::vector<std::string>>(
     return std::vector<std::string>(); 
   }
   else {
-    return vm[arg].as<std::vector<std::string>>();
+    if (std::find((vm[arg].as<std::vector<std::string>>()).begin(), (vm[arg].as<std::vector<std::string>>()).end(), "") != (vm[arg].as<std::vector<std::string>>()).end())
+    {
+      throw pathEmpty(arg);
+    }
+    else { 
+      return vm[arg].as<std::vector<std::string>>();
+    }
   }
 }
 
