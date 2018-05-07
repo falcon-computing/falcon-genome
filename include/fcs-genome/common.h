@@ -40,7 +40,7 @@ public:
   explicit invalidParam(const std::string& what_arg):
     std::runtime_error(what_arg) {;}
 };
-
+ 
 class fileNotFound : public std::runtime_error {
 public:
   explicit fileNotFound(const std::string& what_arg):
@@ -127,7 +127,8 @@ inline T get_argument(
     const char* arg
 ) {
   if (!vm.count(arg)) {
-    throw invalidParam(arg);
+    DLOG(INFO) << "Missing argument '--" << arg << "'";
+    //throw invalidParam(arg);
   }
   else {
     if (vm[arg].as<T>() == "") {
@@ -175,7 +176,8 @@ inline std::string get_argument<std::string>(
 ) {
   if (!vm.count(arg)) {
     if (def_val.empty()) {
-      throw invalidParam(arg);
+      DLOG(INFO) << "Missing argument '--" << arg << "'";
+      //throw invalidParam(arg);
     }
     else {
       return def_val;
