@@ -84,7 +84,6 @@ int main(int argc, char** argv) {
 
   namespace po = boost::program_options;
   po::options_description opt_desc;
-  namespace cls = po::command_line_style;
 
   opt_desc.add_options() 
     ("help,h", "print help messages")
@@ -120,10 +119,11 @@ int main(int argc, char** argv) {
   signal(SIGINT, sigint_handler);
 
   int ret = 0;
+  po::variables_map vm;
   try {
     // load configurations
     init(argv, argc);
-     
+  
     std::stringstream cmd_log;
     for (int i = 0; i < argc; i++) {
       cmd_log << argv[i] << " ";
@@ -172,25 +172,6 @@ int main(int argc, char** argv) {
       throw silentExit();
     }
 
-    po::parsed_options const intermediate = po::parse_command_line(argc,argv,opt_desc);
-
-    for (auto& entry : intermediate.options)
-    {
-      po::option_description const& opt = opt_desc.find(entry.string_key, false, false, false);
-      std::cout << "\nActual tokens involved: ";
-      for (auto& tok : entry.original_tokens)
-        std::cout << "'" << tok << "' ";
-      for (std::string const& v : entry.value)
-        std::cout << "\nAssociated value: " << v;
-
-      std::cout << "\n-----------------------------------------------------------\n";
-      std::cout << "opt.format_name()        : "        << opt.format_name()                                      << "\n";
-      std::cout << "opt.long_name()          : "        << opt.long_name()                                        << "\n";
-      std::cout << "opt.canonical_display_name('-'): "  << opt.canonical_display_name(cls::allow_dash_for_short)  << "\n";
-      std::cout << "opt.canonical_display_name('/'): "  << opt.canonical_display_name(cls::allow_slash_for_short) << "\n";
-      std::cout << "opt.canonical_display_name('--'): " << opt.canonical_display_name(cls::allow_long)            << "\n";
-    }
-
 #ifdef NDEBUG
     // delete temp dir
     remove_path(conf_temp_dir);
@@ -206,6 +187,7 @@ int main(int argc, char** argv) {
 
     ret = 0;
   }
+    
   catch (invalidParam &e) { 
     LOG(ERROR) << "Missing argument '--" << e.what() << "'";
     std::cerr << "'fcs-genome " << cmd;
@@ -245,12 +227,6 @@ int main(int argc, char** argv) {
   catch (pathEmpty &e) {
     LOG(ERROR) << "Argument " << e.what() << " cannot be empty";
     ret = 1;
-  }
-
-  catch (std::runtime_error &e) {
-    LOG(ERROR) << "Encountered an error: " << e.what();
-    LOG(ERROR) << "Please contact support@falcon-computing.com for details.";
-    ret = -1;
   }
 
 #ifdef USELICENSE
