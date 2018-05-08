@@ -22,9 +22,9 @@ int ir_main(int argc, char** argv,
   po::variables_map cmd_vm;
 
   opt_desc.add_options() 
-    arg_decl_string("ref,r", "reference genome path")
-    arg_decl_string("input,i", "input BAM file or dir")
-    arg_decl_string("output,o", "output diretory of BAM files")
+    ("ref,r", po::value<std::string>()->required(), "reference genome path")
+    ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
+    ("output,o", po::value<std::string>()->required(), "output diretory of BAM files")
     ("known,K", po::value<std::vector<std::string> >(),
      "known indels for realignment");
 
@@ -54,8 +54,21 @@ int ir_main(int argc, char** argv,
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
-  // finalize argument parsing
-  po::notify(cmd_vm);
+  try {
+    // finalize argument parsing
+    po::notify(cmd_vm);
+  }
+  catch (const boost::program_options::required_option & e) {
+    // Argument missing, throw error
+    if (cmd_vm.count("help")) {
+      throw helpRequest();
+    }
+    else {
+      DLOG(ERROR) << "Arguments missing";
+      // print help
+      exit (EXIT_FAILURE);
+    }
+  }
 
   // the output path will be a directory
   output_path = check_output(output_path, flag_f);

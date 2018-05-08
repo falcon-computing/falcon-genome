@@ -23,10 +23,10 @@ int mutect2_main(int argc, char** argv,
   bool opt_bool = false;
 
   opt_desc.add_options() 
-    arg_decl_string("ref,r", "reference genome path")
-    arg_decl_string("normal,n", "input normal BAM file or dir")
-    arg_decl_string("tumor,t", "input tumor BAM file or dir")
-    arg_decl_string("output,o", "output VCF file")
+    ("ref,r", po::value<std::string>()->required(), "reference genome path")
+    ("normal,n", po::value<std::string>()->required(), "input normal BAM file or dir")
+    ("tumor,t", po::value<std::string>()->required(), "input tumor BAM file or dir")
+    ("output,o", po::value<std::string>()->required(), "output VCF file")
     ("dbsnp,d", po::value<std::vector<std::string> >(), "list of dbsnp files for Mutect2")
     ("cosmic,c", po::value<std::vector<std::string> >(), "list of cosmic files for Mutect2")
     ("skip-concat,s", "produce a set of VCF files instead of one");
@@ -54,8 +54,22 @@ int mutect2_main(int argc, char** argv,
   std::vector<std::string> dbsnp_path = get_argument<std::vector<std::string> >(cmd_vm, "dbsnp", "d", std::vector<std::string>());
   std::vector<std::string> cosmic_path = get_argument<std::vector<std::string> >(cmd_vm, "cosmic","c", std::vector<std::string>());
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O"); 
-  // finalize argument parsing
-  po::notify(cmd_vm);
+  
+  try { 
+    // finalize argument parsing
+    po::notify(cmd_vm);
+  }
+  catch (const boost::program_options::required_option & e) {
+    // Argument missing, throw error
+    if (cmd_vm.count("help")) {
+      throw helpRequest();
+    }
+    else {
+      DLOG(ERROR) << "Arguments missing";
+      // print help
+      exit (EXIT_FAILURE);
+    }
+  }
 
   std::string temp_dir = conf_temp_dir + "/mutect2";
   create_dir(temp_dir);

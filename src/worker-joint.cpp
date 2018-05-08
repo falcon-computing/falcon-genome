@@ -19,10 +19,10 @@ int joint_main(int argc, char** argv,
   po::variables_map cmd_vm;
 
   opt_desc.add_options() 
-    arg_decl_string("ref,r", "reference genome path")
-    arg_decl_string("input-dir,i", "input dir containing "
+    ("ref,r", po::value<std::string>()->required(), "reference genome path")
+    ("input-dir,i", po::value<std::string>()->required(), "input dir containing "
                                "[sample_id].gvcf.gz files")
-    arg_decl_string("output,o", "output vcf.gz file(s)")
+    ("output,o", po::value<std::string>()->required(), "output vcf.gz file(s)")
     ("combine-only,c", "combine GVCFs only and skip genotyping")
     ("skip-combine,g", "(deprecated) perform genotype GVCFs only "
                        "and skip combine GVCFs");
@@ -45,9 +45,22 @@ int joint_main(int argc, char** argv,
   std::string input_path  = get_argument<std::string>(cmd_vm, "input-dir", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 
-  // finalize argument parsing
-  po::notify(cmd_vm);
-
+  try {
+    // finalize argument parsing
+    po::notify(cmd_vm);
+  }
+  catch (const boost::program_options::required_option & e) {
+    // Argument missing, throw error
+    if (cmd_vm.count("help")) {
+      throw helpRequest();
+    }
+    else {
+      DLOG(ERROR) << "Arguments missing";
+      // print help
+      exit (EXIT_FAILURE);
+    }
+  }
+  
   // create temp dir
   std::string parts_dir;
   if (flag_skip_combine) {
