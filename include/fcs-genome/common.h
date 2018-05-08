@@ -127,7 +127,7 @@ inline T get_argument(
     const char* arg1, const char* arg2
 ) {
    if (!vm.count(arg1)) {
-    DLOG(INFO) << "Missing argument '--" << arg1 << "'" << " | '-" << arg2 << "'";
+    DLOG(ERROR) << "Missing argument '--" << arg1 << "'" << " | '-" << arg2 << "'";
     //throw invalidParam(arg);
   }
   else {
@@ -176,7 +176,7 @@ inline std::string get_argument<std::string>(
 ) {
   if (!vm.count(arg1)) {
     if (def_val.empty()) {
-      DLOG(INFO) << "Missing argument '--" << arg1 << "'" << " | '-" << arg2 << "'";
+      DLOG(ERROR) << "Missing argument '--" << arg1 << "'" << " | '-" << arg2 << "'";
       //throw invalidParam(arg);
     }
     else {
