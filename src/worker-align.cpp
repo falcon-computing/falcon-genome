@@ -2,6 +2,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
 #include <string>
+#include <sys/statvfs.h>
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -64,6 +65,31 @@ int align_main(int argc, char** argv,
   std::string temp_dir = conf_temp_dir + "/align";
 
   create_dir(temp_dir);
+
+  // check available space in temp dir
+  using namespace boost::filesystem;
+  
+  struct statvfs diskData;
+  statvfs(temp_dir.c_str(),&diskData);
+  unsigned long long available = (diskData.f_bavail * diskData.f_frsize);
+  DLOG(INFO) << available;
+  
+  // check space occupied by fastq files
+  size_t size_fastq=0;
+
+  if(!is_directory(fq1_path))
+    size_fastq+=file_size(fq1_path);
+  if(!is_directory(fq2_path))
+    size_fastq+=file_size(fq2_path);
+  
+  DLOG(INFO) << size_fastq;
+  
+  // print error message if there is not enough space in temp_dir 
+  if (available< 4*size_fastq) {
+    LOG(ERROR) << "Not enough space in temporary storage for BWA. Ideally, size of temp dir = 4 * size of input files";
+  
+    throw silentExit();
+  }
 
   if (flag_align_only) {
     // Check if output in path already exists but is not a dir
