@@ -125,17 +125,17 @@ int baserecal_main(int argc, char** argv,
   } 
 
   // Check if required arguments are presented
-  bool flag_f             = get_argument<bool>(cmd_vm, "force");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
+  bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r",
                                 get_config<std::string>("ref_genome"));
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 
   std::vector<std::string> known_sites = get_argument<
-    std::vector<std::string> >(cmd_vm, "knownSites");
+    std::vector<std::string> >(cmd_vm, "knownSites", "K");
 
   std::vector<std::string> extra_opts = 
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -181,15 +181,15 @@ int pr_main(int argc, char** argv,
   } 
 
   // Check if required arguments are presented
-  bool flag_f             = get_argument<bool>(cmd_vm, "force");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
+  bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r",
                                 get_config<std::string>("ref_genome"));
-  std::string bqsr_path   = get_argument<std::string>(cmd_vm, "bqsr");
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
+  std::string bqsr_path   = get_argument<std::string>(cmd_vm, "bqsr", "b");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 
   std::vector<std::string> extra_opts = 
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -243,14 +243,14 @@ int bqsr_main(int argc, char** argv,
   check_memory_config("pr");
 
   // Check if required arguments are presented
-  bool flag_f             = get_argument<bool>(cmd_vm, "force");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", 
+  bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r", 
                                 get_config<std::string>("ref_genome"));
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 
   std::vector<std::string> extra_opts = 
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   std::string temp_dir = conf_temp_dir + "/bqsr";
   create_dir(temp_dir);
@@ -259,7 +259,7 @@ int bqsr_main(int argc, char** argv,
   delete_bqsr = false;
   std::string bqsr_path;
   try {
-    bqsr_path = get_argument<std::string>(cmd_vm, "bqsr");
+    bqsr_path = get_argument<std::string>(cmd_vm, "bqsr", "b");
   } catch (invalidParam &e) {
     delete_bqsr = true; 
     bqsr_path = temp_dir + "/" +
@@ -268,7 +268,7 @@ int bqsr_main(int argc, char** argv,
   }
 
   std::vector<std::string> known_sites = get_argument<
-    std::vector<std::string> >(cmd_vm, "knownSites");
+    std::vector<std::string> >(cmd_vm, "knownSites", "K");
 
   // finalize argument parsing
   po::notify(cmd_vm);

@@ -36,14 +36,14 @@ int joint_main(int argc, char** argv,
   } 
 
   // Check if required arguments are presented
-  bool flag_f            = get_argument<bool>(cmd_vm, "force");
-  bool flag_combine_only = get_argument<bool>(cmd_vm, "combine-only");
-  bool flag_skip_combine = get_argument<bool>(cmd_vm, "skip-combine");
+  bool flag_f            = get_argument<bool>(cmd_vm, "force", "f");
+  bool flag_combine_only = get_argument<bool>(cmd_vm, "combine-only", "c");
+  bool flag_skip_combine = get_argument<bool>(cmd_vm, "skip-combine", "g");
 
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r",
                               get_config<std::string>("ref_genome"));
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input-dir");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input-dir", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 
   // finalize argument parsing
   po::notify(cmd_vm);

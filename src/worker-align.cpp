@@ -38,23 +38,23 @@ int align_main(int argc, char** argv,
   if (cmd_vm.count("help")) { 
     throw helpRequest();
   } 
-
+   
   // Check if required arguments are presented
-  bool flag_f          = get_argument<bool>(cmd_vm, "force");
-  bool flag_align_only = get_argument<bool>(cmd_vm, "align-only");
+  bool flag_f          = get_argument<bool>(cmd_vm, "force", "f");
+  bool flag_align_only = get_argument<bool>(cmd_vm, "align-only", "l");
 
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r",
                               get_config<std::string>("ref_genome"));
-  std::string fq1_path    = get_argument<std::string>(cmd_vm, "fastq1");
-  std::string fq2_path    = get_argument<std::string>(cmd_vm, "fastq2");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
-  std::string read_group  = get_argument<std::string>(cmd_vm, "rg");
-  std::string sample_id   = get_argument<std::string>(cmd_vm, "sp");
-  std::string platform_id = get_argument<std::string>(cmd_vm, "pl");
-  std::string library_id  = get_argument<std::string>(cmd_vm, "lb");
+  std::string fq1_path    = get_argument<std::string>(cmd_vm, "fastq1", "1");
+  std::string fq2_path    = get_argument<std::string>(cmd_vm, "fastq2", "2");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
+  std::string read_group  = get_argument<std::string>(cmd_vm, "rg", "R");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sp", "S");
+  std::string platform_id = get_argument<std::string>(cmd_vm, "pl", "P");
+  std::string library_id  = get_argument<std::string>(cmd_vm, "lb", "L");
 
   std::vector<std::string> extra_opts = 
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);

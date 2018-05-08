@@ -41,18 +41,18 @@ int ir_main(int argc, char** argv,
   check_memory_config("indel");
 
   // Check if required arguments are presented
-  bool flag_f             = get_argument<bool>(cmd_vm, "force");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
+  bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r",
                                 get_config<std::string>("ref_genome"));
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string target_path = input_path + ".intervals";
 
   std::vector<std::string> known_indels = get_argument<
-    std::vector<std::string> >(cmd_vm, "known", std::vector<std::string>());
+    std::vector<std::string> >(cmd_vm, "known", "K", std::vector<std::string>());
 
   std::vector<std::string> extra_opts = 
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);

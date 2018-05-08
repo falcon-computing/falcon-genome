@@ -44,16 +44,16 @@ int htc_main(int argc, char** argv,
   check_memory_config("htc");
 
   // Check if required arguments are presented
-  bool flag_f             = get_argument<bool>(cmd_vm, "force");
-  bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat");
-  bool flag_vcf           = get_argument<bool>(cmd_vm, "produce-vcf");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
+  bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
+  bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat", "s");
+  bool flag_vcf           = get_argument<bool>(cmd_vm, "produce-vcf", "v");
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r",
                                 get_config<std::string>("ref_genome"));
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 
   std::vector<std::string> extra_opts = 
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);

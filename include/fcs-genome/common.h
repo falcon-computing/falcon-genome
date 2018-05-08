@@ -40,7 +40,7 @@ public:
   explicit invalidParam(const std::string& what_arg):
     std::runtime_error(what_arg) {;}
 };
- 
+
 class fileNotFound : public std::runtime_error {
 public:
   explicit fileNotFound(const std::string& what_arg):
@@ -124,18 +124,18 @@ inline void remove_path(std::string path) {
 template <class T>
 inline T get_argument(
     boost::program_options::variables_map &vm,
-    const char* arg
+    const char* arg1, const char* arg2
 ) {
-  if (!vm.count(arg)) {
-    DLOG(INFO) << "Missing argument '--" << arg << "'";
+   if (!vm.count(arg1)) {
+    DLOG(INFO) << "Missing argument '--" << arg1 << "'" << " | '-" << arg2 << "'";
     //throw invalidParam(arg);
   }
   else {
-    if (vm[arg].as<T>() == "") {
-      throw pathEmpty(arg);
+    if (vm[arg1].as<T>() == "") {
+      throw pathEmpty(arg1);
     }
     else {
-      return vm[arg].as<T>();
+      return vm[arg1].as<T>();
     }
     }
   }
@@ -143,23 +143,23 @@ inline T get_argument(
 template <class T>
 inline T get_argument(
     boost::program_options::variables_map &vm,
-    const char* arg,
+    const char* arg1, const char* arg2,
     T def_val
 ) {
-  if (!vm.count(arg)) {
+   if (!vm.count(arg1)) {
     return def_val;
   }
   else {
-    return vm[arg].as<T>();
+    return vm[arg1].as<T>();
   }
 }
 
 template <>
 inline bool get_argument<bool>(
     boost::program_options::variables_map &vm,
-    const char* arg
+    const char* arg1, const char* arg2
 ) {
-  return vm.count(arg);
+  return vm.count(arg1);
   //if (!vm.count(arg)) {
   //  return false;
   //}
@@ -171,12 +171,12 @@ inline bool get_argument<bool>(
 template <>
 inline std::string get_argument<std::string>(
     boost::program_options::variables_map &vm,
-    const char* arg,
+    const char* arg1, const char* arg2,
     std::string def_val
 ) {
-  if (!vm.count(arg)) {
+  if (!vm.count(arg1)) {
     if (def_val.empty()) {
-      DLOG(INFO) << "Missing argument '--" << arg << "'";
+      DLOG(INFO) << "Missing argument '--" << arg1 << "'" << " | '-" << arg2 << "'";
       //throw invalidParam(arg);
     }
     else {
@@ -184,11 +184,11 @@ inline std::string get_argument<std::string>(
     }
   }
   else {
-    if (vm[arg].as<std::string>() == "") {
-      throw pathEmpty(arg);
+    if (vm[arg1].as<std::string>() == "") {
+      throw pathEmpty(arg1);
     }
     else {
-      return vm[arg].as<std::string>();
+      return vm[arg1].as<std::string>();
     }
     }
   }
@@ -197,18 +197,18 @@ inline std::string get_argument<std::string>(
 template <>
 inline std::vector<std::string> get_argument<std::vector<std::string>>(
     boost::program_options::variables_map &vm,
-    const char* arg
+    const char* arg1, const char* arg2
 ) {
-  if (!vm.count(arg)) {
+  if (!vm.count(arg1)) {
     return std::vector<std::string>(); 
   }
   else {
-    if (std::find((vm[arg].as<std::vector<std::string>>()).begin(), (vm[arg].as<std::vector<std::string>>()).end(), "") != (vm[arg].as<std::vector<std::string>>()).end())
+    if (std::find((vm[arg1].as<std::vector<std::string>>()).begin(), (vm[arg1].as<std::vector<std::string>>()).end(), "") != (vm[arg1].as<std::vector<std::string>>()).end())
     {
-      throw pathEmpty(arg);
+      throw pathEmpty(arg1);
     }
     else { 
-      return vm[arg].as<std::vector<std::string>>();
+      return vm[arg1].as<std::vector<std::string>>();
     }
   }
 }

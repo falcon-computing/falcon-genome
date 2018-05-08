@@ -36,9 +36,9 @@ int concat_main(int argc, char** argv,
   } 
 
   // Check if required arguments are presented
-  bool flag_f             = get_argument<bool>(cmd_vm, "force");
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
+  bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 
   // finalize argument parsing
   po::notify(cmd_vm);
