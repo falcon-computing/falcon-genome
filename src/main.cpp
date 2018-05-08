@@ -119,11 +119,10 @@ int main(int argc, char** argv) {
   signal(SIGINT, sigint_handler);
 
   int ret = 0;
-  po::variables_map vm;
   try {
     // load configurations
     init(argv, argc);
-  
+
     std::stringstream cmd_log;
     for (int i = 0; i < argc; i++) {
       cmd_log << argv[i] << " ";
@@ -187,7 +186,7 @@ int main(int argc, char** argv) {
 
     ret = 0;
   }
-    
+
   catch (invalidParam &e) { 
     LOG(ERROR) << "Missing argument '--" << e.what() << "'";
     std::cerr << "'fcs-genome " << cmd;
