@@ -20,8 +20,8 @@ int markdup_main(int argc, char** argv,
   po::variables_map cmd_vm;
 
   opt_desc.add_options() 
-    arg_decl_string("input,i", "input file")
-    arg_decl_string("output,o", "output file");
+    ("input,i", po::value<std::string>()->required(), "input file")
+    ("output,o", po::value<std::string>()->required(), "output file");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
@@ -35,8 +35,22 @@ int markdup_main(int argc, char** argv,
   bool        flag_f      = get_argument<bool>(cmd_vm, "force", "f");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-
-  po::notify(cmd_vm);
+ 
+  try {
+    // finalize argument parsing 
+    po::notify(cmd_vm);
+  }
+  catch (const boost::program_options::required_option & e) {
+    // Argument missing, throw error
+    if (cmd_vm.count("help")) {
+      throw helpRequest();
+    }
+    else {
+      DLOG(ERROR) << "Arguments missing";
+      // print help
+      exit (EXIT_FAILURE);
+    }
+  }
 
   Executor executor("Mark Duplicates");
   Worker_ptr worker(new MarkdupWorker(input_path, output_path, flag_f));

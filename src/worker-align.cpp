@@ -17,20 +17,21 @@ int align_main(int argc, char** argv,
 
   // Define arguments
   po::variables_map cmd_vm;
-
+ 
   opt_desc.add_options() 
-    arg_decl_string("ref,r", "reference genome path")
-    arg_decl_string("fastq1,1", "input pair-end fastq file")
-    arg_decl_string("fastq2,2", "input pair-end fastq file")
-    arg_decl_string("output,o", "output BAM file (if --align-only is set "
+    ("ref,r", po::value<std::string>()->required(), "reference genome path")
+    ("fastq1,1", po::value<std::string>()->required(), "input pair-end fastq file")
+    ("fastq2,2", po::value<std::string>()->required(), "input pair-end fastq file")
+    ("output,o", po::value<std::string>()->required(), "output BAM file (if --align-only is set "
                                 "the output will be a directory of BAM "
                                 "files)")
-    arg_decl_string("rg,R", "read group id ('ID' in BAM header)")
-    arg_decl_string("sp,S", "sample id ('SM' in BAM header)")
-    arg_decl_string("pl,P", "platform id ('PL' in BAM header)")
-    arg_decl_string("lb,L", "library id ('LB' in BAM header)")
+    ("rg,R", po::value<std::string>()->required(), "read group id ('ID' in BAM header)")
+    ("sp,S", po::value<std::string>()->required(), "sample id ('SM' in BAM header)")
+    ("pl,P", po::value<std::string>()->required(), "platform id ('PL' in BAM header)")
+    ("lb,L", po::value<std::string>()->required(), "library id ('LB' in BAM header)")
     ("align-only,l", "skip mark duplicates");
 
+  
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
       cmd_vm);
@@ -55,10 +56,21 @@ int align_main(int argc, char** argv,
 
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
-
+  try {
   // finalize argument parsing
   po::notify(cmd_vm);
-
+  }
+  catch (const boost::program_options::required_option & e) {
+    // Argument missing, throw error
+    if (cmd_vm.count("help")) {
+      throw helpRequest();
+    }
+    else {
+      DLOG(ERROR) << "Arguments missing for BWA"; 
+      // print help
+      exit (EXIT_FAILURE);
+    } 
+  } 
   // start execution
   std::string parts_dir;
   std::string temp_dir = conf_temp_dir + "/align";
