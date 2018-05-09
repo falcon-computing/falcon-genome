@@ -77,8 +77,8 @@ int align_main(int argc, char** argv,
   // check space occupied by fastq files
   size_t size_fastq = 0;
 
-  size_fastq+=fs::file_size(fq1_path);
-  size_fastq+=fs::file_size(fq2_path);
+  size_fastq += fs::file_size(fq1_path);
+  size_fastq += fs::file_size(fq2_path);
   
   DLOG(INFO) << size_fastq;
   
