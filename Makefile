@@ -47,7 +47,7 @@ INCLUDES 	:= $(INCLUDES) -I$(FLMDIR)/include
 LINK 	 	:= -L$(FLMDIR)/lib -lfalcon_license \
 		   $(LINK) 
 ifneq ($(DEPLOYMENT),) # config license client for a cloud
-CFLAGS       := $(CFLAGS) -DDEPLOYMENT=$(DEPLOYMENT)
+CFLAGS       := $(CFLAGS) -DDEPLOY_$(DEPLOYMENT)
 GIT_VERSION  := $(GIT_VERSION)-$(DEPLOYMENT)
 endif
 else

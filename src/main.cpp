@@ -99,9 +99,10 @@ int main(int argc, char** argv) {
 
 #ifdef USELICENSE
   namespace fc   = falconlic;
-#if DEPLOYMENT == aws
+#ifdef DEPLOY_aws
   fc::enable_aws();
-#elif DEPLOYMENT == hwc
+#endif
+#ifdef DEPLOY_hwc
   fc::enable_hwc();
 #endif
   fc::enable_flexlm();
