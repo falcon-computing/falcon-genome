@@ -137,21 +137,9 @@ int baserecal_main(int argc, char** argv,
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
-  try {
-    // finalize argument parsing
-    po::notify(cmd_vm);
-  }
-  catch (const boost::program_options::required_option & e) {
-    // Argument missing, throw error
-    if (cmd_vm.count("help")) {
-      throw helpRequest();
-    }
-    else {
-      DLOG(ERROR) << "Arguments missing";
-      // print help
-      exit (EXIT_FAILURE);
-    }
-  }
+  // finalize argument parsing
+  po::notify(cmd_vm);
+
   // check configurations
   check_nprocs_config("bqsr");
   check_memory_config("bqsr");
@@ -203,21 +191,8 @@ int pr_main(int argc, char** argv,
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
-  try {
-    // finalize argument parsing
-    po::notify(cmd_vm);
-  }
-  catch (const boost::program_options::required_option & e) {
-    // Argument missing, throw error
-    if (cmd_vm.count("help")) {
-      throw helpRequest();
-    }
-    else {
-      DLOG(ERROR) << "Arguments missing";
-      // print help
-      exit (EXIT_FAILURE);
-    }
-  }
+  // finalize argument parsing
+  po::notify(cmd_vm);
 
   // check configurations
   check_nprocs_config("pr");
@@ -245,8 +220,7 @@ int bqsr_main(int argc, char** argv,
 
   opt_desc.add_options() 
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
-    ("bqsr,b", po::value<std::string>()->required(), "output BQSR file (if left blank no file will "
-                              "be produced")
+    arg_decl_string("bqsr,b", "output BQSR file (if left blank no file will be produced)")
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output directory of BAM files")
     ("knownSites,K", po::value<std::vector<std::string> >(),
@@ -295,22 +269,9 @@ int bqsr_main(int argc, char** argv,
   std::vector<std::string> known_sites = get_argument<
     std::vector<std::string> >(cmd_vm, "knownSites", "K");
 
-  try {
-    // finalize argument parsing
-    po::notify(cmd_vm);
-  }
-  catch (const boost::program_options::required_option & e) {
-    // Argument missing, throw error
-    if (cmd_vm.count("help")) {
-      throw helpRequest();
-    }
-    else {
-      DLOG(ERROR) << "Arguments missing";
-      // print help
-      exit (EXIT_FAILURE);
-    }
-  }
-
+  // finalize argument parsing
+  po::notify(cmd_vm);
+ 
   // the output path will be a directory
   create_dir(output_path);
 

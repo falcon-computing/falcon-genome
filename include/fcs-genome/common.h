@@ -126,19 +126,19 @@ inline T get_argument(
     boost::program_options::variables_map &vm,
     const char* arg1, const char* arg2
 ) {
-   if (!vm.count(arg1)) {
-    DLOG(ERROR) << "Missing argument '--" << arg1 << "'" << " | '-" << arg2 << "'";
-    //throw invalidParam(arg);
+  if (!vm.count(arg1)) {
+    LOG(ERROR) << "Missing a required argument '--" << arg1 << "|-" << arg2 << "'";
+    return "";
   }
   else {
-    if (vm[arg1].as<T>() == "") {
+    if (vm[arg1].as<std::string>() == "") {
       throw pathEmpty(arg1);
     }
     else {
       return vm[arg1].as<T>();
     }
-    }
   }
+}
 
 template <class T>
 inline T get_argument(
@@ -176,8 +176,8 @@ inline std::string get_argument<std::string>(
 ) {
   if (!vm.count(arg1)) {
     if (def_val.empty()) {
-      DLOG(ERROR) << "Missing argument '--" << arg1 << "'" << " | '-" << arg2 << "'";
-      //throw invalidParam(arg);
+      LOG(ERROR) << "Missing a required argument '--" << arg1 << "|-" << arg2 << "'";
+      return "";
     }
     else {
       return def_val;

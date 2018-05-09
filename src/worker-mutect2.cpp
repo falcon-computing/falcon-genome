@@ -54,22 +54,9 @@ int mutect2_main(int argc, char** argv,
   std::vector<std::string> dbsnp_path = get_argument<std::vector<std::string> >(cmd_vm, "dbsnp", "d", std::vector<std::string>());
   std::vector<std::string> cosmic_path = get_argument<std::vector<std::string> >(cmd_vm, "cosmic","c", std::vector<std::string>());
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O"); 
-  
-  try { 
-    // finalize argument parsing
-    po::notify(cmd_vm);
-  }
-  catch (const boost::program_options::required_option & e) {
-    // Argument missing, throw error
-    if (cmd_vm.count("help")) {
-      throw helpRequest();
-    }
-    else {
-      DLOG(ERROR) << "Arguments missing";
-      // print help
-      exit (EXIT_FAILURE);
-    }
-  }
+
+  // finalize argument parsing
+  po::notify(cmd_vm);
 
   std::string temp_dir = conf_temp_dir + "/mutect2";
   create_dir(temp_dir);
