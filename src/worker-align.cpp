@@ -2,6 +2,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
 #include <string>
+#include <sys/statvfs.h>
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -64,6 +65,40 @@ int align_main(int argc, char** argv,
   std::string temp_dir = conf_temp_dir + "/align";
 
   create_dir(temp_dir);
+
+  // check available space in temp dir
+  namespace fs = boost::filesystem;
+  
+  struct statvfs diskData;
+  statvfs(temp_dir.c_str(), &diskData);
+  unsigned long long available = (diskData.f_bavail * diskData.f_frsize);
+  DLOG(INFO) << available;
+  
+  // check space occupied by fastq files
+  size_t size_fastq = 0;
+
+  size_fastq += fs::file_size(fq1_path);
+  size_fastq += fs::file_size(fq2_path);
+  
+  DLOG(INFO) << size_fastq;
+  
+  // print error message if there is not enough space in temp_dir 
+  std::string file_extension;
+  file_extension = fs::extension(fq1_path);
+
+  int threshold;
+  if (file_extension == ".gz")
+    threshold = 3;
+  else 
+    threshold = 1;
+
+  if (available < threshold * size_fastq) {
+    LOG(ERROR) << "Not enough space in temporary storage: "
+               << temp_dir << ", the size of the temporary folder should be at least "
+               << threshold << " times the input FASTQ files";
+  
+    throw silentExit();
+  }
 
   if (flag_align_only) {
     // Check if output in path already exists but is not a dir
