@@ -45,21 +45,8 @@ int joint_main(int argc, char** argv,
   std::string input_path  = get_argument<std::string>(cmd_vm, "input-dir", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 
-  try {
-    // finalize argument parsing
-    po::notify(cmd_vm);
-  }
-  catch (const boost::program_options::required_option & e) {
-    // Argument missing, throw error
-    if (cmd_vm.count("help")) {
-      throw helpRequest();
-    }
-    else {
-      DLOG(ERROR) << "Arguments missing";
-      // print help
-      exit (EXIT_FAILURE);
-    }
-  }
+  // finalize argument parsing
+  po::notify(cmd_vm);
   
   // create temp dir
   std::string parts_dir;

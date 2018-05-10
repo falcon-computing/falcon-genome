@@ -56,21 +56,10 @@ int align_main(int argc, char** argv,
 
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
-  try {
+
   // finalize argument parsing
   po::notify(cmd_vm);
-  }
-  catch (const boost::program_options::required_option & e) {
-    // Argument missing, throw error
-    if (cmd_vm.count("help")) {
-      throw helpRequest();
-    }
-    else {
-      DLOG(ERROR) << "Arguments missing for BWA"; 
-      // print help
-      exit (EXIT_FAILURE);
-    } 
-  } 
+
   // start execution
   std::string parts_dir;
   std::string temp_dir = conf_temp_dir + "/align";

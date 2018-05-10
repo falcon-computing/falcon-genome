@@ -196,6 +196,16 @@ int main(int argc, char** argv) {
 
     ret = 1;
   }
+
+  catch (boost::program_options::required_option & e) {
+    LOG(ERROR) << "Required arguments missing";
+    std::cerr << "'fcs-genome " << cmd;
+    std::cerr << "' options:" << std::endl;
+    std::cerr << opt_desc << std::endl;
+
+    ret = 1;
+  }
+
   catch (boost::program_options::error &e) { 
     LOG(ERROR) << "Failed to parse arguments, " << e.what();
     std::cerr << "'fcs-genome " << cmd;
@@ -227,6 +237,12 @@ int main(int argc, char** argv) {
   catch (pathEmpty &e) {
     LOG(ERROR) << "Argument " << e.what() << " cannot be empty";
     ret = 1;
+  }
+
+  catch (std::runtime_error &e) {
+    LOG(ERROR) << "Encountered an error: " << e.what();
+    LOG(ERROR) << "Please contact support@falcon-computing.com for details.";
+    ret = -1;
   }
 
 #ifdef USELICENSE
