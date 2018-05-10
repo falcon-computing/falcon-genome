@@ -220,7 +220,7 @@ int bqsr_main(int argc, char** argv,
 
   opt_desc.add_options() 
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
-    arg_decl_string("bqsr,b", "output BQSR file (if left blank no file will be produced)")
+    ("bqsr,b", po::value<std::string>()->default_value(""), "output BQSR file (if left blank no file will be produced)")
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output directory of BAM files")
     ("knownSites,K", po::value<std::vector<std::string> >(),
@@ -259,7 +259,7 @@ int bqsr_main(int argc, char** argv,
   std::string bqsr_path;
   try {
     bqsr_path = get_argument<std::string>(cmd_vm, "bqsr", "b");
-  } catch (invalidParam &e) {
+  } catch (pathEmpty & e) {
     delete_bqsr = true; 
     bqsr_path = temp_dir + "/" +
                 get_basename(input_path) + ".grp";
