@@ -121,22 +121,48 @@ inline void remove_path(std::string path) {
   }
 }
 
+inline std::string concat_args(
+    const char* arg_full, 
+    const char* arg_short) {
+  return "'--" + std::string(arg_full) + "'|" +
+         "'-" + std::string(arg_short) + "'";
+}
+
+template <typename T>
+inline bool check_empty(T & val) {
+  return false;
+}
+
+template <>
+inline bool check_empty<std::string>(std::string& val) {
+  return val.empty() || (val.find_first_not_of(' ') == std::string::npos);
+}
+
+template <>
+inline bool check_empty<std::vector<std::string> >(std::vector<std::string> & val) {
+  for (auto v : val) {
+    if (check_empty(v)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 template <class T>
 inline T get_argument(
     boost::program_options::variables_map &vm,
     const char* arg1, const char* arg2
 ) {
   if (!vm.count(arg1)) {
-    LOG(ERROR) << "Missing a required argument '--" << arg1 << "|-" << arg2 << "'";
-    return "";
+    return T();
+    //throw invalidParam(concat_args(arg1, arg2));
   }
   else {
-    if (vm[arg1].as<std::string>() == "") {
-      throw pathEmpty(arg1);
+    T val = vm[arg1].as<T>();
+    if (check_empty(val)) {
+      throw pathEmpty(concat_args(arg1, arg2));
     }
-    else {
-      return vm[arg1].as<T>();
-    }
+    return val;
   }
 }
 
@@ -146,11 +172,11 @@ inline T get_argument(
     const char* arg1, const char* arg2,
     T def_val
 ) {
-   if (!vm.count(arg1)) {
+  if (!vm.count(arg1)) {
     return def_val;
   }
   else {
-    return vm[arg1].as<T>();
+    return get_argument<T>(vm, arg1, arg2); 
   }
 }
 
@@ -166,51 +192,6 @@ inline bool get_argument<bool>(
   //else {
   //  return vm[arg].as<bool>();
   //}
-}
-
-template <>
-inline std::string get_argument<std::string>(
-    boost::program_options::variables_map &vm,
-    const char* arg1, const char* arg2,
-    std::string def_val
-) {
-  if (!vm.count(arg1)) {
-    if (def_val.empty()) {
-      LOG(ERROR) << "Missing a required argument '--" << arg1 << "|-" << arg2 << "'";
-      return "";
-    }
-    else {
-      return def_val;
-    }
-  }
-  else {
-    if (vm[arg1].as<std::string>() == "") {
-      throw pathEmpty(arg1);
-    }
-    else {
-      return vm[arg1].as<std::string>();
-    }
-    }
-  }
-
-
-template <>
-inline std::vector<std::string> get_argument<std::vector<std::string>>(
-    boost::program_options::variables_map &vm,
-    const char* arg1, const char* arg2
-) {
-  if (!vm.count(arg1)) {
-    return std::vector<std::string>(); 
-  }
-  else {
-    if (std::find((vm[arg1].as<std::vector<std::string>>()).begin(), (vm[arg1].as<std::vector<std::string>>()).end(), "") != (vm[arg1].as<std::vector<std::string>>()).end())
-    {
-      throw pathEmpty(arg1);
-    }
-    else { 
-      return vm[arg1].as<std::vector<std::string>>();
-    }
-  }
 }
 
 inline std::string get_contig_fname(

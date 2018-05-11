@@ -15,6 +15,8 @@ int align_main(int argc, char** argv,
 {
   namespace po = boost::program_options;
 
+  std::string opt_str;
+
   // Define arguments
   po::variables_map cmd_vm;
  
@@ -25,10 +27,10 @@ int align_main(int argc, char** argv,
     ("output,o", po::value<std::string>()->required(), "output BAM file (if --align-only is set "
                                 "the output will be a directory of BAM "
                                 "files)")
-    ("rg,R", po::value<std::string>()->required(), "read group id ('ID' in BAM header)")
-    ("sp,S", po::value<std::string>()->required(), "sample id ('SM' in BAM header)")
-    ("pl,P", po::value<std::string>()->required(), "platform id ('PL' in BAM header)")
-    ("lb,L", po::value<std::string>()->required(), "library id ('LB' in BAM header)")
+    arg_decl_string_w_def("rg,R", "sample",   "read group id ('ID' in BAM header)")
+    arg_decl_string_w_def("sp,S", "sample",   "sample id ('SM' in BAM header)")
+    arg_decl_string_w_def("pl,P", "illumina", "platform id ('PL' in BAM header)")
+    arg_decl_string_w_def("lb,L", "sample",   "library id ('LB' in BAM header)")
     ("align-only,l", "skip mark duplicates");
 
   
@@ -44,8 +46,7 @@ int align_main(int argc, char** argv,
   bool flag_f          = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_align_only = get_argument<bool>(cmd_vm, "align-only", "l");
 
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r",
-                              get_config<std::string>("ref_genome"));
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string fq1_path    = get_argument<std::string>(cmd_vm, "fastq1", "1");
   std::string fq2_path    = get_argument<std::string>(cmd_vm, "fastq2", "2");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");

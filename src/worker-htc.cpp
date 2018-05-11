@@ -47,8 +47,7 @@ int htc_main(int argc, char** argv,
   bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat", "s");
   bool flag_vcf           = get_argument<bool>(cmd_vm, "produce-vcf", "v");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r",
-                                get_config<std::string>("ref_genome"));
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 

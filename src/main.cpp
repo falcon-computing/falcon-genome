@@ -187,27 +187,27 @@ int main(int argc, char** argv) {
 
     ret = 0;
   }
-
   catch (invalidParam &e) { 
-    LOG(ERROR) << "Missing argument '--" << e.what() << "'";
+    LOG(ERROR) << "Failed to parse arguments: " 
+               << "invalid option " << e.what();
     std::cerr << "'fcs-genome " << cmd;
     std::cerr << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
 
     ret = 1;
   }
-
-  catch (boost::program_options::required_option & e) {
-    LOG(ERROR) << "Required arguments missing";
+  catch (pathEmpty &e) {
+    LOG(ERROR) << "Failed to parse arguments: " 
+               << "option " << e.what() << " cannot be empty";
     std::cerr << "'fcs-genome " << cmd;
     std::cerr << "' options:" << std::endl;
-    std::cerr << opt_desc << std::endl;
+    std::cerr << opt_desc << std::endl; 
 
     ret = 1;
   }
-
   catch (boost::program_options::error &e) { 
-    LOG(ERROR) << "Failed to parse arguments, " << e.what();
+    LOG(ERROR) << "Failed to parse arguments: " 
+               << e.what();
     std::cerr << "'fcs-genome " << cmd;
     std::cerr << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
@@ -234,10 +234,6 @@ int main(int argc, char** argv) {
     ret = 4;
   }
   
-  catch (pathEmpty &e) {
-    LOG(ERROR) << "Argument " << e.what() << " cannot be empty";
-    ret = 1;
-  }
 
   catch (std::runtime_error &e) {
     LOG(ERROR) << "Encountered an error: " << e.what();

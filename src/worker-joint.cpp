@@ -40,8 +40,7 @@ int joint_main(int argc, char** argv,
   bool flag_combine_only = get_argument<bool>(cmd_vm, "combine-only", "c");
   bool flag_skip_combine = get_argument<bool>(cmd_vm, "skip-combine", "g");
 
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r",
-                              get_config<std::string>("ref_genome"));
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input-dir", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 

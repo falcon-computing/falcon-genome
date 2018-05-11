@@ -46,8 +46,7 @@ int mutect2_main(int argc, char** argv,
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_skip_concat    = get_argument<bool>(cmd_vm, "skip-concat", "s");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r",
-                                get_config<std::string>("ref_genome"));
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string normal_path = get_argument<std::string>(cmd_vm, "normal", "n");
   std::string tumor_path = get_argument<std::string>(cmd_vm, "tumor", "t");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");

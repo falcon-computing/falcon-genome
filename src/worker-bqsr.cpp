@@ -126,8 +126,7 @@ int baserecal_main(int argc, char** argv,
 
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r",
-                                get_config<std::string>("ref_genome"));
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 
@@ -182,8 +181,7 @@ int pr_main(int argc, char** argv,
 
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r",
-                                get_config<std::string>("ref_genome"));
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string bqsr_path   = get_argument<std::string>(cmd_vm, "bqsr", "b");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
@@ -223,8 +221,7 @@ int bqsr_main(int argc, char** argv,
     ("bqsr,b", po::value<std::string>()->default_value(""), "output BQSR file (if left blank no file will be produced)")
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output directory of BAM files")
-    ("knownSites,K", po::value<std::vector<std::string> >(),
-     "known sites for base recalibration");
+    ("knownSites,K", po::value<std::vector<std::string> >()->required(), "known sites for base recalibration");
 
   // Parse arguments
   po::store(
@@ -243,8 +240,7 @@ int bqsr_main(int argc, char** argv,
 
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r", 
-                                get_config<std::string>("ref_genome"));
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 
@@ -254,13 +250,10 @@ int bqsr_main(int argc, char** argv,
   std::string temp_dir = conf_temp_dir + "/bqsr";
   create_dir(temp_dir);
 
-  bool delete_bqsr;
-  delete_bqsr = false;
-  std::string bqsr_path;
-  try {
-    bqsr_path = get_argument<std::string>(cmd_vm, "bqsr", "b");
-  } catch (pathEmpty & e) {
-    delete_bqsr = true; 
+  bool delete_bqsr = false;
+  std::string bqsr_path = get_argument<std::string>(cmd_vm, "bqsr", "b");
+  if (bqsr_path.empty()) {
+    delete_bqsr = true;
     bqsr_path = temp_dir + "/" +
                 get_basename(input_path) + ".grp";
     DLOG(INFO) << "Use default bqsr_path = " << bqsr_path;
