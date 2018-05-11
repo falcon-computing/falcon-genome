@@ -124,6 +124,12 @@ int main(int argc, char** argv) {
     // load configurations
     init(argv, argc);
 
+    std::stringstream cmd_log;
+    for (int i = 0; i < argc; i++) {
+      cmd_log << argv[i] << " ";
+    }
+    LOG(INFO) << "Arguments: " << cmd_log.str();   
+  
     // run command
     if (cmd == "align" | cmd == "al") {
       align_main(argc-1, &argv[1], opt_desc);
@@ -182,7 +188,17 @@ int main(int argc, char** argv) {
     ret = 0;
   }
   catch (invalidParam &e) { 
-    LOG(ERROR) << "Missing argument '--" << e.what() << "'";
+    LOG(ERROR) << "Failed to parse arguments: " 
+               << "invalid option " << e.what();
+    std::cerr << "'fcs-genome " << cmd;
+    std::cerr << "' options:" << std::endl;
+    std::cerr << opt_desc << std::endl; 
+
+    ret = 1;
+  }
+  catch (pathEmpty &e) {
+    LOG(ERROR) << "Failed to parse arguments: " 
+               << "option " << e.what() << " cannot be empty";
     std::cerr << "'fcs-genome " << cmd;
     std::cerr << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
@@ -190,7 +206,8 @@ int main(int argc, char** argv) {
     ret = 1;
   }
   catch (boost::program_options::error &e) { 
-    LOG(ERROR) << "Failed to parse arguments, " << e.what();
+    LOG(ERROR) << "Failed to parse arguments: " 
+               << e.what();
     std::cerr << "'fcs-genome " << cmd;
     std::cerr << "' options:" << std::endl;
     std::cerr << opt_desc << std::endl; 
@@ -216,6 +233,8 @@ int main(int argc, char** argv) {
     LOG(ERROR) << e.what();
     ret = 4;
   }
+  
+
   catch (std::runtime_error &e) {
     LOG(ERROR) << "Encountered an error: " << e.what();
     LOG(ERROR) << "Please contact support@falcon-computing.com for details.";
