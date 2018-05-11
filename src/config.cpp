@@ -252,7 +252,7 @@ int init(char** argv, int argc) {
   common_opt.add_options() 
     arg_decl_string_w_def("temp_dir",        "/tmp",      "temp dir for fast access")
     arg_decl_string_w_def("log_dir",         "./log",     "log dir")
-    arg_decl_string_w_def("ref_genome",      "",          "default reference genome path")
+    arg_decl_string_w_def("ref_genome",      "",          "(deprecated) default reference genome path")
     arg_decl_string_w_def("java_path",       "java -d64", "java binary")
     arg_decl_string_w_def("mpi_path",        "/usr/lib64/openmpi",                  "path to mpi installation")
     arg_decl_string_w_def("bwa_path",        conf_root_dir+"/tools/bin/bwa-bin",    "path to bwa binary")
