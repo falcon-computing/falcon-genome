@@ -8,7 +8,7 @@
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
 #include "fcs-genome/workers.h"
-#include "fcs-genome/classSampleSheet.h"
+#include "fcs-genome/SampleSheet.h"
 
 namespace fcsgenome {
 
@@ -53,7 +53,7 @@ int align_main(int argc, char** argv,
 
   map<string,vector<subject> > SampleData;
   vector<subject> SampleInfoVect;
-  if(sampleList.empty()){
+  if (sampleList.empty()){
      std::string fq1_path    = get_argument<std::string>(cmd_vm, "fastq1", "1");
      std::string fq2_path    = get_argument<std::string>(cmd_vm, "fastq2", "2");
      std::string read_group  = get_argument<std::string>(cmd_vm, "rg", "R");
@@ -103,17 +103,14 @@ int align_main(int argc, char** argv,
   unsigned long long available = (diskData.f_bavail * diskData.f_frsize);
   DLOG(INFO) << available;
 
-  int i,limit;
-  map<string,vector<subject> >::iterator it = SampleData.begin();
-  while(it != SampleData.end()){
-    limit=it->second.size();
-    for(i=0;i<limit;++i){
-        sample_id=it->first;
-        fq1_path=it->second[i].fastqR1;
-        fq2_path=it->second[i].fastqR2;
-        read_group=it->second[i].ReadGroup;
-        platform_id=it->second[i].Platform;
-        library_id=it->second[i].LibraryID;
+  for (auto it : SampleData) {
+    for (int i = 0; i < it->second.size(); ++i) {
+        sample_id = it->first;
+        fq1_path = it->second[i].fastqR1;
+        fq2_path = it->second[i].fastqR2;
+        read_group = it->second[i].ReadGroup;
+        platform_id = it->second[i].Platform;
+        library_id = it->second[i].LibraryID;
 
         // check space occupied by fastq files
         size_t size_fastq = 0;
@@ -176,18 +173,18 @@ int align_main(int argc, char** argv,
 
         executor.addTask(worker);
         executor.run();
-
-        if (!flag_align_only) {
-            Executor executor("Mark Duplicates");
-            Worker_ptr worker(new MarkdupWorker(parts_dir, output_path, flag_f));
-            executor.addTask(worker);
-            executor.run();
-
-            // Remove parts_dir
-            remove_path(parts_dir);
-            DLOG(INFO) << "Removing temp file in '" << parts_dir << "'";
-        }
     };
+
+    if (!flag_align_only) {
+        Executor executor("Mark Duplicates");
+        Worker_ptr worker(new MarkdupWorker(parts_dir, output_path, flag_f));
+        executor.addTask(worker);
+        executor.run();
+
+        // Remove parts_dir
+        remove_path(parts_dir);
+        DLOG(INFO) << "Removing temp file in '" << parts_dir << "'";
+    }
   };
   return 0;
 }
