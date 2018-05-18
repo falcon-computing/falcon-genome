@@ -8,11 +8,12 @@
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
 #include "fcs-genome/workers.h"
+#include "fcs-genome/classSampleSheet.h"
 
 namespace fcsgenome {
 
 int align_main(int argc, char** argv,
-    boost::program_options::options_description &opt_desc) 
+    boost::program_options::options_description &opt_desc)
 {
   namespace po = boost::program_options;
 
@@ -20,8 +21,9 @@ int align_main(int argc, char** argv,
 
   // Define arguments
   po::variables_map cmd_vm;
- 
-  opt_desc.add_options() 
+
+  opt_desc.add_options()
+    ("sample_sheet,F", po::value<std::string>()->required(), "Sample Sheet or Folder")
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("fastq1,1", po::value<std::string>()->required(), "input pair-end fastq file")
     ("fastq2,2", po::value<std::string>()->required(), "input pair-end fastq file")
@@ -34,29 +36,54 @@ int align_main(int argc, char** argv,
     arg_decl_string_w_def("lb,L", "sample",   "library id ('LB' in BAM header)")
     ("align-only,l", "skip mark duplicates");
 
-  
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
       cmd_vm);
 
-  if (cmd_vm.count("help")) { 
+  if (cmd_vm.count("help")) {
     throw helpRequest();
-  } 
-   
+  }
+
   // Check if required arguments are presented
   bool flag_f          = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_align_only = get_argument<bool>(cmd_vm, "align-only", "l");
 
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
-  std::string fq1_path    = get_argument<std::string>(cmd_vm, "fastq1", "1");
-  std::string fq2_path    = get_argument<std::string>(cmd_vm, "fastq2", "2");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::string read_group  = get_argument<std::string>(cmd_vm, "rg", "R");
-  std::string sample_id   = get_argument<std::string>(cmd_vm, "sp", "S");
-  std::string platform_id = get_argument<std::string>(cmd_vm, "pl", "P");
-  std::string library_id  = get_argument<std::string>(cmd_vm, "lb", "L");
+  std::string sampleList  = get_argument<std::string>(cmd_vm, "sample_sheet", "F");
 
-  std::vector<std::string> extra_opts = 
+  map<string,vector<subject> > SampleData;
+  vector<subject> SampleInfoVect;
+  if(sampleList.empty()){
+     std::string fq1_path    = get_argument<std::string>(cmd_vm, "fastq1", "1");
+     std::string fq2_path    = get_argument<std::string>(cmd_vm, "fastq2", "2");
+     std::string read_group  = get_argument<std::string>(cmd_vm, "rg", "R");
+     std::string sample_id   = get_argument<std::string>(cmd_vm, "sp", "S");
+     std::string platform_id = get_argument<std::string>(cmd_vm, "pl", "P");
+     std::string library_id  = get_argument<std::string>(cmd_vm, "lb", "L");
+
+     subject SampleInfo;
+     SampleInfo.fastqR1=fq1_path;
+     SampleInfo.fastqR2=fq2_path;
+     SampleInfo.ReadGroup=read_group;
+     SampleInfo.Platform=platform_id;
+     SampleInfo.LibraryID=library_id;
+     SampleInfoVect.push_back(SampleInfo);
+     SampleData.insert(make_pair(sampleName, SampleInfoVect));
+  }else{
+     SampleSheet MySheet(sampleList);
+     if(MySheet.is_file()){
+        std::cout << MySheet.get_fname() << " is a file\n" << endl;
+        SampleData=MySheet.extract_data_from_file();
+     }else if(MySheet.is_dir()){
+        std::cout << MySheet.get_fname() << " is a folder \n" << endl;
+        SampleData=MySheet.extract_data_from_folder();
+     }else{
+        std::cout << MySheet.get_fname() << " is not a file or folder \n" << endl;
+        exit(0);
+     };
+  };
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
+  std::vector<std::string> extra_opts =
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
@@ -70,86 +97,98 @@ int align_main(int argc, char** argv,
 
   // check available space in temp dir
   namespace fs = boost::filesystem;
-  
+
   struct statvfs diskData;
   statvfs(temp_dir.c_str(), &diskData);
   unsigned long long available = (diskData.f_bavail * diskData.f_frsize);
   DLOG(INFO) << available;
-  
-  // check space occupied by fastq files
-  size_t size_fastq = 0;
 
-  size_fastq += fs::file_size(fq1_path);
-  size_fastq += fs::file_size(fq2_path);
-  
-  DLOG(INFO) << size_fastq;
-  
-  // print error message if there is not enough space in temp_dir 
-  std::string file_extension;
-  file_extension = fs::extension(fq1_path);
+  int i,limit;
+  map<string,vector<subject> >::iterator it = SampleData.begin();
+  while(it != SampleData.end()){
+    limit=it->second.size();
+    for(i=0;i<limit;++i){
+        sample_id=it->first;
+        fq1_path=it->second[i].fastqR1;
+        fq2_path=it->second[i].fastqR2;
+        read_group=it->second[i].ReadGroup;
+        platform_id=it->second[i].Platform;
+        library_id=it->second[i].LibraryID;
 
-  int threshold;
-  if (file_extension == ".gz")
-    threshold = 3;
-  else 
-    threshold = 1;
+        // check space occupied by fastq files
+        size_t size_fastq = 0;
+        size_fastq += fs::file_size(fq1_path);
+        size_fastq += fs::file_size(fq2_path);
 
-  if (available < threshold * size_fastq) {
-    LOG(ERROR) << "Not enough space in temporary storage: "
+        DLOG(INFO) << size_fastq;
+
+        // print error message if there is not enough space in temp_dir
+        std::string file_extension;
+        file_extension = fs::extension(fq1_path);
+
+        int threshold;
+        if (file_extension == ".gz")
+            threshold = 3;
+        else
+            threshold = 1;
+
+        if (available < threshold * size_fastq) {
+            LOG(ERROR) << "Not enough space in temporary storage: "
                << temp_dir << ", the size of the temporary folder should be at least "
                << threshold << " times the input FASTQ files";
-  
-    throw silentExit();
-  }
 
-  if (flag_align_only) {
-    // Check if output in path already exists but is not a dir
-    if (boost::filesystem::exists(output_path) &&
-        !boost::filesystem::is_directory(output_path)) {
-      throw fileNotFound("Output path '" +
-          output_path +
-          "' is not a directory");
-    }
-    parts_dir = output_path + "/" +
-      sample_id + "/" +
-      read_group;
-    
-    // workaround for output check
-    create_dir(output_path+"/"+sample_id);
-  }
-  else {
-    // check output path before alignment
-    output_path = check_output(output_path, flag_f, true);
+            throw silentExit();
+        }
 
-    // require output to be a file
-    parts_dir = temp_dir + "/" +
-                get_basename(output_path) + ".parts";
-  }
-  DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
+        if (flag_align_only) {
+           // Check if output in path already exists but is not a dir
+           if (boost::filesystem::exists(output_path) &&
+              !boost::filesystem::is_directory(output_path)) {
+               throw fileNotFound("Output path '" +
+               output_path +
+               "' is not a directory");
+           }
+           parts_dir = output_path + "/" +
+           sample_id + "/" +
+           read_group;
 
-  Executor executor("bwa mem");
+           // workaround for output check
+           create_dir(output_path+"/"+sample_id);
+        }
+        else {
+           // check output path before alignment
+           output_path = check_output(output_path, flag_f, true);
 
-  Worker_ptr worker(new BWAWorker(ref_path,
-        fq1_path, fq2_path,
-        parts_dir,
-        extra_opts,
-        sample_id, read_group,
-        platform_id, library_id, flag_f));
+           // require output to be a file
+           parts_dir = temp_dir + "/" +
+           get_basename(output_path) + ".parts";
+        }
+        DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
-  executor.addTask(worker);
-  executor.run();
+        Executor executor("bwa mem");
 
-  if (!flag_align_only) {
-    Executor executor("Mark Duplicates");
-    Worker_ptr worker(new MarkdupWorker(parts_dir, output_path, flag_f));
-    executor.addTask(worker);
-    executor.run();
+        Worker_ptr worker(new BWAWorker(ref_path,
+             fq1_path, fq2_path,
+             parts_dir,
+             extra_opts,
+             sample_id, read_group,
+             platform_id, library_id, flag_f));
 
-    // Remove parts_dir
-    remove_path(parts_dir);
-    DLOG(INFO) << "Removing temp file in '" << parts_dir << "'";
-  }
+        executor.addTask(worker);
+        executor.run();
 
+        if (!flag_align_only) {
+            Executor executor("Mark Duplicates");
+            Worker_ptr worker(new MarkdupWorker(parts_dir, output_path, flag_f));
+            executor.addTask(worker);
+            executor.run();
+
+            // Remove parts_dir
+            remove_path(parts_dir);
+            DLOG(INFO) << "Removing temp file in '" << parts_dir << "'";
+        }
+    };
+  };
   return 0;
 }
 } // namespace fcsgenome
