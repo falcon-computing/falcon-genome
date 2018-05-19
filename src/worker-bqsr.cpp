@@ -110,9 +110,9 @@ int baserecal_main(int argc, char** argv,
   po::variables_map cmd_vm;
 
   opt_desc.add_options() 
-    arg_decl_string("ref,r", "reference genome path")
-    arg_decl_string("input,i", "input BAM file or dir")
-    arg_decl_string("output,o", "output BQSR file")
+    ("ref,r", po::value<std::string>()->required(), "reference genome path")
+    ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
+    ("output,o", po::value<std::string>()->required(), "output BQSR file")
     ("knownSites,K", po::value<std::vector<std::string> >(),
      "known sites for base recalibration");
 
@@ -125,17 +125,16 @@ int baserecal_main(int argc, char** argv,
   } 
 
   // Check if required arguments are presented
-  bool flag_f             = get_argument<bool>(cmd_vm, "force");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
-                                get_config<std::string>("ref_genome"));
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
+  bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 
   std::vector<std::string> known_sites = get_argument<
-    std::vector<std::string> >(cmd_vm, "knownSites");
+    std::vector<std::string> >(cmd_vm, "knownSites", "K");
 
   std::vector<std::string> extra_opts = 
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -167,10 +166,10 @@ int pr_main(int argc, char** argv,
   po::variables_map cmd_vm;
 
   opt_desc.add_options() 
-    arg_decl_string("ref,r", "reference genome path")
-    arg_decl_string("bqsr,b", "input BQSR file")
-    arg_decl_string("input,i", "input BAM file or dir")
-    arg_decl_string("output,o", "output BAM files");
+    ("ref,r", po::value<std::string>()->required(), "reference genome path")
+    ("bqsr,b", po::value<std::string>()->required(), "input BQSR file")
+    ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
+    ("output,o", po::value<std::string>()->required(), "output BAM files");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
@@ -181,15 +180,14 @@ int pr_main(int argc, char** argv,
   } 
 
   // Check if required arguments are presented
-  bool flag_f             = get_argument<bool>(cmd_vm, "force");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
-                                get_config<std::string>("ref_genome"));
-  std::string bqsr_path   = get_argument<std::string>(cmd_vm, "bqsr");
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
+  bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
+  std::string bqsr_path   = get_argument<std::string>(cmd_vm, "bqsr", "b");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 
   std::vector<std::string> extra_opts = 
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -219,13 +217,11 @@ int bqsr_main(int argc, char** argv,
   po::variables_map cmd_vm;
 
   opt_desc.add_options() 
-    arg_decl_string("ref,r", "reference genome path")
-    arg_decl_string("bqsr,b", "output BQSR file (if left blank no file will "
-                              "be produced")
-    arg_decl_string("input,i", "input BAM file or dir")
-    arg_decl_string("output,o", "output directory of BAM files")
-    ("knownSites,K", po::value<std::vector<std::string> >(),
-     "known sites for base recalibration");
+    ("ref,r", po::value<std::string>()->required(), "reference genome path")
+    ("bqsr,b", po::value<std::string>()->default_value(""), "output BQSR file (if left blank no file will be produced)")
+    ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
+    ("output,o", po::value<std::string>()->required(), "output directory of BAM files")
+    ("knownSites,K", po::value<std::vector<std::string> >()->required(), "known sites for base recalibration");
 
   // Parse arguments
   po::store(
@@ -243,36 +239,32 @@ int bqsr_main(int argc, char** argv,
   check_memory_config("pr");
 
   // Check if required arguments are presented
-  bool flag_f             = get_argument<bool>(cmd_vm, "force");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", 
-                                get_config<std::string>("ref_genome"));
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
+  bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 
   std::vector<std::string> extra_opts = 
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   std::string temp_dir = conf_temp_dir + "/bqsr";
   create_dir(temp_dir);
 
-  bool delete_bqsr;
-  delete_bqsr = false;
-  std::string bqsr_path;
-  try {
-    bqsr_path = get_argument<std::string>(cmd_vm, "bqsr");
-  } catch (invalidParam &e) {
-    delete_bqsr = true; 
+  bool delete_bqsr = false;
+  std::string bqsr_path = get_argument<std::string>(cmd_vm, "bqsr", "b");
+  if (bqsr_path.empty()) {
+    delete_bqsr = true;
     bqsr_path = temp_dir + "/" +
                 get_basename(input_path) + ".grp";
     DLOG(INFO) << "Use default bqsr_path = " << bqsr_path;
   }
 
   std::vector<std::string> known_sites = get_argument<
-    std::vector<std::string> >(cmd_vm, "knownSites");
+    std::vector<std::string> >(cmd_vm, "knownSites", "K");
 
   // finalize argument parsing
   po::notify(cmd_vm);
-
+ 
   // the output path will be a directory
   create_dir(output_path);
 

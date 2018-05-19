@@ -5,6 +5,7 @@
 #include <boost/program_options.hpp>
 #include <iomanip>
 #include <string>
+#include <vector>
 #include <sys/syscall.h>
 #include <sys/time.h>
 #include <syscall.h>
@@ -54,6 +55,12 @@ public:
 class internalError : public std::runtime_error {
 public:
   explicit internalError(const std::string& what_arg):
+    std::runtime_error(what_arg) {;}
+};
+
+class pathEmpty : public std::runtime_error {
+public:
+  explicit pathEmpty(const std::string& what_arg):
     std::runtime_error(what_arg) {;}
 };
 
@@ -114,77 +121,77 @@ inline void remove_path(std::string path) {
   }
 }
 
+inline std::string concat_args(
+    const char* arg_full, 
+    const char* arg_short) {
+  return "'--" + std::string(arg_full) + "'|" +
+         "'-" + std::string(arg_short) + "'";
+}
+
+template <typename T>
+inline bool check_empty(T & val) {
+  return false;
+}
+
+template <>
+inline bool check_empty<std::string>(std::string& val) {
+  return val.empty() || (val.find_first_not_of(' ') == std::string::npos);
+}
+
+template <>
+inline bool check_empty<std::vector<std::string> >(std::vector<std::string> & val) {
+  for (auto v : val) {
+    if (check_empty(v)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 template <class T>
 inline T get_argument(
     boost::program_options::variables_map &vm,
-    const char* arg
+    const char* arg1, const char* arg2
 ) {
-  if (!vm.count(arg)) {
-    throw invalidParam(arg);
+  if (!vm.count(arg1)) {
+    return T();
+    //throw invalidParam(concat_args(arg1, arg2));
   }
   else {
-    return vm[arg].as<T>();
+    T val = vm[arg1].as<T>();
+    if (check_empty(val)) {
+      throw pathEmpty(concat_args(arg1, arg2));
+    }
+    return val;
   }
 }
 
 template <class T>
 inline T get_argument(
     boost::program_options::variables_map &vm,
-    const char* arg,
+    const char* arg1, const char* arg2,
     T def_val
 ) {
-  if (!vm.count(arg)) {
+  if (!vm.count(arg1)) {
     return def_val;
   }
   else {
-    return vm[arg].as<T>();
+    return get_argument<T>(vm, arg1, arg2); 
   }
 }
 
 template <>
 inline bool get_argument<bool>(
     boost::program_options::variables_map &vm,
-    const char* arg
+    const char* arg1, const char* arg2
 ) {
-  return vm.count(arg);
+  return vm.count(arg1);
   //if (!vm.count(arg)) {
   //  return false;
   //}
   //else {
   //  return vm[arg].as<bool>();
   //}
-}
-
-template <>
-inline std::string get_argument<std::string>(
-    boost::program_options::variables_map &vm,
-    const char* arg,
-    std::string def_val
-) {
-  if (!vm.count(arg)) {
-    if (def_val.empty()) {
-      throw invalidParam(arg);
-    }
-    else {
-      return def_val;
-    }
-  }
-  else {
-    return vm[arg].as<std::string>();
-  }
-}
-
-template <>
-inline std::vector<std::string> get_argument<std::vector<std::string>>(
-    boost::program_options::variables_map &vm,
-    const char* arg
-) {
-  if (!vm.count(arg)) {
-    return std::vector<std::string>(); 
-  }
-  else {
-    return vm[arg].as<std::vector<std::string>>();
-  }
 }
 
 inline std::string get_contig_fname(

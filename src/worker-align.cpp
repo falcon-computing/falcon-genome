@@ -2,6 +2,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
 #include <string>
+#include <sys/statvfs.h>
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -15,22 +16,25 @@ int align_main(int argc, char** argv,
 {
   namespace po = boost::program_options;
 
+  std::string opt_str;
+
   // Define arguments
   po::variables_map cmd_vm;
-
+ 
   opt_desc.add_options() 
-    arg_decl_string("ref,r", "reference genome path")
-    arg_decl_string("fastq1,1", "input pair-end fastq file")
-    arg_decl_string("fastq2,2", "input pair-end fastq file")
-    arg_decl_string("output,o", "output BAM file (if --align-only is set "
+    ("ref,r", po::value<std::string>()->required(), "reference genome path")
+    ("fastq1,1", po::value<std::string>()->required(), "input pair-end fastq file")
+    ("fastq2,2", po::value<std::string>()->required(), "input pair-end fastq file")
+    ("output,o", po::value<std::string>()->required(), "output BAM file (if --align-only is set "
                                 "the output will be a directory of BAM "
                                 "files)")
-    arg_decl_string("rg,R", "read group id ('ID' in BAM header)")
-    arg_decl_string("sp,S", "sample id ('SM' in BAM header)")
-    arg_decl_string("pl,P", "platform id ('PL' in BAM header)")
-    arg_decl_string("lb,L", "library id ('LB' in BAM header)")
+    arg_decl_string_w_def("rg,R", "sample",   "read group id ('ID' in BAM header)")
+    arg_decl_string_w_def("sp,S", "sample",   "sample id ('SM' in BAM header)")
+    arg_decl_string_w_def("pl,P", "illumina", "platform id ('PL' in BAM header)")
+    arg_decl_string_w_def("lb,L", "sample",   "library id ('LB' in BAM header)")
     ("align-only,l", "skip mark duplicates");
 
+  
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
       cmd_vm);
@@ -38,23 +42,22 @@ int align_main(int argc, char** argv,
   if (cmd_vm.count("help")) { 
     throw helpRequest();
   } 
-
+   
   // Check if required arguments are presented
-  bool flag_f          = get_argument<bool>(cmd_vm, "force");
-  bool flag_align_only = get_argument<bool>(cmd_vm, "align-only");
+  bool flag_f          = get_argument<bool>(cmd_vm, "force", "f");
+  bool flag_align_only = get_argument<bool>(cmd_vm, "align-only", "l");
 
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
-                              get_config<std::string>("ref_genome"));
-  std::string fq1_path    = get_argument<std::string>(cmd_vm, "fastq1");
-  std::string fq2_path    = get_argument<std::string>(cmd_vm, "fastq2");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
-  std::string read_group  = get_argument<std::string>(cmd_vm, "rg");
-  std::string sample_id   = get_argument<std::string>(cmd_vm, "sp");
-  std::string platform_id = get_argument<std::string>(cmd_vm, "pl");
-  std::string library_id  = get_argument<std::string>(cmd_vm, "lb");
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
+  std::string fq1_path    = get_argument<std::string>(cmd_vm, "fastq1", "1");
+  std::string fq2_path    = get_argument<std::string>(cmd_vm, "fastq2", "2");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
+  std::string read_group  = get_argument<std::string>(cmd_vm, "rg", "R");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sp", "S");
+  std::string platform_id = get_argument<std::string>(cmd_vm, "pl", "P");
+  std::string library_id  = get_argument<std::string>(cmd_vm, "lb", "L");
 
   std::vector<std::string> extra_opts = 
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -64,6 +67,40 @@ int align_main(int argc, char** argv,
   std::string temp_dir = conf_temp_dir + "/align";
 
   create_dir(temp_dir);
+
+  // check available space in temp dir
+  namespace fs = boost::filesystem;
+  
+  struct statvfs diskData;
+  statvfs(temp_dir.c_str(), &diskData);
+  unsigned long long available = (diskData.f_bavail * diskData.f_frsize);
+  DLOG(INFO) << available;
+  
+  // check space occupied by fastq files
+  size_t size_fastq = 0;
+
+  size_fastq += fs::file_size(fq1_path);
+  size_fastq += fs::file_size(fq2_path);
+  
+  DLOG(INFO) << size_fastq;
+  
+  // print error message if there is not enough space in temp_dir 
+  std::string file_extension;
+  file_extension = fs::extension(fq1_path);
+
+  int threshold;
+  if (file_extension == ".gz")
+    threshold = 3;
+  else 
+    threshold = 1;
+
+  if (available < threshold * size_fastq) {
+    LOG(ERROR) << "Not enough space in temporary storage: "
+               << temp_dir << ", the size of the temporary folder should be at least "
+               << threshold << " times the input FASTQ files";
+  
+    throw silentExit();
+  }
 
   if (flag_align_only) {
     // Check if output in path already exists but is not a dir

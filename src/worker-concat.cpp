@@ -22,8 +22,8 @@ int concat_main(int argc, char** argv,
   po::variables_map cmd_vm;
 
   opt_desc.add_options() 
-    arg_decl_string("input,i", "folder of input vcf/gvcf files")
-    arg_decl_string("output,o", "output vcf/gvcf file (automatically "
+    ("input,i", po::value<std::string>()->required(), "folder of input vcf/gvcf files")
+    ("output,o", po::value<std::string>()->required(), "output vcf/gvcf file (automatically "
                                 "compressed to .vcf.gz/.gvcf.gz)");
 
   // Parse arguments
@@ -36,9 +36,9 @@ int concat_main(int argc, char** argv,
   } 
 
   // Check if required arguments are presented
-  bool flag_f             = get_argument<bool>(cmd_vm, "force");
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
+  bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 
   // finalize argument parsing
   po::notify(cmd_vm);

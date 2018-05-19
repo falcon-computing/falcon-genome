@@ -20,8 +20,8 @@ int markdup_main(int argc, char** argv,
   po::variables_map cmd_vm;
 
   opt_desc.add_options() 
-    arg_decl_string("input,i", "input file")
-    arg_decl_string("output,o", "output file");
+    ("input,i", po::value<std::string>()->required(), "input file")
+    ("output,o", po::value<std::string>()->required(), "output file");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
@@ -32,10 +32,11 @@ int markdup_main(int argc, char** argv,
   } 
 
   // Check if required arguments are presented
-  bool        flag_f      = get_argument<bool>(cmd_vm, "force");
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
+  bool        flag_f      = get_argument<bool>(cmd_vm, "force", "f");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
 
+  // finalize argument parsing 
   po::notify(cmd_vm);
 
   Executor executor("Mark Duplicates");
