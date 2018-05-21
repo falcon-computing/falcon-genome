@@ -17,7 +17,7 @@ class DepthWorker : public Worker {
       int depthCutoff,
       std::vector<std::string> extra_opts,
       int contig,
-      bool &flag_f
+      bool &flag_f,
       bool &flag_baseCoverage,
       bool &flag_intervalCoverage,
       bool &flag_sampleSummary);
@@ -32,7 +32,9 @@ class DepthWorker : public Worker {
   std::string output_path_;
   std::string geneList_;
   int depthCutoff_;
+  bool flag_baseCoverage_;
+  bool flag_intervalCoverage_;
+  bool flag_sampleSummary_;
 };
 } // namespace fcsgenome
 #endif
-

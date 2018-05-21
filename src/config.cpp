@@ -155,12 +155,14 @@ int init_config(boost::program_options::options_description conf_opt) {
   set_config<int>("gatk.mutect2.nprocs",   "gatk.nprocs");
   set_config<int>("gatk.indel.nprocs", "gatk.nprocs");
   set_config<int>("gatk.ug.nprocs",    "gatk.nprocs");
-
+  set_config<int>("gatk.depth.nprocs", "gatk.nprocs");
+  
   set_config<int>("gatk.bqsr.nct", "gatk.nct");
   set_config<int>("gatk.pr.nct",   "gatk.nct");
   set_config<int>("gatk.htc.nct",  "gatk.nct");
   set_config<int>("gatk.mutect2.nct",  "gatk.nct");
   set_config<int>("gatk.ug.nt",    "gatk.nct");
+  set_config<int>("gatk.depth.nct", "gatk.nct");
 
   set_config<int>("gatk.bqsr.memory",  "gatk.memory");
   set_config<int>("gatk.pr.memory",    "gatk.memory");
@@ -168,6 +170,7 @@ int init_config(boost::program_options::options_description conf_opt) {
   set_config<int>("gatk.mutect2.memory",   "gatk.memory");
   set_config<int>("gatk.indel.memory", "gatk.memory");
   set_config<int>("gatk.ug.memory",    "gatk.memory");
+  set_config<int>("gatk.depth.memory", "gatk.memory");
 
   // create temp dir
   std::string username("");
@@ -310,6 +313,9 @@ int init(char** argv, int argc) {
     arg_decl_int_w_def("gatk.combine.nprocs",  def_nprocs, "default process num in GATK CombineGVCFs")
     arg_decl_int_w_def("gatk.genotype.nprocs", def_nprocs, "default process num in GATK GenotypeGVCFs")
     arg_decl_int_w_def("gatk.genotype.memory", def_memory, "default heap memory in GATK GenotypeGVCFs")
+    arg_decl_int("gatk.depth.nprocs",            "default process num in GATK DepthOfCoverage")
+    arg_decl_int("gatk.depth.nct",               "default thread num in  GATK DepthOfCoverage")
+    arg_decl_int("gatk.depth.memory",            "default heap memory in GATK DepthOfCoverage")
     arg_decl_bool("gatk.skip_pseudo_chr", "skip pseudo chromosome intervals")
     ;
 

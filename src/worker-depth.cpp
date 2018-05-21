@@ -27,10 +27,10 @@ int depth_main(int argc, char** argv,
     arg_decl_string("input,i", "input BAM file")
     arg_decl_string("output,o", "output coverage file")
     arg_decl_string("geneList,g", "list of genes over which to calculate coverage") 
-    arg_decl_string("depthCutoff,d", "cutoff for coverage depth summary") //set po::value<int>()->default_value(15)
-    arg_decl_string("baseCoverage,b", "calculate coverage depth of each base")
-    arg_decl_string("intervalCoverage,v", "calculate coverage summary of given intervals")
-    arg_decl_string("sampleSummary,s", "output summary files for each sample");
+    ("depthCutoff,d", po::value<int>()->default_value(15), "cutoff for coverage depth summary")
+    ("baseCoverage,b", "calculate coverage depth of each base")
+    ("intervalCoverage,v", "calculate coverage summary of given intervals")
+    ("sampleSummary,s", "output summary files for each sample");
     
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
@@ -48,14 +48,15 @@ int depth_main(int argc, char** argv,
   bool flag_f             = get_argument<bool>(cmd_vm, "force");
   bool flag_baseCoverage    = get_argument<bool>(cmd_vm, "baseCoverage");
   bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "intervalCoverage");
-  bool flag_smapleSummary = get_argument<bool>(cmd_vm, "sampleSummary");
+  bool flag_sampleSummary = get_argument<bool>(cmd_vm, "sampleSummary");
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
                                 get_config<std::string>("ref_genome"));
   std::string input_path = get_argument<std::string>(cmd_vm, "input");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
   std::string geneList = get_argument<std::string>(cmd_vm, "geneList");
-  std::string depthCutoff = get_argument<std::string>(cmd_vm, "depthCutoff");
+  int depthCutoff = get_argument<int>(cmd_vm, "depthCutoff");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options"); 
+  
   // finalize argument parsing
   po::notify(cmd_vm);
 
@@ -63,12 +64,14 @@ int depth_main(int argc, char** argv,
   create_dir(temp_dir);
   
   //output path
-  //create_dir(output_dir);
+  std::string output_dir;
+  output_dir = check_output(output_path, flag_f);
+  create_dir(output_dir);
 
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
 
-  Executor executor("Depth", get_config<int>("gatk.mutect2.nprocs"));
+  Executor executor("Depth", get_config<int>("gatk.depth.nprocs"));
   
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
     std::string input_file;
@@ -97,6 +100,8 @@ int depth_main(int argc, char** argv,
 
     executor.addTask(worker);
   }
+  
+
 
   executor.run();
 

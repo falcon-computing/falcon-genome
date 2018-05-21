@@ -6,10 +6,11 @@
 #include "workers/CombineGVCFsWorker.h"
 #include "workers/GenotypeGVCFsWorker.h"
 #include "workers/HTCWorker.h"
+#include "workers/Mutect2Worker.h"
 #include "workers/IndelWorker.h"
 #include "workers/MarkdupWorker.h"
 #include "workers/VCFUtilsWorker.h"
 #include "workers/UGWorker.h"
-#include "workers/Mutect2Worker.h"
+#include "workers/DepthWorker.h"
 
 #endif

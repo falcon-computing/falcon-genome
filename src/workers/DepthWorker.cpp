@@ -24,7 +24,10 @@ DepthWorker::DepthWorker(std::string ref_path,
   intv_path_(intv_path),
   input_path_(input_path),
   geneList_(geneList),
-  depthCutoff_(depthCutoff)
+  depthCutoff_(depthCutoff),
+  flag_baseCoverage_(flag_baseCoverage),
+  flag_intervalCoverage_(flag_intervalCoverage),
+  flag_sampleSummary_(flag_sampleSummary)
 {
   // check input/output files
   output_path_ = check_output(output_path, flag_f);
@@ -42,7 +45,7 @@ void DepthWorker::setup() {
   // create cmd
   std::stringstream cmd;
   cmd << get_config<std::string>("java_path") << " "
-      << "-Xmx" << get_config<int>("gatk.mutect2.memory", "gatk.memory") << "g "
+      << "-Xmx" << get_config<int>("gatk.depth.memory", "gatk.memory") << "g "
       << "-jar " << get_config<std::string>("gatk_path") << " "
       << "-T DepthOfCoverage "
       << "-R " << ref_path_ << " "
@@ -56,10 +59,11 @@ void DepthWorker::setup() {
   }
    
   cmd << "-L " << intv_path_ << " "
-      << "-nt " << get_config<int>("gatk.mutect2.nct", "gatk.nct") << " "
+      << "-nt " << get_config<int>("gatk.depth.nct", "gatk.nct") << " "
       << "-o " << output_path_ << " "
-      << "-geneList" << geneList_ << " ";
-
+      << "-geneList " << geneList_ << " "
+      << "-ct " << depthCutoff_ << " ";
+ 
   if(!flag_baseCoverage_)
     cmd << "-omitBaseOutput ";
   if(!flag_intervalCoverage_)
