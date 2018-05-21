@@ -33,22 +33,22 @@ bool SampleSheet::is_dir(){
 
 int SampleSheet::check_file(){
   int exist=0;
-  ifstream ifile(fname.c_str());
+  std::ifstream ifile(fname.c_str());
   if(ifile){exist=1;};
   ifile.close();
   return exist;
 };
 
-map<string, vector<SampleDetails> > SampleSheet::extract_data_from_file(){
+std::map<std::string, std::vector<SampleDetails> > SampleSheet::extract_data_from_file(){
   std::ifstream file(fname.c_str());
   std::string value;
   getline(file,value);
   std::string header=value;
-  cout << "HEADER: \t" << header << endl;
+  //cout << "HEADER: \t" << header << endl;
   if(header.find('#')!=0){printf("Sample Sheet %s has no header\n",fname.c_str()); exit(0);};
 
   int number_of_fields=count(header.begin(),header.end(),',');
-  cout << "There are " << to_string(number_of_fields+1) << " fields " << endl;
+  //cout << "There are " << to_string(number_of_fields+1) << " fields " << endl;
 
   std::vector<std::string> strs;
   boost::split(strs,header,boost::is_any_of(","));
@@ -101,11 +101,11 @@ map<string, vector<SampleDetails> > SampleSheet::extract_data_from_file(){
   return SampleData;
 };
 
-map<string, vector<SampleDetails> > SampleSheet::extract_data_from_folder(){
+std::map<std::string, std::vector<SampleDetails> > SampleSheet::extract_data_from_folder(){
   cout << "Folder Path : " << fname.c_str() << " \n" << endl;
   DIR *target_dir;
   struct dirent *dir;
-  vector<SampleDetails> temp_vector;
+  std::vector<SampleDetails> temp_vector;
   target_dir=opendir(fname.c_str());
   if (target_dir) {
      while ((dir = readdir(target_dir)) != NULL) {
@@ -123,7 +123,7 @@ map<string, vector<SampleDetails> > SampleSheet::extract_data_from_folder(){
      cout << "Folder does not exist" << endl; exit(0);
   };
 
-  vector<SampleDetails> sampleInfoVect;
+  std::vector<SampleDetails> sampleInfoVect;
   std::string sampleName, read1, read2, rg, platform, library_id;
   platform="Illumina";
   SampleDetails sampleInfo;
@@ -143,7 +143,7 @@ map<string, vector<SampleDetails> > SampleSheet::extract_data_from_folder(){
 
       found = temp_id.find(delimiter);
       temp_id.replace(temp_id.find(delimiter), temp_id.length(), new_delimiter);
-      vector<SampleDetails> strs;
+      std::vector<SampleDetails> strs;
       boost::split(strs,temp_id,boost::is_any_of(" "));
       sampleName=strs[0];
       strs.clear();
@@ -157,7 +157,7 @@ map<string, vector<SampleDetails> > SampleSheet::extract_data_from_folder(){
 
       int index=0;
       char number[4];
-      string str;
+      std::string str;
       str=sprintf(number,"%03d",index);
       if(SampleData.find(sampleName)==SampleData.end()){
  	       rg="RG-"+sampleName+"_"+number;
