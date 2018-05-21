@@ -27,15 +27,15 @@ class SampleSheet {
   std::string fname;
   private:
     std::map<int, std::string> Header;
-    std::map<std::string, std::vector<subject> > SampleData;
+    std::map<std::string, std::vector<SampleDetails> > SampleData;
   public:
     SampleSheet(string);
     std::string get_fname();
     int check_file();
     bool is_file();
     bool is_dir();
-    std::map<std::string, std::vector<subject> > extract_data_from_file();
-    std::map<std::string, std::vector<subject> > extract_data_from_folder();
+    std::map<std::string, std::vector<SampleDetails> > extract_data_from_file();
+    std::map<std::string, std::vector<SampleDetails> > extract_data_from_folder();
 };
 
 };
