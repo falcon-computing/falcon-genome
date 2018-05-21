@@ -90,10 +90,10 @@ std::map<std::string, std::vector<SampleDetails> > SampleSheet::extract_data_fro
      //cout << "ORG:\t" << sampleName <<"\t" << sampleInfo.fastqR1 << "\t" << sampleInfo.fastqR2 << "\t" << sampleInfo.ReadGroup << "\t" << sampleInfo.Platform << "\t" << sampleInfo.LibraryID << endl;
      // Populating the Map SampleData:
      if (SampleData.find(sampleName)==SampleData.end()) {
-     	   sampleInfoVect.push_back(sampleInfo);
-     	   SampleData.insert(make_pair(sampleName, sampleInfoVect));
+     	 sampleInfoVect.push_back(sampleInfo);
+         SampleData.insert(make_pair(sampleName, sampleInfoVect));
      } else {
-     	   SampleData[sampleName].push_back(sampleInfo);
+     	 SampleData[sampleName].push_back(sampleInfo);
      }
      sampleInfoVect.clear();
   };
@@ -102,25 +102,25 @@ std::map<std::string, std::vector<SampleDetails> > SampleSheet::extract_data_fro
 };
 
 std::map<std::string, std::vector<SampleDetails> > SampleSheet::extract_data_from_folder(){
-  cout << "Folder Path : " << fname.c_str() << " \n" << endl;
+  std::cout << "Folder Path : " << fname.c_str() << " \n" << std::endl;
   DIR *target_dir;
   struct dirent *dir;
-  std::vector<SampleDetails> temp_vector;
+  std::vector<std::string> temp_vector;
   target_dir=opendir(fname.c_str());
   if (target_dir) {
      while ((dir = readdir(target_dir)) != NULL) {
         int length = strlen(dir->d_name);
         int ext=strlen("1.fastq.gz");
         if(strncmp(dir->d_name + length - ext, "1.fastq.gz", ext) == 0) {
-           temp_vector.push_back(dir->d_name);
+	         temp_vector.push_back(dir->d_name);
         };
      };
      if (temp_vector.size()==0) {
-        cout << "Folder does not contain any FASTQ files" << endl; exit(0);
+        std::cout << "Folder does not contain any FASTQ files" << std::endl; exit(0);
      }
      closedir(target_dir);
   } else {
-     cout << "Folder does not exist" << endl; exit(0);
+    std::cout << "Folder does not exist" << std::endl; exit(0);
   };
 
   std::vector<SampleDetails> sampleInfoVect;
@@ -133,8 +133,7 @@ std::map<std::string, std::vector<SampleDetails> > SampleSheet::extract_data_fro
   std::string delimiter="_";
   std::string new_delimiter=" ";
   std::string temp_id, sample_id;
-  std::vector<std::string>::iterator it;
-  for(it = temp_vector.begin(); it != temp_vector.end(); ++it ){
+  for(std::vector<std::string>::iterator it = temp_vector.begin(); it != temp_vector.end(); ++it ){
       read1=*it;
       read2=read1;
       temp_id=read1;
@@ -143,41 +142,41 @@ std::map<std::string, std::vector<SampleDetails> > SampleSheet::extract_data_fro
 
       found = temp_id.find(delimiter);
       temp_id.replace(temp_id.find(delimiter), temp_id.length(), new_delimiter);
-      std::vector<SampleDetails> strs;
+      std::vector<std::string> strs;
       boost::split(strs,temp_id,boost::is_any_of(" "));
       sampleName=strs[0];
       strs.clear();
 
-      // Populating the Structure:
-      sampleInfo.fastqR1=read1;
-      sampleInfo.fastqR2=read2;
-      sampleInfo.ReadGroup="RG";
-      sampleInfo.Platform="Illumina";
-      sampleInfo.LibraryID="LIB";
+     // Populating the Structure:
+     sampleInfo.fastqR1=read1;
+     sampleInfo.fastqR2=read2;
+     sampleInfo.ReadGroup="RG";
+     sampleInfo.Platform="Illumina";
+     sampleInfo.LibraryID="LIB";
 
-      int index=0;
-      char number[4];
-      std::string str;
-      str=sprintf(number,"%03d",index);
-      if(SampleData.find(sampleName)==SampleData.end()){
- 	       rg="RG-"+sampleName+"_"+number;
-         library_id="LIB"+sampleName+"_"+number;
-         sampleInfo.ReadGroup=rg+number;
-         sampleInfo.LibraryID=library_id;
-         sampleInfoVect.push_back(sampleInfo);
-         SampleData.insert(make_pair(sampleName, sampleInfoVect));
-      }else{
-         index=index+1;
+     int index=0;
+     char number[4];
+     std::string str;
+     str=sprintf(number,"%03d",index);
+     if(SampleData.find(sampleName)==SampleData.end()){
+	      rg="RG-"+sampleName+"_"+number;
+        library_id="LIB"+sampleName+"_"+number;
+        sampleInfo.ReadGroup=rg+number;
+        sampleInfo.LibraryID=library_id;
+        sampleInfoVect.push_back(sampleInfo);
+        SampleData.insert(make_pair(sampleName, sampleInfoVect));
+     }else{
+        index=index+1;
 	       str=sprintf(number,"%03d",index);
-         rg="RG-"+sampleName+"_"+number;
-         library_id="LIB"+sampleName+"_"+number;
-         sampleInfo.ReadGroup=rg+number;
-         sampleInfo.LibraryID=library_id;
-         SampleData[sampleName].push_back(sampleInfo);
-      }
-      sampleInfoVect.clear();
-  }
-  return SampleData;
+        rg="RG-"+sampleName+"_"+number;
+        library_id="LIB"+sampleName+"_"+number;
+        sampleInfo.ReadGroup=rg+number;
+        sampleInfo.LibraryID=library_id;
+        SampleData[sampleName].push_back(sampleInfo);
+     }
+     sampleInfoVect.clear();
+ }
+ return SampleData;
 
 };
 
