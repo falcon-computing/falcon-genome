@@ -1,4 +1,4 @@
-#include "SampleSheet.h"
+#include "fcs-genome/SampleSheet.h"
 #include <boost/algorithm/string.hpp>
 #include <sys/stat.h>
 #include <stdlib.h>
@@ -147,27 +147,27 @@ std::map<std::string, std::vector<SampleDetails> > SampleSheet::extract_data_fro
       temp_id=read1;
       size_t found = read2.find(target);
       read2.replace(read2.find(target),read2.length(),task);
-   
+
       found = temp_id.find(delimiter);
       temp_id.replace(temp_id.find(delimiter), temp_id.length(), new_delimiter);
       std::vector<std::string> strs;
       boost::split(strs,temp_id,boost::is_any_of(" "));
       sampleName=strs[0];
       strs.clear();
- 
+
      // Populating the Structure:
      sampleInfo.fastqR1=read1;
      sampleInfo.fastqR2=read2;
      sampleInfo.ReadGroup="RG";
      sampleInfo.Platform="Illumina";
      sampleInfo.LibraryID="LIB";
- 
+
      int index=0;
      char number[4];
      std::string str;
      str = sprintf(number,"%03d",index);
      if (SampleData.find(sampleName) == SampleData.end()){
-	rg="RG-"+sampleName+"_"+number;
+	      rg="RG-"+sampleName+"_"+number;
         library_id="LIB"+sampleName+"_"+number;
         sampleInfo.ReadGroup=rg+number;
         sampleInfo.LibraryID=library_id;
