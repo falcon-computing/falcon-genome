@@ -29,7 +29,7 @@ class SampleSheet {
     std::map<int, std::string> Header;
     std::map<std::string, std::vector<SampleDetails> > SampleData;
   public:
-    SampleSheet(string);
+    SampleSheet(std::string);
     std::string get_fname();
     int check_file();
     bool is_file();
