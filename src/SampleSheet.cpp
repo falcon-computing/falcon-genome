@@ -68,7 +68,9 @@ void SampleSheet::ExtractDataFromFile(std::string fname, SampleSheetMap &SampleD
   while (getline(file,grab_line_info)) {
      check_fields = count(grab_line_info.begin(),grab_line_info.end(),',')+1;
      if (check_fields != number_of_fields+1) {
-	LOG(ERROR) << "Number of Fields in Data (" << check_fields << ") != Number of Fields in Header (" << number_of_fields <<")";
+	      LOG(ERROR) << "Number of Fields in Data (" << check_fields
+                   << ") != Number of Fields in Header (" << number_of_fields <<")";
+        exit(0);
      };
      boost::split(strs,grab_line_info,boost::is_any_of(","));
      for (size_t k=0; k<strs.size(); k++) {
