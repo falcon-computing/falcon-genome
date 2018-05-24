@@ -93,7 +93,7 @@ int align_main(int argc, char** argv,
   unsigned long long available = (diskData.f_bavail * diskData.f_frsize);
   DLOG(INFO) << available;
 
-  for (auto it : SampleData) {
+  for (auto pair : SampleData) {
     std::string sample_id = pair.first;
     std::vector<SampleDetails> list = pair.second;
     for (int i = 0; i < list.size(); ++i) {
