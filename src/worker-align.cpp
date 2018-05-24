@@ -64,7 +64,7 @@ int align_main(int argc, char** argv,
   SampleSheet MySheet(sampleList, SampleData);
   std::vector<SampleDetails> SampleInfoVect;
   if (sampleList.empty()){
-     MySheet.sampleList="Unique";     
+     MySheet.fname="Unique";
      SampleDetails SampleInfo;
      SampleInfo.fastqR1 = fq1_path;
      SampleInfo.fastqR2 = fq2_path;
