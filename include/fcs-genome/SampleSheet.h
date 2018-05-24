@@ -3,8 +3,8 @@
 
 #include <boost/algorithm/string.hpp>
 #include <dirent.h>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <map>
 #include <sstream>
 #include <stdio.h>
@@ -26,9 +26,9 @@ struct SampleDetails {
 typedef std::map<std::string, std::vector<SampleDetails> > SampleSheetMap;
 
 class SampleSheet {
- public:  
+ public:
     SampleSheet(std::string path);
-    SampleSheetMap get(); 
+    SampleSheetMap get();
  private:
     void extractDataFromFile(std::string);
     void extractDataFromFolder(std::string);

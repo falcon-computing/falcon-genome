@@ -1,27 +1,21 @@
-
-#include "SampleSheet3.h"
-
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
-
-#include <sys/stat.h>
-
-#include <stdexcept>
-
-
-#include <stdlib.h>
 #include <dirent.h>
-#include <iostream>
-#include <string.h>
-#include <sstream>
 #include <fstream>
-#include <stdio.h>
-#include <vector>
+#include <glog/logging.h>
+#include <iostream>
 #include <map>
 #include <regex>
-#include <glog/logging.h>
+#include <stdexcept>
+#include <stdlib.h>
+#include <sstream>
+#include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <vector>
 
+#include "SampleSheet3.h"
 
 namespace fcsgenome {
 
@@ -88,7 +82,7 @@ void SampleSheet::extractDataFromFile(std::string fname) {
      if (check_fields != number_of_fields+1) {
 	LOG(ERROR) << "Number of Fields in Data (" << check_fields 
                    << ") != Number of Fields in Header (" << number_of_fields <<")";
-        throw std::runtime_error("Check PATH : " + fname + " :  Number of Fields is inconsistent"); 
+        throw std::runtime_error("Check PATH : " + fname + " :  Number of Fields in Data Block is inconsistent with that of in Header"); 
      };
      boost::split(strs,grab_line_info,boost::is_any_of(","));
      for (size_t k=0; k<strs.size(); k++) {
