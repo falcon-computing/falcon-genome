@@ -60,6 +60,9 @@ int align_main(int argc, char** argv,
   std::vector<std::string> extra_opts =
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
+  // finalize argument parsing
+  po::notify(cmd_vm);
+
   SampleSheetMap SampleData;
   SampleSheet my_sheet(sampleList);
   std::vector<SampleDetails> SampleInfoVect;
@@ -75,9 +78,6 @@ int align_main(int argc, char** argv,
   }else{
      SampleData=my_sheet.get();
   };
-
-  // finalize argument parsing
-  po::notify(cmd_vm);
 
   // start execution
   std::string parts_dir;
