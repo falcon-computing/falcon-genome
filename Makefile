@@ -60,6 +60,7 @@ CFLAGS	 := $(CFLAGS) -DVERSION=\"$(GIT_VERSION)\"
 OBJS	 := $(SRC_DIR)/common.o \
 	    $(SRC_DIR)/config.o \
 	    $(SRC_DIR)/Executor.o \
+            ${SRC_DIR}/SampleSheet.o \
 	    $(SRC_DIR)/worker-align.o \
 	    $(SRC_DIR)/worker-bqsr.o \
 	    $(SRC_DIR)/worker-concat.o \

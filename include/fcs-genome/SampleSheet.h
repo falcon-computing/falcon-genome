@@ -2,16 +2,16 @@
 #define FCSGENOME_SAMPLESHEET_H
 
 #include <boost/algorithm/string.hpp>
-#include <sys/stat.h>
-#include <stdlib.h>
 #include <dirent.h>
 #include <iostream>
-#include <string.h>
-#include <sstream>
 #include <fstream>
-#include <stdio.h>
-#include <vector>
 #include <map>
+#include <sstream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <vector>
 
 namespace fcsgenome {
 
@@ -23,20 +23,19 @@ struct SampleDetails {
   std::string LibraryID;
 };
 
-using SampleSheetMap = std::map<std::string, std::vector<SampleDetails> >;
+typedef std::map<std::string, std::vector<SampleDetails> > SampleSheetMap;
 
 class SampleSheet {
- public:
-    std::string fname;
-    SampleSheetMap SampleData;
-    SampleSheet(std::string, SampleSheetMap);
-    void getSampleSheet();
+ public:  
+    SampleSheet(std::string path);
+    SampleSheetMap get(); 
  private:
-    void ExtractDataFromFile(std::string, SampleSheetMap &);
-    void ExtractDataFromFolder(std::string, SampleSheetMap &);
-    std::map<int, std::string> Header;
+    void extractDataFromFile(std::string);
+    void extractDataFromFolder(std::string);
+    std::map<int, std::string> header_;
+    SampleSheetMap data_;
 };
 
-};
+} // namespace fcsgenome
 
 #endif
