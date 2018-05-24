@@ -1,29 +1,41 @@
-
-#include "fcs-genome/SampleSheet.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
-
-#include <sys/stat.h>
-#include <stdlib.h>
 #include <dirent.h>
-#include <iostream>
-#include <string.h>
-#include <sstream>
 #include <fstream>
-#include <stdio.h>
-#include <vector>
+#include <glog/logging.h>
+#include <iostream>
 #include <map>
 #include <regex>
-#include <glog/logging.h>
+#include <stdexcept>
+#include <stdlib.h>
+#include <sstream>
+#include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <vector>
 
+#include "SampleSheet3.h"
 
 namespace fcsgenome {
 
-using SampleSheetMap = std::map<std::string, std::vector<SampleDetails> >;
-SampleSheet::SampleSheet(std::string a, SampleSheetMap MySheet){fname=a; SampleData=MySheet;}
+SampleSheet::SampleSheet(std::string path){
+  DLOG(INFO) << "Initializing SampleSheet Class for " << path;
+  DLOG(INFO) << "Sample Sheet PATH : " << path;
+  if (boost::filesystem::exists(path)){
+    if (boost::filesystem::is_directory(path)){
+      extractDataFromFolder(path);
+    } else {
+      extractDataFromFile(path);
+    } 
 
-void SampleSheet::ExtractDataFromFile(std::string fname, SampleSheetMap &SampleData) {
+  } else {
+      LOG(ERROR) << "Input " << path  <<  " is neither a file nor directory";
+      throw std::runtime_error("INVALID PATH");
+  } 
+}
+
+void SampleSheet::extractDataFromFile(std::string fname) {
   std::ifstream file(fname.c_str());
   std::string value;
   getline(file,value);
@@ -31,7 +43,7 @@ void SampleSheet::ExtractDataFromFile(std::string fname, SampleSheetMap &SampleD
   LOG(INFO) << "HEADER: \t" << header;
   if (header.find('#')!=0){
      LOG(ERROR) << "Sample Sheet "<< fname.c_str() << " has problems\n";
-     exit(0);
+     throw std::runtime_error("Check PATH : " + fname + " Maybe it is empty or has format issues");
   };
 
   int number_of_fields=count(header.begin(),header.end(),',');
@@ -47,12 +59,12 @@ void SampleSheet::ExtractDataFromFile(std::string fname, SampleSheetMap &SampleD
   std::vector<std::string> strs;
   boost::split(strs,header,boost::is_any_of(","));
   for (size_t i = 0; i < strs.size(); i++){
-    if (std::regex_match (strs[i],regex_sample_id)) Header[i]="sample_id";
-    if (std::regex_match (strs[i],regex_fastq1)) Header[i]="fastq1";
-    if (std::regex_match (strs[i],regex_fastq2)) Header[i]="fastq2";
-    if (std::regex_match (strs[i],regex_rg)) Header[i]="rg";
-    if (std::regex_match (strs[i],regex_platform_id)) Header[i]="platform_id";
-    if (std::regex_match (strs[i],regex_library_id)) Header[i]="library_id";
+    if (std::regex_match (strs[i],regex_sample_id)) header_[i]="sample_id";    
+    if (std::regex_match (strs[i],regex_fastq1)) header_[i]="fastq1";
+    if (std::regex_match (strs[i],regex_fastq2)) header_[i]="fastq2";
+    if (std::regex_match (strs[i],regex_rg)) header_[i]="rg";
+    if (std::regex_match (strs[i],regex_platform_id)) header_[i]="platform_id";
+    if (std::regex_match (strs[i],regex_library_id)) header_[i]="library_id";
   }
   if (number_of_fields == strs.size()) {
     LOG(INFO) << "Number of Fields in Sample Sheet :" << number_of_fields+1;
@@ -62,24 +74,24 @@ void SampleSheet::ExtractDataFromFile(std::string fname, SampleSheetMap &SampleD
   std::vector<SampleDetails> sampleInfoVect;
   std::string sampleName, read1, read2, rg, platform, library_id;
   SampleDetails sampleInfo;
-
+  
   int check_fields;
   std::string grab_line_info;
   while (getline(file,grab_line_info)) {
      check_fields = count(grab_line_info.begin(),grab_line_info.end(),',')+1;
      if (check_fields != number_of_fields+1) {
-	      LOG(ERROR) << "Number of Fields in Data (" << check_fields
+	LOG(ERROR) << "Number of Fields in Data (" << check_fields 
                    << ") != Number of Fields in Header (" << number_of_fields <<")";
-        exit(0);
+        throw std::runtime_error("Check PATH : " + fname + " :  Number of Fields in Data Block is inconsistent with that of in Header"); 
      };
      boost::split(strs,grab_line_info,boost::is_any_of(","));
      for (size_t k=0; k<strs.size(); k++) {
-       if (Header[k] == "sample_id") sampleName=strs[k];
-       if (Header[k] == "fastq1") sampleInfo.fastqR1=strs[k];
-       if (Header[k] == "fastq2") sampleInfo.fastqR2=strs[k];
-       if (Header[k] == "rg") sampleInfo.ReadGroup=strs[k];
-       if (Header[k] == "platform_id") sampleInfo.Platform=strs[k];
-       if (Header[k] == "library_id") sampleInfo.LibraryID=strs[k];
+       if (header_[k] == "sample_id") sampleName=strs[k];
+       if (header_[k] == "fastq1") sampleInfo.fastqR1=strs[k];
+       if (header_[k] == "fastq2") sampleInfo.fastqR2=strs[k];
+       if (header_[k] == "rg") sampleInfo.ReadGroup=strs[k];
+       if (header_[k] == "platform_id") sampleInfo.Platform=strs[k];
+       if (header_[k] == "library_id") sampleInfo.LibraryID=strs[k];
      }
      strs.clear();
 
@@ -88,19 +100,19 @@ void SampleSheet::ExtractDataFromFile(std::string fname, SampleSheetMap &SampleD
      	       << sampleInfo.Platform << "\t" << sampleInfo.LibraryID;
 
      // Populating the Map SampleData:
-     if (SampleData.find(sampleName) == SampleData.end()) {
+     if (data_.find(sampleName) == data_.end()) {
      	 sampleInfoVect.push_back(sampleInfo);
-         SampleData.insert(make_pair(sampleName, sampleInfoVect));
+         data_.insert(make_pair(sampleName, sampleInfoVect));
      } else {
-     	 SampleData[sampleName].push_back(sampleInfo);
+     	 data_[sampleName].push_back(sampleInfo);
      }
      sampleInfoVect.clear();
   };
-
+  
   file.close();
 };
-
-void SampleSheet::ExtractDataFromFolder(std::string fname, SampleSheetMap &SampleData){
+ 
+void SampleSheet::extractDataFromFolder(std::string fname){
    LOG(INFO) << "Folder Path : " << fname.c_str();
    DIR *target_dir;
    struct dirent *dir;
@@ -118,80 +130,71 @@ void SampleSheet::ExtractDataFromFolder(std::string fname, SampleSheetMap &Sampl
       };
       if (temp_vector.size() == 0) {
           LOG(ERROR) << "Folder " << fname.c_str() << "does not contain any FASTQ files";
-          exit(0);
+          throw std::runtime_error("Check PATH : " + fname + " . Folder maybe empty or no FASTQ files");
       }
       closedir(target_dir);
    } else {
-      LOG(ERROR) << "Folder " <<  fname.c_str()  << "does not exist"; exit(0);
+      LOG(ERROR) << "Folder " <<  fname.c_str()  << "does not exist";
+      throw std::runtime_error("Check PATH : " + fname + " . Folder does not exist");
    };
-
+ 
    std::vector<SampleDetails> sampleInfoVect;
    std::string sampleName, read1, read2, rg, platform, library_id;
    platform="Illumina";
    SampleDetails sampleInfo;
-
-   std::string target="1.fastq.gz";
-   std::string task="2.fastq.gz";
-   std::string delimiter="_";
-   std::string new_delimiter=" ";
+ 
+   std::string target = "1.fastq.gz";
+   std::string task = "2.fastq.gz";
+   std::string delimiter = "_";
+   std::string new_delimiter = " ";
    std::string temp_id, sample_id;
    for (std::vector<std::string>::iterator it = temp_vector.begin(); it != temp_vector.end(); ++it ){
-       read1=*it;
-       read2=read1;
-       temp_id=read1;
+       read1 = *it;
+       read2 = read1;
+       temp_id = read1;
        size_t found = read2.find(target);
        read2.replace(read2.find(target),read2.length(),task);
-
+    
        found = temp_id.find(delimiter);
        temp_id.replace(temp_id.find(delimiter), temp_id.length(), new_delimiter);
        std::vector<std::string> strs;
        boost::split(strs,temp_id,boost::is_any_of(" "));
-       sampleName=strs[0];
+       sampleName = strs[0];
        strs.clear();
-
+  
       // Populating the Structure:
-      sampleInfo.fastqR1=read1;
-      sampleInfo.fastqR2=read2;
-      sampleInfo.ReadGroup="RG";
-      sampleInfo.Platform="Illumina";
-      sampleInfo.LibraryID="LIB";
-
+      sampleInfo.fastqR1 = read1;
+      sampleInfo.fastqR2 = read2;
+      sampleInfo.ReadGroup = "RG";
+      sampleInfo.Platform = "Illumina";
+      sampleInfo.LibraryID = "LIB";
+  
       int index=0;
       char number[3];
-      if (SampleData.find(sampleName) == SampleData.end()){
-	       sprintf(number,"%02d",index);
- 	       rg="RG-"+sampleName+"_"+number;
-         library_id="LIB"+sampleName+"_"+number;
-         sampleInfo.ReadGroup=rg+number;
-         sampleInfo.LibraryID=library_id;
+      if (data_.find(sampleName) == data_.end()){
+	 sprintf(number,"%02d",index);
+ 	 rg = "RG-"+sampleName+"_"+number;
+         library_id = "LIB"+sampleName+"_"+number;
+         sampleInfo.ReadGroup = rg+number;
+         sampleInfo.LibraryID = library_id;
          sampleInfoVect.push_back(sampleInfo);
-         SampleData.insert(make_pair(sampleName, sampleInfoVect));
+         data_.insert(make_pair(sampleName, sampleInfoVect));
       } else {
-         index=index+1;
- 	       sprintf(number,"%02d",index);
-         rg="RG-"+sampleName+"_"+number;
-         library_id="LIB"+sampleName+"_"+number;
-         sampleInfo.ReadGroup=rg+number;
-         sampleInfo.LibraryID=library_id;
-         SampleData[sampleName].push_back(sampleInfo);
+         index = index+1;
+ 	 sprintf(number,"%02d",index);
+         rg = "RG-"+sampleName+"_"+number;
+         library_id = "LIB"+sampleName+"_"+number;
+         sampleInfo.ReadGroup = rg+number;
+         sampleInfo.LibraryID = library_id;
+         data_[sampleName].push_back(sampleInfo);
       }
       sampleInfoVect.clear();
-  };
-
-};
-
-void SampleSheet::getSampleSheet(){
-   LOG(INFO) << "Initializing SampleSheet Class for " << fname.c_str();
-   LOG(INFO) << "Sample Sheet PATH : " << fname.c_str();
-   if(SampleData.empty()) LOG(INFO) << "Initializing Map associated to " << fname.c_str();
-   if (boost::filesystem::exists(fname.c_str())){
-       if (boost::filesystem::is_directory(fname.c_str())){
-           ExtractDataFromFolder(fname, SampleData);
-       }else{
-           ExtractDataFromFile(fname, SampleData);
-       }else{
-           LOG(ERROR) << "Input " << fname.c_str()  <<  " is neither a file nor directory";
-       }
    };
- };
+ 
 };
+   
+SampleSheetMap SampleSheet::get(){    
+  return data_;
+};
+
+} // namespace fcsgenome
