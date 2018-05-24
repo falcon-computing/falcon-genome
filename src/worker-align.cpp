@@ -94,7 +94,9 @@ int align_main(int argc, char** argv,
   unsigned long long available = (diskData.f_bavail * diskData.f_frsize);
   DLOG(INFO) << available;
 
-  for (auto it : MySheet.SampleData) {
+  std::map<std::string,std::vector<SampleDetails> >::iterator it = MySheet.SampleData.begin();
+  while(it != MySheet.SampleData.end()){
+  //for (auto it : MySheet.SampleData) {
     for (int i = 0; i < it->second.size(); ++i) {
         sample_id = it->first;
         fq1_path = it->second[i].fastqR1;
@@ -165,7 +167,6 @@ int align_main(int argc, char** argv,
         executor.addTask(worker);
         executor.run();
     };
-
     if (!flag_align_only) {
         Executor executor("Mark Duplicates");
         Worker_ptr worker(new MarkdupWorker(parts_dir, output_path, flag_f));
@@ -176,6 +177,7 @@ int align_main(int argc, char** argv,
         remove_path(parts_dir);
         DLOG(INFO) << "Removing temp file in '" << parts_dir << "'";
     }
+    it++;
   };
   return 0;
 }
