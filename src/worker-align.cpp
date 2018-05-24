@@ -50,41 +50,31 @@ int align_main(int argc, char** argv,
 
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string sampleList  = get_argument<std::string>(cmd_vm, "sample_sheet", "F");
-
-  map<string,vector<subject> > SampleData;
-  vector<subject> SampleInfoVect;
-  if (sampleList.empty()){
-     std::string fq1_path    = get_argument<std::string>(cmd_vm, "fastq1", "1");
-     std::string fq2_path    = get_argument<std::string>(cmd_vm, "fastq2", "2");
-     std::string read_group  = get_argument<std::string>(cmd_vm, "rg", "R");
-     std::string sample_id   = get_argument<std::string>(cmd_vm, "sp", "S");
-     std::string platform_id = get_argument<std::string>(cmd_vm, "pl", "P");
-     std::string library_id  = get_argument<std::string>(cmd_vm, "lb", "L");
-
-     subject SampleInfo;
-     SampleInfo.fastqR1=fq1_path;
-     SampleInfo.fastqR2=fq2_path;
-     SampleInfo.ReadGroup=read_group;
-     SampleInfo.Platform=platform_id;
-     SampleInfo.LibraryID=library_id;
-     SampleInfoVect.push_back(SampleInfo);
-     SampleData.insert(make_pair(sampleName, SampleInfoVect));
-  }else{
-     SampleSheet MySheet(sampleList);
-     if(MySheet.is_file()){
-        std::cout << MySheet.get_fname() << " is a file\n" << endl;
-        SampleData=MySheet.extract_data_from_file();
-     }else if(MySheet.is_dir()){
-        std::cout << MySheet.get_fname() << " is a folder \n" << endl;
-        SampleData=MySheet.extract_data_from_folder();
-     }else{
-        std::cout << MySheet.get_fname() << " is not a file or folder \n" << endl;
-        exit(0);
-     };
-  };
+  std::string fq1_path    = get_argument<std::string>(cmd_vm, "fastq1", "1");
+  std::string fq2_path    = get_argument<std::string>(cmd_vm, "fastq2", "2");
+  std::string read_group  = get_argument<std::string>(cmd_vm, "rg", "R");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sp", "S");
+  std::string platform_id = get_argument<std::string>(cmd_vm, "pl", "P");
+  std::string library_id  = get_argument<std::string>(cmd_vm, "lb", "L");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::vector<std::string> extra_opts =
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
+
+  SampleSheetMap SampleData;
+  SampleSheet MySheet(sampleList, SampleData);
+  std::vector<SampleDetails> SampleInfoVect;
+  if (sampleList.empty()){
+     SampleDetails SampleInfo;
+     SampleInfo.fastqR1 = fq1_path;
+     SampleInfo.fastqR2 = fq2_path;
+     SampleInfo.ReadGroup = read_group;
+     SampleInfo.Platform = platform_id;
+     SampleInfo.LibraryID = library_id;
+     SampleInfoVect.push_back(SampleInfo);
+     SampleData.insert(make_pair(sampleName, SampleInfoVect));
+  }else{
+     MySheet.getSampleSheet();
+  };
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -103,7 +93,7 @@ int align_main(int argc, char** argv,
   unsigned long long available = (diskData.f_bavail * diskData.f_frsize);
   DLOG(INFO) << available;
 
-  for (auto it : SampleData) {
+  for (auto it : MySheet.SampleData) {
     for (int i = 0; i < it->second.size(); ++i) {
         sample_id = it->first;
         fq1_path = it->second[i].fastqR1;
