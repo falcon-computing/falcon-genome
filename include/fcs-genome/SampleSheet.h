@@ -23,19 +23,18 @@ struct SampleDetails {
   std::string LibraryID;
 };
 
+using SampleSheetMap = std::map<std::string, std::vector<SampleDetails> >;
+
 class SampleSheet {
-  std::string fname;
-  private:
+ public:
+    std::string fname;
+    SampleSheetMap SampleData;
+    SampleSheet(std::string, SampleSheetMap);
+    void getSampleSheet();
+ private:
+    void ExtractDataFromFile(std::string, SampleSheetMap &);
+    void ExtractDataFromFolder(std::string, SampleSheetMap &);
     std::map<int, std::string> Header;
-    std::map<std::string, std::vector<SampleDetails> > SampleData;
-  public:
-    SampleSheet(std::string);
-    std::string get_fname();
-    int check_file();
-    bool is_file();
-    bool is_dir();
-    std::map<std::string, std::vector<SampleDetails> > extract_data_from_file();
-    std::map<std::string, std::vector<SampleDetails> > extract_data_from_folder();
 };
 
 };
