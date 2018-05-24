@@ -189,7 +189,9 @@ void SampleSheet::getSampleSheet(){
            ExtractDataFromFolder(fname, SampleData);
        }else{
            ExtractDataFromFile(fname, SampleData);
-       };
+       }else{
+           LOG(ERROR) << "Input " << fname.c_str()  <<  " is neither a file nor directory";
+       }
    };
  };
 };
