@@ -64,6 +64,7 @@ int align_main(int argc, char** argv,
   SampleSheet MySheet(sampleList, SampleData);
   std::vector<SampleDetails> SampleInfoVect;
   if (sampleList.empty()){
+     MySheet.sampleList="Unique";     
      SampleDetails SampleInfo;
      SampleInfo.fastqR1 = fq1_path;
      SampleInfo.fastqR2 = fq2_path;
@@ -71,7 +72,7 @@ int align_main(int argc, char** argv,
      SampleInfo.Platform = platform_id;
      SampleInfo.LibraryID = library_id;
      SampleInfoVect.push_back(SampleInfo);
-     SampleData.insert(make_pair(sampleName, SampleInfoVect));
+     MySheet.SampleData.insert(make_pair(sample_id, SampleInfoVect));
   }else{
      MySheet.getSampleSheet();
   };
