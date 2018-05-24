@@ -15,7 +15,7 @@
 #include <sys/stat.h>
 #include <vector>
 
-#include "SampleSheet3.h"
+#include "fcs-genome/SampleSheet.h"
 
 namespace fcsgenome {
 
@@ -27,12 +27,12 @@ SampleSheet::SampleSheet(std::string path){
       extractDataFromFolder(path);
     } else {
       extractDataFromFile(path);
-    } 
+    }
 
   } else {
       LOG(ERROR) << "Input " << path  <<  " is neither a file nor directory";
       throw std::runtime_error("INVALID PATH");
-  } 
+  }
 }
 
 void SampleSheet::extractDataFromFile(std::string fname) {
@@ -59,7 +59,7 @@ void SampleSheet::extractDataFromFile(std::string fname) {
   std::vector<std::string> strs;
   boost::split(strs,header,boost::is_any_of(","));
   for (size_t i = 0; i < strs.size(); i++){
-    if (std::regex_match (strs[i],regex_sample_id)) header_[i]="sample_id";    
+    if (std::regex_match (strs[i],regex_sample_id)) header_[i]="sample_id";
     if (std::regex_match (strs[i],regex_fastq1)) header_[i]="fastq1";
     if (std::regex_match (strs[i],regex_fastq2)) header_[i]="fastq2";
     if (std::regex_match (strs[i],regex_rg)) header_[i]="rg";
@@ -74,15 +74,15 @@ void SampleSheet::extractDataFromFile(std::string fname) {
   std::vector<SampleDetails> sampleInfoVect;
   std::string sampleName, read1, read2, rg, platform, library_id;
   SampleDetails sampleInfo;
-  
+
   int check_fields;
   std::string grab_line_info;
   while (getline(file,grab_line_info)) {
      check_fields = count(grab_line_info.begin(),grab_line_info.end(),',')+1;
      if (check_fields != number_of_fields+1) {
-	LOG(ERROR) << "Number of Fields in Data (" << check_fields 
+	LOG(ERROR) << "Number of Fields in Data (" << check_fields
                    << ") != Number of Fields in Header (" << number_of_fields <<")";
-        throw std::runtime_error("Check PATH : " + fname + " :  Number of Fields in Data Block is inconsistent with that of in Header"); 
+        throw std::runtime_error("Check PATH : " + fname + " :  Number of Fields in Data Block is inconsistent with that of in Header");
      };
      boost::split(strs,grab_line_info,boost::is_any_of(","));
      for (size_t k=0; k<strs.size(); k++) {
@@ -95,8 +95,8 @@ void SampleSheet::extractDataFromFile(std::string fname) {
      }
      strs.clear();
 
-     LOG(INFO) << "ORG:\t" << sampleName <<"\t" << sampleInfo.fastqR1 << "\t"
-     	       << sampleInfo.fastqR2 << "\t" << sampleInfo.ReadGroup << "\t"
+     DLOG(INFO) << "ORG:\t" << sampleName <<"\t" << sampleInfo.fastqR1 << "\t"
+      	       << sampleInfo.fastqR2 << "\t" << sampleInfo.ReadGroup << "\t"
      	       << sampleInfo.Platform << "\t" << sampleInfo.LibraryID;
 
      // Populating the Map SampleData:
@@ -108,10 +108,15 @@ void SampleSheet::extractDataFromFile(std::string fname) {
      }
      sampleInfoVect.clear();
   };
-  
+
+  if(data_.empty()){
+     DLOG(ERROR) << "Map data_ for " + fname + " was not populated" ;
+     throw std::runtime_error("Check MAP data_ for " + fname);
+  }
+
   file.close();
 };
- 
+
 void SampleSheet::extractDataFromFolder(std::string fname){
    LOG(INFO) << "Folder Path : " << fname.c_str();
    DIR *target_dir;
@@ -137,12 +142,12 @@ void SampleSheet::extractDataFromFolder(std::string fname){
       LOG(ERROR) << "Folder " <<  fname.c_str()  << "does not exist";
       throw std::runtime_error("Check PATH : " + fname + " . Folder does not exist");
    };
- 
+
    std::vector<SampleDetails> sampleInfoVect;
    std::string sampleName, read1, read2, rg, platform, library_id;
    platform="Illumina";
    SampleDetails sampleInfo;
- 
+
    std::string target = "1.fastq.gz";
    std::string task = "2.fastq.gz";
    std::string delimiter = "_";
@@ -154,21 +159,21 @@ void SampleSheet::extractDataFromFolder(std::string fname){
        temp_id = read1;
        size_t found = read2.find(target);
        read2.replace(read2.find(target),read2.length(),task);
-    
+
        found = temp_id.find(delimiter);
        temp_id.replace(temp_id.find(delimiter), temp_id.length(), new_delimiter);
        std::vector<std::string> strs;
        boost::split(strs,temp_id,boost::is_any_of(" "));
        sampleName = strs[0];
        strs.clear();
-  
+
       // Populating the Structure:
       sampleInfo.fastqR1 = read1;
       sampleInfo.fastqR2 = read2;
       sampleInfo.ReadGroup = "RG";
       sampleInfo.Platform = "Illumina";
       sampleInfo.LibraryID = "LIB";
-  
+
       int index=0;
       char number[3];
       if (data_.find(sampleName) == data_.end()){
@@ -190,11 +195,20 @@ void SampleSheet::extractDataFromFolder(std::string fname){
       }
       sampleInfoVect.clear();
    };
- 
+
+   if(data_.empty()){
+     DLOG(ERROR)<< "Map data_ for " + fname + " was not populated" ;
+     throw std::runtime_error("Check MAP data_ for " + fname);
+   }
 };
-   
-SampleSheetMap SampleSheet::get(){    
-  return data_;
+
+SampleSheetMap SampleSheet::get(){
+  try {
+    return data_;
+  } catch (const char *msg ) {
+    std::cerr << msg << std::endl;
+  };
+
 };
 
 } // namespace fcsgenome

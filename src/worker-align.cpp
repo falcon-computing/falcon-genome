@@ -61,10 +61,9 @@ int align_main(int argc, char** argv,
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   SampleSheetMap SampleData;
-  SampleSheet MySheet(sampleList, SampleData);
+  SampleSheet my_sheet(sampleList);
   std::vector<SampleDetails> SampleInfoVect;
   if (sampleList.empty()){
-     MySheet.fname="Unique";
      SampleDetails SampleInfo;
      SampleInfo.fastqR1 = fq1_path;
      SampleInfo.fastqR2 = fq2_path;
@@ -72,9 +71,9 @@ int align_main(int argc, char** argv,
      SampleInfo.Platform = platform_id;
      SampleInfo.LibraryID = library_id;
      SampleInfoVect.push_back(SampleInfo);
-     MySheet.SampleData.insert(make_pair(sample_id, SampleInfoVect));
+     SampleData.insert(make_pair(sample_id, SampleInfoVect));
   }else{
-     MySheet.getSampleSheet();
+     SampleData=my_sheet.get();
   };
 
   // finalize argument parsing
@@ -94,16 +93,15 @@ int align_main(int argc, char** argv,
   unsigned long long available = (diskData.f_bavail * diskData.f_frsize);
   DLOG(INFO) << available;
 
-  std::map<std::string,std::vector<SampleDetails> >::iterator it = MySheet.SampleData.begin();
-  while(it != MySheet.SampleData.end()){
-  //for (auto it : MySheet.SampleData) {
-    for (int i = 0; i < it->second.size(); ++i) {
-        sample_id = it->first;
-        fq1_path = it->second[i].fastqR1;
-        fq2_path = it->second[i].fastqR2;
-        read_group = it->second[i].ReadGroup;
-        platform_id = it->second[i].Platform;
-        library_id = it->second[i].LibraryID;
+  for (auto it : SampleData) {
+    std::string sample_id = pair.first;
+    std::vector<SampleDetails> list = pair.second;
+    for (int i = 0; i < list.size(); ++i) {
+        fq1_path = list[i].fastqR1;
+        fq2_path = list[i].fastqR2;
+        read_group = list[i].ReadGroup;
+        platform_id = list[i].Platform;
+        library_id = list[i].LibraryID;
 
         // check space occupied by fastq files
         size_t size_fastq = 0;
@@ -177,7 +175,6 @@ int align_main(int argc, char** argv,
         remove_path(parts_dir);
         DLOG(INFO) << "Removing temp file in '" << parts_dir << "'";
     }
-    it++;
   };
   return 0;
 }
