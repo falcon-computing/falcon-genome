@@ -29,6 +29,7 @@ int mutect2_main(int argc, char** argv,
     ("output,o", po::value<std::string>()->required(), "output VCF file")
     ("dbsnp,d", po::value<std::vector<std::string> >(), "list of dbsnp files for Mutect2")
     ("cosmic,c", po::value<std::vector<std::string> >(), "list of cosmic files for Mutect2")
+    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
     ("skip-concat,s", "produce a set of VCF files instead of one");
     
   // Parse arguments
@@ -52,6 +53,7 @@ int mutect2_main(int argc, char** argv,
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::vector<std::string> dbsnp_path = get_argument<std::vector<std::string> >(cmd_vm, "dbsnp", "d", std::vector<std::string>());
   std::vector<std::string> cosmic_path = get_argument<std::vector<std::string> >(cmd_vm, "cosmic","c", std::vector<std::string>());
+  std::vector<std::string> intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O"); 
 
   // finalize argument parsing
@@ -101,6 +103,7 @@ int mutect2_main(int argc, char** argv,
           extra_opts,
           dbsnp_path,
           cosmic_path,
+          intv_list,
           contig,
           flag_mutect2_f));
     output_files[contig] = output_file;

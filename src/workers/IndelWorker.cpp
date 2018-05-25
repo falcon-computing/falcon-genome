@@ -66,13 +66,15 @@ IndelWorker::IndelWorker(std::string ref_path,
       std::string target_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
+      std::vector<std::string> &intv_list,
       bool &flag_f): 
   Worker(1, 1, extra_opts),
   ref_path_(ref_path),
   known_indels_(known_indels),
   intv_path_(intv_path),
   input_path_(input_path),
-  target_path_(target_path)
+  target_path_(target_path),
+  intv_list_(intv_list)
 {
   output_path_ = check_output(output_path, flag_f);
 }
@@ -103,6 +105,13 @@ void IndelWorker::setup() {
       << "--disable_auto_index_creation_and_locking_when_reading_rods "
       << "-o " << output_path_ << " ";
 
+  for (int i = 0; i < intv_list_.size(); i++) {
+    cmd << "-L " << intv_list_[i] << " ";
+  }
+  if (intv_list_.size() > 0 ) {
+    cmd << "-isr INTERSECTION ";
+  }
+  
   for (int i = 0; i < known_indels_.size(); i++) {
     cmd << "-known " << known_indels_[i] << " ";
   }
