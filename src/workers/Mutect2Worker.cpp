@@ -16,6 +16,7 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
       std::vector<std::string> extra_opts,
       std::vector<std::string> &dbsnp_path,
       std::vector<std::string> &cosmic_path,
+      std::vector<std::string> &intv_list,
       int  contig,
       bool &flag_f): Worker(1, get_config<int>("gatk.mutect2.nct", "gatk.nct"), extra_opts),
   ref_path_(ref_path),
@@ -23,7 +24,8 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
   normal_path_(normal_path),
   tumor_path_(tumor_path),
   dbsnp_path_(dbsnp_path),
-  cosmic_path_(cosmic_path)
+  cosmic_path_(cosmic_path),
+  intv_list_(intv_list)
 {
   // check input/output files
   output_path_ = check_output(output_path, flag_f);
@@ -78,6 +80,12 @@ void Mutect2Worker::setup() {
   }
   for (int j = 0; j < cosmic_path_.size(); j++) {
       cmd << "--cosmic " << cosmic_path_[j] << " ";
+  }
+  for (int i = 0; i < intv_list_.size(); i++) {
+    cmd << "-L " << intv_list_[i] << " ";
+  }
+  if (intv_list_.size() > 0 ) {
+    cmd << "-isr INTERSECTION ";
   }
 
   cmd_ = cmd.str();
