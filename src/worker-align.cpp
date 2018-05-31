@@ -29,7 +29,7 @@ int align_main(int argc, char** argv,
     ("output,o", po::value<std::string>()->required(), "output BAM file (if --align-only is set "
                                 "the output will be a directory of BAM "
                                 "files)")
-    arg_decl_string_w_def("sample_sheet,F", "",  "Sample Sheet or Folder")                            
+    arg_decl_string("sample_sheet,F", "Sample Sheet or Folder")
     arg_decl_string_w_def("rg,R", "sample",   "read group id ('ID' in BAM header)")
     arg_decl_string_w_def("sp,S", "sample",   "sample id ('SM' in BAM header)")
     arg_decl_string_w_def("pl,P", "illumina", "platform id ('PL' in BAM header)")
