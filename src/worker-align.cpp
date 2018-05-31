@@ -60,22 +60,22 @@ int align_main(int argc, char** argv,
   std::vector<std::string> extra_opts =
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
-  if (fq1_path.empty() && fq2_path.empty() && sampleList.empty() ) {
-     throw std::runtime_error("FASTQ filenames and Sample Sheet cannot be undefined at the same time");
+  if (fq1_path.empty()) {
+     if (fq2_path.empty() && sampleList.empty()) {
+         throw std::runtime_error("FASTQ filenames and Sample Sheet cannot be undefined at the same time");
+     }
+     if (!fq2_path.empty() && sampleList.empty()) {
+         throw std::runtime_error("FASTQ filename R1 not defined and R2 defined");
+     }
+  } else {
+     if (fq2_path.empty() && sampleList.empty()) {
+         throw std::runtime_error("FASTQ filename R1 defined and R2 undefined");
+     }
+     if (!fq2_path.empty() && !sampleList.empty()) {
+         throw std::runtime_error("FASTQ filenames and Sample Sheet cannot be defined at the same time");
+     }
   };
 
-  if (!fq1_path.empty() && !fq2_path.empty() && !sampleList.empty() ) {
-     throw std::runtime_error("FASTQ filenames and Sample Sheet cannot be defined at the same time");
-  };
-
-  if (fq1_path.empty() && !fq2_path.empty() && sampleList.empty() ) {
-     throw std::runtime_error("FASTQ filename for Read 1 undefined");
-  };
-
-  if (!fq1_path.empty() && fq2_path.empty() && sampleList.empty() ) {
-     throw std::runtime_error("FASTQ filename for Read 2 undefined");
-  };
-  
   // finalize argument parsing
   po::notify(cmd_vm);
 
