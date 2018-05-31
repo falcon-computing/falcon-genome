@@ -60,6 +60,9 @@ int align_main(int argc, char** argv,
   std::vector<std::string> extra_opts =
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
+  // finalize argument parsing
+  po::notify(cmd_vm);
+
   if (fq1_path.empty()) {
      if (fq2_path.empty() && sampleList.empty()) {
          throw std::runtime_error("FASTQ filenames and Sample Sheet cannot be undefined at the same time");
@@ -77,7 +80,7 @@ int align_main(int argc, char** argv,
   };
 
   // finalize argument parsing
-  po::notify(cmd_vm);
+  //po::notify(cmd_vm);
 
   SampleSheetMap SampleData;
   std::vector<SampleDetails> SampleInfoVect;
