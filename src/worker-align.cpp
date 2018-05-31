@@ -24,40 +24,21 @@ int align_main(int argc, char** argv,
 
   opt_desc.add_options()
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
+    ("fastq1,1", po::value<std::string>()->required(), "input pair-end fastq file")
+    ("fastq2,2", po::value<std::string>()->required(), "input pair-end fastq file")
     ("output,o", po::value<std::string>()->required(), "output BAM file (if --align-only is set "
                                 "the output will be a directory of BAM "
                                 "files)")
-    arg_decl_string("sample_sheet,F", "Sample Sheet or Folder");
+    arg_decl_string("sample_sheet,F", "Sample Sheet or Folder")
+    arg_decl_string_w_def("rg,R", "sample",   "read group id ('ID' in BAM header)")
+    arg_decl_string_w_def("sp,S", "sample",   "sample id ('SM' in BAM header)")
+    arg_decl_string_w_def("pl,P", "illumina", "platform id ('PL' in BAM header)")
+    arg_decl_string_w_def("lb,L", "sample",   "library id ('LB' in BAM header)")
+    ("align-only,l", "skip mark duplicates");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
       cmd_vm);
-
-  std::string sampleList  = get_argument<std::string>(cmd_vm, "sample_sheet", "F");
-  if (sampleList.empty()) {
-
-
-      opt_desc.add_options()
-        //("ref,r", po::value<std::string>()->required(), "reference genome path")
-        ("fastq1,1", po::value<std::string>()->required(), "input pair-end fastq file")
-        ("fastq2,2", po::value<std::string>()->required(), "input pair-end fastq file")
-        //("output,o", po::value<std::string>()->required(), "output BAM file (if --align-only is set "
-        //                            "the output will be a directory of BAM "
-        //                            "files)")
-        //arg_decl_string("sample_sheet,F", "Sample Sheet or Folder")
-        arg_decl_string_w_def("rg,R", "sample",   "read group id ('ID' in BAM header)")
-        arg_decl_string_w_def("sp,S", "sample",   "sample id ('SM' in BAM header)")
-        arg_decl_string_w_def("pl,P", "illumina", "platform id ('PL' in BAM header)")
-        arg_decl_string_w_def("lb,L", "sample",   "library id ('LB' in BAM header)")
-        ("align-only,l", "skip mark duplicates");
-
-
-  }
-
-  // Parse arguments
-  po::store(po::parse_command_line(argc, argv, opt_desc),
-      cmd_vm);
-
 
   if (cmd_vm.count("help")) {
     throw helpRequest();
@@ -68,7 +49,7 @@ int align_main(int argc, char** argv,
   bool flag_align_only = get_argument<bool>(cmd_vm, "align-only", "l");
 
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
-  //std::string sampleList  = get_argument<std::string>(cmd_vm, "sample_sheet", "F");
+  std::string sampleList  = get_argument<std::string>(cmd_vm, "sample_sheet", "F");
   std::string fq1_path    = get_argument<std::string>(cmd_vm, "fastq1", "1");
   std::string fq2_path    = get_argument<std::string>(cmd_vm, "fastq2", "2");
   std::string read_group  = get_argument<std::string>(cmd_vm, "rg", "R");
