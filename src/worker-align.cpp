@@ -27,7 +27,7 @@ int align_main(int argc, char** argv,
     ("output,o", po::value<std::string>()->required(), "output BAM file (if --align-only is set "
                                 "the output will be a directory of BAM "
                                 "files)")
-    arg_decl_string("sample_sheet,F", "Sample Sheet or Folder")
+    arg_decl_string("sample_sheet,F", "Sample Sheet or Folder");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
