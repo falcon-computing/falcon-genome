@@ -64,7 +64,6 @@ int align_main(int argc, char** argv,
   po::notify(cmd_vm);
 
   SampleSheetMap SampleData;
-  SampleSheet my_sheet(sampleList);
   std::vector<SampleDetails> SampleInfoVect;
   if (sampleList.empty()){
      SampleDetails SampleInfo;
@@ -76,6 +75,7 @@ int align_main(int argc, char** argv,
      SampleInfoVect.push_back(SampleInfo);
      SampleData.insert(make_pair(sample_id, SampleInfoVect));
   }else{
+     SampleSheet my_sheet(sampleList);
      SampleData=my_sheet.get();
   };
 
