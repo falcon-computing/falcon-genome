@@ -23,7 +23,7 @@ int align_main(int argc, char** argv,
   po::variables_map cmd_vm;
 
   opt_desc.add_options()
-    ("sample_sheet,F", po::value<std::string>()->required(), "Sample Sheet or Folder")
+    ("sample_sheet,F", po::value<std::string>()->default_value(""), "Sample Sheet or Folder")
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("fastq1,1", po::value<std::string>()->required(), "input pair-end fastq file")
     ("fastq2,2", po::value<std::string>()->required(), "input pair-end fastq file")

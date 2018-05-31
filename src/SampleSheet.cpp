@@ -168,8 +168,8 @@ void SampleSheet::extractDataFromFolder(std::string fname){
        strs.clear();
 
       // Populating the Structure:
-      sampleInfo.fastqR1 = read1;
-      sampleInfo.fastqR2 = read2;
+      sampleInfo.fastqR1 = fname + read1;
+      sampleInfo.fastqR2 = fname + read2;
       sampleInfo.ReadGroup = "RG";
       sampleInfo.Platform = "Illumina";
       sampleInfo.LibraryID = "LIB";
