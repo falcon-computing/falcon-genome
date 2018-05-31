@@ -23,13 +23,13 @@ int align_main(int argc, char** argv,
   po::variables_map cmd_vm;
 
   opt_desc.add_options()
-    ("sample_sheet,F", po::value<std::string>(), "Sample Sheet or Folder")
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("fastq1,1", po::value<std::string>()->required(), "input pair-end fastq file")
     ("fastq2,2", po::value<std::string>()->required(), "input pair-end fastq file")
     ("output,o", po::value<std::string>()->required(), "output BAM file (if --align-only is set "
                                 "the output will be a directory of BAM "
                                 "files)")
+    arg_decl_string_w_def("sample_sheet,F", "",  "Sample Sheet or Folder")                            
     arg_decl_string_w_def("rg,R", "sample",   "read group id ('ID' in BAM header)")
     arg_decl_string_w_def("sp,S", "sample",   "sample id ('SM' in BAM header)")
     arg_decl_string_w_def("pl,P", "illumina", "platform id ('PL' in BAM header)")
