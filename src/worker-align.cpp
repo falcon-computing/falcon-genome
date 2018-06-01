@@ -209,15 +209,13 @@ int align_main(int argc, char** argv,
         executor.run();
     };
     if (!flag_align_only) {
+        std:string temp = output_path;
+        if (!sampleList.empty()) output_path = output_path_temp;
         Executor executor("Mark Duplicates");
-        if (sampleList.empty()){
-           Worker_ptr worker(new MarkdupWorker(parts_dir, output_path, flag_f));
-        } else{
-           Worker_ptr worker(new MarkdupWorker(parts_dir, output_path_temp, flag_f));
-        }
+        Worker_ptr worker(new MarkdupWorker(parts_dir, output_path, flag_f));
         executor.addTask(worker);
         executor.run();
-
+        output_path = temp;
 
         // Remove parts_dir
         remove_path(parts_dir);
