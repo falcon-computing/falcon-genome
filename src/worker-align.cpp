@@ -65,25 +65,20 @@ int align_main(int argc, char** argv,
 
   if (fq1_path.empty()) {
      if (fq2_path.empty() && sampleList.empty()) {
-         throw std::runtime_error("FASTQ filenames and Sample Sheet
-         cannot be undefined at the same time. Set either FASTQ filenames (fastq1, fastq2) or Sample Sheet.");
+         throw std::runtime_error("FASTQ filenames and Sample Sheet cannot be undefined at the same time. Set either FASTQ filenames (fastq1, fastq2) or Sample Sheet.");
      }
      if (!fq2_path.empty() && sampleList.empty()) {
-         throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (undefined, defined).
-         Both fastq1 and fastq2 must be defined.");
+         throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (undefined, defined). Both fastq1 and fastq2 must be defined.");
      }
      if (!fq2_path.empty() && !sampleList.empty()) {
-         throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (undefined, defined) and
-         Sample Sheet defined. Set either FASTQ filenames or Sample Sheet");
+         throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (undefined, defined) and Sample Sheet defined. Set either FASTQ filenames or Sample Sheet");
      }
   } else {
      if (fq2_path.empty() && sampleList.empty()) {
-         throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (defined, undefined).
-         Both fastq1 and fastq2 must be defined.");
+         throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (defined, undefined). Both fastq1 and fastq2 must be defined.");
      }
      if (fq2_path.empty() && !sampleList.empty()) {
-         throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (defined, undefined)
-         and Sample Sheet defined. Set either FASTQ filenames or Sample Sheet");
+         throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (defined, undefined) and Sample Sheet defined. Set either FASTQ filenames or Sample Sheet");
      }
   };
 
