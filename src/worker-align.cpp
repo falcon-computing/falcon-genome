@@ -113,6 +113,7 @@ int align_main(int argc, char** argv,
   DLOG(INFO) << available;
 
   std::string output_path_temp;
+  std::string BAMfile;
   for (auto pair : SampleData) {
     std::string sample_id = pair.first;
     std::vector<SampleDetails> list = pair.second;
@@ -148,54 +149,72 @@ int align_main(int argc, char** argv,
             throw silentExit();
         }
 
-        if (flag_align_only) {
-           // Check if output in path already exists but is not a dir
+        if (list.size() >1) {
            if (boost::filesystem::exists(output_path) &&
               !boost::filesystem::is_directory(output_path)) {
-               throw fileNotFound("Output path '" +
-               output_path +
-               "' is not a directory");
+              throw fileNotFound("Output path '" +
+              output_path +
+              "' is not a directory");
            }
            parts_dir = output_path + "/" +
            sample_id + "/" +
            read_group;
-
            // workaround for output check
-           create_dir(output_path+"/"+sample_id);
-        }
-        else {
-           if (sampleList.empty()) {
-              // check output path before alignment
-              output_path = check_output(output_path, flag_f, true);
+           if (i == 0) {
+              create_dir(output_path + "/" + sample_id);
+              output_path_temp = output_path + "/" + sample_id + "/" + sample_id + ".bam";
+           }
 
-              // require output to be a file
-              parts_dir = temp_dir + "/" +
-              get_basename(output_path) + ".parts";
-           } else {
+        } else {
+
+           if (flag_align_only) {
               // Check if output in path already exists but is not a dir
               if (boost::filesystem::exists(output_path) &&
                  !boost::filesystem::is_directory(output_path)) {
-                  throw fileNotFound("Output path '" +
-                  output_path +
-                  "' is not a directory");
+                 throw fileNotFound("Output path '" +
+                 output_path +
+                 "' is not a directory");
               }
-              // require output to be a file
-              std::string sample_dir = output_path + "/" + sample_id;
-              if (!boost::filesystem::exists(sample_dir)){
-                  create_dir(sample_dir);
-              }
-              std::string BAMfile;
-              if (list.size() > 1){
-                 BAMfile = sample_dir + "/" + sample_id + "_" + read_group + ".bam";
-              } else {
-                 BAMfile = sample_dir + "/" + sample_id + ".bam";
-              }
-              parts_dir = temp_dir + "/" +
-              get_basename(BAMfile) + ".parts";
-              output_path_temp=BAMfile;
-           }
+              parts_dir = output_path + "/" +
+              sample_id + "/" +
+              read_group;
 
-        }
+              // workaround for output check
+              create_dir(output_path+"/"+sample_id);
+           }  else {
+              if (sampleList.empty()) {
+                 // check output path before alignment
+                 output_path = check_output(output_path, flag_f, true);
+
+                 // require output to be a file
+                 parts_dir = temp_dir + "/" +
+                 get_basename(output_path) + ".parts";
+              } else {
+                 // Check if output in path already exists but is not a dir
+                 if (boost::filesystem::exists(output_path) &&
+                    !boost::filesystem::is_directory(output_path)) {
+                    throw fileNotFound("Output path '" +
+                    output_path +
+                    "' is not a directory");
+                 }
+                 // require output to be a file
+                 std::string sample_dir = output_path + "/" + sample_id;
+                 if (!boost::filesystem::exists(sample_dir)) create_dir(sample_dir);
+
+                 BAMfile = sample_dir + "/" + sample_id + ".bam";;
+                 //if (list.size() > 1){
+                  //  BAMfile = sample_dir + "/" + sample_id + "_" + read_group + ".bam";
+                 //} else {
+                  //  BAMfile = sample_dir + "/" + sample_id + ".bam";
+                 //}
+
+                 parts_dir = temp_dir + "/" +
+                 get_basename(BAMfile) + ".parts";
+                 output_path_temp=BAMfile;
+              } // Check if sampleList is empty or not
+
+            } // Check if align-only was requested or not
+        } // Check if sample has more than one pair of FASTQ files
         DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
         Executor executor("bwa mem");
@@ -209,10 +228,12 @@ int align_main(int argc, char** argv,
 
         executor.addTask(worker);
         executor.run();
-    };
+
+    }; // end loop for list.size()
     if (!flag_align_only) {
         std::string temp = output_path;
         if (!sampleList.empty()) output_path = output_path_temp;
+        if (list.size() >1) parts_dir = temp + "/" + sample_id;
         Executor executor("Mark Duplicates");
         Worker_ptr worker(new MarkdupWorker(parts_dir, output_path, flag_f));
         executor.addTask(worker);
@@ -223,7 +244,7 @@ int align_main(int argc, char** argv,
         remove_path(parts_dir);
         DLOG(INFO) << "Removing temp file in '" << parts_dir << "'";
     }
-  };
+  }; // end loop for Index Map
   return 0;
 }
 } // namespace fcsgenome
