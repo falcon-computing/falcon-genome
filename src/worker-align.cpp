@@ -163,12 +163,34 @@ int align_main(int argc, char** argv,
            create_dir(output_path+"/"+sample_id);
         }
         else {
-           // check output path before alignment
-           output_path = check_output(output_path, flag_f, true);
+           if (sampleList.empty()) {
+              // check output path before alignment
+              output_path = check_output(output_path, flag_f, true);
 
-           // require output to be a file
-           parts_dir = temp_dir + "/" +
-           get_basename(output_path) + ".parts";
+              // require output to be a file
+              parts_dir = temp_dir + "/" +
+              get_basename(output_path) + ".parts";
+           } else {
+              // Check if output in path already exists but is not a dir
+              if (boost::filesystem::exists(output_path) &&
+                 !boost::filesystem::is_directory(output_path)) {
+                  throw fileNotFound("Output path '" +
+                  output_path +
+                  "' is not a directory");
+              }
+              // require output to be a file
+              std::string sample_dir = output_path + "/" + sample_id;
+              create_dir(sample_dir);
+              std::string BAMfile;
+              if (list.size() > 1){
+                 BAMfile = sample_dir + "/" + sample_id + "_" + read_group + ".bam";
+              } else {
+                 BAMfile = sample_dir + "/" + sample_id + ".bam";
+              }
+              parts_dir = temp_dir + "/" +
+              get_basename(BAMfile) + ".parts";
+           }
+
         }
         DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
