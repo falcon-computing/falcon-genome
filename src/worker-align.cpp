@@ -181,7 +181,9 @@ int align_main(int argc, char** argv,
               }
               // require output to be a file
               std::string sample_dir = output_path + "/" + sample_id;
-              create_dir(sample_dir);
+              if (!boost::filesystem::exists(sample_dir)){
+                  create_dir(sample_dir);
+              }
               std::string BAMfile;
               if (list.size() > 1){
                  BAMfile = sample_dir + "/" + sample_id + "_" + read_group + ".bam";
