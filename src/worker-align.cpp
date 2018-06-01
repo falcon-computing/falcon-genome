@@ -189,6 +189,7 @@ int align_main(int argc, char** argv,
               }
               parts_dir = temp_dir + "/" +
               get_basename(BAMfile) + ".parts";
+              output_path=BAMfile;
            }
 
         }
