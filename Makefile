@@ -82,6 +82,7 @@ OBJS	 := $(SRC_DIR)/common.o \
 	    $(SRC_DIR)/workers/VCFUtilsWorker.o \
 	    $(SRC_DIR)/workers/UGWorker.o \
             $(SRC_DIR)/workers/DepthWorker.o \
+            $(SRC_DIR)/workers/DepthCombineWorker.o
 
 TEST_OBJS := $(TEST_DIR)/TestConfig.o
 

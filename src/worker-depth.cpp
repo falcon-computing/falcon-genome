@@ -67,6 +67,7 @@ int depth_main(int argc, char** argv,
   std::string output_dir;
   output_dir = check_output(output_path, flag_f);
   create_dir(output_dir);
+  std::string temp_depth_path = output_dir + "/" + get_basename(output_path);
 
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
@@ -87,7 +88,7 @@ int depth_main(int argc, char** argv,
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new DepthWorker(ref_path,
           intv_paths[contig], input_file,
-          output_path,
+          output_file,
           geneList,
           depthCutoff,
           extra_opts,
@@ -96,13 +97,19 @@ int depth_main(int argc, char** argv,
           flag_baseCoverage,
           flag_intervalCoverage,
           flag_sampleSummary));
-    output_files[contig] = output_path;
+    output_files[contig] = output_file;
 
     executor.addTask(worker);
   }
+ 
+  bool flag = true;
+  bool flag_a = false;
+   
+  Worker_ptr worker(new DepthCombineWorker(
+        output_files, temp_depth_path,
+        flag_a, flag));
+  executor.addTask(worker, true);
   
-
-
   executor.run();
 
   return 0;

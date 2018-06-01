@@ -12,5 +12,6 @@
 #include "workers/VCFUtilsWorker.h"
 #include "workers/UGWorker.h"
 #include "workers/DepthWorker.h"
+#include "workers/DepthCombineWorker.h"
 
 #endif
