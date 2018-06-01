@@ -241,6 +241,7 @@ int align_main(int argc, char** argv,
         output_path = temp;
 
         // Remove parts_dir
+        if (list.size() >1) parts_dir = temp + "/" + sample_id + "/*/";
         remove_path(parts_dir);
         DLOG(INFO) << "Removing temp file in '" << parts_dir << "'";
     }
