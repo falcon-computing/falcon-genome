@@ -51,19 +51,19 @@ link_directories(
 file(GLOB_RECURSE SRC_LIST src/*.cpp)
 list(REMOVE_ITEM SRC_LIST "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
 
-add_library(genome ${SRC_LIST})
+add_library(fcs-genome-objs ${SRC_LIST})
 
 add_subdirectory(deps)
 
-add_executable(fcs_genome ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+add_executable(fcs-genome ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
-add_dependencies(fcs_genome glog-download)
-add_dependencies(fcs_genome googletest-download)
-add_dependencies(fcs_genome jsoncpp-download)
-add_dependencies(fcs_genome falcon-lic-download)
+add_dependencies(fcs-genome glog-download)
+add_dependencies(fcs-genome googletest-download)
+add_dependencies(fcs-genome jsoncpp-download)
+add_dependencies(fcs-genome falcon-lic-download)
 
-target_link_libraries(fcs_genome
-    genome
+target_link_libraries(fcs-genome
+    fcs-genome-objs
     glog
     jsoncpp
     falcon_license

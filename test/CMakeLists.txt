@@ -9,11 +9,11 @@ add_dependencies(test_app googletest)
 add_dependencies(test_app jsoncpp-download)
 
 target_link_libraries(test_app
-    genome
+    fcs-genome-objs
     gcov
     glog
     gtest
     jsoncpp
     ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
-add_test(fcs_genome_test test_app)
+add_test(fcs-genome-test test_app)
