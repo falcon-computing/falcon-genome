@@ -26,7 +26,7 @@ int align_main(int argc, char** argv,
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("fastq1,1", po::value<std::string>(), "input pair-end fastq file")
     ("fastq2,2", po::value<std::string>(), "input pair-end fastq file")
-    ("output,o", po::value<std::string>()->required(), "output BAM file (if --align-only is set "
+    ("output,o", po::value<std::string>(), "output BAM file (if --align-only is set "
                                 "the output will be a directory of BAM "
                                 "files)")
     arg_decl_string("sample_sheet,F", "Sample Sheet or Folder")
