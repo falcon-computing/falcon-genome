@@ -12,6 +12,7 @@ target_link_libraries(test_app
     fcs-genome-objs
     gcov
     glog
+    gflags
     gtest
     jsoncpp
     ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})

@@ -39,9 +39,19 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVERSION=\\\"${BIN_VERSION}\\\"")
 ExternalProject_Add(
     glog-download
     PREFIX "glog"
-    URL https://s3.amazonaws.com/fcs-build-public/glog-0.3.3.tar.gz
-    URL_MD5 0766c420d0dcd16e0b46cd7cc8235a1f
+    URL https://s3.amazonaws.com/fcs-build-public/glog-falcon.tar.gz
+    URL_MD5 71f9ccd1924190356e1635ee6d6e1314
     SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/glog/install"
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND "")
+
+ExternalProject_Add(
+    gflags-download
+    PREFIX "gflags"
+    URL https://s3.amazonaws.com/fcs-build-public/gflags.tar.gz
+    URL_MD5 1de8187489fbced5cc86c2ba241440e4
+    SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/gflags/install"
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND "")
@@ -77,6 +87,7 @@ ExternalProject_Add(
     INSTALL_COMMAND "")
 
 set(GLOG_DIR "${CMAKE_CURRENT_BINARY_DIR}/glog/install")
+set(GFLAGS_DIR "${CMAKE_CURRENT_BINARY_DIR}/gflags/install")
 set(GTEST_DIR "${CMAKE_CURRENT_BINARY_DIR}/googletest/install")
 set(JSONCPP_DIR "${CMAKE_CURRENT_BINARY_DIR}/jsoncpp/install")
 set(FLM_DIR "${CMAKE_CURRENT_BINARY_DIR}/falcon-lic/install")
@@ -91,6 +102,7 @@ include_directories(
 
 link_directories(
 		${GLOG_DIR}/lib
+		${GFLAGS_DIR}/lib
 		${GTEST_DIR}/lib
 		${JSONCPP_DIR}/lib
 		${FLM_DIR}/lib)
@@ -111,6 +123,7 @@ add_executable(fcs-genome ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 target_link_libraries(fcs-genome
     fcs-genome-objs
     glog
+    gflags
     jsoncpp
     falcon_license
     ${CMAKE_DL_LIBS} 
