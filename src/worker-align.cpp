@@ -26,7 +26,7 @@ int align_main(int argc, char** argv,
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("fastq1,1", po::value<std::string>(), "input pair-end fastq file")
     ("fastq2,2", po::value<std::string>(), "input pair-end fastq file")
-    ("output,o", po::value<std::string>()->required(), "output BAM file (if --align-only is set "
+    ("output,o", po::value<std::string>(), "output BAM file (if --align-only is set "
                                 "the output will be a directory of BAM "
                                 "files)")
     arg_decl_string("sample_sheet,F", "Sample Sheet or Folder")
@@ -68,7 +68,7 @@ int align_main(int argc, char** argv,
          throw std::runtime_error("FASTQ filenames and Sample Sheet cannot be undefined at the same time");
      }
      if (!fq2_path.empty() && sampleList.empty()) {
-         throw std::runtime_error("FASTQ filename R1 not defined and R2 defined");
+         throw std::runtime_error("FASTQ filename R1 undefined and R2 defined");
      }
   } else {
      if (fq2_path.empty() && sampleList.empty()) {
@@ -78,6 +78,15 @@ int align_main(int argc, char** argv,
          throw std::runtime_error("FASTQ filenames and Sample Sheet cannot be defined at the same time");
      }
   };
+
+  if ( !fq1_path.empty() && !fq2_path.empty() && output_path.empty()) {
+      throw std::runtime_error("FASTQ filenames defined and Output Path not defined");
+  };
+
+  if ( !output_path.empty() && !sampleList.empty() ) {
+      throw std::runtime_error("Output Path and Sample Sheet cannot be defined at the same time");
+  };
+
 
   // finalize argument parsing
   //po::notify(cmd_vm);
