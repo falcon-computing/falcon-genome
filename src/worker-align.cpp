@@ -112,6 +112,7 @@ int align_main(int argc, char** argv,
   unsigned long long available = (diskData.f_bavail * diskData.f_frsize);
   DLOG(INFO) << available;
 
+  std::string output_path_temp;
   for (auto pair : SampleData) {
     std::string sample_id = pair.first;
     std::vector<SampleDetails> list = pair.second;
@@ -189,7 +190,7 @@ int align_main(int argc, char** argv,
               }
               parts_dir = temp_dir + "/" +
               get_basename(BAMfile) + ".parts";
-              output_path=BAMfile;
+              output_path_temp=sample_dir;
            }
 
         }
@@ -209,9 +210,14 @@ int align_main(int argc, char** argv,
     };
     if (!flag_align_only) {
         Executor executor("Mark Duplicates");
-        Worker_ptr worker(new MarkdupWorker(parts_dir, output_path, flag_f));
+        if (sampleList.empty()){
+           Worker_ptr worker(new MarkdupWorker(parts_dir, output_path, flag_f));
+        } else{
+           Worker_ptr worker(new MarkdupWorker(parts_dir, output_path_temp, flag_f));
+        }
         executor.addTask(worker);
         executor.run();
+
 
         // Remove parts_dir
         remove_path(parts_dir);
