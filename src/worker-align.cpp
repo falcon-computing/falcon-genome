@@ -164,7 +164,6 @@ int align_main(int argc, char** argv,
         }
         else {
            // check output path before alignment
-           output_path = output_path + "/" + sample_id;
            output_path = check_output(output_path, flag_f, true);
 
            // require output to be a file
