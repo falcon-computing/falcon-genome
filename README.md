@@ -9,6 +9,8 @@ make
 make test
 ```
 
+This will produce a binary `fcs-genome` in `./build` folder.
+
 ### Build configuration
 1. Build in release or debug mode
    ```

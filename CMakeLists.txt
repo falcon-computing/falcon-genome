@@ -1,3 +1,5 @@
+include(ExternalProject)
+
 set(CMAKE_C_COMPILER "gcc")
 set(CMAKE_CXX_COMPILER "g++")
 
@@ -33,6 +35,52 @@ endif(DEPLOYMENT_DST)
 message(STATUS "version: ${BIN_VERSION}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVERSION=\\\"${BIN_VERSION}\\\"")
 
+# add external projects
+ExternalProject_Add(
+    glog-download
+    PREFIX "glog"
+    URL https://s3.amazonaws.com/fcs-build-public/glog-0.3.3.tar.gz
+    URL_MD5 0766c420d0dcd16e0b46cd7cc8235a1f
+    SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/glog/install"
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND "")
+
+ExternalProject_Add(
+    googletest-download
+    PREFIX "googletest"
+    URL https://s3.amazonaws.com/fcs-build-public/googletest.tar.gz
+    URL_MD5 18fda945045354e264e3cca5428525d6
+    SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/googletest/install"
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND "")
+
+ExternalProject_Add(
+    jsoncpp-download
+    PREFIX "jsoncpp"
+    URL https://s3.amazonaws.com/fcs-build-public/jsoncpp-1.7.7.tar.gz
+    URL_MD5 10df83654beb3477ecd4082763bce311
+    SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/jsoncpp/install"
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND "")
+
+ExternalProject_Add(
+    falcon-lic-download
+    PREFIX "falcon-lic"
+    URL https://s3.amazonaws.com/fcs-build-public/falcon-lic.tar.gz
+    URL_MD5 8f36e6cb08c7cb7a677d749bee1bfe6e
+    SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/falcon-lic/install"
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND "")
+
+set(GLOG_DIR "${CMAKE_CURRENT_BINARY_DIR}/glog/install")
+set(GTEST_DIR "${CMAKE_CURRENT_BINARY_DIR}/googletest/install")
+set(JSONCPP_DIR "${CMAKE_CURRENT_BINARY_DIR}/jsoncpp/install")
+set(FLM_DIR "${CMAKE_CURRENT_BINARY_DIR}/falcon-lic/install")
+
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${Boost_INCLUDE_DIRS}
@@ -47,20 +95,18 @@ link_directories(
 		${JSONCPP_DIR}/lib
 		${FLM_DIR}/lib)
 
-#aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src SRC_LIST)
+# find source files
 file(GLOB_RECURSE SRC_LIST src/*.cpp)
 list(REMOVE_ITEM SRC_LIST "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
 
 add_library(fcs-genome-objs ${SRC_LIST})
 
-add_subdirectory(deps)
+add_dependencies(fcs-genome-objs glog-download)
+add_dependencies(fcs-genome-objs googletest-download)
+add_dependencies(fcs-genome-objs jsoncpp-download)
+add_dependencies(fcs-genome-objs falcon-lic-download)
 
 add_executable(fcs-genome ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
-
-add_dependencies(fcs-genome glog-download)
-add_dependencies(fcs-genome googletest-download)
-add_dependencies(fcs-genome jsoncpp-download)
-add_dependencies(fcs-genome falcon-lic-download)
 
 target_link_libraries(fcs-genome
     fcs-genome-objs
