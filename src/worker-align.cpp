@@ -65,22 +65,27 @@ int align_main(int argc, char** argv,
 
   if (fq1_path.empty()) {
      if (fq2_path.empty() && sampleList.empty()) {
-         throw std::runtime_error("FASTQ filenames and Sample Sheet cannot be undefined at the same time");
+         throw std::runtime_error("FASTQ filenames and Sample Sheet
+         cannot be undefined at the same time. Set either FASTQ filenames (fastq1, fastq2) or Sample Sheet.");
      }
      if (!fq2_path.empty() && sampleList.empty()) {
-         throw std::runtime_error("FASTQ filename R1 undefined and R2 defined");
+         throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (undefined, defined).
+         Both fastq1 and fastq2 must be defined.");
+     }
+     if (!fq2_path.empty() && !sampleList.empty()) {
+         throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (undefined, defined) and
+         Sample Sheet defined. Set either FASTQ filenames or Sample Sheet");
      }
   } else {
      if (fq2_path.empty() && sampleList.empty()) {
-         throw std::runtime_error("FASTQ filename R1 defined and R2 undefined");
+         throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (defined, undefined).
+         Both fastq1 and fastq2 must be defined.");
      }
-     if (!fq2_path.empty() && !sampleList.empty()) {
-         throw std::runtime_error("FASTQ filenames and Sample Sheet cannot be defined at the same time");
+     if (fq2_path.empty() && !sampleList.empty()) {
+         throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (defined, undefined)
+         and Sample Sheet defined. Set either FASTQ filenames or Sample Sheet");
      }
   };
-
-  // finalize argument parsing
-  //po::notify(cmd_vm);
 
   SampleSheetMap SampleData;
   std::vector<SampleDetails> SampleInfoVect;
@@ -164,6 +169,7 @@ int align_main(int argc, char** argv,
         }
         else {
            // check output path before alignment
+           output_path = output_path + "/" + sample_id;
            output_path = check_output(output_path, flag_f, true);
 
            // require output to be a file
