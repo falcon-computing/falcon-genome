@@ -5,7 +5,8 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} SRC_LIST)
 
 add_executable(test_app ${SRC_LIST})
 add_dependencies(test_app glog-download)
-add_dependencies(test_app googletest)
+add_dependencies(test_app gflags-download)
+add_dependencies(test_app googletest-download)
 add_dependencies(test_app jsoncpp-download)
 
 target_link_libraries(test_app
