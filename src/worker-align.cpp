@@ -243,7 +243,7 @@ int align_main(int argc, char** argv,
         // Remove parts_dir
         if (list.size() >1) {
             for (int k = 0; k < list.size(); ++k) {
-                 parts_dir = temp + "/" + sample_id + "/" + list[i].ReadGroup;
+                 parts_dir = temp + "/" + sample_id + "/" + list[k].ReadGroup;
                  remove_path(parts_dir);
                  DLOG(INFO) << "Removing temp file in '" << parts_dir << "'";
             }
