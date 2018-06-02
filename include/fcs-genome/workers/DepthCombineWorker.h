@@ -11,15 +11,20 @@ class DepthCombineWorker : public Worker {
   DepthCombineWorker(
       std::vector<std::string> &input_files,
       std::string output_path,
-      bool &flag_a,
+      bool &flag_baseCoverage,
+      bool &flag_intervalCoverage,
+      bool &flag_sampleSummary,
       bool &flag_f);
 
   void check();
+  void merge(std::string file_type);
   void setup();
  private:
   std::vector<std::string> input_files_;
   std::string output_file_;
-  bool flag_a_;
+  bool flag_baseCoverage_;
+  bool flag_intervalCoverage_;
+  bool flag_sampleSummary_;
 };
 } //namespace fcsgenome
 #endif

@@ -101,13 +101,13 @@ int depth_main(int argc, char** argv,
 
     executor.addTask(worker);
   }
- 
+
   bool flag = true;
-  bool flag_a = false;
+  //bool flag_a = false;
    
   Worker_ptr worker(new DepthCombineWorker(
         output_files, temp_depth_path,
-        flag_a, flag));
+        flag_baseCoverage, flag_intervalCoverage, flag_sampleSummary, flag));
   executor.addTask(worker, true);
   
   executor.run();
