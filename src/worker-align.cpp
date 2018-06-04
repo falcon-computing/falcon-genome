@@ -119,6 +119,8 @@ int align_main(int argc, char** argv,
     std::vector<SampleDetails> list = pair.second;
     size_t size_fastq = 0;
     for (int i = 0; i < list.size(); ++i) {
+        fq1_path = list[i].fastqR1;
+        fq2_path = list[i].fastqR2;
         // check space occupied by fastq files
         size_fastq += fs::file_size(fq1_path);
         size_fastq += fs::file_size(fq2_path);
@@ -142,7 +144,7 @@ int align_main(int argc, char** argv,
 
             throw silentExit();
         }
-    }
+    } // Checking FASTQ files sizes ends
 
     for (int i = 0; i < list.size(); ++i) {
         fq1_path = list[i].fastqR1;
