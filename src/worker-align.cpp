@@ -117,15 +117,9 @@ int align_main(int argc, char** argv,
   for (auto pair : SampleData) {
     std::string sample_id = pair.first;
     std::vector<SampleDetails> list = pair.second;
+    size_t size_fastq = 0;
     for (int i = 0; i < list.size(); ++i) {
-        fq1_path = list[i].fastqR1;
-        fq2_path = list[i].fastqR2;
-        read_group = list[i].ReadGroup;
-        platform_id = list[i].Platform;
-        library_id = list[i].LibraryID;
-
         // check space occupied by fastq files
-        size_t size_fastq = 0;
         size_fastq += fs::file_size(fq1_path);
         size_fastq += fs::file_size(fq2_path);
 
@@ -143,11 +137,19 @@ int align_main(int argc, char** argv,
 
         if (available < threshold * size_fastq) {
             LOG(ERROR) << "Not enough space in temporary storage: "
-               << temp_dir << ", the size of the temporary folder should be at least "
-               << threshold << " times the input FASTQ files";
+              << temp_dir << ", the size of the temporary folder should be at least "
+              << threshold << " times the input FASTQ files";
 
             throw silentExit();
         }
+    }
+
+    for (int i = 0; i < list.size(); ++i) {
+        fq1_path = list[i].fastqR1;
+        fq2_path = list[i].fastqR2;
+        read_group = list[i].ReadGroup;
+        platform_id = list[i].Platform;
+        library_id = list[i].LibraryID;
 
         if (list.size() >1) {
            if (boost::filesystem::exists(output_path) &&
@@ -202,11 +204,6 @@ int align_main(int argc, char** argv,
                  if (!boost::filesystem::exists(sample_dir)) create_dir(sample_dir);
 
                  BAMfile = sample_dir + "/" + sample_id + ".bam";;
-                 //if (list.size() > 1){
-                  //  BAMfile = sample_dir + "/" + sample_id + "_" + read_group + ".bam";
-                 //} else {
-                  //  BAMfile = sample_dir + "/" + sample_id + ".bam";
-                 //}
 
                  parts_dir = temp_dir + "/" +
                  get_basename(BAMfile) + ".parts";

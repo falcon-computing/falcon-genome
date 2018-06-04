@@ -4,6 +4,7 @@
 #include <boost/algorithm/string.hpp>
 #include <dirent.h>
 #include <fstream>
+#include <gtest/gtest_prod.h>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -27,15 +28,16 @@ typedef std::map<std::string, std::vector<SampleDetails> > SampleSheetMap;
 
 class SampleSheet {
  public:
-    SampleSheet(std::string path);
+  SampleSheet(std::string path);
     SampleSheetMap get();
+    //friend class SampleSheetTest;
  private:
     void extractDataFromFile(std::string);
     void extractDataFromFolder(std::string);
     std::map<int, std::string> header_;
-    SampleSheetMap data_;
+    SampleSheetMap data_;    
 };
-
+ 
 } // namespace fcsgenome
 
 #endif
