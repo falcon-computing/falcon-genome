@@ -31,6 +31,7 @@ class Stage
   void run();
 
  private:
+  void postTask(int idx);
   void runTask(int idx);
 
   Executor*                executor_;
