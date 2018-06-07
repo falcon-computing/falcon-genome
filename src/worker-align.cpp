@@ -138,12 +138,11 @@ int align_main(int argc, char** argv,
 
         if (available < size_fastq) {
             LOG(ERROR) << "Not enough space in temporary storage: "
-              << temp_dir << ", the size of the temporary folder should be at least "
-              << threshold << " times the input FASTQ files";
+              << temp_dir << ", the size of the temporary folder should be at least 3 times the input FASTQ files";
 
             throw silentExit();
         }
-        
+
     } // Checking FASTQ files sizes ends
 
     for (int i = 0; i < list.size(); ++i) {

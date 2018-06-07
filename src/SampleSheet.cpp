@@ -155,7 +155,7 @@ void SampleSheet::extractDataFromFolder(std::string fname){
    std::string new_delimiter = " ";
    std::string temp_id, sample_id;
    for (auto it : temp_vector ) {
-       read1 = *it;
+       read1 = it;
        read2 = read1;
        temp_id = read1;
        size_t found = read2.find(target);
