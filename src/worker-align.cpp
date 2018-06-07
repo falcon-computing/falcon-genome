@@ -131,19 +131,19 @@ int align_main(int argc, char** argv,
         std::string file_extension;
         file_extension = fs::extension(fq1_path);
 
-        int threshold;
-        if (file_extension == ".gz")
-            threshold = 3;
-        else
-            threshold = 1;
+        if (file_extension == ".gz" ) {
+            size_fastq += 3*fs::file_size(fq1_path);
+            size_fastq += 3*fs::file_size(fq2_path);
+        }
 
-        if (available < threshold * size_fastq) {
+        if (available < size_fastq) {
             LOG(ERROR) << "Not enough space in temporary storage: "
               << temp_dir << ", the size of the temporary folder should be at least "
               << threshold << " times the input FASTQ files";
 
             throw silentExit();
         }
+        
     } // Checking FASTQ files sizes ends
 
     for (int i = 0; i < list.size(); ++i) {

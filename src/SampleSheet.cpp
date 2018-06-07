@@ -19,16 +19,15 @@
 
 namespace fcsgenome {
 
-SampleSheet::SampleSheet(std::string path){
+SampleSheet::SampleSheet(std::string path) {
   DLOG(INFO) << "Initializing SampleSheet Class for " << path;
   DLOG(INFO) << "Sample Sheet PATH : " << path;
-  if (boost::filesystem::exists(path)){
-    if (boost::filesystem::is_directory(path)){
-      extractDataFromFolder(path);
+  if (boost::filesystem::exists(path)) {
+    if (boost::filesystem::is_directory(path)) {
+        extractDataFromFolder(path);
     } else {
-      extractDataFromFile(path);
+        extractDataFromFile(path);
     }
-
   } else {
       LOG(ERROR) << "Input " << path  <<  " is neither a file nor directory";
       throw std::runtime_error("INVALID PATH");
@@ -41,12 +40,12 @@ void SampleSheet::extractDataFromFile(std::string fname) {
   getline(file,value);
   std::string header = value;
   DLOG(INFO) << "HEADER: \t" << header;
-  if (header.find('#')!=0){
-     LOG(ERROR) << "Sample Sheet "<< fname.c_str() << " has problems\n";
-     throw std::runtime_error("Check PATH : " + fname + " Maybe it is empty or has format issues");
+  if (header.find('#') != 0 ) {
+     LOG(ERROR) << "The header of Sample Sheet : " << fname.c_str() << " is malformatted \n";
+     throw std::runtime_error("Sample Sheet parsing FAILED\n");
   }
 
-  int number_of_fields = count(header.begin(),header.end(),',');
+  int number_of_fields = count( header.begin(),header.end(),',' );
   DLOG(INFO) << "There are " << std::to_string(number_of_fields+1) << " fields ";
 
   std::regex regex_sample_id("(.*)(sample_id)");
@@ -136,7 +135,7 @@ void SampleSheet::extractDataFromFolder(std::string fname){
          };
       };
       if (temp_vector.size() == 0) {
-          DLOG(ERROR) << "Folder " << fname.c_str() << " does not contain any FASTQ files";
+          LOG(ERROR) << "Input Folder " << fname.c_str() << " does not contain any FASTQ files (fastq.gz)";
           throw std::runtime_error("Check PATH : " + fname + " . Folder maybe empty or no FASTQ files");
       }
       closedir(target_dir);
@@ -155,7 +154,7 @@ void SampleSheet::extractDataFromFolder(std::string fname){
    std::string delimiter = "_";
    std::string new_delimiter = " ";
    std::string temp_id, sample_id;
-   for (std::vector<std::string>::iterator it = temp_vector.begin(); it != temp_vector.end(); ++it ){
+   for (auto it : temp_vector ) {
        read1 = *it;
        read2 = read1;
        temp_id = read1;
@@ -178,9 +177,9 @@ void SampleSheet::extractDataFromFolder(std::string fname){
 
       int index=0;
       char number[3];
-      if (data_.find(sampleName) == data_.end()){
-	 sprintf(number,"%02d",index);
- 	 rg = "RG-"+sampleName+"_"+number;
+      if (data_.find(sampleName) == data_.end()) {
+	       sprintf(number,"%02d",index);
+ 	       rg = "RG-"+sampleName+"_"+number;
          library_id = "LIB"+sampleName+"_"+number;
          sampleInfo.ReadGroup = rg+number;
          sampleInfo.LibraryID = library_id;
@@ -188,7 +187,7 @@ void SampleSheet::extractDataFromFolder(std::string fname){
          data_.insert(make_pair(sampleName, sampleInfoVect));
       } else {
          index = index + 1;
- 	 sprintf(number,"%02d",index);
+ 	       sprintf(number,"%02d",index);
          rg = "RG-" + sampleName + "_" + number;
          library_id = "LIB" + sampleName+"_" + number;
          sampleInfo.ReadGroup = rg+number;
@@ -198,7 +197,7 @@ void SampleSheet::extractDataFromFolder(std::string fname){
       sampleInfoVect.clear();
    }
 
-   if(data_.empty()){
+   if (data_.empty()) {
      DLOG(ERROR)<< "Map data_ for " + fname + " was not populated" ;
      throw std::runtime_error("Check MAP data_ for " + fname);
    }

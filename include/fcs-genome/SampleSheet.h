@@ -30,14 +30,13 @@ class SampleSheet {
  public:
   SampleSheet(std::string path);
     SampleSheetMap get();
-    //friend class SampleSheetTest;
  private:
     void extractDataFromFile(std::string);
     void extractDataFromFolder(std::string);
     std::map<int, std::string> header_;
-    SampleSheetMap data_;    
+    SampleSheetMap data_;
 };
- 
+
 } // namespace fcsgenome
 
 #endif
