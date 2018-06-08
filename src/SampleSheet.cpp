@@ -149,6 +149,8 @@ void SampleSheet::extractDataFromFolder(std::string fname){
    platform = "Illumina";
    SampleDetails sampleInfo;
 
+   LOG(INFO) << "Generating Samples List:";
+
    std::string target = "1.fastq.gz";
    std::string task = "2.fastq.gz";
    std::string delimiter = "_";
@@ -168,38 +170,41 @@ void SampleSheet::extractDataFromFolder(std::string fname){
        sampleName = strs[0];
        strs.clear();
 
-      // Populating the Structure:
-      sampleInfo.fastqR1 = read1;
-      sampleInfo.fastqR2 = read2;
-      sampleInfo.ReadGroup = "RG";
-      sampleInfo.Platform = "Illumina";
-      sampleInfo.LibraryID = "LIB";
+       // Populating the Structure:
+       sampleInfo.fastqR1 = read1;
+       sampleInfo.fastqR2 = read2;
+       sampleInfo.ReadGroup = "RG";
+       sampleInfo.Platform = "Illumina";
+       sampleInfo.LibraryID = "LIB";
 
-      int index=0;
-      char number[3];
-      if (data_.find(sampleName) == data_.end()) {
-	       sprintf(number,"%02d",index);
- 	       rg = "RG-"+sampleName+"_"+number;
-         library_id = "LIB"+sampleName+"_"+number;
-         sampleInfo.ReadGroup = rg+number;
-         sampleInfo.LibraryID = library_id;
-         sampleInfoVect.push_back(sampleInfo);
-         data_.insert(make_pair(sampleName, sampleInfoVect));
-      } else {
-         index = index + 1;
- 	       sprintf(number,"%02d",index);
-         rg = "RG-" + sampleName + "_" + number;
-         library_id = "LIB" + sampleName+"_" + number;
-         sampleInfo.ReadGroup = rg+number;
-         sampleInfo.LibraryID = library_id;
-         data_[sampleName].push_back(sampleInfo);
-      }
-      sampleInfoVect.clear();
+       int index=0;
+       char number[3];
+       if (data_.find(sampleName) == data_.end()) {
+	        sprintf(number,"%02d",index);
+ 	        rg = "RG-"+sampleName+"_"+number;
+          library_id = "LIB"+sampleName+"_"+number;
+          sampleInfo.ReadGroup = rg+number;
+          sampleInfo.LibraryID = library_id;
+          sampleInfoVect.push_back(sampleInfo);
+          data_.insert(make_pair(sampleName, sampleInfoVect));
+       } else {
+          index = index + 1;
+ 	        sprintf(number,"%02d",index);
+          rg = "RG-" + sampleName + "_" + number;
+          library_id = "LIB" + sampleName+"_" + number;
+          sampleInfo.ReadGroup = rg+number;
+          sampleInfo.LibraryID = library_id;
+          data_[sampleName].push_back(sampleInfo);
+       }
+       sampleInfoVect.clear();
+       LOG(INFO) << sampleName << " " << sampleInfo.fastqR1 << " "
+       << sampleInfo.fastqR2 << " " << sampleInfo.ReadGroup << " "
+       << sampleInfo.LibraryID;
    }
 
    if (data_.empty()) {
-     DLOG(ERROR)<< "Map data_ for " + fname + " was not populated" ;
-     throw std::runtime_error("Check MAP data_ for " + fname);
+      DLOG(ERROR)<< "Map data_ for " + fname + " was not populated" ;
+      throw std::runtime_error("Check MAP data_ for " + fname);
    }
 }
 
