@@ -130,8 +130,8 @@ void SampleSheet::extractDataFromFolder(std::string fname){
          int length = strlen(dir->d_name);
          int ext = strlen("1.fastq.gz");
          if (strncmp(dir->d_name + length - ext, "1.fastq.gz", ext)  ==  0) {
- 	     mystring = dir->d_name;
- 	     temp_vector.push_back(mystring);
+ 	           mystring = dir->d_name;
+ 	           temp_vector.push_back(mystring);
          };
       };
       if (temp_vector.size() == 0) {
@@ -171,8 +171,8 @@ void SampleSheet::extractDataFromFolder(std::string fname){
        strs.clear();
 
        // Populating the Structure:
-       sampleInfo.fastqR1 = read1;
-       sampleInfo.fastqR2 = read2;
+       sampleInfo.fastqR1 = fname + "/" + read1;
+       sampleInfo.fastqR2 = fname + "/" + read2;
        sampleInfo.ReadGroup = "RG";
        sampleInfo.Platform = "Illumina";
        sampleInfo.LibraryID = "LIB";
