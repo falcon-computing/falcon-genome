@@ -72,6 +72,9 @@ add_dependencies(fcs-genome-objs Google JsonCPP FalconLM)
 
 add_executable(fcs-genome ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
+install(TARGETS fcs-genome
+    RUNTIME DESTINATION .)
+
 target_link_libraries(fcs-genome
     fcs-genome-objs
     ${Google_LIBRARIES}
