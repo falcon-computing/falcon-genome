@@ -1,0 +1,34 @@
+#!/bin/bash
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+source $DIR/common.sh
+source $DIR/settings.sh
+
+# Usage: ./ssheet-agent run_id run_folder
+if [ $# -lt 2 ]; then
+  echo "$0 run_id run_folder"
+  exit 1
+fi
+
+run_id=$1
+run_folder=$2
+
+verbose=2
+log_file=$log_dir/ssheet-agent-${run_id}.log
+
+counter=0
+while true; do
+  if [ $counter -gt 168 ]; then # wait for a week at most
+    log_error "Time out for sample sheet, exiting"
+    rm -rf $lock_dir
+    exit -1
+  fi
+  scp $samplesheet_loc/*${run_id}.csv $run_folder/SampleSheet.csv
+  if [ ! -f $run_folder/SampleSheet.csv ]; then
+    log_info "Did not find sample sheet, wait for an hour..."
+    sleep 3600
+    counter=$((counter + 1))
+  else
+    break
+  fi
+done
+log_info "Found sample sheet for run $run_id"
