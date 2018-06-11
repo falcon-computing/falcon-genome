@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -38,86 +39,122 @@ void DepthCombineWorker::check() {
 }
 
 void DepthCombineWorker::merge(std::string file_type) {
-  int total;
-  std::vector<float> contents;
+  double total = 0;
+  double mean_cov = 0;
+  std::vector<double> contents;
   std::ofstream fout;
   fout.open(output_file_+file_type, std::ofstream::app);
-  
   for (int i = 0; i < input_files_.size(); i++) {
     std::string filename = input_files_[i] + file_type;
     std::ifstream fin;
     fin.open(filename);
     
-    if (fin.is_open()) {
-      DLOG(INFO) << filename;
+    if (fin.is_open()) { 
       std::string line;
 
       while (std::getline(fin, line)) {
+        
         if (boost::contains(filename, ".sample_interval_summary") | boost::contains(filename, ".sample_gene_summary")) {
-          if (boost::contains(filename, "part-00")) {
-            DLOG(INFO) << line;
+          if (boost::contains(filename, "part-00")) { 
             fout << line << "\n";
           }
           else {
-            if (!boost::starts_with(line, "Target") & !boost::starts_with(line, "Gene")) {
-              DLOG(INFO) << line;
-              fout << line << "\n";
-            }
+            if (!boost::starts_with(line, "Target") & !boost::starts_with(line, "Gene")) {    
+                fout << line << "\n";
+            }  
           }
         }
         else if (boost::contains(filename, ".sample_summary")) {
-          if (!boost::starts_with(line, "sample_id") & !boost::starts_with(line, "Total")) {
+          if (!boost::starts_with(line, "sample_id") & !boost::starts_with(line, "Total")) { 
             std::string i;
-            int itr=0;
+            int itr = 0;
             std::istringstream iss(line);
             while (iss >> i) {
-              if (itr != 0) {
-                DLOG(INFO) << itr;
-                DLOG(INFO) << filename;
+              if (itr != 0) { 
                 if (boost::contains(filename, "part-00")) {
                   if (itr == 1) {
-                    total = strtof((i).c_str(),0);
-                    contents.push_back(total);
+                    total = boost::lexical_cast<double>(i); 
+                    contents.push_back(0);
+                    contents[itr-1] = contents[itr-1]+total; 
+                
+                  }
+                  else if (itr == 6) {
+                    contents.push_back(0);
+                    contents[itr-1] = contents[itr-1] + (boost::lexical_cast<double>(i) * total / mean_cov);
+                    
+                  }
+                  else if ( itr == 3 || itr == 4 || itr == 5 ) {
+                    contents.push_back(0);
+                    contents[itr-1] = contents[itr-1] + (boost::lexical_cast<double>(i));
                   }
                   else {
-                    contents.push_back((strtof((i).c_str(),0))*total);
+                    contents.push_back(0);
+                    if (itr == 2) {
+                      mean_cov = boost::lexical_cast<double>(i);
+                    }
+                    //contents[itr-1] = contents[itr-1] + (boost::lexical_cast<double>(i) * total);
+                    contents[itr-1] = contents[itr-1] + (total/boost::lexical_cast<double>(i));
                   }
                 }
                 else {
                   if (itr == 1) {
-                    total = strtof((i).c_str(),0);
+                    total = boost::lexical_cast<double>(i);
                     contents[itr-1] = contents[itr-1] + total;
+                   
+                  }
+                  else if (itr == 6) {
+                    contents[itr-1] = contents[itr-1] + (boost::lexical_cast<double>(i) * total / mean_cov);
+                  }
+                  else if ( itr == 3 || itr == 4 || itr == 5 ) {
+                    DLOG(INFO) << itr << " " << (boost::lexical_cast<double>(i)) << "\n";
+                    contents[itr-1] = contents[itr-1] + (boost::lexical_cast<double>(i));
                   }
                   else {
-                    contents[itr-1] += strtof((i).c_str(),0) * total;
+                    //contents[itr-1] = contents[itr-1] + (boost::lexical_cast<double>(i) * total);
+                    // total/mean
+                    if (itr == 2) {
+                      mean_cov = boost::lexical_cast<double>(i);
+                    }
+                    contents[itr-1] = contents[itr-1] + (total/boost::lexical_cast<double>(i));
                   }
                 }
               }
               ++itr;
             }
+            
           }
-          else if (boost::starts_with(line, "sample_id") & boost::contains(filename, "part-00")) {
+          else if (boost::starts_with(line, "sample_id") & boost::contains(filename, "part-00")) { 
             fout << line << "\n";
           }
         }
       }
     }
   }
-  for (int i = 0; i < contents.size(); i++) {
-    if (i == 0) {
-      DLOG(INFO) << contents[i];
-      fout  << contents[i] << "\t";
-    }
-    else {
-      DLOG(INFO) << ("%.2f",contents[i]/contents[0]);
-      fout << ("%.2f",contents[i]/contents[0]) << "\t";
+  if (file_type.compare(".sample_summary") == 0) {
+    fout << output_file_ << "\t"; 
+    for (int i = 0; i < contents.size(); i++) {
+      DLOG(INFO) << std::fixed << std::setprecision(2) << contents[i] << "\t";
+      if (i == 0) {
+        fout << std::fixed << std::setprecision(0) << contents[i] << "\t";
+      }
+      else if (i == 2 || i == 3 || i == 4) {
+        
+        fout << std::fixed << std::setprecision(0) << contents[i]/contents[1] << "\t";
+      }
+      else if (i == 5) {
+        fout << std::fixed << std::setprecision(2) << contents[i]/contents[1] << "\t";
+      }
+      else {
+        fout << std::fixed << std::setprecision(2) << contents[0]/contents[i] << "\t";  
+      }
     }
   }
 }
-
+ 
 void DepthCombineWorker::setup() {
   if (flag_intervalCoverage_) {
     merge(".sample_interval_summary");
+    merge(".sample_gene_summary");
   }
   if (flag_sampleSummary_) {
     merge(".sample_summary");

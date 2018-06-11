@@ -26,8 +26,9 @@ int depth_main(int argc, char** argv,
     arg_decl_string("ref,r", "reference genome path")
     arg_decl_string("input,i", "input BAM file")
     arg_decl_string("output,o", "output coverage file")
+    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
     arg_decl_string("geneList,g", "list of genes over which to calculate coverage") 
-    ("depthCutoff,d", po::value<int>()->default_value(15), "cutoff for coverage depth summary")
+    ("depthCutoff,d", po::value<int>()->default_value(15), "cutoff for coverage depth summary") 
     ("baseCoverage,b", "calculate coverage depth of each base")
     ("intervalCoverage,v", "calculate coverage summary of given intervals")
     ("sampleSummary,s", "output summary files for each sample");
@@ -53,6 +54,7 @@ int depth_main(int argc, char** argv,
                                 get_config<std::string>("ref_genome"));
   std::string input_path = get_argument<std::string>(cmd_vm, "input");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
+  std::vector<std::string> intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList");
   std::string geneList = get_argument<std::string>(cmd_vm, "geneList");
   int depthCutoff = get_argument<int>(cmd_vm, "depthCutoff");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options"); 
@@ -61,11 +63,12 @@ int depth_main(int argc, char** argv,
   po::notify(cmd_vm);
 
   std::string temp_dir = conf_temp_dir + "/depth";
-  create_dir(temp_dir);
+  //create_dir(temp_dir);
   
   //output path
   std::string output_dir;
-  output_dir = check_output(output_path, flag_f);
+  //output_dir = check_output(output_path, flag_f);
+  output_dir = temp_dir;
   create_dir(output_dir);
   std::string temp_depth_path = output_dir + "/" + get_basename(output_path);
 
@@ -87,8 +90,10 @@ int depth_main(int argc, char** argv,
     std::string file_ext = "cov";
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new DepthWorker(ref_path,
-          intv_paths[contig], input_file,
+          intv_paths[contig], 
+          input_file,
           output_file,
+          intv_list,
           geneList,
           depthCutoff,
           extra_opts,
@@ -106,7 +111,7 @@ int depth_main(int argc, char** argv,
   //bool flag_a = false;
    
   Worker_ptr worker(new DepthCombineWorker(
-        output_files, temp_depth_path,
+        output_files, output_path,
         flag_baseCoverage, flag_intervalCoverage, flag_sampleSummary, flag));
   executor.addTask(worker, true);
   

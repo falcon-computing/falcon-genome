@@ -13,9 +13,10 @@ class DepthWorker : public Worker {
       std::string intv_path,
       std::string input_path,
       std::string output_path,
+      std::vector<std::string> &intv_list,
       std::string geneList,
       int depthCutoff,
-      std::vector<std::string> extra_opts,
+      std::vector<std::string> extra_opts, 
       int contig,
       bool &flag_f,
       bool &flag_baseCoverage,
@@ -30,6 +31,7 @@ class DepthWorker : public Worker {
   std::string intv_path_;
   std::string input_path_;
   std::string output_path_;
+  std::vector<std::string> intv_list_;
   std::string geneList_;
   int depthCutoff_;
   bool flag_baseCoverage_;
