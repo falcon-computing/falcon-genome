@@ -43,6 +43,7 @@ int joint_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input-dir", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
+  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -99,6 +100,7 @@ int joint_main(int argc, char** argv,
       Worker_ptr worker(new GenotypeGVCFsWorker(ref_path,
             get_contig_fname(parts_dir, contig, suffix),
             get_contig_fname(parts_dir, contig, "vcf"),
+            extra_opts,
             flag_f));
       executor->addTask(worker, contig == 0);
       vcf_parts[contig] = get_contig_fname(parts_dir, contig, "vcf");
