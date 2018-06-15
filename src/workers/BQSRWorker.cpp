@@ -68,16 +68,15 @@ void BQSRWorker::setup() {
     cmd << "-knownSites " << known_sites_[i] << " ";
   }
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) { 
-    if (!it->second.empty()) {
-      for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
-        if (!(*vec_iter).empty()) {
-          cmd << it->first << " " << *vec_iter << " ";
-        }
-      } 
-    }
-    else {
-      cmd << it->first << " ";
-    } 
+    cmd << it->first << " ";
+    for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
+      if (!(*vec_iter).empty() && vec_iter == it->second.begin()) {
+        cmd << *vec_iter << " ";
+      }
+      else if (!(*vec_iter).empty()) {
+        cmd << it->first << " " << *vec_iter << " ";
+      }
+    }    
   }
   cmd << "1> /dev/null";
 
@@ -165,16 +164,15 @@ void PRWorker::setup() {
   }  
       
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
-    if (!it->second.empty()) {
-      for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
-        if (!(*vec_iter).empty()) {
-          cmd << it->first << " " << *vec_iter << " ";
-        }
-      }    
-    }
-    else {
-      cmd << it->first << " ";
-    }
+    cmd << it->first << " ";
+    for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
+      if (!(*vec_iter).empty() && vec_iter == it->second.begin()) {
+        cmd << *vec_iter << " ";
+      }
+      else if (!(*vec_iter).empty()) {
+        cmd << it->first << " " << *vec_iter << " ";
+      }
+    }    
   }
   cmd << "1> /dev/null";
 
