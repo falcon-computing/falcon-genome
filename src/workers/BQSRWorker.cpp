@@ -70,7 +70,9 @@ void BQSRWorker::setup() {
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) { 
     if (!it->second.empty()) {
       for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
-        cmd << it->first << " " << *vec_iter << " ";
+        if (!(*vec_iter).empty()) {
+          cmd << it->first << " " << *vec_iter << " ";
+        }
       } 
     }
     else {
@@ -165,7 +167,9 @@ void PRWorker::setup() {
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
     if (!it->second.empty()) {
       for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
-        cmd << it->first << " " << *vec_iter << " ";
+        if (!(*vec_iter).empty()) {
+          cmd << it->first << " " << *vec_iter << " ";
+        }
       }    
     }
     else {
