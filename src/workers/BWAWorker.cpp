@@ -117,9 +117,13 @@ void BWAWorker::setup() {
         << "--fpga_path=" << get_config<std::string>("bwa.fpga.bit_path") << " ";
   }
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
-    cmd << it->first << " ";
     if (!it->second.empty()) {
-      cmd << it->second << " ";
+      for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
+        cmd << it->first << " " << *vec_iter << " ";
+      }    
+    }
+    else {
+      cmd << it->first << " ";
     }
   }
 
