@@ -38,16 +38,10 @@ void GenotypeGVCFsWorker::setup() {
       << "-o " << output_path_ << " ";
   
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
-    //cmd << it->first << " ";
+    cmd << it->first << " ";
     if (!it->second.empty()) {
-      for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
-        cmd << it->first << " " << *vec_iter << " ";
-      }
+      cmd << it->second << " ";
     }
-    else {
-      cmd << it->first << " ";
-    }
-      //cmd << it->second << " ";
   }
 
   cmd_ = cmd.str();
