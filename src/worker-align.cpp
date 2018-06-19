@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdint>
 
 namespace fcsgenome {
 
@@ -232,8 +233,8 @@ int align_main(int argc, char** argv,
         executor.addTask(worker);
         executor.run();
 
-        if (!sample_sheet.empty()) {
-            std::string log_filename  = sample_dir + "/" + sample_id + "_bwa.log";
+        if (!sampleList.empty()) {
+            std::string log_filename  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
             std::ofstream outfile;
             outfile.open(log_filename);
             outfile << "Start doing bwa mem " << std::endl;
@@ -253,13 +254,13 @@ int align_main(int argc, char** argv,
         executor.addTask(worker);
         executor.run();
 
-        if (!sample_sheet.empty()) {
-            std::string log_filename_md  = sample_dir + "/" + sample_id + "_bwa.log";
+        if (!sampleList.empty()) {
+            std::string log_filename_md  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
             std::ifstream bwa_log;
             bwa_log.open(log_filename_md);
             bwa_log << "Start doing Mark Duplicates " << std::endl;
             bwa_log << "Mark Duplicates finishes in " << getTs() - start_markdup << " seconds";
-            bwa_log.close(); outfile.clear();
+            bwa_log.close(); bwa_log.clear();
         }
 
         output_path = temp;
