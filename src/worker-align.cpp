@@ -10,6 +10,9 @@
 #include "fcs-genome/workers.h"
 #include "fcs-genome/SampleSheet.h"
 
+#include <iostream>
+#include <fstream>
+
 namespace fcsgenome {
 
 int align_main(int argc, char** argv,
