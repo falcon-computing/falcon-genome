@@ -215,6 +215,8 @@ int align_main(int argc, char** argv,
         } // Check if sample has more than one pair of FASTQ files
         DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
+        uint64_t start_align = getTs();
+
         Executor executor("bwa mem");
 
         Worker_ptr worker(new BWAWorker(ref_path,
@@ -227,15 +229,36 @@ int align_main(int argc, char** argv,
         executor.addTask(worker);
         executor.run();
 
+        if (!sample_sheet.empty()) {
+            std::string log_filename  = sample_dir + "/" + sample_id + "_bwa.log";
+            std::ofstream outfile;
+            outfile.open(log_filename);
+            outfile << "Start doing bwa mem " << std::endl;
+            outfile << "bwa mem finishes in " << getTs() - start_align << " seconds";
+            outfile.close(); outfile.clear();
+        }
+
     }; // end loop for list.size()
     if (!flag_align_only) {
         std::string temp = output_path;
         if (!sampleList.empty()) output_path = output_path_temp;
         if (list.size() >1) parts_dir = temp + "/" + sample_id;
+
+        unit64_t start_markdup = getTs();
         Executor executor("Mark Duplicates");
         Worker_ptr worker(new MarkdupWorker(parts_dir, output_path, flag_f));
         executor.addTask(worker);
         executor.run();
+
+        if (!sample_sheet.empty()) {
+            std::string log_filename_md  = sample_dir + "/" + sample_id + "_bwa.log";
+            std::ifstream bwa_log;
+            bwa_log.open(log_filename_md);
+            bwa_log << "Start doing Mark Duplicates " << std::endl;
+            bwa_log << "Mark Duplicates finishes in " << getTs() - start_markdup << " seconds";
+            bwa_log.close(); outfile.clear();
+        }
+
         output_path = temp;
 
         // Remove parts_dir
