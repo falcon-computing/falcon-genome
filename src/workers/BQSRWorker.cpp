@@ -67,15 +67,16 @@ void BQSRWorker::setup() {
   for (int i = 0; i < known_sites_.size(); i++) {
     cmd << "-knownSites " << known_sites_[i] << " ";
   }
-  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) { 
-    if (!it->second.empty()) {
-      for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
+  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
+    cmd << it->first << " ";
+    for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
+      if (!(*vec_iter).empty() && vec_iter == it->second.begin()) {
+        cmd << *vec_iter << " ";
+      }
+      else if (!(*vec_iter).empty()) {
         cmd << it->first << " " << *vec_iter << " ";
-      } 
-    }
-    else {
-      cmd << it->first << " ";
-    } 
+      }
+    }    
   }
   cmd << "1> /dev/null";
 
@@ -163,6 +164,7 @@ void PRWorker::setup() {
   }  
       
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
+<<<<<<< HEAD
     if (!it->second.empty()) {
       for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
         cmd << it->first << " " << *vec_iter << " ";
@@ -171,6 +173,17 @@ void PRWorker::setup() {
     else {
       cmd << it->first << " ";
     }
+=======
+    cmd << it->first << " ";
+    for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
+      if (!(*vec_iter).empty() && vec_iter == it->second.begin()) {
+        cmd << *vec_iter << " ";
+      }
+      else if (!(*vec_iter).empty()) {
+        cmd << it->first << " " << *vec_iter << " ";
+      }
+    }    
+>>>>>>> 5e2b6f3263c8b4f905975128d6468152fa79614b
   }
   cmd << "1> /dev/null";
 

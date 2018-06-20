@@ -19,7 +19,7 @@ find_package(FalconLM REQUIRED)
 
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to Release")
-    set(CMAKE_BUILD_TYPE "Debug")
+    set(CMAKE_BUILD_TYPE "Release")
 endif()
 
 # get version str from git
@@ -46,6 +46,11 @@ endif()
 
 message(STATUS "version: ${BIN_VERSION}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVERSION=\\\"${BIN_VERSION}\\\"")
+
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    message(STATUS "Install prefix is set to ~/.falcon-genome/fcs-genome/${BIN_VERSION}")
+    set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.falcon-genome/fcs-genome/${BIN_VERSION}")
+endif()
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
