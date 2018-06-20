@@ -253,10 +253,11 @@ int align_main(int argc, char** argv,
         executor.addTask(worker);
         executor.run();
 
+        std::cout << "This stage" << std::endl; 
         if (!sampleList.empty()) {
             std::string log_filename_md  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
             std::ofstream bwa_log;
-            std::cout << "This stage" << std::endl; 
+            std::cout << "This stage" << std::endl;
             bwa_log.open(log_filename_md, std::fstream::app);
             bwa_log << "Start doing Mark Duplicates " << std::endl;
             bwa_log << "Mark Duplicates finishes in " << getTs() - start_markdup << " seconds" << std::endl;
