@@ -222,7 +222,6 @@ int align_main(int argc, char** argv,
         uint64_t start_align = getTs();
 
         Executor executor("bwa mem");
-
         Worker_ptr worker(new BWAWorker(ref_path,
              fq1_path, fq2_path,
              parts_dir,
@@ -248,7 +247,7 @@ int align_main(int argc, char** argv,
         if (!sampleList.empty()) output_path = output_path_temp;
         if (list.size() >1) parts_dir = temp + "/" + sample_id;
 
-        unit64_t start_markdup = getTs();
+        uint64_t start_markdup = getTs();
         Executor executor("Mark Duplicates");
         Worker_ptr worker(new MarkdupWorker(parts_dir, output_path, flag_f));
         executor.addTask(worker);
