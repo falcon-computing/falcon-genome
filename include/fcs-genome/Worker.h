@@ -48,7 +48,7 @@ class Worker {
              }
            }
          }
-         extra_opts_[type] = value;
+         extra_opts_[type].push_back(value);
          LOG(INFO) << "Parsing one extra option: Key=" << type << ", Value=" << value;
        }
     }
@@ -62,7 +62,7 @@ class Worker {
  protected:
   std::string cmd_;
   std::string log_fname_;
-  std::map<std::string, std::string> extra_opts_;
+  std::map<std::string, std::vector<std::string> > extra_opts_;
 
  private:
   int num_process_;   // num_processes per task
