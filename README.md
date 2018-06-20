@@ -1,32 +1,37 @@
 # Falcon Genome CLI
 This project is the command line interface for the Falcon Accelerated Genomics Pipelines.
 
-## Build
-```
-mkdir build; cd build
-cmake -DCMAKE_INSTALL_PREFIX=`pwd`/install ..
-make 
-make test
-make install
-```
-
-This will produce a binary `fcs-genome` in `./build/install` folder.
-
-### Build configuration
-1. Build in release mode
+### Build
+1. Build and install
    ```
    mkdir Release; cd Release
-   cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=`pwd`/install ..
+   cmake -DCMAKE_BUILD_TYPE=Release ..
+   make
+   make test
    make install
    ```
-   Or build in Debug mode:
+   This will automatically install the `fcs-genome` binary to `~/.falcon-genome/fcs-genome/${version}/`. If the default install path needs to be changed, it can be done by adding `-DCMAKE_INSTALL_PREFIX=`
+
+1. Choose which platform to deploy (aws, hwc, aliyun). This option mostly affect how the license is configured. If left blank, the default license mode is flexlm.
+   ```
+   mkdir Release_AWS; cd Release_AWS
+   cmake -DCMAKE_BUILD_TYPE=Release -DDEPLOYMENT_DST=aws ..
+   make
+   make test
+   make install
+   ```
+   Or:
+   ```
+   mkdir Release_HWC; cd Release_HWC
+   cmake -DCMAKE_BUILD_TYPE=Release -DDEPLOYMENT_DST=hwc ..
+   make
+   make test
+   make install
+   ```
+
+1. Build in Debug mode:
    ```
    mkdir Debug; cd Debug
    cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=`pwd`/install ..
    ```
 
-2. In release mode, choose which platform to deploy (aws, hwc, aliyun). This option mostly affect how the license is configured. If left blank, the default license mode is flexlm.
-   ```
-   cmake -DCMAKE_BUILD_TYPE=Release -DDEPLOYMENT_DST=aws ..
-   cmake -DCMAKE_BUILD_TYPE=Release -DDEPLOYMENT_DST=hwc ..
-   ```
