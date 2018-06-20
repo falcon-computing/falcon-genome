@@ -12,7 +12,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <cstdint>
+#include <unistd.h>
 
 namespace fcsgenome {
 
