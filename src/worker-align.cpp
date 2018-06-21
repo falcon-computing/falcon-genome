@@ -260,7 +260,7 @@ int align_main(int argc, char** argv,
         output_path = temp;
 
         if (!sampleList.empty()) {
-            std::string log_filename_md  = output_path + "/" + sample_id + "_bwa.log";
+            std::string log_filename_md  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
             std::fstream bwa_log;
             bwa_log.open(log_filename_md, std::fstream::app);
             bwa_log << sample_id << ":" << read_group << " : Start doing Mark Duplicates " << std::endl;
