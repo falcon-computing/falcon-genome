@@ -262,7 +262,6 @@ int align_main(int argc, char** argv,
         if (!sampleList.empty()) {
             std::string log_filename_md  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
             std::ofstream bwa_log;
-            DLOG(INFO) << "Inside Loop " << log_filename_md;
             bwa_log.open(log_filename_md, std::ofstream::out | std::ofstream::app);
             bwa_log << sample_id << ":" << ": Start doing Mark Duplicates " << std::endl;
             bwa_log << sample_id << ":" << ": Mark Duplicates finishes in " << getTs() - start_markdup << " seconds" << std::endl;
