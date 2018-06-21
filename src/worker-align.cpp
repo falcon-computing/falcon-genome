@@ -253,7 +253,7 @@ int align_main(int argc, char** argv,
         executor.addTask(worker);
         executor.run();
 
-        std::cout << "This stage" << std::endl; 
+        std::cout << "This stage marked duplicates" << std::endl;
         if (!sampleList.empty()) {
             std::string log_filename_md  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
             std::ofstream bwa_log;
