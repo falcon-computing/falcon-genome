@@ -242,6 +242,8 @@ int align_main(int argc, char** argv,
         }
 
     }; // end loop for list.size()
+    std::cout << "Alignment Completed " << sample_id << std::endl;
+
     if (!flag_align_only) {
         std::string temp = output_path;
         if (!sampleList.empty()) output_path = output_path_temp;
