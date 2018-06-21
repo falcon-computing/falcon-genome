@@ -257,7 +257,7 @@ int align_main(int argc, char** argv,
 
         DLOG(INFO) << "This stage mark duplicates" ;
         if (!sampleList.empty()) {
-            std::string log_filename_md  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
+            std::string log_filename_md  = get_basename(output_path) + "/" + sample_id + "_bwa.log";
             std::fstream bwa_log;
             DLOG(INFO) << "Inside Loop " << log_filename_md;
             bwa_log.open(log_filename_md, std::fstream::app);
