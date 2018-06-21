@@ -238,8 +238,8 @@ int align_main(int argc, char** argv,
             std::string log_filename  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
             std::ofstream outfile;
             outfile.open(log_filename, std::fstream::in | std::fstream::out | std::fstream::app);
-            outfile << sample_id << ":" << read_group << " : Start doing bwa mem " << std::endl;
-            outfile << sample_id << ":" << read_group << " : bwa mem finishes in " << getTs() - start_align << " seconds" << std::endl;
+            outfile << sample_id << ":" << read_group << ": Start doing bwa mem " << std::endl;
+            outfile << sample_id << ":" << read_group << ": bwa mem finishes in " << getTs() - start_align << " seconds" << std::endl;
             outfile.close(); outfile.clear();
         }
 
@@ -261,11 +261,11 @@ int align_main(int argc, char** argv,
 
         if (!sampleList.empty()) {
             std::string log_filename_md  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
-            std::fstream bwa_log;
+            std::ofstream bwa_log;
             DLOG(INFO) << "Inside Loop " << log_filename_md;
-            bwa_log.open(log_filename_md, std::fstream::app);
-            bwa_log << sample_id << ":" << read_group << " : Start doing Mark Duplicates " << std::endl;
-            bwa_log << sample_id << ":" << read_group << " : Mark Duplicates finishes in " << getTs() - start_markdup << " seconds" << std::endl;
+            bwa_log.open(log_filename_md, std::ofstream::out | std::ofstream::app);
+            bwa_log << sample_id << ":" << read_group << ": Start doing Mark Duplicates " << std::endl;
+            bwa_log << sample_id << ":" << read_group << ": Mark Duplicates finishes in " << getTs() - start_markdup << " seconds" << std::endl;
             bwa_log.close(); bwa_log.clear();
         }
 
