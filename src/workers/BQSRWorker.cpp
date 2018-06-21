@@ -164,16 +164,6 @@ void PRWorker::setup() {
   }  
       
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
-<<<<<<< HEAD
-    if (!it->second.empty()) {
-      for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
-        cmd << it->first << " " << *vec_iter << " ";
-      }    
-    }
-    else {
-      cmd << it->first << " ";
-    }
-=======
     cmd << it->first << " ";
     for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
       if (!(*vec_iter).empty() && vec_iter == it->second.begin()) {
@@ -183,7 +173,6 @@ void PRWorker::setup() {
         cmd << it->first << " " << *vec_iter << " ";
       }
     }    
->>>>>>> 5e2b6f3263c8b4f905975128d6468152fa79614b
   }
   cmd << "1> /dev/null";
 
