@@ -264,8 +264,8 @@ int align_main(int argc, char** argv,
             std::ofstream bwa_log;
             DLOG(INFO) << "Inside Loop " << log_filename_md;
             bwa_log.open(log_filename_md, std::ofstream::out | std::ofstream::app);
-            bwa_log << sample_id << ":" << read_group << ": Start doing Mark Duplicates " << std::endl;
-            bwa_log << sample_id << ":" << read_group << ": Mark Duplicates finishes in " << getTs() - start_markdup << " seconds" << std::endl;
+            bwa_log << sample_id << ":" << ": Start doing Mark Duplicates " << std::endl;
+            bwa_log << sample_id << ":" << ": Mark Duplicates finishes in " << getTs() - start_markdup << " seconds" << std::endl;
             bwa_log.close(); bwa_log.clear();
         }
 
