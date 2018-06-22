@@ -48,8 +48,10 @@ class Worker {
              }
            }
          }
-         extra_opts_[type].push_back(value);
-         LOG(INFO) << "Parsing one extra option: Key=" << type << ", Value=" << value;
+         if (type != "-nct") {
+           extra_opts_[type].push_back(value);
+           LOG(INFO) << "Parsing one extra option: Key=" << type << ", Value=" << value;
+         }
        }
     }
  }
