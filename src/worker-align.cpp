@@ -290,7 +290,7 @@ int align_main(int argc, char** argv,
             << "-t " << get_config<int>("markdup.nt") << " ";
         if (list.size() >1) {
             for (int m = 0; m < list.size(); m++) {
-                 parts_dir = temp + "/" + sample_id + "/" + list[m].ReadGroup;
+                 parts_dir = output_path + "/" + sample_id + "/" + list[m].ReadGroup;
                  std::vector<std::string> input_files_
                  get_input_list(parts_dir, input_files_, ".*/part-[0-9].*", true);
                  for (int n = 0; n < input_files_.size(); n++) {
