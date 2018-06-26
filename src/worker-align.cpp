@@ -288,6 +288,8 @@ int align_main(int argc, char** argv,
         cmd << get_config<std::string>("sambamba_path") << " merge "
             << "-l 1 "
             << "-t " << get_config<int>("markdup.nt") << " ";
+        std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
+        cmd << mergeBAM;
         for (int m = 0; m < list.size(); m++) {
              parts_dir = output_path + "/" + sample_id + "/" + list[m].ReadGroup;
              std::vector<std::string> input_files_ ;
@@ -296,10 +298,8 @@ int align_main(int argc, char** argv,
                   cmd << input_files_[n] << " ";
              }
          }
-         std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
-         cmd << mergeBAM;
          DLOG(INFO) << "Merging Parts BAM Files for " << sample_id << std::endl;
-         std::string cmd_ = cmd.str();
+         cmd_ = cmd.str();
          DLOG(INFO) << cmd_ << std::endl;
 
     }
