@@ -2,7 +2,6 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
 #include <string>
-#include <sys/resource.h>
 #include <sys/statvfs.h>
 
 #include "fcs-genome/common.h"
@@ -300,8 +299,20 @@ int align_main(int argc, char** argv,
              }
          }
          DLOG(INFO) << "Merging Parts BAM Files for " << sample_id << std::endl;
-         cmd_ = cmd.str();
+         std::string cmd_ = cmd.str();
          DLOG(INFO) << cmd_ << std::endl;
+
+         // Remove parts_dir
+         if (list.size() >1) {
+             for (int q = 0; q < list.size(); ++q) {
+                  parts_dir = temp + "/" + sample_id + "/" + list[q].ReadGroup;
+                  remove_path(parts_dir);
+                  DLOG(INFO) << "Removing temp file in '" << parts_dir << "'";
+             }
+         } else {
+             remove_path(parts_dir);
+             DLOG(INFO) << "Removing temp file in '" << parts_dir << "'";
+         }
 
     }
 
