@@ -297,11 +297,20 @@ int align_main(int argc, char** argv,
                       cmd << input_files_[n] << " ";
                  }
             }
+        } else {
+            parts_dir = output_path + "/" + sample_id + "/" + list[m].ReadGroup;
+            std::vector<std::string> input_files_ ;
+            get_input_list(parts_dir, input_files_, ".*/part-[0-9].*", true);
+            for (int n = 0; n < input_files_.size(); n++) {
+                 cmd << input_files_[n] << " ";
+            }
         }
         std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
         cmd << mergeBAM;
-        DLOG(INFO) << "Merging Parts BAM Files " << cmd << std::endl;
-        //cmd_ = cmd.str();
+        DLOG(INFO) << "Merging Parts BAM Files for " << sample_id << std::endl;
+        cmd_ = cmd.str();
+        DLOG(INFO) << cmd_ << std::endl;
+
     }
 
 
