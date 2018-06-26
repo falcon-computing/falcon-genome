@@ -288,7 +288,7 @@ int align_main(int argc, char** argv,
         cmd << get_config<std::string>("sambamba_path") << " merge "
             << "-l 1 "
             << "-t " << get_config<int>("markdup.nt") << " ";
-        std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
+        std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam  ";
         cmd << mergeBAM;
         for (int m = 0; m < list.size(); m++) {
              parts_dir = output_path + "/" + sample_id + "/" + list[m].ReadGroup;
@@ -301,6 +301,7 @@ int align_main(int argc, char** argv,
          DLOG(INFO) << "Merging Parts BAM Files for " << sample_id << std::endl;
          std::string cmd_ = cmd.str();
          DLOG(INFO) << cmd_ << std::endl;
+         system(cmd_);
 
          // Remove parts_dir
          if (list.size() >1) {
