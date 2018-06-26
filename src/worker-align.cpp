@@ -301,7 +301,7 @@ int align_main(int argc, char** argv,
          DLOG(INFO) << "Merging Parts BAM Files for " << sample_id << std::endl;
          std::string cmd_ = cmd.str();
          DLOG(INFO) << cmd_ << std::endl;
-         system(cmd_);
+         system(cmd_.c_str());
 
          // Remove parts_dir
          if (list.size() >1) {
