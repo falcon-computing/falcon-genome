@@ -2,6 +2,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
 #include <string>
+#include <sys/resource.h>
 #include <sys/statvfs.h>
 
 #include "fcs-genome/common.h"
