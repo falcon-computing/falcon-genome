@@ -38,7 +38,7 @@ int print_help() {
   print_cmd_col("ug", "variant calling with GATK UnifiedGenotyper");
   print_cmd_col("gatk", "call GATK routines");
 
-  return 0;	
+  return 0;
 }
 
 void sigint_handler(int s){
@@ -48,8 +48,8 @@ void sigint_handler(int s){
   if (fcsgenome::g_executor) {
     delete fcsgenome::g_executor;
   }
-  
-  exit(0); 
+
+  exit(0);
 }
 
 namespace fcsgenome {
@@ -59,6 +59,7 @@ namespace fcsgenome {
   int baserecal_main(int argc, char** argv, po::options_description &opt_desc);
   int concat_main(int argc, char** argv, po::options_description &opt_desc);
   int htc_main(int argc, char** argv, po::options_description &opt_desc);
+  int htc_vcf_main(int argc, char** argv, po::options_description &opt_desc);
   int ir_main(int argc, char** argv, po::options_description &opt_desc);
   int joint_main(int argc, char** argv, po::options_description &opt_desc);
   int markdup_main(int argc, char** argv, po::options_description &opt_desc);
@@ -85,7 +86,7 @@ int main(int argc, char** argv) {
   namespace po = boost::program_options;
   po::options_description opt_desc;
 
-  opt_desc.add_options() 
+  opt_desc.add_options()
     ("help,h", "print help messages")
     ("force,f", "overwrite output files if they exist")
     ("extra-options,O", po::value<std::vector<std::string> >(),
@@ -128,8 +129,8 @@ int main(int argc, char** argv) {
     for (int i = 0; i < argc; i++) {
       cmd_log << argv[i] << " ";
     }
-    LOG(INFO) << "Arguments: " << cmd_log.str();   
-  
+    LOG(INFO) << "Arguments: " << cmd_log.str();
+
     // run command
     if (cmd == "align" | cmd == "al") {
       align_main(argc-1, &argv[1], opt_desc);
@@ -168,7 +169,7 @@ int main(int argc, char** argv) {
       mutect2_main(argc-1, &argv[1], opt_desc);
     }
     else {
-      print_help(); 
+      print_help();
       throw silentExit();
     }
 
@@ -177,47 +178,47 @@ int main(int argc, char** argv) {
     remove_path(conf_temp_dir);
 #endif
   }
-  catch (helpRequest &e) { 
+  catch (helpRequest &e) {
     std::cerr << "'fcs-genome " << cmd;
     std::cerr << "' options:" << std::endl;
-    std::cerr << opt_desc << std::endl; 
+    std::cerr << opt_desc << std::endl;
 
     // delete temp dir
     remove_path(conf_temp_dir);
 
     ret = 0;
   }
-  catch (invalidParam &e) { 
-    LOG(ERROR) << "Failed to parse arguments: " 
+  catch (invalidParam &e) {
+    LOG(ERROR) << "Failed to parse arguments: "
                << "invalid option " << e.what();
     std::cerr << "'fcs-genome " << cmd;
     std::cerr << "' options:" << std::endl;
-    std::cerr << opt_desc << std::endl; 
+    std::cerr << opt_desc << std::endl;
 
     ret = 1;
   }
   catch (pathEmpty &e) {
-    LOG(ERROR) << "Failed to parse arguments: " 
+    LOG(ERROR) << "Failed to parse arguments: "
                << "option " << e.what() << " cannot be empty";
     std::cerr << "'fcs-genome " << cmd;
     std::cerr << "' options:" << std::endl;
-    std::cerr << opt_desc << std::endl; 
+    std::cerr << opt_desc << std::endl;
 
     ret = 1;
   }
-  catch (boost::program_options::error &e) { 
-    LOG(ERROR) << "Failed to parse arguments: " 
+  catch (boost::program_options::error &e) {
+    LOG(ERROR) << "Failed to parse arguments: "
                << e.what();
     std::cerr << "'fcs-genome " << cmd;
     std::cerr << "' options:" << std::endl;
-    std::cerr << opt_desc << std::endl; 
+    std::cerr << opt_desc << std::endl;
 
     // delete temp dir
     remove_path(conf_temp_dir);
 
     ret = 2;
   }
-  catch (fileNotFound &e) { 
+  catch (fileNotFound &e) {
     LOG(ERROR) << e.what();
     ret = 3;
   }
@@ -228,12 +229,12 @@ int main(int argc, char** argv) {
     remove_path(conf_temp_dir);
 
     ret = 1;
-  } 
+  }
   catch (failedCommand &e) {
     LOG(ERROR) << e.what();
     ret = 4;
   }
-  
+
 
   catch (std::runtime_error &e) {
     LOG(ERROR) << "Encountered an error: " << e.what();

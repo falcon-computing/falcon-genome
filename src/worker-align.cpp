@@ -234,6 +234,7 @@ int align_main(int argc, char** argv,
         executor.addTask(worker);
         executor.run();
 
+        // Generating Log File for each sample:
         if (!sampleList.empty()) {
             std::string log_filename  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
             std::ofstream outfile;
@@ -280,7 +281,30 @@ int align_main(int argc, char** argv,
             DLOG(INFO) << "Removing temp file in '" << parts_dir << "'";
         }
 
+    } else {
+        // Merging parts BAM Files if align_only is set:
+        // create sambamba command to merge parts BAM files
+        std::stringstream cmd;
+        cmd << get_config<std::string>("sambamba_path") << " merge "
+            << "-l 1 "
+            << "-t " << get_config<int>("markdup.nt") << " ";
+        if (list.size() >1) {
+            for (int m = 0; m < list.size(); m++) {
+                 parts_dir = temp + "/" + sample_id + "/" + list[m].ReadGroup;
+                 std::vector<std::string> input_files_
+                 get_input_list(parts_dir, input_files_, ".*/part-[0-9].*", true);
+                 for (int n = 0; n < input_files_.size(); n++) {
+                      cmd << input_files_[n] << " ";
+                 }
+            }
+        }
+        std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
+        cmd << mergeBAM;
+        DLOG(INFO) << "Merging Parts BAM Files " << cmd << std::endl;
+        //cmd_ = cmd.str();
     }
+
+
   }; // end loop for Index Map
   return 0;
 }
