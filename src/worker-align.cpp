@@ -299,7 +299,7 @@ int align_main(int argc, char** argv,
          std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
          cmd << mergeBAM;
          DLOG(INFO) << "Merging Parts BAM Files for " << sample_id << std::endl;
-         cmd_ = cmd.str();
+         std::string cmd_ = cmd.str();
          DLOG(INFO) << cmd_ << std::endl;
 
     }
