@@ -20,7 +20,7 @@ INCLUDES	:= -I./include  \
 		   -I$(HTSLIB_DIR) \
 		   -I$(JSONCPP_DIR)/include \
 		   -I$(GTEST_DIR)/include
-	
+
 LINK		:= -lboost_system \
 		   -lboost_thread \
 		   -lboost_iostreams \
@@ -45,7 +45,7 @@ ifneq ($(FLMDIR),)
 CFLAGS   	:= $(CFLAGS) -DNDEBUG -DUSELICENSE
 INCLUDES 	:= $(INCLUDES) -I$(FLMDIR)/include
 LINK 	 	:= -L$(FLMDIR)/lib -lfalcon_license \
-		   $(LINK) 
+		   $(LINK)
 ifneq ($(DEPLOYMENT),) # config license client for a cloud
 CFLAGS       := $(CFLAGS) -DDEPLOY_$(DEPLOYMENT)
 GIT_VERSION  := $(GIT_VERSION)-$(DEPLOYMENT)
@@ -77,6 +77,7 @@ OBJS	 := $(SRC_DIR)/common.o \
 	    $(SRC_DIR)/workers/HTCWorker.o \
 	    $(SRC_DIR)/workers/IndelWorker.o \
 	    $(SRC_DIR)/workers/MarkdupWorker.o \
+      $(SRC_DIR)/workers/MergeBAMWorker.o \
 	    $(SRC_DIR)/workers/VCFUtilsWorker.o \
 	    $(SRC_DIR)/workers/UGWorker.o \
             $(SRC_DIR)/worker-mutect2.o \
@@ -122,6 +123,6 @@ clean:
 	rm -f $(OBJS)
 	rm -f $(SRC_DIR)/main.o
 	rm -f $(TEST_DIR)/main.o
-	rm -f $(PROG)  
+	rm -f $(PROG)
 
 .PHONY: all clean install dist test runtest

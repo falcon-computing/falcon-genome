@@ -40,7 +40,7 @@ static std::string env_name_mapper(std::string key) {
 
   // check if has 'fcs_' prefix
   if (key.length() > 4 && key.substr(0, 4).compare("fcs_") == 0) {
-    // check if defined in list 
+    // check if defined in list
     if (config_list.count(key.substr(4))) {
       return key.substr(4);
     }
@@ -58,10 +58,10 @@ void calc_gatk_default_config(
   memory = 4;
 
   // allow some extra room for JVM memory, very empirical
-  double memory_margin = 0.05; 
+  double memory_margin = 0.05;
 
   while (nprocs > cpu_num) {
-    nprocs /= 2; 
+    nprocs /= 2;
   }
   // first increase memory if necessary
   while (nprocs * (memory+2) < memory_size * (1+memory_margin)) {
@@ -139,7 +139,7 @@ int init_config(boost::program_options::options_description conf_opt) {
   }
   catch (po::error &e) {
     std::cerr << "fcs-genome configuration options:" << std::endl;
-    std::cerr << conf_opt << std::endl; 
+    std::cerr << conf_opt << std::endl;
     LOG(ERROR) << "Failed to initialize config: " << e.what();
 
     throw silentExit();
@@ -188,7 +188,7 @@ int init_config(boost::program_options::options_description conf_opt) {
   check_input(get_config<std::string>("gatk_path"), false);
 
   // parse host list if scaleout_mode is selected
-  if (get_config<bool>("bwa.scaleout_mode") || 
+  if (get_config<bool>("bwa.scaleout_mode") ||
       get_config<bool>("gatk.scaleout_mode") ||
       get_config<bool>("latency_mode")) {
     std::string hosts = get_config<std::string>("hosts");
@@ -199,7 +199,7 @@ int init_config(boost::program_options::options_description conf_opt) {
 
     conf_host_list.insert(conf_host_list.end(), tok.begin(), tok.end());
   }
-  
+
   // log debug info
   DLOG(INFO) << "conf_root_dir = " << conf_root_dir;
   DLOG(INFO) << "conf_temp_dir = " << conf_temp_dir;
@@ -249,7 +249,7 @@ int init(char** argv, int argc) {
   DLOG(INFO) << "Default gatk.nprocs = " << def_nprocs;
   DLOG(INFO) << "Default gatk.memory = " << def_memory;
 
-  common_opt.add_options() 
+  common_opt.add_options()
     arg_decl_string_w_def("temp_dir",        "/tmp",      "temp dir for fast access")
     arg_decl_string_w_def("log_dir",         "./log",     "log dir")
     arg_decl_string_w_def("ref_genome",      "",          "(deprecated) default reference genome path")
@@ -265,7 +265,7 @@ int init(char** argv, int argc) {
     arg_decl_string_w_def("hosts", "",       "host list for scale-out mode")
     arg_decl_bool_w_def("latency_mode", false, "enable sorting in bwa-mem")
     ;
-  
+
   tools_opt.add_options()
     arg_decl_int_w_def("bwa.verbose",              0,     "verbose level of bwa output")
     arg_decl_int_w_def("bwa.nt",                   -1,    "number of threads for bwa-mem")
@@ -281,6 +281,9 @@ int init(char** argv, int argc) {
     arg_decl_int_w_def("markdup.max_files",    4096, "max opened files in markdup")
     arg_decl_int_w_def("markdup.nt",           (16 > cpu_num ? cpu_num : 16),   "thread num in markdup")
     arg_decl_int_w_def("markdup.overflow-list-size", 2000000, "overflow list size in markdup")
+
+    arg_decl_int_w_def("mergebam.max_files",    4096, "max opened files in mergebam")
+    arg_decl_int_w_def("mergebam.nt",           (16 > cpu_num ? cpu_num : 16),   "thread num in mergebam")
 
     arg_decl_bool("gatk.scalout_mode", "enable scale-out mode for gatk")
     arg_decl_string_w_def("gatk.intv.path",    "", "default path to existing contig intervals")
@@ -321,7 +324,7 @@ int init(char** argv, int argc) {
 
   if (argc > 1 && ::strcmp(argv[1], "conf") == 0) {
     std::cerr << "fcs-genome configuration options:" << std::endl;
-    std::cerr << conf_opt << std::endl; 
+    std::cerr << conf_opt << std::endl;
     throw silentExit();
   }
 
@@ -336,8 +339,8 @@ int init(char** argv, int argc) {
   return ret;
 }
 
-static inline void write_contig_intv(std::ofstream& fout, 
-    std::string chr, 
+static inline void write_contig_intv(std::ofstream& fout,
+    std::string chr,
     uint64_t lbound, uint64_t ubound) {
   fout << chr << ":" << lbound << "-" << ubound << std::endl;
 }
@@ -393,11 +396,11 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
 
     std::string line = dict_lines[i];
     tokenizer tok_space{line, space_sep};
-    
+
     int idx = 0;
     std::string chr_name;
     uint64_t    chr_length = 0;
-    for (tokenizer::iterator it = tok_space.begin(); 
+    for (tokenizer::iterator it = tok_space.begin();
          it != tok_space.end(); ++it) {
       // [0] @SQ, [1] SN:contig, [2] LN:length
       if (idx == 1) {
@@ -421,7 +424,7 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
   int contig_idx = 0;
 
   // positions per contig part
-  uint64_t contig_npos = (dict_length+ncontigs-1)/ncontigs; 
+  uint64_t contig_npos = (dict_length+ncontigs-1)/ncontigs;
   uint64_t remain_npos = contig_npos;   // remaining positions for partition
 
   DLOG(INFO) << "contig_npos = " << contig_npos;
@@ -434,7 +437,7 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
 
   for (int i = 0; i < dict.size(); i++) {
     std::string chr_name = dict[i].first;
-    uint64_t chr_length = dict[i].second; 
+    uint64_t chr_length = dict[i].second;
     uint64_t npos = chr_length;
 
     // if the number of positions in one chr is larger than one contig part
@@ -455,11 +458,11 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
       write_contig_intv(fout, chr_name, lbound, chr_length);
 
       remain_npos -= npos;
-      lbound = 1; 
+      lbound = 1;
     }
   }
   fout.close();
 
-  return intv_paths; 
+  return intv_paths;
 }
 } // namespace fcsgenome
