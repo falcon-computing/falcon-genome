@@ -7,7 +7,7 @@ namespace fcsgenome {
 
 class MergeBamWorker : public Worker {
  public:
-  MarkdupWorker(std::string input_path,
+  MergeBamWorker(std::string input_path,
       std::string output_path,
       bool &flag_f);
 
