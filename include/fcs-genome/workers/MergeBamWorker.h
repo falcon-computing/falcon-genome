@@ -8,14 +8,14 @@ namespace fcsgenome {
 
 class MergeBamWorker : public Worker {
  public:
-  MergeBamWorker(std::stringstream input_path,
+  MergeBamWorker(std::string input_path,
       std::string output_path,
       bool &flag_f);
 
   //void check();
   void setup();
  private:
-  std::stringstream inputPartsBAM_;
+  std::string inputPartsBAM_;
   //std::vector<std::string> input_files_;
   std::string output_file_;
 };

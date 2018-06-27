@@ -8,13 +8,13 @@
 
 namespace fcsgenome{
 
-MergeBamWorker::MergeBamWorker(std::stringstream inputPartsBAM,
+MergeBamWorker::MergeBamWorker(std::string inputPartsBAM,
     std::string outputBAM,
     bool &flag_f): Worker(1, get_config<int>("mergebam.nt"))
 {
   // check output
   output_file_   = check_output(outputBAM, flag_f, true);
-  inputPartsBAM_ << inputPartsBAM;
+  inputPartsBAM_ = inputPartsBAM;
 }
 
 //void MergeBamWorker::check() {
