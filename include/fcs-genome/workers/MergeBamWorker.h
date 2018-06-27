@@ -1,6 +1,7 @@
 #ifndef FCSGENOME_WORKERS_MERGEBAMWORKER_H
 #define FCSGENOME_WORKERS_MERGEBAMWORKER_H
 #include <string>
+#include <sstream>
 #include "fcs-genome/Worker.h"
 
 namespace fcsgenome {

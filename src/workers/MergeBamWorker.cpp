@@ -41,7 +41,7 @@ void MergeBamWorker::setup() {
   std::stringstream cmd;
   cmd << get_config<std::string>("sambamba_path") << " merge "
       << "-l 1 "
-      << "-t " << get_config<int>("mergebam.nt") << " " << outputBAM << " " << inputPartsBAM_;
+      << "-t " << get_config<int>("mergebam.nt") << " " << output_file_ << " " << inputPartsBAM_;
       ;
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
