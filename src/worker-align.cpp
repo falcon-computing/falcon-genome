@@ -302,10 +302,10 @@ int align_main(int argc, char** argv,
          }
 
          if (result == 1) {
-             Executor merger_executor("Merge BAM files");
-             Worker_ptr merger_worker(new MergeBamWorker(partsBAM, mergeBAM, flag_f));
-             merger_executor.addTask(merger_worker);
-             merger_executor.run();
+             //Executor merger_executor("Merge BAM files");
+             //Worker_ptr merger_worker(new MergeBamWorker(partsBAM, mergeBAM, flag_f));
+             //merger_executor.addTask(merger_worker);
+             //merger_executor.run();
              DLOG(INFO) << "I am here" << std::endl;
          } else {
              DLOG(INFO) << "MergeBamWorker not called. No merge needed" << std::endl;
