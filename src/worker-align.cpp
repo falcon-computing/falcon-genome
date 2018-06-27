@@ -292,7 +292,7 @@ int align_main(int argc, char** argv,
              parts_dir = output_path + "/" + sample_id + "/" + list[m].ReadGroup;
              std::vector<std::string> input_files_ ;
              get_input_list(parts_dir, input_files_, ".*/part-[0-9].*", true);
-             if (list.size() == 0 && input_files_.size() == 0){
+             if (list.size() == 1 && input_files_.size() == 1){
                  result = rename((partsBAM.str()).c_str(), mergeBAM.c_str());
              }
 
