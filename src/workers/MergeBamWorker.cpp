@@ -14,7 +14,7 @@ MergeBamWorker::MergeBamWorker(std::stringstream inputPartsBAM,
 {
   // check output
   output_file_   = check_output(outputBAM, flag_f, true);
-  inputPartsBAM_ << inputPartsBAM.rdbuf();
+  inputPartsBAM_ << inputPartsBAM;
 }
 
 //void MergeBamWorker::check() {
