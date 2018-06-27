@@ -295,7 +295,7 @@ int align_main(int argc, char** argv,
              if (list.size() == 1 && input_files_.size() == 1){
                  DLOG(INFO) << "Only 1 Part BAM for " << sample_id
                             << " Read Group " << list[m].ReadGroup;
-                 system("mv " + (partsBAM.str()).c_str() + " " + mergeBAM.c_str());
+                 system("mv " + (partsBAM.str()) + " " + mergeBAM.c_str());
                  result = 0;
                  DLOG(INFO) << "Moving " << partsBAM.str() << " to " << mergeBAM << std::endl;
              }
@@ -307,7 +307,7 @@ int align_main(int argc, char** argv,
          uint64_t start_merging = getTs();
          std::string log_filename_merge  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
          std::ofstream merge_log;
-         merge_log.open(log_filename_md, std::ofstream::out | std::ofstream::app);
+         merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
          merge_log << sample_id << ": " << "Start Merging BAM Files " << std::endl;
          if (result == 1) {
              Executor merger_executor("Merge BAM files");
