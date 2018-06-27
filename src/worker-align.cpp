@@ -293,57 +293,46 @@ int align_main(int argc, char** argv,
              std::vector<std::string> input_files_ ;
              get_input_list(parts_dir, input_files_, ".*/part-[0-9].*", true);
              if (list.size() == 1 && input_files_.size() == 1){
-                 result = rename((partsBAM.str()).c_str(), mergeBAM.c_str());
+                 DLOG(INFO) << "Only 1 Part BAM for " << sample_id
+                            << " Read Group " << list[m].ReadGroup;
+                 system("mv " + (partsBAM.str()).c_str() + " " + mergeBAM.c_str());
+                 result = 0;
+                 DLOG(INFO) << "Moving " << partsBAM.str() << " to " << mergeBAM << std::endl;
              }
-
              for (int n = 0; n < input_files_.size(); n++) {
                   partsBAM << input_files_[n] << " ";
              }
          }
 
+         uint64_t start_merging = getTs();
+         std::string log_filename_merge  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
+         std::ofstream merge_log;
+         merge_log.open(log_filename_md, std::ofstream::out | std::ofstream::app);
+         merge_log << sample_id << ": " << "Start Merging BAM Files " << std::endl;
          if (result == 1) {
              Executor merger_executor("Merge BAM files");
              Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, flag_f));
              merger_executor.addTask(merger_worker);
              merger_executor.run();
-             DLOG(INFO) << "I am here " << partsBAM.str() << std::endl;
+             DLOG(INFO) << "Merging Parts BAM for  " << sample_id << " completed " << std::endl;
          } else {
-             DLOG(INFO) << "MergeBamWorker not called. No merge needed" << std::endl;
+             DLOG(INFO) << "MergeBamWorker not called for " << sample_id << ". No merge needed" << std::endl;
          }
-
-         //std::stringstream cmd;
-         //cmd << get_config<std::string>("sambamba_path") << " merge "
-        //     << "-l 1 "
-        //   << "-t " << get_config<int>("mergebam.nt") << " ";
-         //std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam  ";
-         //cmd << mergeBAM;
-         //for (int m = 0; m < list.size(); m++) {
-          //    parts_dir = output_path + "/" + sample_id + "/" + list[m].ReadGroup;
-            //  std::vector<std::string> input_files_ ;
-              //get_input_list(parts_dir, input_files_, ".*/part-[0-9].*", true);
-              //for (int n = 0; n < input_files_.size(); n++) {
-              //     cmd << input_files_[n] << " ";
-              //}
-          //}
-          //DLOG(INFO) << "Merging Parts BAM Files for " << sample_id << std::endl;
-          //std::string cmd_ = cmd.str();
-          //DLOG(INFO) << cmd_ << std::endl;
-          //system(cmd_.c_str());
+         merge_log << sample_id << ": " << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
+         merge_log.close(); merge_log.clear();
 
           // Remove parts_dir
-          if (list.size() >1) {
-              for (int q = 0; q < list.size(); ++q) {
-                   parts_dir = output_path + "/" + sample_id + "/" + list[q].ReadGroup;
-                   remove_path(parts_dir);
-                   DLOG(INFO) << "Removing temp file in '" << parts_dir << "'";
+         if (list.size() >1) {
+             for (int q = 0; q < list.size(); ++q) {
+                  parts_dir = output_path + "/" + sample_id + "/" + list[q].ReadGroup;
+                  remove_path(parts_dir);
+                  DLOG(INFO) << "Removing temp file in '" << parts_dir << "'";
               }
-          } else {
-              remove_path(parts_dir);
-              DLOG(INFO) << "Removing temp file in '" << parts_dir << "'";
-          }
-
+         } else {
+             remove_path(parts_dir);
+             DLOG(INFO) << "Removing temp file in '" << parts_dir << "'";
+         }
     }
-
 
   }; // end loop for Index Map
   return 0;

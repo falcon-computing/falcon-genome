@@ -17,11 +17,6 @@ MergeBamWorker::MergeBamWorker(std::string inputPartsBAM,
   inputPartsBAM_ = inputPartsBAM;
 }
 
-//void MergeBamWorker::check() {
-//  input_path_ = check_input(input_path_);
-//  get_input_list(input_path_, input_files_, ".*/part-[0-9].*", true);
-//}
-
 void MergeBamWorker::setup() {
   // update limit
   struct rlimit file_limit;
@@ -42,7 +37,6 @@ void MergeBamWorker::setup() {
   cmd << get_config<std::string>("sambamba_path") << " merge "
       << "-l 1 "
       << "-t " << get_config<int>("mergebam.nt") << " " << output_file_ << " " << inputPartsBAM_;
-      ;
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
 }
