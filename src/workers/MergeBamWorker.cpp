@@ -1,4 +1,5 @@
 #include <string>
+#include <sstream>
 #include <sys/resource.h>
 
 #include "fcs-genome/common.h"

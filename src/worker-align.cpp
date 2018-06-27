@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <unistd.h>
 
 namespace fcsgenome {
@@ -292,7 +293,7 @@ int align_main(int argc, char** argv,
              std::vector<std::string> input_files_ ;
              get_input_list(parts_dir, input_files_, ".*/part-[0-9].*", true);
              if (list.size() == 0 && input_files_.size() == 0){
-                 result = rename(partsBAM.str(), mergeBAM.c_str());
+                 result = rename((partsBAM.str()).c_str(), mergeBAM.c_str());
              }
 
              for (int n = 0; n < input_files_.size(); n++) {
