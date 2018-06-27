@@ -77,7 +77,7 @@ OBJS	 := $(SRC_DIR)/common.o \
 	    $(SRC_DIR)/workers/HTCWorker.o \
 	    $(SRC_DIR)/workers/IndelWorker.o \
 	    $(SRC_DIR)/workers/MarkdupWorker.o \
-      $(SRC_DIR)/workers/MergeBAMWorker.o \
+      $(SRC_DIR)/workers/MergeBamWorker.o \
 	    $(SRC_DIR)/workers/VCFUtilsWorker.o \
 	    $(SRC_DIR)/workers/UGWorker.o \
             $(SRC_DIR)/worker-mutect2.o \
