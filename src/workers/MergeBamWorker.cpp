@@ -13,8 +13,8 @@ MergeBamWorker::MergeBamWorker(std::stringstream inputPartsBAM,
     bool &flag_f): Worker(1, get_config<int>("mergebam.nt"))
 {
   // check output
-  output_file_ = check_output(outputBAM, flag_f, true);
-  inputPartsBAM_ = inputPartsBAM;
+  output_file_   = check_output(outputBAM, flag_f, true);
+  inputPartsBAM_ << inputPartsBAM.rdbuf();
 }
 
 //void MergeBamWorker::check() {

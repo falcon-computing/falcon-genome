@@ -16,7 +16,7 @@ class MergeBamWorker : public Worker {
   void setup();
  private:
   std::stringstream inputPartsBAM_;
-  std::vector<std::string> input_files_;
+  //std::vector<std::string> input_files_;
   std::string output_file_;
 };
 
