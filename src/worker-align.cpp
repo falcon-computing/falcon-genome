@@ -295,7 +295,7 @@ int align_main(int argc, char** argv,
              if (list.size() == 1 && input_files_.size() == 1){
                  DLOG(INFO) << "Only 1 Part BAM for " << sample_id
                             << " Read Group " << list[m].ReadGroup;
-                 system(("mv " + (partsBAM.str()) + " " + mergeBAM.str()).c_str());
+                 system(("mv " + partsBAM.str() + " " + mergeBAM).c_str());
                  result = 0;
                  DLOG(INFO) << "Moving " << partsBAM.str() << " to " << mergeBAM << std::endl;
              }
