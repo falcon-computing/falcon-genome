@@ -301,6 +301,7 @@ int align_main(int argc, char** argv,
                  system(("mv " + partsBAM.str() + " " + mergeBAM).c_str());
                  std::stringstream cmd;
                  cmd << get_config<std::string>("sambamba_path") << " index " << "-t " << get_config<int>("mergebam.nt") << " " mergeBAM ;
+                 DLOG(INFO) << cmd.str();
                  system((cmd.str()).c_str());
                  result = 0;
                  DLOG(INFO) << "Moving " << partsBAM.str() << " to " << mergeBAM << std::endl;
