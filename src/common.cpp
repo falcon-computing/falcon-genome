@@ -21,6 +21,25 @@ Executor* create_executor(std::string job_name, int num_workers) {
   return executor;
 }
 
+uint32_t getTid() {
+  static bool lacks_gettid = false;
+
+  if (!lacks_gettid) {
+    pid_t tid = syscall(__NR_gettid);
+    if (tid != -1) {
+      return (uint32_t)tid;
+    }
+    // Technically, this variable has to be volatile, but there is a small
+    // performance penalty in accessing volatile variables and there should
+    // not be any serious adverse effect if a thread does not immediately see
+    // the value change to "true".
+    lacks_gettid = true;
+  }
+
+  // If gettid() could not be used, we use one of the following.
+  return (uint32_t)getpid(); 
+}
+
 std::string get_absolute_path(std::string path) {
   boost::filesystem::wpath file_path(path);
   if (boost::filesystem::exists(file_path)) {

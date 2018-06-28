@@ -232,6 +232,8 @@ void get_input_list(std::string path,
 std::vector<std::string> get_lines(std::string fname,
     std::string pattern = ".*");
 
+uint32_t getTid();
+
 class Executor;
 class Worker;
 

@@ -312,6 +312,9 @@ int init(char** argv, int argc) {
     arg_decl_int_w_def("gatk.genotype.nprocs", def_nprocs, "default process num in GATK GenotypeGVCFs")
     arg_decl_int_w_def("gatk.genotype.memory", def_memory, "default heap memory in GATK GenotypeGVCFs")
     arg_decl_bool("gatk.skip_pseudo_chr", "skip pseudo chromosome intervals")
+
+    arg_decl_string_w_def("blaze.nam_path", conf_root_dir+"/tools/blaze/bin/nam", "path to nam in blaze")
+    arg_decl_string_w_def("blaze.conf_path",conf_root_dir+"/tools/blaze/conf",    "path to nam configuration file")
     ;
 
   conf_opt.add(common_opt).add(tools_opt);

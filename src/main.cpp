@@ -48,7 +48,9 @@ void sigint_handler(int s){
   if (fcsgenome::g_executor) {
     delete fcsgenome::g_executor;
   }
-  
+#ifndef NDEBUG
+  fcsgenome::remove_path(fcsgenome::conf_temp_dir);
+#endif
   exit(0); 
 }
 
