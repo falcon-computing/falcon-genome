@@ -300,7 +300,7 @@ int align_main(int argc, char** argv,
                             << " Read Group " << list[m].ReadGroup;
                  system(("mv " + partsBAM.str() + " " + mergeBAM).c_str());
                  std::stringstream cmd;
-                 cmd << get_config<std::string>("sambamba_path") << " index " << "-t " << get_config<int>("mergebam.nt") << " " mergeBAM ;
+                 cmd << get_config<std::string>("sambamba_path") << " index " << "-t " << get_config<int>("mergebam.nt") << " " << mergeBAM ;
                  DLOG(INFO) << cmd.str();
                  system((cmd.str()).c_str());
                  result = 0;
