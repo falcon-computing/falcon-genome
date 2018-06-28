@@ -6,6 +6,7 @@
 #include <string>
 
 
+#include "fcs-genome/BackgroundExecutor.h"
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
@@ -77,6 +78,13 @@ int htc_main(int argc, char** argv,
 
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+
+  // start an executor for NAM
+  Worker_ptr blaze_worker(new BlazeWorker(
+        get_config<std::string>("blaze.nam_path"),
+        get_config<std::string>("blaze.conf_path")));
+
+  BackgroundExecutor bg_executor("blaze-nam", blaze_worker);
 
   Executor executor("Haplotype Caller", 
                     get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
