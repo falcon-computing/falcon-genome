@@ -312,6 +312,7 @@ int align_main(int argc, char** argv,
          std::string log_filename_merge  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
          std::ofstream merge_log;
          merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
+         merge_log << sample_id << ":" << "Align Only set " << std::endl;
          merge_log << sample_id << ":" << "Start Merging BAM Files " << std::endl;
          if (result == 1) {
              Executor merger_executor("Merge BAM files");
