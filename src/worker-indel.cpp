@@ -25,6 +25,7 @@ int ir_main(int argc, char** argv,
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output diretory of BAM files")
+    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
     ("known,K", po::value<std::vector<std::string> >(),
      "known indels for realignment");
 
@@ -46,7 +47,7 @@ int ir_main(int argc, char** argv,
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string target_path = input_path + ".intervals";
-
+  std::vector<std::string> intv_list   = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
   std::vector<std::string> known_indels = get_argument<
     std::vector<std::string> >(cmd_vm, "known", "K", std::vector<std::string>());
 
@@ -86,6 +87,7 @@ int ir_main(int argc, char** argv,
           input_file, target_path,
           get_contig_fname(output_path, contig),
           extra_opts,
+          intv_list,
           flag_f));
     executor.addTask(worker, contig==0);
   }

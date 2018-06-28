@@ -249,6 +249,12 @@ void CombineGVCFsWorker::check() {
   // get a vector of input files
   get_input_list(input_path_, input_files_, ".*\\.gvcf.gz");
 
+  // check if input files all have index
+  for (auto file : input_files_) {
+    std::string idx_fname = file + ".tbi";
+    check_input(idx_fname);
+  }
+
   // 2. generate callset.json
   genCallSet();
   
