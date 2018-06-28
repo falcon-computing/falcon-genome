@@ -29,6 +29,7 @@ int htc_main(int argc, char** argv,
                                 "the output will be a directory of gvcf files)")
     ("produce-vcf,v", "produce VCF files from HaplotypeCaller instead of GVCF")
     // TODO: skip-concat should be deprecated
+    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
     ("skip-concat,s", "(deprecated) produce a set of GVCF/VCF files instead of one");
 
   // Parse arguments
@@ -50,7 +51,7 @@ int htc_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-
+  std::vector<std::string> intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
   
@@ -101,6 +102,7 @@ int htc_main(int argc, char** argv,
           intv_paths[contig], input_file,
           output_file,
           extra_opts,
+          intv_list,
           contig, 
           flag_vcf,
           flag_htc_f));

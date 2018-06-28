@@ -13,6 +13,7 @@ HTCWorker::HTCWorker(std::string ref_path,
       std::string input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
+      std::vector<std::string> &intv_list,
       int  contig,
       bool flag_vcf,
       bool &flag_f): 
@@ -20,7 +21,8 @@ HTCWorker::HTCWorker(std::string ref_path,
   produce_vcf_(flag_vcf),
   ref_path_(ref_path),
   intv_path_(intv_path),
-  input_path_(input_path)
+  input_path_(input_path),
+  intv_list_(intv_list)
 {
   // check input/output files
   output_path_ = check_output(output_path, flag_f);
@@ -29,7 +31,7 @@ HTCWorker::HTCWorker(std::string ref_path,
 void HTCWorker::check() {
   ref_path_   = check_input(ref_path_);
   intv_path_  = check_input(intv_path_);
-  input_path_ = check_input(input_path_);
+  input_path_ = check_input(input_path_); 
 }
 
 void HTCWorker::setup() {
@@ -43,11 +45,23 @@ void HTCWorker::setup() {
       << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " ";
   
+  for (int i = 0; i < intv_list_.size(); i++) {
+    cmd << "-L " << intv_list_[i] << " ";
+  }
+  if (intv_list_.size() > 0 ) {
+    cmd << "-isr INTERSECTION ";
+  }
+   
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
-    cmd << it-> first << " ";
-    if (!it->second.empty()) {
-      cmd << it->second << " ";
-    }
+    cmd << it->first << " "; 
+    for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
+      if (!(*vec_iter).empty() && vec_iter == it->second.begin()) {
+        cmd << *vec_iter << " ";
+      }
+      else if (!(*vec_iter).empty()) {
+        cmd << it->first << " " << *vec_iter << " ";
+      }
+    } 
   }
   
   if (!produce_vcf_) {

@@ -21,7 +21,10 @@ int gatk_main(int argc, char** argv,
       << "-Xmx8g "
       << "-jar " << get_config<std::string>("gatk_path") << " ";
   for (int i = 1; i < argc; i++) {
-    cmd << argv[i] << " ";
+    if ( boost::starts_with(argv[i], "-") || boost::starts_with(argv[i], "--"))
+      cmd << argv[i] << " ";
+    else
+      cmd << "'" << argv[i] << "'" << " ";
   }
   DLOG(INFO) << cmd.str();
   return system(cmd.str().c_str());
