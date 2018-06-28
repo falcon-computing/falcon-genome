@@ -299,8 +299,9 @@ int align_main(int argc, char** argv,
                  DLOG(INFO) << "Only 1 Part BAM for " << sample_id
                             << " Read Group " << list[m].ReadGroup;
                  system(("mv " + partsBAM.str() + " " + mergeBAM).c_str());
-                 std::stringstream cmd << get_config<std::string>("sambamba_path") << " index " << mergeBAM;
-                 system(cmd.str());
+                 std::stringstream cmd;
+                 cmd << get_config<std::string>("sambamba_path") << " index " << mergeBAM;
+                 system("cmd.c_str()");
                  result = 0;
                  DLOG(INFO) << "Moving " << partsBAM.str() << " to " << mergeBAM << std::endl;
              }
