@@ -15,7 +15,7 @@ DepthWorker::DepthWorker(std::string ref_path,
       std::vector<std::string> &intv_list,
       std::string geneList,
       int depthCutoff,
-      std::vector<std::string> extra_opts, 
+      std::vector<std::string> extra_opts,
       int  contig,
       bool &flag_f,
       bool &flag_baseCoverage,
@@ -52,14 +52,14 @@ void DepthWorker::setup() {
       << "-T DepthOfCoverage "
       << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " ";
- 
+
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
     cmd << it-> first << " ";
     if (!it->second.empty()) {
       cmd << it->second << " ";
     }
   }
-   
+
   cmd << "-L " << intv_path_ << " "
       << "-nt " << get_config<int>("gatk.depth.nct", "gatk.nct") << " "
       << "-o " << output_path_ << " "
@@ -75,14 +75,13 @@ void DepthWorker::setup() {
 
   if(!flag_baseCoverage_)
     cmd << "-omitBaseOutput ";
-  if(!flag_intervalCoverage_)
-    cmd << "-omitIntervals ";
+  //if(!flag_intervalCoverage_)
+  //  cmd << "-omitIntervals ";
   if(!flag_sampleSummary_)
     cmd << "-omitSampleSummary ";
- 
+
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
 }
 
 } // namespace fcsgenome
-                           
