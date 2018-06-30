@@ -64,7 +64,9 @@ void calc_gatk_default_config(
     nprocs /= 2; 
   }
   // first increase memory if necessary
-  while (nprocs * (memory+2) < memory_size * (1+memory_margin)) {
+  while (nprocs * (memory+2) < memory_size * (1+memory_margin)
+      && memory < 16) 
+  {
     memory += 2;
   }
   // then decrease nprocs if necessary
