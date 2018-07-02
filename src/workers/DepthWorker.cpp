@@ -12,7 +12,7 @@ DepthWorker::DepthWorker(std::string ref_path,
       std::string intv_path,
       std::string input_path,
       std::string output_path,
-      std::vector<std::string> &intv_list,
+      std::string intv_list,
       std::string geneList,
       int depthCutoff,
       std::vector<std::string> extra_opts,
@@ -37,8 +37,8 @@ DepthWorker::DepthWorker(std::string ref_path,
 
 void DepthWorker::check() {
   ref_path_   = check_input(ref_path_);
-  intv_path_  = check_input(intv_path_);
   input_path_ = check_input(input_path_);
+  intv_path_  = check_input(intv_path_);
   geneList_   = check_input(geneList_);
 }
 
@@ -70,7 +70,7 @@ void DepthWorker::setup() {
      cmd << "-L " << intv_list_[i] << " ";
   }
   if (intv_list_.size() > 0 ) {
-    cmd << "-isr INTERSECTION ";
+     cmd << "-isr INTERSECTION ";
   }
 
   if(!flag_baseCoverage_)
