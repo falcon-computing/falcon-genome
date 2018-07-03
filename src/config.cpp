@@ -497,7 +497,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile) {
   while( int cc = FileRead( ifs, buff ) ) {
         n += CountLines( buff, cc );
   }
-  DLOG(INFO) << n << endl;
+  DLOG(INFO) << n << std::endl;
 
 
 
