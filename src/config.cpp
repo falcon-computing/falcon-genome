@@ -511,7 +511,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile) {
 	     //std::getline(IntFile, s);
 	     TotalLines++;
   };
-  intFile.close();
+  IntFile.close();
   std::cout << TotalLines;
 
   return intv_paths;
