@@ -12,8 +12,7 @@ DepthWorker::DepthWorker(std::string ref_path,
       std::string intv_path,
       std::string input_path,
       std::string output_path,
-      std::string intv_list,
-      std::string geneList,
+      std::string geneList_paths,
       int depthCutoff,
       std::vector<std::string> extra_opts,
       int  contig,
@@ -24,7 +23,7 @@ DepthWorker::DepthWorker(std::string ref_path,
   ref_path_(ref_path),
   intv_path_(intv_path),
   input_path_(input_path),
-  intv_list_(intv_list),
+  geneList_path(geneList_paths),
   geneList_(geneList),
   depthCutoff_(depthCutoff),
   flag_baseCoverage_(flag_baseCoverage),
@@ -60,13 +59,12 @@ void DepthWorker::setup() {
     }
   }
 
-  cmd << "-L " << intv_path_ << " "
-      << "-nt " << get_config<int>("gatk.depth.nct", "gatk.nct") << " "
+  cmd << "-nt " << get_config<int>("gatk.depth.nct", "gatk.nct") << " "
       << "-o " << output_path_ << " "
       << "-ct " << depthCutoff_ << " ";
 
-  for (int i = 0; i < intv_list_.size(); i++) {
-     cmd << "-L " << intv_list_[i] << " -geneList " << geneList_[i] << " ";
+  for (int i = 0; i < intv_path_.size(); i++) {
+     cmd << "-L " << intv_path_[i] << " -geneList " << geneList_path[i] << " ";
   }
   if (intv_list_.size() > 0 ) {
      cmd << "-isr INTERSECTION ";
@@ -76,8 +74,8 @@ void DepthWorker::setup() {
     cmd << "-omitBaseOutput ";
   //if(!flag_intervalCoverage_)
   //  cmd << "-omitIntervals ";
-  if(!flag_sampleSummary_)
-    cmd << "-omitSampleSummary ";
+  //if(!flag_sampleSummary_)
+  //  cmd << "-omitSampleSummary ";
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;

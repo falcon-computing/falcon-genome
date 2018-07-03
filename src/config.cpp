@@ -520,7 +520,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   int chunk = int(n/ncontigs);
 
   int nearest_multiple = roundUp(chunk,ncontigs);
-  DLOG(INFO) << "Nearest Multiple of " << ncontigs << " for " << n << " : " << nearest_multiple << std::endl;
+  //DLOG(INFO) << "Nearest Multiple of " << ncontigs << " for " << n << " : " << nearest_multiple << std::endl;
 
   std::stringstream ss;
   ss << conf_temp_dir << "/intv_" << ncontigs;
@@ -538,7 +538,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
         //DLOG(INFO) << inputData[index];
         ++index;
   }
-  DLOG(INFO) << "Array Size: " << index << std::endl;
+  //DLOG(INFO) << "Array Size: " << index << std::endl;
 
   std::ofstream myfile;
   // record the intv paths
@@ -546,13 +546,13 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   for (int i = 0; i < ncontigs; i++) {
       if (filetype=="list") {
           intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
-          DLOG(INFO) << "LIST: " << intv_paths[i] << std::endl;
+          //DLOG(INFO) << "LIST: " << intv_paths[i] << std::endl;
       } else {
           intv_paths[i] = get_contig_fname(intv_dir, i, "bed", "intv");
-          DLOG(INFO) << "BED: " << intv_paths[i] << std::endl;
+          //DLOG(INFO) << "BED: " << intv_paths[i] << std::endl;
       }
 
-      DLOG(INFO) << "Processing " << intv_paths[i] << std::endl;
+      //DLOG(INFO) << "Processing " << intv_paths[i] << std::endl;
 
       myfile.open(intv_paths[i]);
       int start = i*nearest_multiple;

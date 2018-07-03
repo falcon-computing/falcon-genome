@@ -13,7 +13,6 @@ class DepthWorker : public Worker {
       std::string intv_path,
       std::string input_path,
       std::string output_path,
-      std::string intv_list,
       std::string geneList,
       int depthCutoff,
       std::vector<std::string> extra_opts,
