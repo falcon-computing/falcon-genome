@@ -486,8 +486,7 @@ unsigned int CountLines( const std::vector <char> &buff, int sz ) {
     return newlines;
 }
 
-int roundUp(int numToRound, int multiple)
-{
+int roundUp(int numToRound, int multiple){
     if (multiple == 0)
         return numToRound;
 
@@ -540,7 +539,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
       if (filetype=="list") {
           intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
           DLOG(INFO) << "LIST: " << intv_paths[i] << std::endl;
-      } else{
+      } else {
           intv_paths[i] = get_contig_fname(intv_dir, i, "bed", "intv");
           DLOG(INFO) << "BED: " << intv_paths[i] << std::endl;
       }
@@ -567,16 +566,8 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
       }
 
       boost::filesystem::copy_file(org_intv, intv_paths[i]);
-    }
-
-
-
-
+  }
   return intv_paths;
 }
-
-
-
-
 
 } // namespace fcsgenome
