@@ -514,7 +514,6 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   }
   DLOG(INFO) << n << std::endl;
 
-
   int ncontigs = get_config<int>("gatk.ncontigs");
 
   DLOG(INFO) << "There are " << ncontigs << std::endl;
@@ -527,8 +526,17 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   std::string intv_dir = ss.str();
   create_dir(intv_dir);
 
+  std::string inputData[n];
+  std::ifstream file(intervalFile);
+  if (file.is_open()){
+     for (int k = 0; k < n; ++k) {
+          file >> inputData[n];
+     }
+  }
+
   // record the intv paths
   std::vector<std::string> intv_paths(ncontigs);
+  int start = 0;
   for (int i = 0; i < ncontigs; i++) {
       if (filetype=="list") {
           intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
@@ -536,9 +544,16 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
       } else{
           intv_paths[i] = get_contig_fname(intv_dir, i, "bed", "intv");
           DLOG(INFO) << "BED: " << intv_paths[i] << std::endl;
-      }  
-  }
+      }
 
+      int start = i*nearest_multiple;
+      int last  = start + nearest_multiple;
+      myfile.open (intv_paths[i]);
+      for (int j = start; j < last; ++j) {
+           myfile <<  inputData[j];
+      }
+      myfile.close();
+  }
 
   // TODO: temporary to use old partition method, need to check
   // if num_contigs = 32
@@ -554,8 +569,9 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
 
       boost::filesystem::copy_file(org_intv, intv_paths[i]);
     }
-    return intv_paths;
-  }
+
+
+
 
   return intv_paths;
 }
