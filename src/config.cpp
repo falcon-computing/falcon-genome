@@ -508,7 +508,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile) {
   std::ifstream IntFile;
   IntFile.open(intervalFile);
   while(!IntFile.eof()) {
-	     std::getline(in, s);
+	     //std::getline(IntFile, s);
 	     TotalLines++;
   };
   intFile.close();
