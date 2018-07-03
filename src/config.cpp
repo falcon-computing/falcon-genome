@@ -517,7 +517,9 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
 
   DLOG(INFO) << "There are " << ncontigs << std::endl;
 
-  int nearest_multiple = roundUp(n,ncontigs);
+  int chunk = int(n/ncontigs);
+
+  int nearest_multiple = roundUp(chunk,ncontigs);
   DLOG(INFO) << "Nearest Multiple of " << ncontigs << " for " << n << " : " << nearest_multiple << std::endl;
 
   std::stringstream ss;
@@ -557,10 +559,11 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
       int last  = start + nearest_multiple;
       if (last > n) last = n;
       for (int j = start; j < last; ++j) {
-           //DLOG(INFO) << start << " " << last << " " << j << " " << inputData[j] << std::endl;
+           DLOG(INFO) << start << " " << last << " " << j << " " << inputData[j] << std::endl;
            myfile[i] <<  inputData[j] << std::endl;
       }
       myfile[i].close(); myfile[i].clear();
+      exit(0);
   }
 
   // TODO: temporary to use old partition method, need to check
