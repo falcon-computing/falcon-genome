@@ -37,7 +37,7 @@ void DepthWorker::check() {
   ref_path_   = check_input(ref_path_);
   input_path_ = check_input(input_path_);
   intv_path_  = check_input(intv_path_);
-  geneList_path_  = check_input(geneList_);
+  geneList_path_  = check_input(geneList_path_);
 }
 
 void DepthWorker::setup() {
@@ -65,7 +65,7 @@ void DepthWorker::setup() {
   for (int i = 0; i < intv_path_.size(); i++) {
      cmd << "-L " << intv_path_[i] << " -geneList " << geneList_path_[i] << " ";
   }
-  if (intv_list_.size() > 0 ) {
+  if (geneList_path_.size() > 0 ) {
      cmd << "-isr INTERSECTION ";
   }
 
