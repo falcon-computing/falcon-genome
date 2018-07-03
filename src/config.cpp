@@ -560,7 +560,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
       if (last > n) last = n;
       for (int j = start; j < last; ++j) {
            DLOG(INFO) << start << " " << last << " " << j << " " << inputData[j] << std::endl;
-           myfile[i] <<  inputData[j] << std::endl;
+           myfile <<  inputData[j] << std::endl;
       }
       myfile.close(); myfile.clear();
       //exit(0);
