@@ -10,7 +10,7 @@ namespace fcsgenome {
 class DepthWorker : public Worker {
  public:
   DepthWorker(std::string ref_path,
-      std::vector<std::string> intv_path,
+      std::vector<std::string> intv_paths,
       std::string input_path,
       std::string output_path,
       std::vector<std::string> geneList_paths,
@@ -27,7 +27,7 @@ class DepthWorker : public Worker {
 
  private:
   std::string ref_path_;
-  std::vector<std::string> intv_path_;
+  std::vector<std::string> intv_paths_;
   std::string input_path_;
   std::string output_path_;
   std::vector<std::string> geneList_paths_;

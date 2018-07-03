@@ -9,7 +9,7 @@
 namespace fcsgenome {
 
 DepthWorker::DepthWorker(std::string ref_path,
-      std::vector<std::string> intv_path,
+      std::vector<std::string> intv_paths,
       std::string input_path,
       std::string output_path,
       std::vector<std::string> geneList_paths,
@@ -21,7 +21,7 @@ DepthWorker::DepthWorker(std::string ref_path,
       bool &flag_intervalCoverage,
       bool &flag_sampleSummary): Worker(1, get_config<int>("gatk.depth.nct", "gatk.nct"), extra_opts),
   ref_path_(ref_path),
-  intv_path_(intv_path),
+  intv_paths_(intv_paths),
   input_path_(input_path),
   geneList_path_(geneList_paths),
   depthCutoff_(depthCutoff),
@@ -36,7 +36,7 @@ DepthWorker::DepthWorker(std::string ref_path,
 void DepthWorker::check() {
   ref_path_   = check_input(ref_path_);
   input_path_ = check_input(input_path_);
-  intv_path_  = check_input(intv_path_);
+  intv_paths_  = check_input(intv_paths_);
   geneList_path_  = check_input(geneList_path_);
 }
 
@@ -62,10 +62,10 @@ void DepthWorker::setup() {
       << "-o " << output_path_ << " "
       << "-ct " << depthCutoff_ << " ";
 
-  for (int i = 0; i < intv_path_.size(); i++) {
-     cmd << "-L " << intv_path_[i] << " -geneList " << geneList_path_[i] << " ";
+  for (int i = 0; i < intv_paths_.size(); i++) {
+     cmd << "-L " << intv_paths_[i] << " -geneList " << geneList_paths_[i] << " ";
   }
-  if (geneList_path_.size() > 0 ) {
+  if (geneList_paths_.size() > 0 ) {
      cmd << "-isr INTERSECTION ";
   }
 
