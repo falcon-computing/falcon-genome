@@ -2,6 +2,7 @@
 #include <boost/tokenizer.hpp>
 #include <boost/thread.hpp>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <unistd.h>
 
@@ -504,7 +505,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile) {
   // read ref.dict file to get contig lengths
   intervalFile = check_input(intervalFile);
   int TotalLines = 0;
-  ifstream IntFile;
+  std::ifstream IntFile;
   IntFile.open(intervalFile);
   while(!IntFile.eof()) {
 	     getline(in, s);
