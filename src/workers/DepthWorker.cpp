@@ -49,8 +49,8 @@ void DepthWorker::setup() {
       << "-jar " << get_config<std::string>("gatk_path") << " "
       << "-T DepthOfCoverage "
       << "-R " << ref_path_ << " "
-      << "-I " << input_path_ << " ";
-      << "-L " << intv_paths_ << " ";
+      << "-I " << input_path_ << " "
+      << "-L " << intv_paths_ << " "
       << "-g " << geneList_paths_ << " ";
 
 
