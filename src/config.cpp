@@ -526,15 +526,6 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   create_dir(intv_dir);
 
   std::string inputData[n];
-  //std::ifstream file(intervalFile);
-  //if (file.is_open()){
-//     for (int k = 0; k < n; ++k) {
-  //        std::string infoData;
-    //      file >> std::getline(file,inputData[k]);
-      //    DLOG(INFO) << inputData[k];
-     //}
-  //}
-
   std::ifstream in_file(intervalFile);
   std::string str;
   //std::vector<std::string> vec, result_vec;
@@ -542,7 +533,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   while (std::getline(in_file, str)) {
         //vec.push_back(str);
         inputData[index] = str;
-        DLOG(INFO) << inputData[index];
+        //DLOG(INFO) << inputData[index];
         ++index;
   }
   DLOG(INFO) << "Array Size: " << index << std::endl;
@@ -561,6 +552,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
       myfile.open (intv_paths[i], std::ofstream::out | std::ofstream::app);
       int start = i*nearest_multiple;
       int last  = start + nearest_multiple;
+      if (last > n) last = n;
       for (int j = start; j < last; ++j) {
            DLOG(INFO) << start << " " << last << " " << inputData[j] << std::endl;
            myfile <<  inputData[j];
