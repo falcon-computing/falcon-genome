@@ -549,7 +549,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
           intv_paths[i] = get_contig_fname(intv_dir, i, "bed", "intv");
           DLOG(INFO) << "BED: " << intv_paths[i] << std::endl;
       }
-          
+
       myfile.open (intv_paths[i], std::ofstream::out);
       int start = i*nearest_multiple;
       int last  = start + nearest_multiple;
@@ -558,7 +558,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
            //DLOG(INFO) << start << " " << last << " " << j << " " << inputData[j] << std::endl;
            myfile <<  inputData[j] << std::endl;
       }
-      myfile.close();
+      myfile.close(); myfile.clear();
   }
 
   // TODO: temporary to use old partition method, need to check
