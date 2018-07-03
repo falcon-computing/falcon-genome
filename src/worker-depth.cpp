@@ -118,7 +118,7 @@ int depth_main(int argc, char** argv,
           flag_intervalCoverage,
           flag_sampleSummary));
     output_files[contig] = output_file;
-    DLOG(INFO) << "Processing " << contig << " " input_file << " " << output_file << " " << std::endl;
+    DLOG(INFO) << "Processing " << contig << " " << input_file << " " << output_file << " " << std::endl;
     //executor.addTask(worker);
   }
 
