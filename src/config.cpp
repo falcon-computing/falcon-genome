@@ -560,7 +560,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
       std::ofstream myfile;
       int start = i*nearest_multiple;
       int last  = start + nearest_multiple;
-      myfile.open (intv_paths[i]);
+      myfile.open (intv_paths[i], std::ofstream::out | std::ofstream::app);
       for (int j = start; j < last; ++j) {
            myfile <<  inputData[j];
       }
