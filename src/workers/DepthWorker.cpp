@@ -62,13 +62,11 @@ void DepthWorker::setup() {
       << "-o " << output_path_ << " "
       << "-ct " << depthCutoff_ << " ";
 
-  for (int i = 0; i < intv_paths_.size(); i++) {
-     cmd << "-L " << intv_paths_[i] << " -geneList " << geneList_paths_[i] << " ";
-  }
+  //for (int i = 0; i < intv_paths_.size(); i++) {
+  //   cmd << "-L " << intv_paths_[i] << " -geneList " << geneList_paths_[i] << " ";
+  //}
 
-  std::vector<std::string>::const_iterator i1;
-  std::vector<std::string>::const_iterator i2;
-  for( i1 = intv_paths_.begin(), i2 = geneList_paths_.begin(); i1 < intv_paths_.end() && i2 < geneList_paths_.end();
+  for (auto i1 = intv_paths_.begin(), auto i2 = geneList_paths_.begin(); i1 != intv_paths_.end() && i2 != geneList_paths_.end();
      ++i1, ++i2 ){
      cmd << "-L " << *i1 << " -geneList " << *i2 << " ";
 
