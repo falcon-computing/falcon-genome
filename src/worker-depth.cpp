@@ -92,10 +92,10 @@ int depth_main(int argc, char** argv,
     std::string file_ext = "cov";
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new DepthWorker(ref_path,
-          intv_paths[contig],
+          intv_paths,
           input_file,
           output_file,
-          geneList_paths[contig],
+          geneList_paths,
           depthCutoff,
           extra_opts,
           contig,
