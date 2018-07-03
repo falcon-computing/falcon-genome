@@ -521,7 +521,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile) {
   DLOG(INFO) << "There are " << ncontigs << std::endl;
 
   int nearest_multiple = roundUp(n,ncontigs);
-  DLOG(INFO) << "Nearest Multiple of " << ncontigs << " for " << n << " : " << nearest_multiple << std:endl;
+  DLOG(INFO) << "Nearest Multiple of " << ncontigs << " for " << n << " : " << nearest_multiple << std::endl;
 
 
   std::stringstream ss;
