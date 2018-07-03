@@ -63,11 +63,10 @@ void DepthWorker::setup() {
   cmd << "-L " << intv_path_ << " "
       << "-nt " << get_config<int>("gatk.depth.nct", "gatk.nct") << " "
       << "-o " << output_path_ << " "
-      << "-geneList " << geneList_ << " "
       << "-ct " << depthCutoff_ << " ";
 
   for (int i = 0; i < intv_list_.size(); i++) {
-     cmd << "-L " << intv_list_[i] << " ";
+     cmd << "-L " << intv_list_[i] << " -geneList " << geneList_[i] << " ";
   }
   if (intv_list_.size() > 0 ) {
      cmd << "-isr INTERSECTION ";
