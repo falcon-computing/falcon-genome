@@ -106,7 +106,7 @@ int depth_main(int argc, char** argv,
           intv_paths[contig],
           input_file,
           output_file,
-          geneList_paths[contigs],
+          geneList_paths[contig],
           depthCutoff,
           extra_opts,
           contig,
@@ -118,9 +118,6 @@ int depth_main(int argc, char** argv,
     //DLOG(INFO) << "Processing " << contig << " " << input_file << " " << output_file << " " << intv_paths[contig] << " " << geneList_paths[contig] << " " << std::endl;
     executor.addTask(worker);
   }
-
-  exit(0);
-
 
   bool flag = true;
   //bool flag_a = false;
