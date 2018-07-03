@@ -470,12 +470,12 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
 }
 
 ///////  FROM HERE:
-unsigned int FileRead( istream & is, vector <char> & buff ) {
+unsigned int FileRead( std::istream &is, std::vector <char> & buff ) {
     is.read( &buff[0], buff.size() );
     return is.gcount();
 }
 
-unsigned int CountLines( const vector <char> & buff, int sz ) {
+unsigned int CountLines( const std::vector <char> &buff, int sz ) {
     int newlines = 0;
     const char * p = &buff[0];
     for ( int i = 0; i < sz; i++ ) {
