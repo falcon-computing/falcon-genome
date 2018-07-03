@@ -23,7 +23,7 @@ DepthWorker::DepthWorker(std::string ref_path,
   ref_path_(ref_path),
   intv_paths_(intv_paths),
   input_path_(input_path),
-  geneList_path_(geneList_paths),
+  geneList_paths_(geneList_paths),
   depthCutoff_(depthCutoff),
   flag_baseCoverage_(flag_baseCoverage),
   flag_intervalCoverage_(flag_intervalCoverage),
@@ -37,7 +37,7 @@ void DepthWorker::check() {
   ref_path_   = check_input(ref_path_);
   input_path_ = check_input(input_path_);
   intv_paths_  = check_input(intv_paths_);
-  geneList_path_  = check_input(geneList_path_);
+  geneList_paths_  = check_input(geneList_paths_);
 }
 
 void DepthWorker::setup() {
