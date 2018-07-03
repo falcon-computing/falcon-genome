@@ -70,10 +70,8 @@ void DepthWorker::setup() {
 
   if(!flag_baseCoverage_)
      cmd << "-omitBaseOutput ";
-  if(!flag_intervalCoverage_)
-     cmd << "-omitIntervals ";
   if(!flag_sampleSummary_)
-      cmd << "-omitSampleSummary ";
+     cmd << "-omitSampleSummary ";
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
