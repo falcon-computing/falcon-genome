@@ -510,7 +510,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile) {
   std::ifstream ifs( intervalFile );
   int n = 0;
   while( int cc = FileRead( ifs, buff ) ) {
-      n += CountLines( bhunksuff, cc );
+      n += CountLines( buff, cc );
   }
   DLOG(INFO) << n << std::endl;
 
