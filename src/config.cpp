@@ -472,6 +472,8 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
 ///////  FROM HERE:
 
 std::vector<std::string> split_by_nprocs(std::string intervalFile) {
+  DLOG(INFO) << "I am checking " << intervalFile;
+
   int ncontigs = get_config<int>("gatk.ncontigs");
 
   std::stringstream ss;
@@ -512,7 +514,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile) {
 	     TotalLines++;
   };
   IntFile.close();
-  std::cout << TotalLines;
+  DLOG(INFO) << TotalLines;
 
   return intv_paths;
 }
