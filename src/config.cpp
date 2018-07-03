@@ -549,7 +549,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
           DLOG(INFO) << "BED: " << intv_paths[i] << std::endl;
       }
       std::ofstream myfile;
-      myfile.open (intv_paths[i], std::ofstream::out | std::ofstream::app);
+      myfile.open (intv_paths[i], std::ofstream::out);
       int start = i*nearest_multiple;
       int last  = start + nearest_multiple;
       if (last > n) last = n;
