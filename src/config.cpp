@@ -359,7 +359,7 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
   // record the intv paths
   std::vector<std::string> intv_paths(ncontigs);
   for (int i = 0; i < ncontigs; i++) {
-    intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
+       intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
   }
 
   // TODO: temporary to use old partition method, need to check
@@ -502,7 +502,7 @@ int roundUp(int numToRound, int multiple)
 }
 
 
-std::vector<std::string> split_by_nprocs(std::string intervalFile) {
+std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype) {
   DLOG(INFO) << "I am checking " << intervalFile;
 
   const int SZ = 1024*1024;
@@ -515,14 +515,12 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile) {
   DLOG(INFO) << n << std::endl;
 
 
-
   int ncontigs = get_config<int>("gatk.ncontigs");
 
   DLOG(INFO) << "There are " << ncontigs << std::endl;
 
   int nearest_multiple = roundUp(n,ncontigs);
   DLOG(INFO) << "Nearest Multiple of " << ncontigs << " for " << n << " : " << nearest_multiple << std::endl;
-
 
   std::stringstream ss;
   ss << conf_temp_dir << "/intv_" << ncontigs;
@@ -532,8 +530,15 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile) {
   // record the intv paths
   std::vector<std::string> intv_paths(ncontigs);
   for (int i = 0; i < ncontigs; i++) {
-    intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
+      if (filetype=="list") {
+          intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
+          DLOG(INFO) << "LIST: " << intv_paths[i] << std::endl;
+      } else{
+          intv_paths[i] = get_contig_fname(intv_dir, i, "bed", "intv");
+          DLOG(INFO) << "BED: " << intv_paths[i] << std::endl;
+      }  
   }
+
 
   // TODO: temporary to use old partition method, need to check
   // if num_contigs = 32
