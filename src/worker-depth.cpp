@@ -72,10 +72,14 @@ int depth_main(int argc, char** argv,
   create_dir(output_dir);
   std::string temp_depth_path = output_dir + "/" + get_basename(output_path);
 
+  DLOG(INFO) << "I am here" << std::endl;
+
   // Split Interval List and Gene List into several parts according to gatk.ncontigs:
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
   std::vector<std::string> intv_paths = split_by_nprocs(intv_list);
   std::vector<std::string> geneList_paths = split_by_nprocs(geneList);
+
+  exit(0);
 
   Executor executor("Depth", get_config<int>("gatk.depth.nprocs"));
 
