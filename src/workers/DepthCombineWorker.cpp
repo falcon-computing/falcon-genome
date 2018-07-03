@@ -39,7 +39,6 @@ void DepthCombineWorker::check() {
   }
 }
 
-
 void DepthCombineWorker::merge_gene_summary(std::string file_type) {
   double total = 0;
   double mean_cov = 0;
@@ -52,8 +51,8 @@ void DepthCombineWorker::merge_gene_summary(std::string file_type) {
     std::string filename = input_files_[i] + file_type;
     std::ifstream fin;
     fin.open(filename);
-    
-    if (fin.is_open()) { 
+
+    if (fin.is_open()) {
       std::string line;
       while (std::getline(fin, line)) {
         int col=0;
@@ -65,15 +64,15 @@ void DepthCombineWorker::merge_gene_summary(std::string file_type) {
             std::istringstream iss(line);
             int bool_val=0;
             int pos;
-            while (iss >> each_str) {  
+            while (iss >> each_str) {
               if (itr != 1) {
                 if (col == 0) {
                   for (int j = 0; j < matrix.size(); j++) {
-                    if (matrix[j][0].compare(each_str) == 0) { 
+                    if (matrix[j][0].compare(each_str) == 0) {
                       pos=j;
                       if(std::find(repeat_pos.begin(), repeat_pos.end(), j) !=repeat_pos.end()) {
-                        for (int vect_iter=0; vect_iter < repeat_pos.size(); vect_iter++) {  
-                        }                      
+                        for (int vect_iter=0; vect_iter < repeat_pos.size(); vect_iter++) {
+                        }
                       }
                       else {
                         repeat_pos.push_back(j);
@@ -81,30 +80,30 @@ void DepthCombineWorker::merge_gene_summary(std::string file_type) {
                         matrix[j][2] = boost::lexical_cast<std::string>(boost::lexical_cast<double>(matrix[j][1])/boost::lexical_cast<double>(matrix[j][2]));
                         mean_cov = boost::lexical_cast<double>(matrix[j][4]);
                         matrix[j][4] = boost::lexical_cast<std::string>(boost::lexical_cast<double>(matrix[j][1])/boost::lexical_cast<double>(matrix[j][4]));
-                        matrix[j][8] = boost::lexical_cast<std::string>(boost::lexical_cast<double>(matrix[j][8]) * boost::lexical_cast<double>(matrix[j][1]) / mean_cov); 
+                        matrix[j][8] = boost::lexical_cast<std::string>(boost::lexical_cast<double>(matrix[j][8]) * boost::lexical_cast<double>(matrix[j][1]) / mean_cov);
                       }
                       bool_val=1;
                       break;
                     }
                   }
                 }
-              }   
+              }
               if (bool_val == 0) {
                 if (col == 0) {
-                  matrix.push_back(std::vector<std::string>());     
+                  matrix.push_back(std::vector<std::string>());
                 }
-                matrix[itr-1].push_back(each_str);  
+                matrix[itr-1].push_back(each_str);
               }
-              else {   
+              else {
                 if (col == 1 || col == 3) {
-                  total = boost::lexical_cast<double>(each_str); 
-                  matrix[pos][col] = boost::lexical_cast<std::string>((boost::lexical_cast<double>(matrix[pos][col])) + (boost::lexical_cast<double>(each_str))); 
-                  if (col == 1) { 
+                  total = boost::lexical_cast<double>(each_str);
+                  matrix[pos][col] = boost::lexical_cast<std::string>((boost::lexical_cast<double>(matrix[pos][col])) + (boost::lexical_cast<double>(each_str)));
+                  if (col == 1) {
                     itr--;
-                  } 
+                  }
                 }
                 else if (col == 2 || col == 4) {
-                  mean_cov = boost::lexical_cast<double>(each_str);   
+                  mean_cov = boost::lexical_cast<double>(each_str);
                   matrix[pos][col] = boost::lexical_cast<std::string>(boost::lexical_cast<double>(matrix[pos][col]) + (total/mean_cov));
                 }
                 else if (col == 5 || col == 6 || col == 7) {
@@ -112,19 +111,19 @@ void DepthCombineWorker::merge_gene_summary(std::string file_type) {
                   matrix[pos][col] = boost::lexical_cast<std::string>(boost::lexical_cast<double>(matrix[pos][col]) + (boost::lexical_cast<double>(each_str) * total / mean_cov));
                 }
                 else if (col == 8) {
-                  matrix[pos][col] = boost::lexical_cast<std::string>(boost::lexical_cast<double>(matrix[pos][col]) + (boost::lexical_cast<double>(each_str) * total / mean_cov )); 
-                } 
-              }         
+                  matrix[pos][col] = boost::lexical_cast<std::string>(boost::lexical_cast<double>(matrix[pos][col]) + (boost::lexical_cast<double>(each_str) * total / mean_cov ));
+                }
+              }
               col++;
-            } 
+            }
           }
-        }      
+        }
       }
     }
   }
   for (int vect_iter=0; vect_iter < repeat_pos.size(); vect_iter++) {
    int col=0;
-   double sum_ratio; 
+   double sum_ratio;
    while (col < 9) {
     if (col == 2 || col == 4) {
       sum_ratio = boost::lexical_cast<double>(matrix[repeat_pos[vect_iter]][col]);
@@ -136,7 +135,7 @@ void DepthCombineWorker::merge_gene_summary(std::string file_type) {
     }
     else if (col == 8) {
       matrix[repeat_pos[vect_iter]][col]=boost::lexical_cast<std::string>(boost::lexical_cast<double>(matrix[repeat_pos[vect_iter]][col])/sum_ratio);
-    } 
+    }
     col++;
   }
  }
@@ -149,7 +148,7 @@ void DepthCombineWorker::merge_gene_summary(std::string file_type) {
     }
   }
 }
-          
+
 
 void DepthCombineWorker::merge_interval_summary(std::string file_type) {
   std::ofstream fout;
@@ -157,19 +156,19 @@ void DepthCombineWorker::merge_interval_summary(std::string file_type) {
   for (int i = 0; i < input_files_.size(); i++) {
     std::string filename = input_files_[i] + file_type;
     std::ifstream fin;
-    fin.open(filename);    
-    if (fin.is_open()) { 
-      std::string line;    
+    fin.open(filename);
+    if (fin.is_open()) {
+      std::string line;
       while (std::getline(fin, line)) {
         std::vector<std::string> each_line;
         if (boost::contains(filename, ".sample_interval_summary")) {
-          if (boost::contains(filename, "part-00")) { 
+          if (boost::contains(filename, "part-00")) {
             fout << line << "\n";
           }
           else {
-            if (!boost::starts_with(line, "Target")) {    
+            if (!boost::starts_with(line, "Target")) {
               fout << line << "\n";
-            }  
+            }
           }
         }
       }
@@ -187,22 +186,22 @@ void DepthCombineWorker::merge_sample_summary(std::string file_type) {
     std::string filename = input_files_[i] + file_type;
     std::ifstream fin;
     fin.open(filename);
-    if (fin.is_open()) { 
+    if (fin.is_open()) {
       std::string line;
       while (std::getline(fin, line)) {
         std::vector<std::string> each_line;
         if (boost::contains(filename, ".sample_summary")) {
-          if (!boost::starts_with(line, "sample_id") & !boost::starts_with(line, "Total")) { 
+          if (!boost::starts_with(line, "sample_id") & !boost::starts_with(line, "Total")) {
             std::string i;
             int itr = 0;
             std::istringstream iss(line);
             while (iss >> i) {
-              if (itr != 0) { 
+              if (itr != 0) {
                 if (boost::contains(filename, "part-00")) {
                   if (itr == 1) {
-                    total = boost::lexical_cast<double>(i); 
+                    total = boost::lexical_cast<double>(i);
                     contents.push_back(0);
-                    contents[itr-1] = contents[itr-1]+total; 
+                    contents[itr-1] = contents[itr-1]+total;
                   }
                   else if (itr == 6) {
                     contents.push_back(0);
@@ -216,14 +215,14 @@ void DepthCombineWorker::merge_sample_summary(std::string file_type) {
                     contents.push_back(0);
                     if (itr == 2) {
                       mean_cov = boost::lexical_cast<double>(i);
-                    } 
+                    }
                     contents[itr-1] = contents[itr-1] + (total/boost::lexical_cast<double>(i));
                   }
                 }
                 else {
                   if (itr == 1) {
                     total = boost::lexical_cast<double>(i);
-                    contents[itr-1] = contents[itr-1] + total;             
+                    contents[itr-1] = contents[itr-1] + total;
                   }
                   else if (itr == 6) {
                     contents[itr-1] = contents[itr-1] + (boost::lexical_cast<double>(i) * total / mean_cov);
@@ -231,7 +230,7 @@ void DepthCombineWorker::merge_sample_summary(std::string file_type) {
                   else if (itr == 3 || itr == 4 || itr == 5) {
                     contents[itr-1] = contents[itr-1] + (boost::lexical_cast<double>(i) * total / mean_cov);
                   }
-                  else { 
+                  else {
                     // total/mean
                     if (itr == 2) {
                       mean_cov = boost::lexical_cast<double>(i);
@@ -241,9 +240,9 @@ void DepthCombineWorker::merge_sample_summary(std::string file_type) {
                 }
               }
               ++itr;
-            }    
+            }
           }
-          else if (boost::starts_with(line, "sample_id") & boost::contains(filename, "part-00")) { 
+          else if (boost::starts_with(line, "sample_id") & boost::contains(filename, "part-00")) {
             fout << line << "\n";
           }
         }
@@ -252,8 +251,8 @@ void DepthCombineWorker::merge_sample_summary(std::string file_type) {
   }
 
   if (file_type.compare(".sample_summary") == 0) {
-    fout << output_file_ << "\t"; 
-    for (int i = 0; i < contents.size(); i++) { 
+    fout << output_file_ << "\t";
+    for (int i = 0; i < contents.size(); i++) {
       if (i == 0) {
         fout << std::fixed << std::setprecision(0) << contents[i] << "\t";
       }
@@ -264,7 +263,7 @@ void DepthCombineWorker::merge_sample_summary(std::string file_type) {
         fout << std::fixed << std::setprecision(2) << contents[i]/contents[1] << "\t";
       }
       else {
-        fout << std::fixed << std::setprecision(2) << contents[0]/contents[i] << "\t";  
+        fout << std::fixed << std::setprecision(2) << contents[0]/contents[i] << "\t";
       }
     }
   }
@@ -281,16 +280,16 @@ void DepthCombineWorker::merge_base_summary(std::string file_type) {
     std::string filename = input_files_[i] + file_type;
     std::ifstream fin;
     fin.open(filename);
-    if (fin.is_open()) {  
+    if (fin.is_open()) {
       std::string line;
       while (std::getline(fin, line)) {
         if (!boost::contains(filename, file_extension+".sample_")) {
           if (boost::contains(filename, "part-00")) {
             fout << line << "\n";
-          } 
-          else if (!boost::starts_with(line, "Locus")) {    
+          }
+          else if (!boost::starts_with(line, "Locus")) {
             fout << line << "\n";
-          }  
+          }
         }
       }
     }

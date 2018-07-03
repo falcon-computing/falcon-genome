@@ -420,7 +420,6 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
     }
     dict.push_back(std::make_pair(chr_name, chr_length));
     dict_length += chr_length;
-    //DLOG(INFO) << chr_name << " : " << chr_length;
   }
 
   // generate intv.list
@@ -469,16 +468,16 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
   return intv_paths;
 }
 
-///////  FROM HERE:
-unsigned int FileRead( std::istream &is, std::vector <char> & buff ) {
-    is.read( &buff[0], buff.size() );
+// Spliting Files begins here :
+unsigned int FileRead(std::istream &is, std::vector <char> & buff) {
+    is.read(&buff[0], buff.size());
     return is.gcount();
 }
 
-unsigned int CountLines( const std::vector <char> &buff, int sz ) {
+unsigned int CountLines(const std::vector <char> &buff, int sz) {
     int newlines = 0;
     const char * p = &buff[0];
-    for ( int i = 0; i < sz; i++ ) {
+    for (int i = 0; i < sz; i++) {
         if ( p[i] == '\n' ) {
             newlines++;
         }
@@ -487,13 +486,9 @@ unsigned int CountLines( const std::vector <char> &buff, int sz ) {
 }
 
 int roundUp(int numToRound, int multiple){
-    if (multiple == 0)
-        return numToRound;
-
+    if (multiple == 0) return numToRound;
     int remainder = abs(numToRound) % multiple;
-    if (remainder == 0)
-        return numToRound;
-
+    if (remainder == 0) return numToRound;
     if (numToRound < 0)
         return -(abs(numToRound) - remainder);
     else
@@ -502,7 +497,6 @@ int roundUp(int numToRound, int multiple){
 
 
 std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype) {
-  DLOG(INFO) << "I am checking " << intervalFile;
 
   const int SZ = 1024*1024;
   std::vector <char> buff( SZ );
@@ -511,16 +505,11 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   while( int cc = FileRead( ifs, buff ) ) {
       n += CountLines( buff, cc );
   }
-  DLOG(INFO) << n << std::endl;
+  DLOG(INFO) << "Number of Genes Intervals : " << n << std::endl;
 
   int ncontigs = get_config<int>("gatk.ncontigs");
-
-  DLOG(INFO) << "There are " << ncontigs << std::endl;
-
   int chunk = int(n/ncontigs);
-
   int nearest_multiple = roundUp(chunk,ncontigs);
-  //DLOG(INFO) << "Nearest Multiple of " << ncontigs << " for " << n << " : " << nearest_multiple << std::endl;
 
   std::stringstream ss;
   ss << conf_temp_dir << "/intv_" << ncontigs;
@@ -530,15 +519,11 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   std::string inputData[n];
   std::ifstream in_file(intervalFile);
   std::string str;
-  //std::vector<std::string> vec, result_vec;
   int index=0;
   while (std::getline(in_file, str)) {
-        //vec.push_back(str);
         inputData[index] = str;
-        //DLOG(INFO) << inputData[index];
         ++index;
   }
-  //DLOG(INFO) << "Array Size: " << index << std::endl;
 
   std::ofstream myfile;
   // record the intv paths
@@ -552,22 +537,16 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
           //DLOG(INFO) << "BED: " << intv_paths[i] << std::endl;
       }
 
-      //DLOG(INFO) << "Processing " << intv_paths[i] << std::endl;
-
       myfile.open(intv_paths[i]);
       int start = i*nearest_multiple;
       int last  = start + nearest_multiple;
       if (last > n) last = n;
       for (int j = start; j < last; ++j) {
-           //DLOG(INFO) << start << " " << last << " " << j << " " << inputData[j] << std::endl;
            myfile <<  inputData[j] << std::endl;
       }
       myfile.close(); myfile.clear();
-      //exit(0);
   }
 
-  // TODO: temporary to use old partition method, need to check
-  // if num_contigs = 32
   std::string org_intv_dir = get_config<std::string>("gatk.intv.path");
   if (ncontigs == 32 && !org_intv_dir.empty()) {
     DLOG(INFO) << "Use original interval files";

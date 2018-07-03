@@ -53,7 +53,6 @@ void DepthWorker::setup() {
       << "-L " << intv_paths_ << " "
       << "-geneList " << geneList_paths_ << " ";
 
-
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
     cmd << it-> first << " ";
     if (!it->second.empty()) {
@@ -65,27 +64,16 @@ void DepthWorker::setup() {
       << "-o " << output_path_ << " "
       << "-ct " << depthCutoff_ << " ";
 
-  //for (int i = 0; i < intv_paths_.size(); i++) {
-  //   cmd << "-L " << intv_paths_[i] << " -geneList " << geneList_paths_[i] << " ";
-  //}
-
-  //for (auto i1 = intv_paths_.begin(), auto i2 = geneList_paths_.begin(); i1 != intv_paths_.end() && i2 != geneList_paths_.end();
-  //   ++i1, ++i2 ){
-  //   cmd << "-L " << *i1 << " -geneList " << *i2 << " ";
-
-  //}
-
-
   if (geneList_paths_.size() > 0 ) {
      cmd << "-isr INTERSECTION ";
   }
 
   if(!flag_baseCoverage_)
-    cmd << "-omitBaseOutput ";
-  //if(!flag_intervalCoverage_)
-  //  cmd << "-omitIntervals ";
-  //if(!flag_sampleSummary_)
-  //  cmd << "-omitSampleSummary ";
+     cmd << "-omitBaseOutput ";
+  if(!flag_intervalCoverage_)
+     cmd << "-omitIntervals ";
+  if(!flag_sampleSummary_)
+      cmd << "-omitSampleSummary ";
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
