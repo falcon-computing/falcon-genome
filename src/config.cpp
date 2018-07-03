@@ -540,7 +540,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   }
   DLOG(INFO) << "Array Size: " << index << std::endl;
 
-  std::ofstream myfile[ncontigs];
+  std::ofstream myfile;
   // record the intv paths
   std::vector<std::string> intv_paths(ncontigs);
   for (int i = 0; i < ncontigs; i++) {
@@ -554,7 +554,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
 
       DLOG(INFO) << "Processing " << intv_paths[i] << std::endl;
 
-      myfile[i].open(intv_paths[i]);
+      myfile.open(intv_paths[i]);
       int start = i*nearest_multiple;
       int last  = start + nearest_multiple;
       if (last > n) last = n;
@@ -562,8 +562,8 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
            DLOG(INFO) << start << " " << last << " " << j << " " << inputData[j] << std::endl;
            myfile[i] <<  inputData[j] << std::endl;
       }
-      myfile[i].close(); myfile[i].clear();
-      exit(0);
+      myfile.close(); myfile.clear();
+      //exit(0);
   }
 
   // TODO: temporary to use old partition method, need to check
