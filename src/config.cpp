@@ -570,4 +570,6 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   return intv_paths;
 }
 
+}
+
 } // namespace fcsgenome
