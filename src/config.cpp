@@ -526,14 +526,26 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   create_dir(intv_dir);
 
   std::string inputData[n];
-  std::ifstream file(intervalFile);
-  if (file.is_open()){
-     for (int k = 0; k < n; ++k) {
-          std::string infoData;
-          file >> std::getline(file,inputData[k]);
-          DLOG(INFO) << inputData[k];
-     }
+  //std::ifstream file(intervalFile);
+  //if (file.is_open()){
+//     for (int k = 0; k < n; ++k) {
+  //        std::string infoData;
+    //      file >> std::getline(file,inputData[k]);
+      //    DLOG(INFO) << inputData[k];
+     //}
+  //}
+
+  std::ifstream in_file(intervalFile);
+  std::string str;
+  //std::vector<std::string> vec, result_vec;
+  int index=0;
+  while (std::getline(in_file, str)) {
+        //vec.push_back(str);
+        inputData[index] = str;
+        DLOG(INFO) << inputData[index];
+        ++index;
   }
+
 
   // record the intv paths
   std::vector<std::string> intv_paths(ncontigs);
