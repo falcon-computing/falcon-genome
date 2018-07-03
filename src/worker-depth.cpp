@@ -103,10 +103,10 @@ int depth_main(int argc, char** argv,
     std::string file_ext = "cov";
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new DepthWorker(ref_path,
-          intv_paths,
+          intv_paths[contig],
           input_file,
           output_file,
-          geneList_paths,
+          geneList_paths[contigs],
           depthCutoff,
           extra_opts,
           contig,
@@ -115,8 +115,8 @@ int depth_main(int argc, char** argv,
           flag_intervalCoverage,
           flag_sampleSummary));
     output_files[contig] = output_file;
-    DLOG(INFO) << "Processing " << contig << " " << input_file << " " << output_file << " " << intv_paths[contig] << " " << geneList_paths[contig] << " " << std::endl;
-    //executor.addTask(worker);
+    //DLOG(INFO) << "Processing " << contig << " " << input_file << " " << output_file << " " << intv_paths[contig] << " " << geneList_paths[contig] << " " << std::endl;
+    executor.addTask(worker);
   }
 
   exit(0);

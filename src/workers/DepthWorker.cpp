@@ -9,10 +9,10 @@
 namespace fcsgenome {
 
 DepthWorker::DepthWorker(std::string ref_path,
-      std::vector<std::string> intv_paths,
+      std::string intv_paths,
       std::string input_path,
       std::string output_path,
-      std::vector<std::string> geneList_paths,
+      std::string geneList_paths,
       int depthCutoff,
       std::vector<std::string> extra_opts,
       int  contig,
@@ -36,8 +36,8 @@ DepthWorker::DepthWorker(std::string ref_path,
 void DepthWorker::check() {
   ref_path_   = check_input(ref_path_);
   input_path_ = check_input(input_path_);
-  //intv_paths_  = check_input(intv_paths_);
-  //geneList_paths_  = check_input(geneList_paths_);
+  intv_paths_  = check_input(intv_paths_);
+  geneList_paths_  = check_input(geneList_paths_);
 }
 
 void DepthWorker::setup() {
@@ -50,6 +50,9 @@ void DepthWorker::setup() {
       << "-T DepthOfCoverage "
       << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " ";
+      << "-L " << intv_paths_ << " ";
+      << "-g " << geneList_paths_ << " ";
+
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
     cmd << it-> first << " ";
