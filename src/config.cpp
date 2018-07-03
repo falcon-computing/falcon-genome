@@ -470,9 +470,36 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
 }
 
 ///////  FROM HERE:
+unsigned int FileRead( istream & is, vector <char> & buff ) {
+    is.read( &buff[0], buff.size() );
+    return is.gcount();
+}
+
+unsigned int CountLines( const vector <char> & buff, int sz ) {
+    int newlines = 0;
+    const char * p = &buff[0];
+    for ( int i = 0; i < sz; i++ ) {
+        if ( p[i] == '\n' ) {
+            newlines++;
+        }
+    }
+    return newlines;
+}
+
 
 std::vector<std::string> split_by_nprocs(std::string intervalFile) {
   DLOG(INFO) << "I am checking " << intervalFile;
+
+  const int SZ = 1024 * 1024;
+  std::vector <char> buff( SZ );
+  std::ifstream ifs( intervalFile );
+  int n = 0;
+  while( int cc = FileRead( ifs, buff ) ) {
+        n += CountLines( buff, cc );
+  }
+  DLOG(INFO) << n << endl;
+
+
 
   int ncontigs = get_config<int>("gatk.ncontigs");
 
@@ -504,17 +531,22 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile) {
     return intv_paths;
   }
 
+
+
+
   // read ref.dict file to get contig lengths
-  intervalFile = check_input(intervalFile);
-  int TotalLines = 0;
-  std::ifstream IntFile;
-  IntFile.open(intervalFile);
-  while(!IntFile.eof()) {
-	     //std::getline(IntFile, s);
-	     TotalLines++;
-  };
-  IntFile.close();
-  DLOG(INFO) << TotalLines;
+  //intervalFile = check_input(intervalFile);
+  //int TotalLines = 0;
+  //std::ifstream IntFile;
+  //IntFile.open(intervalFile);
+  //while(!IntFile.eof()) {
+	 //    std::getline(IntFile, s);
+	   //  TotalLines++;
+  //};
+  //IntFile.close();
+
+
+  //DLOG(INFO) << TotalLines;
 
   return intv_paths;
 }
