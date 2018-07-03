@@ -65,6 +65,16 @@ void DepthWorker::setup() {
   for (int i = 0; i < intv_paths_.size(); i++) {
      cmd << "-L " << intv_paths_[i] << " -geneList " << geneList_paths_[i] << " ";
   }
+
+  std::vector<int>::const_iterator i1;
+  std::vector<int>::const_iterator i2;
+  for( i1 = intv_paths_.begin(), i2 = geneList_paths_.begin(); i1 < intv_paths_.end() && i2 < geneList_paths_.end();
+     ++i1, ++i2 ){
+     cmd << "-L " << *i1 << " -geneList " << *i2 << " ";
+
+  }
+
+
   if (geneList_paths_.size() > 0 ) {
      cmd << "-isr INTERSECTION ";
   }
