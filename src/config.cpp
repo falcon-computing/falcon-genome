@@ -529,7 +529,8 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   std::ifstream file(intervalFile);
   if (file.is_open()){
      for (int k = 0; k < n; ++k) {
-          file >> inputData[n];
+          std::string infoData;
+          file >> std::getline(file,inputData[n]);
           DLOG(INFO) << inputData[n];
      }
   }
