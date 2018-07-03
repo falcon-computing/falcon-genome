@@ -30,8 +30,7 @@ class DepthWorker : public Worker {
   std::string intv_path_;
   std::string input_path_;
   std::string output_path_;
-  std::string intv_list_;
-  std::string geneList_;
+  std::string geneList_path_;
   int depthCutoff_;
   bool flag_baseCoverage_;
   bool flag_intervalCoverage_;

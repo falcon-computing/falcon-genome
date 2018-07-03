@@ -23,8 +23,7 @@ DepthWorker::DepthWorker(std::string ref_path,
   ref_path_(ref_path),
   intv_path_(intv_path),
   input_path_(input_path),
-  geneList_path(geneList_paths),
-  geneList_(geneList),
+  geneList_path_(geneList_paths),
   depthCutoff_(depthCutoff),
   flag_baseCoverage_(flag_baseCoverage),
   flag_intervalCoverage_(flag_intervalCoverage),
@@ -38,7 +37,7 @@ void DepthWorker::check() {
   ref_path_   = check_input(ref_path_);
   input_path_ = check_input(input_path_);
   intv_path_  = check_input(intv_path_);
-  geneList_   = check_input(geneList_);
+  geneList_path_  = check_input(geneList_);
 }
 
 void DepthWorker::setup() {
@@ -64,7 +63,7 @@ void DepthWorker::setup() {
       << "-ct " << depthCutoff_ << " ";
 
   for (int i = 0; i < intv_path_.size(); i++) {
-     cmd << "-L " << intv_path_[i] << " -geneList " << geneList_path[i] << " ";
+     cmd << "-L " << intv_path_[i] << " -geneList " << geneList_path_[i] << " ";
   }
   if (intv_list_.size() > 0 ) {
      cmd << "-isr INTERSECTION ";
