@@ -544,7 +544,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
           intv_paths[i] = get_contig_fname(intv_dir, i, "bed", "intv");
           DLOG(INFO) << "BED: " << intv_paths[i] << std::endl;
       }
-      ofstream myfile;
+      std::ofstream myfile;
       int start = i*nearest_multiple;
       int last  = start + nearest_multiple;
       myfile.open (intv_paths[i]);
