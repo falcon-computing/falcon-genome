@@ -51,7 +51,7 @@ void DepthWorker::setup() {
       << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " "
       << "-L " << intv_paths_ << " "
-      << "-g " << geneList_paths_ << " ";
+      << "--geneList " << geneList_paths_ << " ";
 
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
