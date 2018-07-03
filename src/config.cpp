@@ -486,22 +486,43 @@ unsigned int CountLines( const std::vector <char> &buff, int sz ) {
     return newlines;
 }
 
+int roundUp(int numToRound, int multiple)
+{
+    if (multiple == 0)
+        return numToRound;
+
+    int remainder = abs(numToRound) % multiple;
+    if (remainder == 0)
+        return numToRound;
+
+    if (numToRound < 0)
+        return -(abs(numToRound) - remainder);
+    else
+        return numToRound + multiple - remainder;
+}
+
 
 std::vector<std::string> split_by_nprocs(std::string intervalFile) {
   DLOG(INFO) << "I am checking " << intervalFile;
 
-  const int SZ = 1024 * 1024;
+  const int SZ = 1024*1024;
   std::vector <char> buff( SZ );
   std::ifstream ifs( intervalFile );
   int n = 0;
   while( int cc = FileRead( ifs, buff ) ) {
-        n += CountLines( buff, cc );
+      n += CountLines( bhunksuff, cc );
   }
   DLOG(INFO) << n << std::endl;
 
 
 
   int ncontigs = get_config<int>("gatk.ncontigs");
+
+  DLOG(INFO) << "There are " << ncontigs << std::endl;
+
+  int nearest_multiple = roundUp(n,ncontigs);
+  DLOG(INFO) << "Nearest Multiple of " << ncontigs << " for " << n << " : " << nearest_multiple << std:endl;
+
 
   std::stringstream ss;
   ss << conf_temp_dir << "/intv_" << ncontigs;
@@ -530,23 +551,6 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile) {
     }
     return intv_paths;
   }
-
-
-
-
-  // read ref.dict file to get contig lengths
-  //intervalFile = check_input(intervalFile);
-  //int TotalLines = 0;
-  //std::ifstream IntFile;
-  //IntFile.open(intervalFile);
-  //while(!IntFile.eof()) {
-	 //    std::getline(IntFile, s);
-	   //  TotalLines++;
-  //};
-  //IntFile.close();
-
-
-  //DLOG(INFO) << TotalLines;
 
   return intv_paths;
 }
