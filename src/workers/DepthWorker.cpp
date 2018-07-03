@@ -66,8 +66,8 @@ void DepthWorker::setup() {
      cmd << "-L " << intv_paths_[i] << " -geneList " << geneList_paths_[i] << " ";
   }
 
-  std::vector<int>::const_iterator i1;
-  std::vector<int>::const_iterator i2;
+  std::vector<std::string>::const_iterator i1;
+  std::vector<std::string>::const_iterator i2;
   for( i1 = intv_paths_.begin(), i2 = geneList_paths_.begin(); i1 < intv_paths_.end() && i2 < geneList_paths_.end();
      ++i1, ++i2 ){
      cmd << "-L " << *i1 << " -geneList " << *i2 << " ";

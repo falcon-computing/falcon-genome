@@ -77,8 +77,8 @@ int depth_main(int argc, char** argv,
   std::vector<std::string> intv_paths = split_by_nprocs(intv_list, "bed");
   std::vector<std::string> geneList_paths = split_by_nprocs(geneList, "list");
 
-  std::vector<int>::const_iterator i1;
-  std::vector<int>::const_iterator i2;
+  std::vector<std::string::const_iterator i1;
+  std::vector<std::string>::const_iterator i2;
   for( i1 = intv_paths.begin(), i2 = geneList_paths.begin(); i1 < intv_paths.end() && i2 < geneList_paths.end();
      ++i1, ++i2 ){
      DLOG(INFO) << *i1 << std::endl;
