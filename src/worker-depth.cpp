@@ -91,7 +91,7 @@ int depth_main(int argc, char** argv,
            std::stringstream partsBAM;
            std::string parts_dir = input_path;
            std::vector<std::string> input_files_ ;
-           get_input_list(parts_dir, input_files_, ".*/part-[0-9].bam", true);
+           get_input_list(parts_dir, input_files_, ".*/part-[0-9].*bam", true);
            for (int n = 0; n < input_files_.size(); n++) {
                 partsBAM << input_files_[n] << " ";
            }
