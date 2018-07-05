@@ -77,42 +77,39 @@ int depth_main(int argc, char** argv,
   std::vector<std::string> intv_paths = split_by_nprocs(intv_list, "bed");
   std::vector<std::string> geneList_paths = split_by_nprocs(geneList, "list");
 
+  std::string input_file;
+  if (boost::filesystem::is_directory(input_path)) {
+      // Merging BAM files if the input is a folder containing PARTS BAM files:
+      DLOG(INFO) << input_path << " is a directory.  Proceed to merge all BAM files" << std::endl;
+      std::string mergeBAM = input_path + "/merge_parts.bam  ";
+      std::stringstream partsBAM;
+      std::string parts_dir = input_path;
+      std::vector<std::string> input_files_ ;
+      get_input_list(parts_dir, input_files_, ".*/part-[0-9].*bam", true);
+      for (int n = 0; n < input_files_.size(); n++) {
+           partsBAM << input_files_[n] << " ";
+      }
+      uint64_t start_merging = getTs();
+      std::string log_filename_merge  = input_path + "/mergebam.log";
+      std::ofstream merge_log;
+      merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
+      merge_log << input_path << ":" << "Start Merging BAM Files " << std::endl;
+      Executor merger_executor("Merge BAM files");
+      Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, flag_f));
+      merger_executor.addTask(merger_worker);
+      merger_executor.run();
+      DLOG(INFO) << "Merging Parts BAM in  " << input_path << " completed " << std::endl;
+      merge_log << input_path << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
+      merge_log.close(); merge_log.clear();
+      input_file = mergeBAM;
+  }
+  else {
+      input_file = input_path;
+  }
+
   Executor executor("Depth", get_config<int>("gatk.depth.nprocs"));
 
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
-       std::string input_file;
-
-       if (boost::filesystem::is_directory(input_path)) {
-           // if input is a directory, automatically go into contig mode
-           //input_file = get_contig_fname(input_path, contig);
-           // Merging BAM files if the input is a folder containing PARTS BAM files:
-           DLOG(INFO) << input_path << " is a directory.  Proceed to merge all BAM files" << std::endl;
-           std::string mergeBAM = input_path + "/merge_parts.bam  ";
-           std::stringstream partsBAM;
-           std::string parts_dir = input_path;
-           std::vector<std::string> input_files_ ;
-           get_input_list(parts_dir, input_files_, ".*/part-[0-9].*bam", true);
-           for (int n = 0; n < input_files_.size(); n++) {
-                partsBAM << input_files_[n] << " ";
-           }
-           uint64_t start_merging = getTs();
-           std::string log_filename_merge  = input_path + "/mergebam.log";
-           std::ofstream merge_log;
-           merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
-           merge_log << input_path << ":" << "Start Merging BAM Files " << std::endl;
-           Executor merger_executor("Merge BAM files");
-           Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, flag_f));
-           merger_executor.addTask(merger_worker);
-           merger_executor.run();
-           DLOG(INFO) << "Merging Parts BAM in  " << input_path << " completed " << std::endl;
-           merge_log << input_path << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
-           merge_log.close(); merge_log.clear();
-           input_file = mergeBAM;
-       }
-       else {
-           input_file = input_path;
-       }
-
        std::string file_ext = "cov";
        std::string output_file = get_contig_fname(output_dir, contig, file_ext);
        Worker_ptr worker(new DepthWorker(ref_path,
