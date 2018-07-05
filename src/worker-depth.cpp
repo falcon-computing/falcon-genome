@@ -86,10 +86,10 @@ int depth_main(int argc, char** argv,
            // if input is a directory, automatically go into contig mode
            //input_file = get_contig_fname(input_path, contig);
            // Merging BAM files if the input is a folder containing PARTS BAM files:
-           DLOG(INFO) << input_file << " is a directory.  Proceed to merge all BAM files" << std::endl;
-           std::string mergeBAM = input_file + "/merge_parts.bam  ";
+           DLOG(INFO) << input_path << " is a directory.  Proceed to merge all BAM files" << std::endl;
+           std::string mergeBAM = input_path + "/merge_parts.bam  ";
            std::stringstream partsBAM;
-           std::string parts_dir = input_file + "/";
+           std::string parts_dir = input_path + "/";
            std::vector<std::string> input_files_ ;
            get_input_list(parts_dir, input_files_, ".*/part-[0-9].*", true);
            for (int n = 0; n < input_files_.size(); n++) {
@@ -99,13 +99,13 @@ int depth_main(int argc, char** argv,
            std::string log_filename_merge  = input_file + "/mergebam.log";
            std::ofstream merge_log;
            merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
-           merge_log << input_file << ":" << "Start Merging BAM Files " << std::endl;
+           merge_log << input_path << ":" << "Start Merging BAM Files " << std::endl;
            Executor merger_executor("Merge BAM files");
            Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, flag_f));
            merger_executor.addTask(merger_worker);
            merger_executor.run();
-           DLOG(INFO) << "Merging Parts BAM in  " << input_file << " completed " << std::endl;
-           merge_log << input_file << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
+           DLOG(INFO) << "Merging Parts BAM in  " << input_path << " completed " << std::endl;
+           merge_log << input_path << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
            merge_log.close(); merge_log.clear();
            input_file = mergeBAM;
        }
