@@ -20,7 +20,7 @@ INCLUDES	:= -I./include  \
 		   -I$(HTSLIB_DIR) \
 		   -I$(JSONCPP_DIR)/include \
 		   -I$(GTEST_DIR)/include
-	
+
 LINK		:= -lboost_system \
 		   -lboost_thread \
 		   -lboost_iostreams \
@@ -45,7 +45,7 @@ ifneq ($(FLMDIR),)
 CFLAGS   	:= $(CFLAGS) -DNDEBUG -DUSELICENSE
 INCLUDES 	:= $(INCLUDES) -I$(FLMDIR)/include
 LINK 	 	:= -L$(FLMDIR)/lib -lfalcon_license \
-		   $(LINK) 
+		   $(LINK)
 ifneq ($(DEPLOYMENT),) # config license client for a cloud
 CFLAGS       := $(CFLAGS) -DDEPLOYMENT=$(DEPLOYMENT)
 GIT_VERSION  := $(GIT_VERSION)-$(DEPLOYMENT)
@@ -65,24 +65,25 @@ OBJS	 := $(SRC_DIR)/common.o \
 	    $(SRC_DIR)/worker-concat.o \
 	    $(SRC_DIR)/worker-gatk.o \
 	    $(SRC_DIR)/worker-htc.o \
-            $(SRC_DIR)/worker-mutect2.o \
+      $(SRC_DIR)/worker-mutect2.o \
 	    $(SRC_DIR)/worker-indel.o \
 	    $(SRC_DIR)/worker-joint.o \
 	    $(SRC_DIR)/worker-markdup.o \
 	    $(SRC_DIR)/worker-ug.o \
-            $(SRC_DIR)/worker-depth.o \
+      $(SRC_DIR)/worker-depth.o \
 	    $(SRC_DIR)/workers/BQSRWorker.o \
 	    $(SRC_DIR)/workers/BWAWorker.o \
 	    $(SRC_DIR)/workers/CombineGVCFsWorker.o \
 	    $(SRC_DIR)/workers/GenotypeGVCFsWorker.o \
 	    $(SRC_DIR)/workers/HTCWorker.o \
-            $(SRC_DIR)/workers/Mutect2Worker.o \
+      $(SRC_DIR)/workers/Mutect2Worker.o \
 	    $(SRC_DIR)/workers/IndelWorker.o \
 	    $(SRC_DIR)/workers/MarkdupWorker.o \
+			$(SRC_DIR)/workers/MergeBamWorker.o \
 	    $(SRC_DIR)/workers/VCFUtilsWorker.o \
 	    $(SRC_DIR)/workers/UGWorker.o \
-            $(SRC_DIR)/workers/DepthWorker.o \
-            $(SRC_DIR)/workers/DepthCombineWorker.o
+      $(SRC_DIR)/workers/DepthWorker.o \
+      $(SRC_DIR)/workers/DepthCombineWorker.o
 
 TEST_OBJS := $(TEST_DIR)/TestConfig.o
 
@@ -124,6 +125,6 @@ clean:
 	rm -f $(OBJS)
 	rm -f $(SRC_DIR)/main.o
 	rm -f $(TEST_DIR)/main.o
-	rm -f $(PROG)  
+	rm -f $(PROG)
 
 .PHONY: all clean install dist test runtest
