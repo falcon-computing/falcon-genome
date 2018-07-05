@@ -114,7 +114,7 @@ int depth_main(int argc, char** argv,
       input_file = input_path;
       DLOG(INFO) << get_absolute_path(input_file) << std::endl;
     }
-
+    DLOG(INFO) << "I am here " << get_absolute_path(input_file) << std::endl;
     exit(0);
 
 
