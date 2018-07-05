@@ -84,8 +84,9 @@ int depth_main(int argc, char** argv,
 
        if (boost::filesystem::is_directory(input_path)) {
            // if input is a directory, automatically go into contig mode
-           input_file = get_contig_fname(input_path, contig);
+           //input_file = get_contig_fname(input_path, contig);
            // Merging BAM files if the input is a folder containing PARTS BAM files:
+           DLOG(INFO) << input_file << " is a directory.  Proceed to merge all BAM files" << std::endl;
            std::string mergeBAM = input_file + "/merge_parts.bam  ";
            std::stringstream partsBAM;
            std::string parts_dir = input_file + "/";
