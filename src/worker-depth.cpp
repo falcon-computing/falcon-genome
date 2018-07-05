@@ -81,62 +81,53 @@ int depth_main(int argc, char** argv,
 
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
        std::string input_file;
-       std::string work_dir = get_absolute_path(input_file);
+
        if (boost::filesystem::is_directory(input_path)) {
            // if input is a directory, automatically go into contig mode
            input_file = get_contig_fname(input_path, contig);
-
            // Merging BAM files if the input is a folder containing PARTS BAM files:
-           //std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam  ";
-           //std::stringstream partsBAM;
-           //parts_dir = input_path + "/";
-           //std::vector<std::string> input_files_ ;
-           //get_input_list(parts_dir, input_files_, ".*/part-[0-9].*", true);
-           //for (int n = 0; n < input_files_.size(); n++) {
-          //      partsBAM << input_files_[n] << " ";
-           //}
+           std::string mergeBAM = input_file + "/merge_parts.bam  ";
+           std::stringstream partsBAM;
+           parts_dir = input_file + "/";
+           std::vector<std::string> input_files_ ;
+           get_input_list(parts_dir, input_files_, ".*/part-[0-9].*", true);
+           for (int n = 0; n < input_files_.size(); n++) {
+                partsBAM << input_files_[n] << " ";
+           }
+           uint64_t start_merging = getTs();
+           std::string log_filename_merge  = input_file + "/mergebam.log";
+           std::ofstream merge_log;
+           merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
+           merge_log << sample_id << ":" << "Start Merging BAM Files " << std::endl;
+           Executor merger_executor("Merge BAM files");
+           Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, flag_f));
+           merger_executor.addTask(merger_worker);
+           merger_executor.run();
+           DLOG(INFO) << "Merging Parts BAM for  " << sample_id << " completed " << std::endl;
+           merge_log << sample_id << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
+           merge_log.close(); merge_log.clear();
+           input_file = mergeBAM;
+       }
+       else {
+           input_file = input_path;
+       }
 
-           //uint64_t start_merging = getTs();
-           //std::string log_filename_merge  = output_path + "/" + sample_id + "/" + sample_id + "_mergebam.log";
-           //std::ofstream merge_log;
-           //merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
-           //merge_log << sample_id << ":" << "Start Merging BAM Files " << std::endl;
-           //Executor merger_executor("Merge BAM files");
-           //Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, flag_f));
-           //merger_executor.addTask(merger_worker);
-           //merger_executor.run();
-           //DLOG(INFO) << "Merging Parts BAM for  " << sample_id << " completed " << std::endl;
-           //merge_log << sample_id << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
-           //merge_log.close(); merge_log.clear();
-           //input_file = mergeBAM;
-    }
-    else {
-      input_file = input_path;
-      DLOG(INFO) << get_absolute_path(input_file) << std::endl;
-    }
-
-    boost::filesystem::path p(input_file);
-    boost::filesystem::path mydir = p.parent_path();
-    DLOG(INFO) << "I am here " << mydir << std::endl;
-    exit(0);
-
-
-    std::string file_ext = "cov";
-    std::string output_file = get_contig_fname(output_dir, contig, file_ext);
-    Worker_ptr worker(new DepthWorker(ref_path,
-          intv_paths[contig],
-          input_file,
-          output_file,
-          geneList_paths[contig],
-          depthCutoff,
-          extra_opts,
-          contig,
-          flag_f,
-          flag_baseCoverage,
-          flag_intervalCoverage,
-          flag_sampleSummary));
-    output_files[contig] = output_file;
-    executor.addTask(worker);
+       std::string file_ext = "cov";
+       std::string output_file = get_contig_fname(output_dir, contig, file_ext);
+       Worker_ptr worker(new DepthWorker(ref_path,
+              intv_paths[contig],
+              input_file,
+              output_file,
+              geneList_paths[contig],
+              depthCutoff,
+              extra_opts,
+              contig,
+              flag_f,
+              flag_baseCoverage,
+              flag_intervalCoverage,
+              flag_sampleSummary));
+       output_files[contig] = output_file;
+       executor.addTask(worker);
   }
 
   bool flag = true;
