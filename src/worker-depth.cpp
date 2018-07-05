@@ -91,12 +91,12 @@ int depth_main(int argc, char** argv,
            std::stringstream partsBAM;
            std::string parts_dir = input_path + "/";
            std::vector<std::string> input_files_ ;
-           get_input_list(parts_dir, input_files_, ".*/part-[0-9]*bam", true);
+           get_input_list(parts_dir, input_files_, "part-[0-9]*bam", true);
            for (int n = 0; n < input_files_.size(); n++) {
                 partsBAM << input_files_[n] << " ";
            }
            uint64_t start_merging = getTs();
-           std::string log_filename_merge  = input_file + "/mergebam.log";
+           std::string log_filename_merge  = input_path + "/mergebam.log";
            std::ofstream merge_log;
            merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
            merge_log << input_path << ":" << "Start Merging BAM Files " << std::endl;
