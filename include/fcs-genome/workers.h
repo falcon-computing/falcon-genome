@@ -4,6 +4,7 @@
 #include "workers/BQSRWorker.h"
 #include "workers/BWAWorker.h"
 #include "workers/CombineGVCFsWorker.h"
+#include "workers/GenotypeGVCFsWorker.h"
 #include "workers/HTCWorker.h"
 #include "workers/Mutect2Worker.h"
 #include "workers/IndelWorker.h"
