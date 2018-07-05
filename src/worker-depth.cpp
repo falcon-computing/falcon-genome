@@ -98,13 +98,13 @@ int depth_main(int argc, char** argv,
            std::string log_filename_merge  = input_file + "/mergebam.log";
            std::ofstream merge_log;
            merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
-           merge_log << sample_id << ":" << "Start Merging BAM Files " << std::endl;
+           merge_log << input_file << ":" << "Start Merging BAM Files " << std::endl;
            Executor merger_executor("Merge BAM files");
            Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, flag_f));
            merger_executor.addTask(merger_worker);
            merger_executor.run();
-           DLOG(INFO) << "Merging Parts BAM for  " << sample_id << " completed " << std::endl;
-           merge_log << sample_id << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
+           DLOG(INFO) << "Merging Parts BAM in  " << input_files << " completed " << std::endl;
+           merge_log << input_file << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
            merge_log.close(); merge_log.clear();
            input_file = mergeBAM;
        }
