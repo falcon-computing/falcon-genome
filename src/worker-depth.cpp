@@ -114,7 +114,10 @@ int depth_main(int argc, char** argv,
       input_file = input_path;
       DLOG(INFO) << get_absolute_path(input_file) << std::endl;
     }
-    DLOG(INFO) << "I am here " << get_absolute_path(input_file) << std::endl;
+
+    boost::filesystem::path p(input_file);
+    boost::filesystem::path mydir = p.parent_path();
+    DLOG(INFO) << "I am here " << mydir << std::endl;
     exit(0);
 
 
