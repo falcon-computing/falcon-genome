@@ -29,9 +29,9 @@ int depth_main(int argc, char** argv,
     arg_decl_string("intervalList,L", "Interval List BED File")
     arg_decl_string("geneList,g", "list of genes over which to calculate coverage")
     ("depthCutoff,d", po::value<int>()->default_value(15), "Cutoff for coverage depth summary")
-    ("baseCoverage,b", "Calculate coverage depth of each base")
-    ("intervalCoverage,v", "Calculate Coverage Summary of given intervals")
-    ("sampleSummary,s", "Output Summary Files for each sample");
+    ("baseCoverage,b", "calculate coverage depth of each base")
+    ("intervalCoverage,v", "calculate coverage summary of given intervals")
+    ("sampleSummary,s", "output summary files for each sample");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
