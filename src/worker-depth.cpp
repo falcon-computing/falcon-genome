@@ -88,7 +88,7 @@ int depth_main(int argc, char** argv,
            // Merging BAM files if the input is a folder containing PARTS BAM files:
            std::string mergeBAM = input_file + "/merge_parts.bam  ";
            std::stringstream partsBAM;
-           parts_dir = input_file + "/";
+           std::string parts_dir = input_file + "/";
            std::vector<std::string> input_files_ ;
            get_input_list(parts_dir, input_files_, ".*/part-[0-9].*", true);
            for (int n = 0; n < input_files_.size(); n++) {
@@ -103,7 +103,7 @@ int depth_main(int argc, char** argv,
            Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, flag_f));
            merger_executor.addTask(merger_worker);
            merger_executor.run();
-           DLOG(INFO) << "Merging Parts BAM in  " << input_files << " completed " << std::endl;
+           DLOG(INFO) << "Merging Parts BAM in  " << input_file << " completed " << std::endl;
            merge_log << input_file << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
            merge_log.close(); merge_log.clear();
            input_file = mergeBAM;

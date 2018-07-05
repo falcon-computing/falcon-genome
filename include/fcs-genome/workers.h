@@ -4,7 +4,6 @@
 #include "workers/BQSRWorker.h"
 #include "workers/BWAWorker.h"
 #include "workers/CombineGVCFsWorker.h"
-#include "workers/CombineGVCFsWorker.h"
 #include "workers/MergeBamWorker.h"
 #include "workers/HTCWorker.h"
 #include "workers/Mutect2Worker.h"
