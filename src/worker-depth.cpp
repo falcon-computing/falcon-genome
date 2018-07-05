@@ -129,7 +129,6 @@ int depth_main(int argc, char** argv,
   }
 
   bool flag = true;
-  //bool flag_a = false;
 
   Worker_ptr worker(new DepthCombineWorker(
         output_files, output_path,

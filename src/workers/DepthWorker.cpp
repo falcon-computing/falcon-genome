@@ -35,7 +35,7 @@ DepthWorker::DepthWorker(std::string ref_path,
 
 void DepthWorker::check() {
   ref_path_   = check_input(ref_path_);
-  input_path_ = check_input(input_path_);
+  //input_path_ = check_input(input_path_);
   intv_paths_  = check_input(intv_paths_);
   geneList_paths_  = check_input(geneList_paths_);
 }
