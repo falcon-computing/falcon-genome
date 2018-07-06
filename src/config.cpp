@@ -542,7 +542,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
 
       myfile.open(intv_paths[i]);
       int start = i*nearest_multiple;
-      int last  = start + nearest_multiple;
+      int last  = start + nearest_multiple - 1;
       if (last > n) last = n;
       for (int j = start; j < last; ++j) {
            myfile <<  inputData[j] << std::endl;
