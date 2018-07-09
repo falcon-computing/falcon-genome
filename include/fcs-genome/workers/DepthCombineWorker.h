@@ -17,7 +17,7 @@ class DepthCombineWorker : public Worker {
       bool &flag_f);
 
   void check();
-  void merge_sample_summary(std::string file_type);
+  void merge_outputs(std::string file_type);
   void merge_gene_summary(std::string file_type);
   void merge_interval_summary(std::string file_type);
   void merge_base_summary(std::string file_type);
