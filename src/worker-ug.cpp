@@ -27,8 +27,7 @@ int ug_main(int argc, char** argv,
     ("output,o", po::value<std::string>()->required(), "output vcf file (if --skip-concat is set"
                                 "the output will be a directory of vcf files)")
     ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
-    ("skip-concat,s", "produce a set of vcf files instead of one")
-    ("allow-overlap,a", "First coordinate of the next file can precede last record of the current file");
+    ("skip-concat,s", "produce a set of vcf files instead of one");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
@@ -45,7 +44,6 @@ int ug_main(int argc, char** argv,
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat", "s");
-  bool flag_a	 	  = get_argument<bool>(cmd_vm, "allow-overlap", "a");
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
@@ -107,7 +105,7 @@ int ug_main(int argc, char** argv,
 
   if (!flag_skip_concat) {
     bool flag = true;
-    flag_a = false;
+    bool flag_a = true;
     { // concat gvcfs
       Worker_ptr worker(new VCFConcatWorker(
             output_files, temp_gvcf_path,
