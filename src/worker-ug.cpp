@@ -105,7 +105,7 @@ int ug_main(int argc, char** argv,
 
   if (!flag_skip_concat) {
     bool flag = true;
-    bool flag_a = false;
+    bool flag_a = true;
     { // concat gvcfs
       Worker_ptr worker(new VCFConcatWorker(
             output_files, temp_gvcf_path,
