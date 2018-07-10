@@ -226,7 +226,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
 
 void DepthCombineWorker::concatenate_outputs(std::string file_type) {
    std::string temp = "";
-   std::string fileCov
+   std::string fileCov;
    if (file_type == ".sample_summary"){
       // All parts-[0-9].cov will be concatenated:
       temp = file_type;
