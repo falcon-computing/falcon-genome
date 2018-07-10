@@ -56,7 +56,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
      std::vector<std::string> temp;
 
      std::string header;
-     for (int i = 0 ; i < sizeof(input_files_) ; i++){
+     for (int i = 0 ; i < input_files_.size() ; i++){
         DLOG(INFO) << "Merge File : " << input_files_[i] + file_type << std::endl;
         std::ifstream file((input_files_[i] + file_type).c_str());
         std::string value;
@@ -205,7 +205,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
               int Q1 = round(total/4);
               int checkQ1 = 0;
               int cov_indexQ1 = 0;
-              previous=0;
+              previous = 0;
               for (auto datapoint : elem.second ){
                    if (checkQ1 < Q1){
                        previous = checkQ1;
@@ -238,11 +238,11 @@ void DepthCombineWorker::concatenate_outputs(std::string file_type) {
       fileCov = output_file_ + file_type;
    }
    std::ofstream concatenated_file(fileCov, std::ios::out | std::ios::app);
-   for (int i = 0 ; i < sizeof(input_files_) ; i++){
+   for (int i = 0 ; i < input_files_.size() ; i++){
         DLOG(INFO) << "Concatenating File : " << input_files_[i] + file_type << std::endl;
         std::ifstream inputFile((input_files_[i] + file_type).c_str());
         std::string value;
-        if (i==0){
+        if (i == 0){
             concatenated_file << inputFile.rdbuf();
         } else {
             std::string grab_line;
