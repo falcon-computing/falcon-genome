@@ -127,7 +127,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
         // If coverage counts files are used, coverage proportions are computed:
         if (file_type == ".sample_cumulative_coverage_counts"){
             std::ofstream normalized_file;
-            normalized_file.open(output_file_ + ".sample_cumulative_coverage_proportions", std::ofstream::out | std::ofstream::app));
+            normalized_file.open(output_file_ + ".sample_cumulative_coverage_proportions", std::ofstream::out | std::ofstream::app);
             normalized_file << header << std::endl;
             double max_value = *max_element((elem.second).begin(), (elem.second).end());
             for (auto datapoint : elem.second ){
