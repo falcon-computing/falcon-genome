@@ -18,9 +18,7 @@ class DepthCombineWorker : public Worker {
 
   void check();
   void merge_outputs(std::string file_type);
-  void merge_gene_summary(std::string file_type);
-  void merge_interval_summary(std::string file_type);
-  void merge_base_summary(std::string file_type);
+  void concatenate_outputs(std::string file_type);
   void setup();
  private:
   std::vector<std::string> input_files_;

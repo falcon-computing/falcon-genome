@@ -1,15 +1,16 @@
 #include <algorithm>
-#include <iomanip>
-#include <iostream>
-#include <fstream>
-#include <map>
-#include <sstream>
-#include <string>
-#include <vector>
+#include <bits/stdc++.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/regex.hpp>
 #include <boost/lexical_cast.hpp>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <sstream>
+#include <string>
+#include <vector>
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -43,13 +44,6 @@ void DepthCombineWorker::check() {
           check_input(input_files_[i] + ".sample_interval_summary");
           check_input(input_files_[i] + ".sample_summary");
           check_input(input_files_[i] + ".sample_statistics");
-
-          //if (flag_intervalCoverage_) {
-          //    check_input(input_files_[i] + ".sample_interval_summary");
-          //}
-          //else if (flag_sampleSummary_) {
-          //    check_input(input_files_[i] + ".sample_summary");
-          //}
      }
 }
 
@@ -122,7 +116,9 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
        countfile.open(output_file_ + ".sample_statistics");
    }
 
+   // Inserting Header:
    countfile << header << std::endl;
+   //Inserting Elements:
    for (auto elem : InputData){
         countfile << elem.first << "\t" ;
         for (auto datapoint : elem.second ){
@@ -130,9 +126,11 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
         }
         countfile << std::endl;
 
+        // If coverage counts files are used, coverage proportions are computed:
         if (file_type == ".sample_cumulative_coverage_counts"){
             std::ofstream normalized_file;
             normalized_file.open(output_file_ + ".sample_cumulative_coverage_proportions", std::ofstream::out | std::ofstream::app));
+            normalized_file << header << std::endl;
             double max_value = *max_element((elem.second).begin(), (elem.second).end());
             for (auto datapoint : elem.second ){
                  double normalized_value = datapoint/max_value;
@@ -144,176 +142,128 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
             normalized_file.clear();
         }
 
+        if (file_type == ".sample_statistics"){
+            std::ofstream summary_file;
+            summary_file.open(output_file_ + ".sample_summary", std::ofstream::out | std::ofstream::app));
+            summary_file << "sample_id\ttotal	mean\tgranular_third_quartile\t";
+            summary_file << "granular_median\tgranular_first_quartile\t\%_bases_above_15" << std::endl;
+            // Computing Mean:
+            double mean = 0.000;
+            int cov_value = 0;
+            int total_coverage15x = 0;
+            int total = 0;
+            for (auto datapoint : elem.second ){
+                 if (cov_value > 14) total_coverage15x += datapoint;
+                 mean += cov_value * datapoint;
+                 cov_value += 1;
+                 total += datapoint;
+            };
+            double pct15x = total_coverage15x/total_coverage;
+            int total_coverage = mean;
+            mean = mean/total;
 
+            // Computing Third Quartile, Mean and First Quartile :
+            int left, right, previous;
+
+             // Third Quartile:
+            int Q3 = round(3*total/4);
+            int checkQ3 = 0;
+            int cov_indexQ3 = 0;
+            previous = 0;
+            for (auto datapoint : elem.second ){
+                 if (checkQ3 < Q3){
+                    previous = checkQ3;
+                    cov_indexQ3 += 1;
+                    checkQ3 += datapoint;
+                 } else {
+                    left = checkQ3 - previous;
+                    right = Q3 - checkQ3;
+                    if (left < right) cov_indexQ3--;
+                    break;
+                 }
+             }
+
+             // Computing Median:
+             int Q2 = round(total/2);
+             int checkQ2 = 0;
+             int cov_indexQ2 = 0;
+             previous = 0;
+             for (auto datapoint : elem.second ){
+                  if (checkQ2 < Q2){
+                      previous = checkQ2;
+                      cov_indexQ2 += 1;
+                      checkQ2 += datapoint;
+                  } else {
+                      left = checkQ2 - previous;
+                      right = Q2 - checkQ2;
+                      if (left < right) cov_indexQ2--;
+                      break;
+             }
+
+             // Computing First Quartile:
+             int Q1 = round(total/4);
+             int checkQ1 = 0;
+             int cov_indexQ1 = 0;
+             previous=0;
+             for (auto datapoint : elem.second ){
+                  if (checkQ1 < Q1){
+                      previousQ1 = checkQ1;
+                      cov_indexQ1 += 1;
+                      checkQ1 += datapoint;
+                  } else {
+                      left = checkQ1 - previousQ1;
+                      right = Q1 - checkQ1;
+                      if (left < right) cov_indexQ1--;
+                      break;
+                  }
+              }
+              summary_file << total_coverage<< "\t" << std::setprecision(2) << mean << "\t" << cov_indexQ3
+                           << "\t" << cov_indexQ2 << "\t" << cov_indexQ1 << std::setprecision(2) << pct15x << std::endl;
+              summary_file.close(); summary_file.clear();
+        } // sample_summary file generated
    }
    countfile.close(); countfile.clear();
-
-
-
-
-
-
-
-
 }
 
-
-void DepthCombineWorker::merge_interval_summary(std::string file_type) {
-  std::ofstream fout;
-  fout.open(output_file_+file_type, std::ofstream::app);
-  for (int i = 0; i < input_files_.size(); i++) {
-    std::string filename = input_files_[i] + file_type;
-    std::ifstream fin;
-    fin.open(filename);
-    if (fin.is_open()) {
-      std::string line;
-      while (std::getline(fin, line)) {
-        std::vector<std::string> each_line;
-        if (boost::contains(filename, ".sample_interval_summary")) {
-          if (boost::contains(filename, "part-00")) {
-            fout << line << "\n";
-          }
-          else {
-            if (!boost::starts_with(line, "Target")) {
-              fout << line << "\n";
+void DepthCombineWorker::concatenate_outputs(std::string file_type) {
+   std::string temp = "";
+   std::string fileCov
+   if (file_type == ".sample_summary"){
+      // All parts-[0-9].cov will be concatenated:
+      temp = file_type;
+      file_type = ".cov";
+      fileCov = output_file_ + file_type;
+   }
+   std::ofstream concatenated_file(fileCov, ios::out | ios::app);
+   for (int i = 0 ; i < sizeof(input_files_) ; i++){
+        std::ifstream inputFile((input_files_[i] + file_type).c_str());
+        std::string value;
+        if (i==0){
+            concatenated_file << inputFile.rdbuf();
+        }else{
+            std::string grab_line;
+            getline(inputFile, grab_line);
+            while(getline(inputFile, grab_line)){
+                  concatenated_file << grab_line << std::endl;
             }
-          }
         }
-      }
-    }
-  }
-}
-
-void DepthCombineWorker::merge_sample_summary(std::string file_type) {
-  double total = 0;
-  double mean_cov = 0;
-  std::vector<double> contents;
-  std::ofstream fout;
-  fout.open(output_file_+file_type, std::ofstream::app);
-  for (int i = 0; i < input_files_.size(); i++) {
-    std::string filename = input_files_[i] + file_type;
-    std::ifstream fin;
-    fin.open(filename);sample_cumulative_coverage_counts
-    if (fin.is_open()) {
-      std::string line;
-      while (std::getline(fin, line)) {
-        std::vector<std::string> each_line;
-        if (boost::contains(filename, ".sample_summary")) {
-          if (!boost::starts_with(line, "sample_id") & !boost::starts_depth/part-10.cov.sample_interval_summarywith(line, "Total")) {
-            std::string i;
-            int itr = 0;
-            std::istringstream iss(line);
-            while (iss >> i) {
-              if (itr != 0) {
-                if (boost::contains(filename, "part-00")) {
-                  if (itr == 1) {
-                    total = boost::lexical_cast<double>(i);
-                    contents.push_back(0);
-                    contents[itr-1] = contents[itr-1]+total;
-                  }
-                  else if (itr == 6) {
-                    contents.push_back(0);
-                    contents[itr-1] = contents[itr-1] + (boost::lexical_cast<double>(i) * total / mean_cov);
-                  }
-                  else if ( itr == 3 || itr == 4 || itr == 5 ) {
-                    contents.push_back(0);
-                    contents[itr-1] = contents[itr-1] + (boost::lexical_cast<double>(i) * total / mean_cov);
-                  }
-                  else {
-                    contents.push_back(0);
-                    if (itr == 2) {
-                      mean_cov = boost::lexical_cast<double>(i);
-                    }
-                    contents[itr-1] = contents[itr-1] + (total/boost::lexical_cast<double>(i));
-                  }
-                }
-                else {
-                  if (itr == 1) {
-                    total = boost::lexical_cast<double>(i);
-                    contents[itr-1] = contents[itr-1] + total;
-                  }
-                  else if (itr == 6) {
-                    contents[itr-1] = contents[itr-1] + (boost::lexical_cast<double>(i) * total / mean_cov);
-                  }
-                  else if (itr == 3 || itr == 4 || itr == 5) {
-                    contents[itr-1] = contents[itr-1] + (boost::lexical_cast<double>(i) * total / mean_cov);
-                  }
-                  else {
-                    // total/mean
-                    if (itr == 2) {
-                      mean_cov = boost::lexical_cast<double>(i);
-                    }
-                    contents[itr-1] = contents[itr-1] + (total/boost::lexical_cast<double>(i));
-                  }
-                }
-              }
-              ++itr;
-            }
-          }
-          else if (boost::starts_with(line, "sample_id") & boost::contains(filename, "part-00")) {
-            fout << line << "\n";
-          }
-        }
-      }
-    }
-  }
-
-  if (file_type.compare(".sample_summary") == 0) {
-    fout << output_file_ << "\t";
-    for (int i = 0; i < contents.size(); i++) {
-      if (i == 0) {
-        fout << std::fixed << std::setprecision(0) << contents[i] << "\t";
-      }
-      else if (i == 2 || i == 3 || i == 4) {
-        fout << std::fixed << std::setprecision(0) << contents[i]/contents[1] << "\t";
-      }
-      else if (i == 5) {
-        fout << std::fixed << std::setprecision(2) << contents[i]/contents[1] << "\t";
-      }
-      else {
-        fout << std::fixed << std::setprecision(2) << contents[0]/contents[i] << "\t";
-      }
-    }
-  }
-}
-
-void DepthCombineWorker::merge_base_summary(std::string file_type) {
-  std::ofstream fout;
-  int itr=0;
-  fout.open(output_file_+file_type, std::ofstream::app);
-  namespace fs = boost::filesystem;
-  std::string file_extension;
-  file_extension = fs::file_size(output_file_);
-  for (int i = 0; i < input_files_.size(); i++) {
-    std::string filename = input_files_[i] + file_type;
-    std::ifstream fin;
-    fin.open(filename);
-    if (fin.is_open()) {
-      std::string line;
-      while (std::getline(fin, line)) {
-        if (!boost::contains(filename, file_extension+".sample_")) {
-          if (boost::contains(filename, "part-00")) {
-            fout << line << "\n";
-          }
-          else if (!boost::starts_with(line, "Locus")) {
-            fout << line << "\n";
-          }
-        }
-      }
-    }
-  }
+   }
+   concatenated_file.close(); concatenated_file.clear();
 }
 
 void DepthCombineWorker::setup() {
   if (flag_intervalCoverage_) {
-    merge_interval_summary(".sample_interval_summary");
-    merge_gene_summary(".sample_gene_summary");
+      merge_outputs(".sample_cumulative_coverage_counts");
+      merge_outputs(".sample_interval_statistics");
+      concatenate_outputs(".sample_interval_summary");
+      concatenate_outputs(".sample_gene_summary");
   }
   if (flag_sampleSummary_) {
-    merge_sample_summary(".sample_summary");
+      merge_outputs(".sample_statistics");
   }
   if (flag_baseCoverage_) {
-    merge_base_summary("");
+      concatenate_outputs("");
   }
 }
+
 } // namespace fcsgenome
