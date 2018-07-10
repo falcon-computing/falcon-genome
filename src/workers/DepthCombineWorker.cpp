@@ -127,7 +127,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
           // If coverage counts files are used, coverage proportions are computed:
           if (file_type == ".sample_cumulative_coverage_counts"){
               FILE *normalized_file;
-              normalized_file = fopen( string(output_file_ + ".sample_cumulative_coverage_proportions").c_str(), "a+");
+              normalized_file = fopen((output_file_ + ".sample_cumulative_coverage_proportions").c_str(), "a+");
               fprintf(normalized_file, "%s\n", header);
               double max_value = *max_element((elem.second).begin(), (elem.second).end());
               for (auto datapoint : elem.second ){
@@ -137,12 +137,12 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
 	                 //normalized_file << std::setprecision(2) << normalized_value << '\t';
               }
               fprintf(normalized_file, "\n");
-              fclose(normalized_file); 
+              fclose(normalized_file);
           }
 
           if (file_type == ".sample_statistics"){
               FILE *summary_file;
-              summary_file = fopen((string(output_file_ + ".sample_summary").c_str(), "a+");
+              summary_file = fopen((output_file_ + ".sample_summary").c_str(), "a+");
               std::string stat_header = "sample_id\ttotal	mean\tgranular_third_quartile\t";
               stat_header = stat_header + "granular_median\tgranular_first_quartile\t\%_bases_above_15\n";
 
