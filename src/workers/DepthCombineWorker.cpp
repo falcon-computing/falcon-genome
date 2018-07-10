@@ -233,7 +233,7 @@ void DepthCombineWorker::concatenate_outputs(std::string file_type) {
       file_type = ".cov";
       fileCov = output_file_ + file_type;
    }
-   std::ofstream concatenated_file(fileCov, ios::out | ios::app);
+   std::ofstream concatenated_file(fileCov, std::ios::out | std::ios::app);
    for (int i = 0 ; i < sizeof(input_files_) ; i++){
         std::ifstream inputFile((input_files_[i] + file_type).c_str());
         std::string value;
