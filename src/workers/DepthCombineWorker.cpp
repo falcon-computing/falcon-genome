@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <math.h>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -207,11 +208,11 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
              previous=0;
              for (auto datapoint : elem.second ){
                   if (checkQ1 < Q1){
-                      previousQ1 = checkQ1;
+                      previous = checkQ1;
                       cov_indexQ1 += 1;
                       checkQ1 += datapoint;
                   } else {
-                      left = checkQ1 - previousQ1;
+                      left = checkQ1 - previous;
                       right = Q1 - checkQ1;
                       if (left < right) cov_indexQ1--;
                       break;
