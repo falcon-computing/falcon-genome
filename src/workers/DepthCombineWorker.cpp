@@ -56,6 +56,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
      std::vector<std::string> temp;
 
      std::string header;
+     std::string sampleName;
      for (int i = 0 ; i < input_files_.size() ; i++){
         DLOG(INFO) << "Merge File : " << input_files_[i] + file_type << std::endl;
         std::ifstream file((input_files_[i] + file_type).c_str());
@@ -66,7 +67,6 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
 
         // Getting data for each sample:
         std::string grab_line;
-        std::string sampleName;
         int counter=0;
         if (i == 0){
             int number_of_fields = count( header.begin(),header.end(),'\t' );
@@ -128,13 +128,14 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
           // If coverage counts files are used, coverage proportions are computed:
           if (file_type == ".sample_cumulative_coverage_counts"){
               std::ofstream normalized_file;
-              normalized_file.open(output_file_ + ".sample_cumulative_coverage_proportions", std::ofstream::out | std::ofstream::app);
+              normalized_file.fopen( string(output_file_ + ".sample_cumulative_coverage_proportions").c_str(), "a+");
               normalized_file << header << std::endl;
               double max_value = *max_element((elem.second).begin(), (elem.second).end());
               for (auto datapoint : elem.second ){
                    double normalized_value = datapoint/max_value;
                    if ( normalized_value < 0.01 ) normalized_value = 0.00;
-	                 normalized_file << std::setprecision(2) << normalized_value << '\t';
+                   fprintf(normalized_file, "%.2f\t", normalized_value);
+	                 //normalized_file << std::setprecision(2) << normalized_value << '\t';
               }
               normalized_file << std::endl;
               normalized_file.close();
@@ -143,7 +144,8 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
 
           if (file_type == ".sample_statistics"){
               std::ofstream summary_file;
-              summary_file.open(output_file_ + ".sample_summary", std::ofstream::out | std::ofstream::app);
+              summary_file.fopen((string(output_file_ + ".sample_summary").c_str(), "a+");
+
               summary_file << "sample_id\ttotal	mean\tgranular_third_quartile\t";
               summary_file << "granular_median\tgranular_first_quartile\t\%_bases_above_15" << std::endl;
               // Computing Mean:
@@ -154,7 +156,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
               int total = 0;
               for (auto datapoint : elem.second ){
                    if (cov_value > 14) total_coverage15x += datapoint;
-                    total_coverage += cov_value * datapoint;
+                   total_coverage += cov_value * datapoint;
                    cov_value += 1;
                    total += datapoint;
               };
@@ -218,10 +220,9 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                        break;
                    }
               }
-              summary_file << sampleName << "\t" << total_coverage << "\t"
-                           << std::setprecision(2) << mean << "\t" << cov_indexQ3
-                           << "\t" << cov_indexQ2 << "\t" << cov_indexQ1  << "\t"
-                           << std::setprecision(2) << pct15x << std::endl;
+              fprintf(summary_file, "%s\t%d\t%.02f\t%d\t%d\t%d\t%.2f\n",
+                      sampleName, total_coverage, mean, cov_indexQ3,
+                      cov_indexQ2, cov_indexQ1, pct15x);
               summary_file.close(); summary_file.clear();
        } // sample_summary file generated
    }
