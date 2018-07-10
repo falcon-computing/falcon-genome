@@ -20,19 +20,19 @@
 namespace fcsgenome {
 
 DepthCombineWorker::DepthCombineWorker(
-      std::vector<std::string> &input_files,
-      std::string output_path,
-      bool &flag_baseCoverage,
-      bool &flag_intervalCoverage,
-      bool &flag_sampleSummary,
-      bool &flag_f): Worker(1, 1),
-      input_files_(input_files),
-      flag_baseCoverage_(flag_baseCoverage),
-      flag_intervalCoverage_(flag_intervalCoverage),
-      flag_sampleSummary_(flag_sampleSummary)
+     std::vector<std::string> &input_files,
+     std::string output_path,
+     bool &flag_baseCoverage,
+     bool &flag_intervalCoverage,
+     bool &flag_sampleSummary,
+     bool &flag_f): Worker(1, 1),
+     input_files_(input_files),
+     flag_baseCoverage_(flag_baseCoverage),
+     flag_intervalCoverage_(flag_intervalCoverage),
+     flag_sampleSummary_(flag_sampleSummary)
 {
-  // check output files
-  output_file_ = check_output(output_path, flag_f);
+     // check output files
+     output_file_ = check_output(output_path, flag_f);
 }
 
 void DepthCombineWorker::check() {
@@ -238,7 +238,7 @@ void DepthCombineWorker::concatenate_outputs(std::string file_type) {
         std::string value;
         if (i==0){
             concatenated_file << inputFile.rdbuf();
-        }else{
+        } else {
             std::string grab_line;
             getline(inputFile, grab_line);
             while(getline(inputFile, grab_line)){
@@ -264,4 +264,5 @@ void DepthCombineWorker::setup() {
   }
 }
 
+}
 } // namespace fcsgenome
