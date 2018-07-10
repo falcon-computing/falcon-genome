@@ -57,6 +57,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
 
      std::string header;
      for (int i = 0 ; i < sizeof(input_files_) ; i++){
+        DLOG(INFO) << "Merge File : " << input_files_[i] + file_type << std::endl;
         std::ifstream file((input_files_[i] + file_type).c_str());
         std::string value;
         getline(file,value);
@@ -149,16 +150,17 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
               double mean = 0.000;
               int cov_value = 0;
               int total_coverage15x = 0;
+              int total_coverage = 0;
               int total = 0;
               for (auto datapoint : elem.second ){
                    if (cov_value > 14) total_coverage15x += datapoint;
-                   mean += cov_value * datapoint;
+                    total_coverage += cov_value * datapoint;
                    cov_value += 1;
                    total += datapoint;
               };
-              int total_coverage = mean;
-              double pct15x = total_coverage15x/total_coverage;
-              mean = mean/total;
+
+              double pct15x = 100*total_coverage15x/total_coverage;
+              mean = total_coverage/total;
 
               // Computing Third Quartile, Mean and First Quartile :
               int left, right, previous;
@@ -216,8 +218,10 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                        break;
                    }
               }
-              summary_file << total_coverage<< "\t" << std::setprecision(2) << mean << "\t" << cov_indexQ3
-                           << "\t" << cov_indexQ2 << "\t" << cov_indexQ1 << std::setprecision(2) << pct15x << std::endl;
+              summary_file << sampleName << "\t" << total_coverage << "\t"
+                           << std::setprecision(2) << mean << "\t" << cov_indexQ3
+                           << "\t" << cov_indexQ2 << "\t" << cov_indexQ1  << "\t"
+                           << std::setprecision(2) << pct15x << std::endl;
               summary_file.close(); summary_file.clear();
        } // sample_summary file generated
    }
@@ -235,6 +239,7 @@ void DepthCombineWorker::concatenate_outputs(std::string file_type) {
    }
    std::ofstream concatenated_file(fileCov, std::ios::out | std::ios::app);
    for (int i = 0 ; i < sizeof(input_files_) ; i++){
+        DLOG(INFO) << "Concatenating File : " << input_files_[i] + file_type << std::endl;
         std::ifstream inputFile((input_files_[i] + file_type).c_str());
         std::string value;
         if (i==0){

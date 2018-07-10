@@ -68,10 +68,9 @@ void DepthWorker::setup() {
      cmd << "-isr INTERSECTION ";
   }
 
-  if(!flag_baseCoverage_)
-     cmd << "-omitBaseOutput ";
-  if(!flag_sampleSummary_)
-     cmd << "-omitSampleSummary ";
+  if (!flag_baseCoverage_)   cmd << " -omitBaseOutput ";
+  if (!flag_sampleSummary_)  cmd << " -omitSampleSummary ";
+  if(!flag_intervalCoverage) cmd << " --omitIntervals";
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
