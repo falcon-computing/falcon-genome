@@ -56,19 +56,16 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
      std::vector<std::string> temp;
 
      std::string header;
-
      for (int i = 0 ; i < sizeof(input_files_) ; i++){
         std::ifstream file((input_files_[i] + file_type).c_str());
         std::string value;
         getline(file,value);
         // Getting the header:
-        if (i==0){
-            header = value;
-        };
+        if (i==0) header = value;
+
         // Getting data for each sample:
         std::string grab_line;
         std::string sampleName;
-
         int counter=0;
         if (i == 0){
             int number_of_fields = count( header.begin(),header.end(),'\t' );
@@ -145,7 +142,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
 
         if (file_type == ".sample_statistics"){
             std::ofstream summary_file;
-            summary_file.open(output_file_ + ".sample_summary", std::ofstream::out | std::ofstream::app));
+            summary_file.open(output_file_ + ".sample_summary", std::ofstream::out | std::ofstream::app);
             summary_file << "sample_id\ttotal	mean\tgranular_third_quartile\t";
             summary_file << "granular_median\tgranular_first_quartile\t\%_bases_above_15" << std::endl;
             // Computing Mean:
