@@ -128,7 +128,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
           if (file_type == ".sample_cumulative_coverage_counts"){
               FILE *normalized_file;
               normalized_file = fopen((output_file_ + ".sample_cumulative_coverage_proportions").c_str(), "a+");
-              fprintf(normalized_file, "%s\n", header);
+              fprintf(normalized_file, "%s\n", header.c_str());
               double max_value = *max_element((elem.second).begin(), (elem.second).end());
               for (auto datapoint : elem.second ){
                    double normalized_value = datapoint/max_value;
@@ -218,7 +218,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                        break;
                    }
               }
-              fprintf(summary_file, "%s\t%d\t%.02f\t%d\t%d\t%d\t%.2f\n",
+              fprintf(summary_file, "%s\t%d\t%.2f\t%d\t%d\t%d\t%.2f\n",
                       sampleName, total_coverage, mean, cov_indexQ3,
                       cov_indexQ2, cov_indexQ1, pct15x);
               fclose(summary_file);
