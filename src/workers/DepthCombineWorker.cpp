@@ -129,6 +129,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
               FILE *normalized_file;
               normalized_file = fopen((output_file_ + ".sample_cumulative_coverage_proportions").c_str(), "a+");
               fprintf(normalized_file, "%s\n", header.c_str());
+              fprintf(normalized_file, "%s\t", sampleName.c_str());
               double max_value = *max_element((elem.second).begin(), (elem.second).end());
               for (auto datapoint : elem.second ){
                    double normalized_value = datapoint/max_value;
@@ -174,7 +175,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                    if (checkQ3 < Q3){
                        previous = checkQ3;
                        cov_indexQ3 += 1;
-                       checkQ3 += datapoint;
+                       checkQ3 += datapoint;depthBranch2.sample_summary
                    } else {
                        left = checkQ3 - previous;
                        right = Q3 - checkQ3;
@@ -187,7 +188,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
               int Q2 = round(total/2);
               int checkQ2 = 0;
               int cov_indexQ2 = 0;
-              previous = 0;
+              previous = 0;depthBranch2.sample_summary
               for (auto datapoint : elem.second ){
                    if (checkQ2 < Q2){
                        previous = checkQ2;
@@ -218,9 +219,6 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                        break;
                    }
               }
-              //fprintf(summary_file, "%s\t%d\t%.2f\t%d\t%d\t%d\t%.2f\n",
-              //        sampleName, total_coverage, mean, cov_indexQ3,
-              //        cov_indexQ2, cov_indexQ1, pct15x);
               fprintf(summary_file, "%s\t%d\t%.2f\t%d\t%d\t%d\t%.2f\n", sampleName.c_str() ,total_coverage, mean,
               cov_indexQ3, cov_indexQ2, cov_indexQ1, pct15x);
               fclose(summary_file);
