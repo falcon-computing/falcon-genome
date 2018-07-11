@@ -287,7 +287,7 @@ int align_main(int argc, char** argv,
         std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam  ";
         std::stringstream partsBAM;
         int check_parts = 1;  // For more than 1 part BAM file
-        if (list.size() == 1 && input_files_.size() == 1) check_parts = 0;
+
 
         for (int m = 0; m < list.size(); m++) {
              parts_dir = output_path + "/" + sample_id + "/" + list[m].ReadGroup;
@@ -296,6 +296,8 @@ int align_main(int argc, char** argv,
              for (int n = 0; n < input_files_.size(); n++) {
                   partsBAM << input_files_[n] << " ";
              }
+             if (list.size() == 1 && input_files_.size() == 1) check_parts = 0;
+
              //if (list.size() == 1 && input_files_.size() == 1){
             //     DLOG(INFO) << "Only 1 Part BAM for " << sample_id
               //              << " Read Group " << list[m].ReadGroup;
