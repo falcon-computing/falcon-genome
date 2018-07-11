@@ -123,7 +123,8 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
      fprintf(countfile, "%s\n", header.c_str());
      //Inserting Elements:
      for (auto elem : InputData){
-          countfile << elem.first << "\t" ;
+          //countfile << elem.first << "\t" ;
+          fprintf(countfile, "%s\t", elem.first );
           for (auto datapoint : elem.second ){
                //countfile << datapoint << '\t';
                fprintf(countfile, "%d\t", datapoint );
@@ -195,7 +196,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
               int Q2 = round(total/2);
               int checkQ2 = 0;
               int cov_indexQ2 = 0;
-              previous = 0;depthBranch2.sample_summary
+              previous = 0;
               for (auto datapoint : elem.second ){
                    if (checkQ2 < Q2){
                        previous = checkQ2;
