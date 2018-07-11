@@ -159,7 +159,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                    total += datapoint;
               };
 
-              double pct15x = 100*total_coverage15x/total_coverage;
+              double pct15x = 100*float(total_coverage15x)/float(total_coverage);
               mean = total_coverage/total;
 
               // Computing Third Quartile, Mean and First Quartile :
