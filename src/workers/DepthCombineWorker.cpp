@@ -221,7 +221,8 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
               //fprintf(summary_file, "%s\t%d\t%.2f\t%d\t%d\t%d\t%.2f\n",
               //        sampleName, total_coverage, mean, cov_indexQ3,
               //        cov_indexQ2, cov_indexQ1, pct15x);
-              fprintf(summary_file, "%s\t%d\t%.2f\t%d\t%d\t%d\n", sampleName.c_str() ,total_coverage, mean, cov_indexQ3, cov_indexQ2, cov_indexQ1 );
+              fprintf(summary_file, "%s\t%d\t%.2f\t%d\t%d\t%d\t%.2f\n", sampleName.c_str() ,total_coverage, mean,
+              cov_indexQ3, cov_indexQ2, cov_indexQ1, pct15x);
               fclose(summary_file);
        } // sample_summary file generated
    }
