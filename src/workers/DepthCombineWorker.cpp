@@ -159,7 +159,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                    total += datapoint;
               };
 
-              double pct15x = 100*float(total_coverage15x)/float(total_coverage);
+              double pct15x = 100*float(total_coverage15x)/float(total_coverage;
               mean = total_coverage/total;
 
               // Computing Third Quartile, Mean and First Quartile :
@@ -218,9 +218,10 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                        break;
                    }
               }
-              fprintf(summary_file, "%d\t%.2f\t%d\t%d\t%d\t%.2f\n",
-                      total_coverage, mean, cov_indexQ3,
-                      cov_indexQ2, cov_indexQ1, pct15x);
+              //fprintf(summary_file, "%s\t%d\t%.2f\t%d\t%d\t%d\t%.2f\n",
+              //        sampleName, total_coverage, mean, cov_indexQ3,
+              //        cov_indexQ2, cov_indexQ1, pct15x);
+              fprintf(summary_file, "%s\n", sampleName);
               fclose(summary_file);
        } // sample_summary file generated
    }
