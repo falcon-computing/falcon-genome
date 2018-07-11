@@ -218,8 +218,8 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                        break;
                    }
               }
-              fprintf(summary_file, "%s\t%d\t%.2f\t%d\t%d\t%d\t%.2f\n",
-                      sampleName, total_coverage, mean, cov_indexQ3,
+              fprintf(summary_file, "%d\t%.2f\t%d\t%d\t%d\t%.2f\n",
+                      total_coverage, mean, cov_indexQ3,
                       cov_indexQ2, cov_indexQ1, pct15x);
               fclose(summary_file);
        } // sample_summary file generated
