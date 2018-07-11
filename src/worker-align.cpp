@@ -62,8 +62,7 @@ int align_main(int argc, char** argv,
   std::string platform_id = get_argument<std::string>(cmd_vm, "pl", "P");
   std::string library_id  = get_argument<std::string>(cmd_vm, "lb", "L");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::vector<std::string> extra_opts =
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
+  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   std::string master_outputdir = output_path;
 
@@ -287,7 +286,7 @@ int align_main(int argc, char** argv,
         // create sambamba command to merge parts BAM files
         std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam  ";
         std::stringstream partsBAM;
-        int result=1;
+        int check_parts = 1;  // For more than 1 part BAM file
         for (int m = 0; m < list.size(); m++) {
              parts_dir = output_path + "/" + sample_id + "/" + list[m].ReadGroup;
              std::vector<std::string> input_files_ ;
@@ -295,34 +294,35 @@ int align_main(int argc, char** argv,
              for (int n = 0; n < input_files_.size(); n++) {
                   partsBAM << input_files_[n] << " ";
              }
-             if (list.size() == 1 && input_files_.size() == 1){
-                 DLOG(INFO) << "Only 1 Part BAM for " << sample_id
-                            << " Read Group " << list[m].ReadGroup;
-                 system(("mv " + partsBAM.str() + " " + mergeBAM).c_str());
-                 std::stringstream cmd;
-                 cmd << get_config<std::string>("sambamba_path") << " index " << "-t " << get_config<int>("mergebam.nt") << " " << mergeBAM ;
-                 DLOG(INFO) << cmd.str();
-                 system((cmd.str()).c_str());
-                 result = 0;
-                 DLOG(INFO) << "Moving " << partsBAM.str() << " to " << mergeBAM << std::endl;
-             }
+             //if (list.size() == 1 && input_files_.size() == 1){
+            //     DLOG(INFO) << "Only 1 Part BAM for " << sample_id
+              //              << " Read Group " << list[m].ReadGroup;
+                // system(("mv " + partsBAM.str() + " " + mergeBAM).c_str());
+                 //std::stringstream cmd;
+                 //cmd << get_config<std::string>("sambamba_path") << " index " << "-t " << get_config<int>("mergebam.nt") << " " << mergeBAM ;
+                 //DLOG(INFO) << cmd.str();
+                 //system((cmd.str()).c_str());
+                 //check_parts = 0;
+                 //DLOG(INFO) << "Moving " << partsBAM.str() << " to " << mergeBAM << std::endl;
+             //}
          }
 
          uint64_t start_merging = getTs();
          std::string log_filename_merge  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
          std::ofstream merge_log;
          merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
-         merge_log << sample_id << ":" << "Align Only set " << std::endl;
+         merge_log << sample_id << ":" << "--align-only set " << std::endl;
          merge_log << sample_id << ":" << "Start Merging BAM Files " << std::endl;
-         if (result == 1) {
+
+         //if (check_parts == 1) {
              Executor merger_executor("Merge BAM files");
-             Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, flag_f));
+             Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, check_parts, flag_f));
              merger_executor.addTask(merger_worker);
              merger_executor.run();
              DLOG(INFO) << "Merging Parts BAM for  " << sample_id << " completed " << std::endl;
-         } else {
-             DLOG(INFO) << "MergeBamWorker not called for " << sample_id << ". No merge needed..." << std::endl;
-         }
+         //} else {
+        //     DLOG(INFO) << "MergeBamWorker not called for " << sample_id << ". No merge needed..." << std::endl;
+         //}
          merge_log << sample_id << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
          merge_log.close(); merge_log.clear();
 
