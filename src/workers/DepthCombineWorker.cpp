@@ -124,7 +124,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
      //Inserting Elements:
      for (auto elem : InputData){
           //countfile << elem.first << "\t" ;
-          fprintf(countfile, "%s\t", elem.first );
+          fprintf(countfile, "%s\t", (elem.first).c_str());
           for (auto datapoint : elem.second ){
                //countfile << datapoint << '\t';
                fprintf(countfile, "%d\t", datapoint );
