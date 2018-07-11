@@ -287,6 +287,8 @@ int align_main(int argc, char** argv,
         std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam  ";
         std::stringstream partsBAM;
         int check_parts = 1;  // For more than 1 part BAM file
+        if (list.size() == 1 && input_files_.size() == 1) check_parts = 0;
+
         for (int m = 0; m < list.size(); m++) {
              parts_dir = output_path + "/" + sample_id + "/" + list[m].ReadGroup;
              std::vector<std::string> input_files_ ;
