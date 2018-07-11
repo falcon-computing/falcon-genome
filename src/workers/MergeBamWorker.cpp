@@ -40,7 +40,7 @@ void MergeBamWorker::setup() {
           << "-t " << get_config<int>("mergebam.nt") << " " << output_file_ << " " << inputPartsBAM_;
       cmd_ = cmd.str();
   }else{
-      cmd << "mv " << inputPartsBAM_ << " " << output_file_ << "; " <<
+      cmd << "mv " << inputPartsBAM_ << " " << output_file_ << " ; " 
           << get_config<std::string>("sambamba_path") << " index " << "-t "
           << get_config<int>("mergebam.nt") << " " << output_file_ ;
       cmd_ = cmd.str());
