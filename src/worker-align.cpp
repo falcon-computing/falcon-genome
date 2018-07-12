@@ -288,7 +288,6 @@ int align_main(int argc, char** argv,
         std::stringstream partsBAM;
         int check_parts = 1;  // For more than 1 part BAM file
 
-
         for (int m = 0; m < list.size(); m++) {
              parts_dir = output_path + "/" + sample_id + "/" + list[m].ReadGroup;
              std::vector<std::string> input_files_ ;
@@ -297,18 +296,6 @@ int align_main(int argc, char** argv,
                   partsBAM << input_files_[n] << " ";
              }
              if (list.size() == 1 && input_files_.size() == 1) check_parts = 0;
-
-             //if (list.size() == 1 && input_files_.size() == 1){
-            //     DLOG(INFO) << "Only 1 Part BAM for " << sample_id
-              //              << " Read Group " << list[m].ReadGroup;
-                // system(("mv " + partsBAM.str() + " " + mergeBAM).c_str());
-                 //std::stringstream cmd;
-                 //cmd << get_config<std::string>("sambamba_path") << " index " << "-t " << get_config<int>("mergebam.nt") << " " << mergeBAM ;
-                 //DLOG(INFO) << cmd.str();
-                 //system((cmd.str()).c_str());
-                 //check_parts = 0;
-                 //DLOG(INFO) << "Moving " << partsBAM.str() << " to " << mergeBAM << std::endl;
-             //}
          }
 
          uint64_t start_merging = getTs();
@@ -318,15 +305,12 @@ int align_main(int argc, char** argv,
          merge_log << sample_id << ":" << "--align-only set " << std::endl;
          merge_log << sample_id << ":" << "Start Merging BAM Files " << std::endl;
 
-         //if (check_parts == 1) {
-             Executor merger_executor("Merge BAM files");
-             Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, check_parts, flag_f));
-             merger_executor.addTask(merger_worker);
-             merger_executor.run();
-             DLOG(INFO) << "Merging Parts BAM for  " << sample_id << " completed " << std::endl;
-         //} else {
-        //     DLOG(INFO) << "MergeBamWorker not called for " << sample_id << ". No merge needed..." << std::endl;
-         //}
+         Executor merger_executor("Merge BAM files");
+         Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, check_parts, flag_f));
+         merger_executor.addTask(merger_worker);
+         merger_executor.run();
+         DLOG(INFO) << "Merging Parts BAM for  " << sample_id << " completed " << std::endl;
+
          merge_log << sample_id << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
          merge_log.close(); merge_log.clear();
 
