@@ -14,7 +14,6 @@ class DepthWorker : public Worker {
       std::string input_path,
       std::string output_path,
       std::string geneList_paths,
-      int depthCutoff,
       std::vector<std::string> extra_opts,
       int contig,
       bool &flag_f,

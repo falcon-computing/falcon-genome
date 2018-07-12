@@ -26,16 +26,18 @@ int depth_main(int argc, char** argv,
     arg_decl_string("ref,r", "reference genome path")
     arg_decl_string("input,i", "input BAM file")
     arg_decl_string("output,o", "output coverage file")
-    arg_decl_string("intervalList,L", "Interval List BED File")
-    arg_decl_string("geneList,g", "list of genes over which to calculate coverage")
-    ("depthCutoff,d", po::value<int>()->default_value(15), "cutoff for coverage depth summary")
-    ("baseCoverage,b", "calculate coverage depth of each base")
-    ("intervalCoverage,v", "calculate coverage summary of given intervals")
-    ("sampleSummary,s", "output summary files for each sample");
+    //arg_decl_string("intervalList,L", "Interval List BED File")
+    //arg_decl_string("geneList,g", "list of genes over which the coverage is calculated")
+    ("intervalList,L", "Interval List BED File")
+    ("geneList,g", "list of genes over which the coverage is calculated")
+
+    //("depthCutoff,d", po::value<int>()->default_value(15), "cutoff for coverage depth summary")
+    ("omitDepthOutputAtEachBase,omitBaseOutput", po::value<bool>()->default_value(false), "output coverage depth at each base")
+    ("omitIntervalStatistics,intervalIntervals", po::value<bool>()->default_value(false), "output coverage per-interval statistics")
+    ("omitPerSampleStats,omitSampleSummary", po::value<bool>()->default_value(false), "output summary files for each sample");
 
   // Parse arguments
-  po::store(po::parse_command_line(argc, argv, opt_desc),
-      cmd_vm);
+  po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
 
   if (cmd_vm.count("help")) {
     throw helpRequest();
@@ -55,7 +57,7 @@ int depth_main(int argc, char** argv,
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
   std::string intv_list = get_argument<std::string>(cmd_vm, "intervalList");
   std::string geneList = get_argument<std::string>(cmd_vm, "geneList");
-  int depthCutoff = get_argument<int>(cmd_vm, "depthCutoff");
+  //int depthCutoff = get_argument<int>(cmd_vm, "depthCutoff");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
 
   // finalize argument parsing
@@ -74,8 +76,17 @@ int depth_main(int argc, char** argv,
 
   // Split Interval List and Gene List into several parts according to gatk.ncontigs:
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
-  std::vector<std::string> intv_paths = split_by_nprocs(intv_list, "bed");
-  std::vector<std::string> geneList_paths = split_by_nprocs(geneList, "list");
+
+  std::vector<std::string> intv_paths
+  if (!intv_list.empty()) {
+      intv_paths = split_by_nprocs(intv_list, "bed");
+  } else {
+      intv_paths = init_contig_intv(ref_path);
+  }
+
+  if (!geneList_paths.empty()){
+      std::vector<std::string> geneList_paths = split_by_nprocs(geneList, "list");
+  }
 
   std::string input_file;
   if (boost::filesystem::is_directory(input_path)) {
@@ -117,7 +128,6 @@ int depth_main(int argc, char** argv,
               input_file,
               output_file,
               geneList_paths[contig],
-              depthCutoff,
               extra_opts,
               contig,
               flag_f,
