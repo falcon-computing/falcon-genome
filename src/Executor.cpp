@@ -64,21 +64,71 @@ void Stage::run() {
   boost::wait_for_all(pending_tasks_.begin(), pending_tasks_.end()); 
 
   std::ofstream fout(executor_->log(), std::ios::out|std::ios::app);
+  bool if_match = false;
+  string match;
   for (int i = 0; i < logs_.size(); i++) {
     std::ifstream fin(logs_[i], std::ios::in);   
-    if (fin) {
-      fout << fin.rdbuf();
-    }
-    fin.close();
+    if(if_match == true || status_.empty()){
+      if (fin) {
+        fout << fin.rdbuf();
+      }
+      fin.close();
 
-    // remove task log
-    remove_path(logs_[i]);
+      // remove task log
+      // keep logs if errors occur
+      remove_path(logs_[i]);
+    }
+    else{
+      int search_range = 1000;
+      fin.seekg(0, ios_base::end);
+      int length = fin.tellg();
+      if(length > search_range){
+        fin.seekg(length - search_range, ios_base::beg);}
+      else{
+        fin.seekg(0, ios_base::beg);}
+      string line;
+      if(fin.good()){getline(fin, line);}
+      while(fin.good()){
+         getline(fin, line); // get line from file
+         size_t pos;
+         pos=line.find("ERROR"); // search
+         if(pos!=string::npos) // string::npos is returned if string is not found
+           {
+              match = line;
+              if_match = true;
+              break;
+           }
+         pos=line.find("error"); // search
+         if(pos!=string::npos) // string::npos is returned if string is not found
+           {
+              match = line;
+              if_match = true;  
+              break;
+           }
+         pos=line.find("Error"); // search
+         if(pos!=string::npos) // string::npos is returned if string is not found
+           {
+              match = line;
+              if_match = true;
+              break;
+           }
+      }
+      fin.seekg(0, ios_base::beg);
+      if (fin) {
+         fout << fin.rdbuf();
+      }
+      fin.close();
+      remove_path(logs_[i]);
+    }
   }
   fout.flush();
   fout.close();
 
   // check results
   if (!status_.empty()) {
+    if (if_match == true){
+      throw failedCommand("Failed, with error:\n" + match);
+    }
     throw failedCommand(executor_->job_name() +
         " failed, please check log: " + executor_->log() +
         " for details");
