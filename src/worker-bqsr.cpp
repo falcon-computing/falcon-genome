@@ -231,8 +231,8 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
     ("output,o", po::value<std::string>()->required(), "output directory of BAM files")
     ("knownSites,K", po::value<std::vector<std::string> >()->required(), "known sites for base recalibration")
     ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
-    ("mergebam,m", po::value<std::string>(), "merge Parts BAM files")
-    
+    ("mergebam,m", po::value<std::string>(), "merge Parts BAM files");
+
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),cmd_vm);
 
