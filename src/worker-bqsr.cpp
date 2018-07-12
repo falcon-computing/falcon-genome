@@ -98,26 +98,27 @@ static void prAddWorkers(Executor &executor,
           contig, flag_f));
        executor.addTask(worker, contig == 0);
   }
-}
 
-static void mergeBQSRbamWorker(Executor &executor,
-  std::string &input_bam,
-  std::string &mergeBAM_path,
-  bool flag_f)
-{
-  if (boost::filesystem::is_directory(input_bam)) {
-        std::string mergeBAM = "temp.recal.bam";
-        std::string inputPartsBAM
-
-        Worker_ptr worker(new MergeBAMWorker() );
-
-        executor.addTask(worker, contig == 0);
-
-    }
-
-
+  if (!mergeBAM_path.empty()){
+      // Check if output_path (Parts BAM files) exists:
+      output_path = check_input(output_path);
+      std::stringstream partsBAM;
+      int check_parts = 1;  // For more than 1 part BAM file
+      std::string inputPartsBAM;
+      for (int n = 0; n < get_config<int>("gatk.ncontigs"); n++) {
+           if (boost::filesystem::is_directory(input_path)) {
+               inputParts = get_contig_fname(output_path, n);
+           };
+           partsBAM << inputPartsBAM << " ";
+      }
+      Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM_path, check_parts, flag_f));
+      executor.addTask(merger_worker);
+  }
 
 }
+
+
+
 
 
 
@@ -180,6 +181,7 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
     ("bqsr,b", po::value<std::string>()->required(), "input BQSR file")
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output Folder with Parts BAM files")
+    ("mergebam,m", po::value<std::string>, "merge Parts BAM files")
     ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file");
 
   // Parse arguments
@@ -195,6 +197,7 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
   std::string bqsr_path   = get_argument<std::string>(cmd_vm, "bqsr", "b");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
+  std::string mergeBAM_path  = get_argument<std::string>(cmd_vm, "mergebam", "m");
   std::vector<std::string> intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
@@ -209,7 +212,8 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
   create_dir(output_path);
 
   Executor executor("Print Reads", get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
-  prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f);
+  prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path,
+    mergeBAM_path, extra_opts, intv_list, flag_f);
   executor.run();
 }
 
@@ -227,7 +231,7 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
     ("output,o", po::value<std::string>()->required(), "output directory of BAM files")
     ("knownSites,K", po::value<std::vector<std::string> >()->required(), "known sites for base recalibration")
     ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file");
-    ("mergebam,m", po::value<std::vector<std::string> >(), "merge Parts BAM files")
+    ("mergebam,m", po::value<std::string>, "merge Parts BAM files")
   // Parse arguments
   po::store(
       po::parse_command_line(argc, argv, opt_desc),
@@ -275,7 +279,7 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
   Executor executor("Base Recalibration", get_config<int>("gatk.bqsr.nprocs"));
   // first, do base recal
   baserecalAddWorkers(executor, ref_path, known_sites, extra_opts, input_path, bqsr_path, intv_list, flag_f);
-  prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f);
+  prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, mergeBAM_path, extra_opts, intv_list, flag_f);
 
   executor.run();
 
