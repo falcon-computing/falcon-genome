@@ -107,7 +107,7 @@ static void prAddWorkers(Executor &executor,
       std::string inputPartsBAM;
       for (int n = 0; n < get_config<int>("gatk.ncontigs"); n++) {
            if (boost::filesystem::is_directory(input_path)) {
-               inputParts = get_contig_fname(output_path, n);
+               inputPartsBAM = get_contig_fname(output_path, n);
            };
            partsBAM << inputPartsBAM << " ";
       }
@@ -230,7 +230,7 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output directory of BAM files")
     ("knownSites,K", po::value<std::vector<std::string> >()->required(), "known sites for base recalibration")
-    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file");
+    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
     ("mergebam,m", po::value<std::string>, "merge Parts BAM files")
   // Parse arguments
   po::store(
