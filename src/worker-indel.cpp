@@ -22,9 +22,10 @@ int ir_main(int argc, char** argv,
   po::variables_map cmd_vm;
 
   opt_desc.add_options() 
-    arg_decl_string("ref,r", "reference genome path")
-    arg_decl_string("input,i", "input BAM file or dir")
-    arg_decl_string("output,o", "output diretory of BAM files")
+    ("ref,r", po::value<std::string>()->required(), "reference genome path")
+    ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
+    ("output,o", po::value<std::string>()->required(), "output diretory of BAM files")
+    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
     ("known,K", po::value<std::vector<std::string> >(),
      "known indels for realignment");
 
@@ -41,18 +42,17 @@ int ir_main(int argc, char** argv,
   check_memory_config("indel");
 
   // Check if required arguments are presented
-  bool flag_f             = get_argument<bool>(cmd_vm, "force");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
-                                get_config<std::string>("ref_genome"));
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
+  bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string target_path = input_path + ".intervals";
-
+  std::vector<std::string> intv_list   = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
   std::vector<std::string> known_indels = get_argument<
-    std::vector<std::string> >(cmd_vm, "known", std::vector<std::string>());
+    std::vector<std::string> >(cmd_vm, "known", "K", std::vector<std::string>());
 
   std::vector<std::string> extra_opts = 
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -87,6 +87,7 @@ int ir_main(int argc, char** argv,
           input_file, target_path,
           get_contig_fname(output_path, contig),
           extra_opts,
+          intv_list,
           flag_f));
     executor.addTask(worker, contig==0);
   }

@@ -1,0 +1,195 @@
+#!/usr/bin/env python
+import argparse
+import csv
+import json
+import fileinput as fin
+import re
+import StringIO
+import sys
+import os
+import errno
+import logging
+import time
+from subprocess import call, Popen, PIPE
+
+# check arguments
+if len(sys.argv) < 3: 
+  print sys.argv[0] +' run_id run_folder fastq_dir'
+  sys.exit(1)
+
+run_id = sys.argv[1]
+run_folder = sys.argv[2]
+fastq_dir = sys.argv[3]
+
+# TODO: load it from conf file
+remote_user = 'wudee'
+remote_group = 'lixuser'
+remote_fastq_dir = remote_user+'@hoffman2.idre.ucla.edu:/u/nobackup/lixuser/shared/fastq'
+remote_server = remote_user+'@hoffman2.idre.ucla.edu'
+
+#dir = os.path.dirname(os.path.realpath(__file__))
+log_file = './log/demux-agent.log'
+
+# config logging
+log_format = "%(asctime)-15s ["+run_id+"] %(levelname)s - %(message)s"
+logging.basicConfig(filename=log_file, format=log_format, level=logging.INFO)
+logger = logging.getLogger('demux-agent')
+
+# check if demux for run is already finished
+if os.path.exists(fastq_dir+'/DemuxComplete.txt'):
+  logger.info("demux for run "+run_id+' is already finished')
+  sys.exit(0)
+
+# create fastq_dir if it does not exist
+try:
+  os.makedirs(fastq_dir)
+
+  # open sample sheet
+  sample_sheet = run_folder + '/SampleSheet.csv'
+  
+  # separate header from data
+  header = ''
+  data = ''
+  found_table = 0
+  
+  f = open(sample_sheet, 'r')
+  
+  for line in f.readlines():
+    # NOTE: here is an assumption that [data] is the last
+    # 'header' label
+    if not found_table:
+      header += line
+  
+    if '[data]' in line.lower():
+      found_table = 1
+    elif re.search('\[[A-Za-z].*\]', line):
+      found_table = 0
+    else:
+      if found_table:
+        data = data + line
+  
+  # read contents
+  csv_file = StringIO.StringIO(data)
+  reader = csv.DictReader(csv_file)
+  
+  sing_idx_table = []
+  dual_idx_table = []
+  
+  for row in reader:
+    if 'index2' in row and row['index2']:
+      dual_idx_table.append(row)
+    elif 'index' in row and row['index']:
+      sing_idx_table.append(row)
+    else:
+      # if both indexes are null, ignore the sample
+      logger.warning("ignoring sample {0} without valid index".format(row['Sample_ID']))
+  
+  # TODO: may further partition them into sub-tables
+  table_list = []
+  
+  if len(sing_idx_table) > 0: 
+    table_list.append(sing_idx_table)
+  
+  if len(dual_idx_table) > 0: 
+    table_list.append(dual_idx_table)
+  
+  # check free disk space
+  def get_free_space(path):
+    df = Popen(["df", '-k', path], stdout=PIPE)
+    output = df.communicate()[0]
+    device, size, used, available, percent, mountpoint = \
+            output.split("\n")[1].split()
+    return int(available) / 1000
+  
+  min_freespace = 500000
+  disk_counter = 0
+  while get_free_space(fastq_dir) < min_freespace:
+    disk_counter = disk_counter + 1
+    if disk_counter >= 24:
+      logger.error('timeout waiting for disk to free, exiting...') 
+      sys.exit(-2)
+  
+    # sleep 
+    logger.warning('not enough diskspace left, wait for an hour...') 
+    time.sleep(3600)
+  
+  pid_list = []
+  
+  start_time = time.time()
+  for idx, table in enumerate(table_list):
+    # create sample sheet
+    fname = '{0}/SampleSheet_part{1}.csv'.format(run_folder, idx)
+    with open(fname, 'w+') as fout:
+      fout.write(header)
+      csv_writer = csv.DictWriter(fout, fieldnames = reader.fieldnames)
+      csv_writer.writeheader()
+      csv_writer.writerows(table)
+  
+    logger.info('saved sample sheet to '+ fname)
+  
+    # start demux in parallel
+    log_fname = '{0}/demux-log-part{1}.log'.format(fastq_dir, idx)
+    log_f = open(log_fname, 'w+')
+  
+    p = Popen(['bcl2fastq', 
+        '-R', run_folder,
+        '-o', fastq_dir,
+        '--sample-sheet', fname],
+        stderr=log_f)
+  
+    pid_list.append(p)
+    logger.info("started bcf2fastq run for part"+ str(idx))
+  
+  is_successful = True
+  for idx, pid in enumerate(pid_list):
+    ret = pid.wait()
+    if ret != 0:
+      logger.error("bcf2fastq failed for part-"+ str(idx))
+      is_successful = False
+      raise # exit before the next steps 
+  
+  if is_successful: 
+    e_time = time.time() - start_time
+    logger.info("demux for {0} finishes in {1} seconds".format(run_id, e_time))
+    with open(fastq_dir+'/DemuxComplete.txt', 'w') as f:
+      f.write("demux finished\n")
+  
+    start_time = time.time()
+  
+    # copy the sample sheet to fastq_dir so the run_folder can be removed
+    call(['cp', sample_sheet, fastq_dir])
+  
+    # rm -rf $run_folder
+    p = Popen(['rm', '-rf', run_folder])
+  
+    # scp -r $fastq_dir $remote_fastq_dir
+    call(['rsync', '-ar', fastq_dir, remote_fastq_dir +'/'])
+    if ret != 0:
+      logger.error("failed to upload run to "+ remote_fastq_dir)
+      # still return as if correct, to allow compute to follow
+    
+    # modify ownership
+    owner_str = remote_user+':'+remote_group
+    call(['ssh', remote_server, 'chown '+owner_str+' '+remote_fastq_dir+' -R'])
+    if ret != 0:
+      logger.error("failed to upload run to "+ remote_fastq_dir)
+    
+    # scp transfer complete $remote_fastq
+    call(['ssh', remote_server, 'echo complete > '+remote_fastq_dir+'/TransferComplete.txt'])
+    if ret != 0:
+      logger.error("failed to mark run finish")
+  
+    p.wait() # wait for rm to finish
+  
+    e_time = time.time() - start_time
+    logger.info("uploading fastq results finishes in {0} seconds".format(e_time))
+
+except OSError as e:
+  if e.errno != errno.EEXIST:
+    raise
+except IOError as e:
+  logger.error("I/O error({0}): {1}".format(e.errno, e.strerror))
+  sys.exit(2)
+except:
+  logger.info("demux failed")
+  sys.exit(3)
