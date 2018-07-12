@@ -84,11 +84,21 @@ void calc_gatk_default_config(int & nprocs, int & memory,
 
 int check_nprocs_config(std::string key, int cpu_num = global_cpu_num);
 int check_memory_config(std::string key, int memory_size = global_memory_size);
- 
+
 int init(char** argv, int argc);
 int init_config(boost::program_options::options_description conf_opt);
 
 std::vector<std::string> init_contig_intv(std::string ref_path);
+std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype);
+
+template <typename T>
+std::vector<T> operator+(const std::vector<T>& a, const std::vector<T>& b){
+    assert(a.size() == b.size());
+    std::vector<T> result;
+    result.reserve(a.size());
+    std::transform(a.begin(), a.end(), b.begin(), std::back_inserter(result), std::plus<T>());
+    return result;
+}
 
 } // namespace fcsgenome
 #endif

@@ -2,6 +2,7 @@
 #include <boost/tokenizer.hpp>
 #include <boost/thread.hpp>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <unistd.h>
 
@@ -40,7 +41,7 @@ static std::string env_name_mapper(std::string key) {
 
   // check if has 'fcs_' prefix
   if (key.length() > 4 && key.substr(0, 4).compare("fcs_") == 0) {
-    // check if defined in list 
+    // check if defined in list
     if (config_list.count(key.substr(4))) {
       return key.substr(4);
     }
@@ -58,10 +59,10 @@ void calc_gatk_default_config(
   memory = 4;
 
   // allow some extra room for JVM memory, very empirical
-  double memory_margin = 0.05; 
+  double memory_margin = 0.05;
 
   while (nprocs > cpu_num) {
-    nprocs /= 2; 
+    nprocs /= 2;
   }
   // first increase memory if necessary
   while (nprocs * (memory+2) < memory_size * (1+memory_margin)
@@ -141,7 +142,7 @@ int init_config(boost::program_options::options_description conf_opt) {
   }
   catch (po::error &e) {
     std::cerr << "fcs-genome configuration options:" << std::endl;
-    std::cerr << conf_opt << std::endl; 
+    std::cerr << conf_opt << std::endl;
     LOG(ERROR) << "Failed to initialize config: " << e.what();
 
     throw silentExit();
@@ -157,12 +158,14 @@ int init_config(boost::program_options::options_description conf_opt) {
   set_config<int>("gatk.mutect2.nprocs",   "gatk.nprocs");
   set_config<int>("gatk.indel.nprocs", "gatk.nprocs");
   set_config<int>("gatk.ug.nprocs",    "gatk.nprocs");
+  set_config<int>("gatk.depth.nprocs", "gatk.nprocs");
 
   set_config<int>("gatk.bqsr.nct", "gatk.nct");
   set_config<int>("gatk.pr.nct",   "gatk.nct");
   set_config<int>("gatk.htc.nct",  "gatk.nct");
   set_config<int>("gatk.mutect2.nct",  "gatk.nct");
   set_config<int>("gatk.ug.nt",    "gatk.nct");
+  set_config<int>("gatk.depth.nct", "gatk.nct");
 
   set_config<int>("gatk.bqsr.memory",  "gatk.memory");
   set_config<int>("gatk.pr.memory",    "gatk.memory");
@@ -170,6 +173,7 @@ int init_config(boost::program_options::options_description conf_opt) {
   set_config<int>("gatk.mutect2.memory",   "gatk.memory");
   set_config<int>("gatk.indel.memory", "gatk.memory");
   set_config<int>("gatk.ug.memory",    "gatk.memory");
+  set_config<int>("gatk.depth.memory", "gatk.memory");
 
   // create temp dir
   std::string username("");
@@ -190,7 +194,7 @@ int init_config(boost::program_options::options_description conf_opt) {
   check_input(get_config<std::string>("gatk_path"), false);
 
   // parse host list if scaleout_mode is selected
-  if (get_config<bool>("bwa.scaleout_mode") || 
+  if (get_config<bool>("bwa.scaleout_mode") ||
       get_config<bool>("gatk.scaleout_mode") ||
       get_config<bool>("latency_mode")) {
     std::string hosts = get_config<std::string>("hosts");
@@ -201,7 +205,7 @@ int init_config(boost::program_options::options_description conf_opt) {
 
     conf_host_list.insert(conf_host_list.end(), tok.begin(), tok.end());
   }
-  
+
   // log debug info
   DLOG(INFO) << "conf_root_dir = " << conf_root_dir;
   DLOG(INFO) << "conf_temp_dir = " << conf_temp_dir;
@@ -251,7 +255,7 @@ int init(char** argv, int argc) {
   DLOG(INFO) << "Default gatk.nprocs = " << def_nprocs;
   DLOG(INFO) << "Default gatk.memory = " << def_memory;
 
-  common_opt.add_options() 
+  common_opt.add_options()
     arg_decl_string_w_def("temp_dir",        "/tmp",      "temp dir for fast access")
     arg_decl_string_w_def("log_dir",         "./log",     "log dir")
     arg_decl_string_w_def("ref_genome",      "",          "(deprecated) default reference genome path")
@@ -267,7 +271,7 @@ int init(char** argv, int argc) {
     arg_decl_string_w_def("hosts", "",       "host list for scale-out mode")
     arg_decl_bool_w_def("latency_mode", false, "enable sorting in bwa-mem")
     ;
-  
+
   tools_opt.add_options()
     arg_decl_int_w_def("bwa.verbose",              0,     "verbose level of bwa output")
     arg_decl_int_w_def("bwa.nt",                   -1,    "number of threads for bwa-mem")
@@ -283,6 +287,9 @@ int init(char** argv, int argc) {
     arg_decl_int_w_def("markdup.max_files",    4096, "max opened files in markdup")
     arg_decl_int_w_def("markdup.nt",           (16 > cpu_num ? cpu_num : 16),   "thread num in markdup")
     arg_decl_int_w_def("markdup.overflow-list-size", 2000000, "overflow list size in markdup")
+
+    arg_decl_int_w_def("mergebam.max_files",    4096, "max opened files in mergebam")
+    arg_decl_int_w_def("mergebam.nt",           (16 > cpu_num ? cpu_num : 16),   "thread num in mergebam")
 
     arg_decl_bool("gatk.scalout_mode", "enable scale-out mode for gatk")
     arg_decl_string_w_def("gatk.intv.path",    "", "default path to existing contig intervals")
@@ -313,10 +320,17 @@ int init(char** argv, int argc) {
     arg_decl_int_w_def("gatk.combine.nprocs",  def_nprocs, "default process num in GATK CombineGVCFs")
     arg_decl_int_w_def("gatk.genotype.nprocs", def_nprocs, "default process num in GATK GenotypeGVCFs")
     arg_decl_int_w_def("gatk.genotype.memory", def_memory, "default heap memory in GATK GenotypeGVCFs")
+<<<<<<< HEAD
+    arg_decl_int("gatk.depth.nprocs",            "default process num in GATK DepthOfCoverage")
+    arg_decl_int("gatk.depth.nct",               "default thread num in  GATK DepthOfCoverage")
+    arg_decl_int("gatk.depth.memory",            "default heap memory in GATK DepthOfCoverage")
+    arg_decl_bool("gatk.skip_pseudo_chr", "skip pseudo chromosome intervals")
+=======
     arg_decl_bool_w_def("gatk.skip_pseudo_chr", true, "skip pseudo chromosome intervals")
 
     arg_decl_string_w_def("blaze.nam_path", conf_root_dir+"/tools/blaze/bin/nam", "path to nam in blaze")
     arg_decl_string_w_def("blaze.conf_path",conf_root_dir+"/tools/blaze/conf",    "path to nam configuration file")
+>>>>>>> release
     ;
 
   conf_opt.add(common_opt).add(tools_opt);
@@ -326,7 +340,7 @@ int init(char** argv, int argc) {
 
   if (argc > 1 && ::strcmp(argv[1], "conf") == 0) {
     std::cerr << "fcs-genome configuration options:" << std::endl;
-    std::cerr << conf_opt << std::endl; 
+    std::cerr << conf_opt << std::endl;
     throw silentExit();
   }
 
@@ -341,8 +355,8 @@ int init(char** argv, int argc) {
   return ret;
 }
 
-static inline void write_contig_intv(std::ofstream& fout, 
-    std::string chr, 
+static inline void write_contig_intv(std::ofstream& fout,
+    std::string chr,
     uint64_t lbound, uint64_t ubound) {
   fout << chr << ":" << lbound << "-" << ubound << std::endl;
 }
@@ -358,7 +372,7 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
   // record the intv paths
   std::vector<std::string> intv_paths(ncontigs);
   for (int i = 0; i < ncontigs; i++) {
-    intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
+       intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
   }
 
   // TODO: temporary to use old partition method, need to check
@@ -398,11 +412,11 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
 
     std::string line = dict_lines[i];
     tokenizer tok_space{line, space_sep};
-    
+
     int idx = 0;
     std::string chr_name;
     uint64_t    chr_length = 0;
-    for (tokenizer::iterator it = tok_space.begin(); 
+    for (tokenizer::iterator it = tok_space.begin();
          it != tok_space.end(); ++it) {
       // [0] @SQ, [1] SN:contig, [2] LN:length
       if (idx == 1) {
@@ -419,14 +433,13 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
     }
     dict.push_back(std::make_pair(chr_name, chr_length));
     dict_length += chr_length;
-    //DLOG(INFO) << chr_name << " : " << chr_length;
   }
 
   // generate intv.list
   int contig_idx = 0;
 
   // positions per contig part
-  uint64_t contig_npos = (dict_length+ncontigs-1)/ncontigs; 
+  uint64_t contig_npos = (dict_length+ncontigs-1)/ncontigs;
   uint64_t remain_npos = contig_npos;   // remaining positions for partition
 
   DLOG(INFO) << "contig_npos = " << contig_npos;
@@ -439,7 +452,7 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
 
   for (int i = 0; i < dict.size(); i++) {
     std::string chr_name = dict[i].first;
-    uint64_t chr_length = dict[i].second; 
+    uint64_t chr_length = dict[i].second;
     uint64_t npos = chr_length;
 
     // if the number of positions in one chr is larger than one contig part
@@ -460,11 +473,108 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
       write_contig_intv(fout, chr_name, lbound, chr_length);
 
       remain_npos -= npos;
-      lbound = 1; 
+      lbound = 1;
     }
   }
   fout.close();
 
-  return intv_paths; 
+  return intv_paths;
 }
+
+// Spliting Files begins here :
+unsigned int FileRead(std::istream &is, std::vector <char> & buff) {
+    is.read(&buff[0], buff.size());
+    return is.gcount();
+}
+
+unsigned int CountLines(const std::vector <char> &buff, int sz) {
+    int newlines = 0;
+    const char * p = &buff[0];
+    for (int i = 0; i < sz; i++) {
+        if ( p[i] == '\n' ) {
+            newlines++;
+        }
+    }
+    return newlines;
+}
+
+int roundUp(int numToRound, int multiple){
+    if (multiple == 0) return numToRound;
+    int remainder = abs(numToRound) % multiple;
+    if (remainder == 0) return numToRound;
+    if (numToRound < 0)
+        return -(abs(numToRound) - remainder);
+    else
+        return numToRound + multiple - remainder;
+}
+
+
+std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype) {
+
+  const int SZ = 1024*1024;
+  std::vector <char> buff( SZ );
+  std::ifstream ifs( intervalFile );
+  int n = 0;
+  while( int cc = FileRead( ifs, buff ) ) {
+      n += CountLines( buff, cc );
+  }
+  DLOG(INFO) << "Number of Genes Intervals : " << n << std::endl;
+
+  int ncontigs = get_config<int>("gatk.ncontigs");
+  int chunk = int(n/ncontigs);
+  int nearest_multiple = roundUp(chunk,ncontigs);
+
+  std::stringstream ss;
+  ss << conf_temp_dir << "/intv_" << ncontigs;
+  std::string intv_dir = ss.str();
+  create_dir(intv_dir);
+
+  std::string inputData[n];
+  std::ifstream in_file(intervalFile);
+  std::string str;
+  int index=0;
+  while (std::getline(in_file, str)) {
+        inputData[index] = str;
+        ++index;
+  }
+
+  std::ofstream myfile;
+  // record the intv paths
+  std::vector<std::string> intv_paths(ncontigs);
+  for (int i = 0; i < ncontigs; i++) {
+      if (filetype=="list") {
+          intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
+          //DLOG(INFO) << "LIST: " << intv_paths[i] << std::endl;
+      } else {
+          intv_paths[i] = get_contig_fname(intv_dir, i, "bed", "intv");
+          //DLOG(INFO) << "BED: " << intv_paths[i] << std::endl;
+      }
+
+      myfile.open(intv_paths[i]);
+      int start = i*nearest_multiple;
+      int last  = start + nearest_multiple;
+      if (last > n) last = n;
+      for (int j = start; j < last; ++j) {
+           myfile <<  inputData[j] << std::endl;
+      }
+      myfile.close(); myfile.clear();
+  }
+
+  std::string org_intv_dir = get_config<std::string>("gatk.intv.path");
+  if (ncontigs == 32 && !org_intv_dir.empty()) {
+    DLOG(INFO) << "Use original interval files";
+    // copy intv files
+    for (int i = 0; i < ncontigs; i++) {
+      std::string org_intv = get_contig_fname(org_intv_dir, i, "list", "intv");
+      if (boost::filesystem::exists(intv_paths[i])) {
+        break;
+      }
+
+      boost::filesystem::copy_file(org_intv, intv_paths[i]);
+  }
+  return intv_paths;
+}
+
+}
+
 } // namespace fcsgenome
