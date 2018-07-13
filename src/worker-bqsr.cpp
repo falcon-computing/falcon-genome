@@ -99,6 +99,7 @@ static void prAddWorkers(Executor &executor,
        executor.addTask(worker, contig == 0);
   }
 
+  DLOG(INFO) << mergeBAM_path << " is here\n" ;
   if (!mergeBAM_path.empty()){
       // Check if output_path (Parts BAM files) exists:
       output_path = check_input(output_path);
@@ -106,7 +107,7 @@ static void prAddWorkers(Executor &executor,
       int check_parts = 1;  // For more than 1 part BAM file
       std::string inputPartsBAM;
       for (int n = 0; n < get_config<int>("gatk.ncontigs"); n++) {
-           if (boost::filesystem::is_directory(input_path)) {
+           if (boost::filesystem::is_directory(output_path)) {
                inputPartsBAM = get_contig_fname(output_path, n);
            };
            partsBAM << inputPartsBAM << " ";
