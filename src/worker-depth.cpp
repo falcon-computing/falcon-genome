@@ -60,7 +60,7 @@ int depth_main(int argc, char** argv,
 
 
   //int depthCutoff = get_argument<int>(cmd_vm, "depthCutoff");
-  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -87,7 +87,7 @@ int depth_main(int argc, char** argv,
           geneList_paths = split_by_nprocs(geneList, "list");
       } else {
           intv_paths = split_ref_by_nprocs(ref_path); exit(0);
-                      
+
       }
   } else {
       if (geneList_paths.empty()) {

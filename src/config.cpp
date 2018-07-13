@@ -555,10 +555,15 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
       idx ++;
     }
     dict.push_back(std::make_pair(chr_name, chr_length));
+
+
     DLOG(INFO) << chr_name << "\t" << chr_length << std::endl;
 
     dict_length += chr_length;
   }
+
+  //double max_value = *max_element((elem.second).begin(), (elem.second).end());
+
 
   exit(0);
 
