@@ -111,17 +111,12 @@ static void prAddWorkers(Executor &executor,
            };
            partsBAM << inputPartsBAM << " ";
       }
+      DLOG(INFO) << partsBAM << "\t" << mergeBAM_path << "\t" << check_parts << std::endl;
       Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM_path, check_parts, flag_f));
       executor.addTask(merger_worker);
   }
 
 }
-
-
-
-
-
-
 
 int baserecal_main(int argc, char** argv, boost::program_options::options_description &opt_desc)
 {
