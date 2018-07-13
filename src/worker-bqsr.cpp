@@ -72,7 +72,6 @@ static void prAddWorkers(Executor &executor,
   std::string &input_path,
   std::string &bqsr_path,
   std::string &output_path,
-  std::string &mergeBAM_path,
   std::vector<std::string> &extra_opts,
   std::vector<std::string> &intv_list,
   bool flag_f)
