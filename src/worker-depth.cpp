@@ -80,21 +80,25 @@ int depth_main(int argc, char** argv,
   // Split Interval List and Gene List into several parts according to gatk.ncontigs:
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
 
-  std::vector<std::string> intv_paths
+  std::vector<std::string> intv_paths;
   if (!intv_list.empty()) {
       intv_paths = split_by_nprocs(intv_list, "bed");
       if (!geneList_paths.empty()){
           std::vector<std::string> geneList_paths = split_by_nprocs(geneList, "list");
       } else {
-          intv_paths = init_contig_intv(ref_path); exit(0);
+          intv_paths = split_ref_by_nproc(ref_path); exit(0);
       }
   } else {
       if (geneList_paths.empty()) {
-          intv_paths = init_contig_intv(ref_path); exit(0);
+          intv_paths = split_ref_by_nproc(ref_path); exit(0);
       } else {
           std::vector<std::string> geneList_paths = split_by_nprocs(geneList, "list");
       };
   }
+
+
+
+
 
 
   std::string input_file;
