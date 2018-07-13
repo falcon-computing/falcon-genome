@@ -32,6 +32,9 @@ void MergeBamWorker::setup() {
     throw internalError("Failed to update limit");
   }
 
+
+  LOG(INFO) << "Hello " << inputPartsBAM_;
+
   std::stringstream cmd;
   // Create Command if check_parts==1:
   if (check_parts_ == 1){
@@ -46,6 +49,6 @@ void MergeBamWorker::setup() {
       cmd_ = cmd.str();
   }
 
-  LOG(INFO) << cmd_;
+  DLOG(INFO) << cmd_;
 }
 } // namespace fcsgenome
