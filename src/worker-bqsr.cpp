@@ -112,7 +112,7 @@ static void prAddWorkers(Executor &executor,
            };
            partsBAM << inputPartsBAM << " ";
       }
-      LOG(INFO) << partsBAM << "\t" << mergeBAM_path << "\t" << check_parts << std::endl;
+      LOG(INFO) << partsBAM.str() << "\t" << mergeBAM_path << "\t" << check_parts << std::endl;
       Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM_path, check_parts, flag_f));
       executor.addTask(merger_worker);
   }

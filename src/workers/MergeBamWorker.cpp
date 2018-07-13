@@ -46,6 +46,6 @@ void MergeBamWorker::setup() {
       cmd_ = cmd.str();
   }
 
-  DLOG(INFO) << cmd_;
+  LOG(INFO) << cmd_;
 }
 } // namespace fcsgenome
