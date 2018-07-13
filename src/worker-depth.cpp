@@ -23,10 +23,9 @@ int depth_main(int argc, char** argv,
   bool opt_bool = false;
 
   opt_desc.add_options()
-    arg_decl_string("ref,r", "reference genome path")
-    arg_decl_string("input,i", "input BAM file")
-    arg_decl_string("output,o", "output coverage file")
-    //arg_decl_string("geneList,g", "list of genes over which the coverage is calculated")
+    ("ref,r", po::value<std::string>()->required(), "reference genome path")
+    ("input,i", po::value<std::string>()->required(),"input BAM file")
+    ("output,o", po::value<std::string>()->required(),"output coverage file")
     ("intervalList,L", "Interval List BED File")
     ("geneList,g", "list of genes over which the coverage is calculated")
     ("omitDepthOutputAtEachBase,omitBaseOutput", po::value<bool>()->default_value(false),
@@ -49,15 +48,15 @@ int depth_main(int argc, char** argv,
 
   // Check if required arguments are presented
 
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",get_config<std::string>("ref_genome"));
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
-  std::string intv_list = get_argument<std::string>(cmd_vm, "intervalList");
-  std::string geneList = get_argument<std::string>(cmd_vm, "geneList");
-  bool flag_f = get_argument<bool>(cmd_vm, "force");
-  bool flag_baseCoverage     = get_argument<bool>(cmd_vm, "omitDepthOutputAtEachBase");
-  bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "omitIntervalStatistics");
-  bool flag_sampleSummary    = get_argument<bool>(cmd_vm, "omitPerSampleStats");
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref","r");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input","i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output","o");
+  std::string intv_list = get_argument<std::string>(cmd_vm, "intervalList","L");
+  std::string geneList = get_argument<std::string>(cmd_vm, "geneList","g");
+  bool flag_f = get_argument<bool>(cmd_vm, "force","f");
+  bool flag_baseCoverage     = get_argument<bool>(cmd_vm, "omitDepthOutputAtEachBase","omitBaseOutput");
+  bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "omitIntervalStatistics","omitIntervals");
+  bool flag_sampleSummary    = get_argument<bool>(cmd_vm, "omitPerSampleStats","omitSampleSummary");
 
 
   //int depthCutoff = get_argument<int>(cmd_vm, "depthCutoff");
