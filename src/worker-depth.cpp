@@ -26,8 +26,10 @@ int depth_main(int argc, char** argv,
     arg_decl_string("ref,r", "reference genome path")
     arg_decl_string("input,i", "input BAM file")
     arg_decl_string("output,o", "output coverage file")
-    arg_decl_string("intervalList,L", "Interval List BED File")
-    arg_decl_string("geneList,g", "list of genes over which to calculate coverage")
+    //arg_decl_string("intervalList,L", "Interval List BED File")
+    //arg_decl_string("geneList,g", "list of genes over which to calculate coverage")
+    ("intervalList,L", "Interval List BED File");
+    ("geneList,g", "list of genes over which the coverage is calculated")
     ("depthCutoff,d", po::value<int>()->default_value(15), "cutoff for coverage depth summary")
     ("baseCoverage,b", "calculate coverage depth of each base")
     ("intervalCoverage,v", "calculate coverage summary of given intervals")
