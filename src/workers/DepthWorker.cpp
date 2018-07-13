@@ -23,6 +23,7 @@ DepthWorker::DepthWorker(std::string ref_path,
   intv_paths_(intv_paths),
   input_path_(input_path),
   geneList_paths_(geneList_paths),
+  extra_opts_(extra_opts),
   flag_baseCoverage_(flag_baseCoverage),
   flag_intervalCoverage_(flag_intervalCoverage),
   flag_sampleSummary_(flag_sampleSummary)
@@ -39,7 +40,6 @@ void DepthWorker::check() {
 }
 
 void DepthWorker::setup() {
-
   // create cmd
   std::stringstream cmd;
   cmd << get_config<std::string>("java_path") << " "
