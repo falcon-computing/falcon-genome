@@ -26,25 +26,12 @@ int depth_main(int argc, char** argv,
     arg_decl_string("ref,r", "reference genome path")
     arg_decl_string("input,i", "input BAM file")
     arg_decl_string("output,o", "output coverage file")
-    //arg_decl_string("intervalList,L", "Interval List BED File")
-<<<<<<< HEAD
-    //arg_decl_string("geneList,g", "list of genes over which to calculate coverage")
-    ("intervalList,L", "Interval List BED File");
-    ("geneList,g", "list of genes over which the coverage is calculated")
-    ("depthCutoff,d", po::value<int>()->default_value(15), "cutoff for coverage depth summary")
-    ("baseCoverage,b", "calculate coverage depth of each base")
-    ("intervalCoverage,v", "calculate coverage summary of given intervals")
-    ("sampleSummary,s", "output summary files for each sample");
-=======
     //arg_decl_string("geneList,g", "list of genes over which the coverage is calculated")
     ("intervalList,L", "Interval List BED File")
     ("geneList,g", "list of genes over which the coverage is calculated")
-
-    //("depthCutoff,d", po::value<int>()->default_value(15), "cutoff for coverage depth summary")
     ("omitDepthOutputAtEachBase,omitBaseOutput", po::value<bool>()->default_value(false), "output coverage depth at each base")
     ("omitIntervalStatistics,intervalIntervals", po::value<bool>()->default_value(false), "output coverage per-interval statistics")
     ("omitPerSampleStats,omitSampleSummary", po::value<bool>()->default_value(false), "output summary files for each sample");
->>>>>>> 4284ea6afbbb695afa4c1d9227990f4fcd4549d6
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -90,13 +77,19 @@ int depth_main(int argc, char** argv,
   std::vector<std::string> intv_paths
   if (!intv_list.empty()) {
       intv_paths = split_by_nprocs(intv_list, "bed");
+      if (!geneList_paths.empty()){
+          std::vector<std::string> geneList_paths = split_by_nprocs(geneList, "list");
+      } else {
+          intv_paths = init_contig_intv(ref_path); exit(0);
+      }
   } else {
-      intv_paths = init_contig_intv(ref_path);
+      if (geneList_paths.empty()) {
+          intv_paths = init_contig_intv(ref_path); exit(0);
+      } else {
+          std::vector<std::string> geneList_paths = split_by_nprocs(geneList, "list");
+      };
   }
 
-  if (!geneList_paths.empty()){
-      std::vector<std::string> geneList_paths = split_by_nprocs(geneList, "list");
-  }
 
   std::string input_file;
   if (boost::filesystem::is_directory(input_path)) {
