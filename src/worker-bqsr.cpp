@@ -99,7 +99,6 @@ static void prAddWorkers(Executor &executor,
        executor.addTask(worker, contig == 0);
   }
 
-  LOG(INFO) << mergeBAM_path << " is here\n" ;
   if (!mergeBAM_path.empty()){
       // Check if output_path (Parts BAM files) exists:
       output_path = check_input(output_path);
@@ -112,7 +111,8 @@ static void prAddWorkers(Executor &executor,
            };
            partsBAM << inputPartsBAM << " ";
       }
-      LOG(INFO) << partsBAM.str() << "\t" << mergeBAM_path << "\t" << check_parts << std::endl;
+      DLOG(INFO) << "Input Part BAM files: " << partsBAM.str() << "\n";
+      DLOG(INFO) << "Output Merged BAM file: " << mergeBAM_path << "\n";
       Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM_path, check_parts, flag_f));
       executor.addTask(merger_worker);
   }

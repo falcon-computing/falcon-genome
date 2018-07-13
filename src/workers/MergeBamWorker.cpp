@@ -13,8 +13,8 @@ MergeBamWorker::MergeBamWorker(std::string inputPartsBAM, std::string outputBAM,
 {
   // check output
   output_file_   = check_output(outputBAM, flag_f, true);
-  inputPartsBAM_ = inputPartsBAM;
-  check_parts_ = check_parts;
+  inputPartsBAM_(inputPartsBAM);
+  check_parts_(check_parts);
 }
 
 void MergeBamWorker::setup() {
@@ -31,9 +31,6 @@ void MergeBamWorker::setup() {
       file_limit.rlim_max != get_config<int>("mergebam.max_files")) {
     throw internalError("Failed to update limit");
   }
-
-
-  LOG(INFO) << "Hello " << inputPartsBAM_;
 
   std::stringstream cmd;
   // Create Command if check_parts==1:
