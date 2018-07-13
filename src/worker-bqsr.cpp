@@ -118,7 +118,7 @@ static void prAddWorkers(Executor &executor,
 
 }
 
-static void mergebamBQSRWorker(Executor &executor,
+static void mergebamBQSRWorker(Executor &merge_executor,
   std::string &output_path,
   std::string &mergeBAM_path, bool flag_f)
 {
@@ -135,7 +135,7 @@ static void mergebamBQSRWorker(Executor &executor,
   LOG(INFO) << "Input Part BAM files: " << partsBAM.str() << "\n";
   LOG(INFO) << "Output Merged BAM file: " << mergeBAM_path << "\n";
   Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM_path, check_parts, flag_f));
-  executor.addTask(merger_worker);
+  merge_executor.addTask(merger_worker);
 }
 
 
@@ -230,11 +230,19 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
 
   Executor executor("Print Reads", get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
   prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f);
-  if (!mergeBAM_path.empty()){
-      mergebamBQSRWorker(executor, output_path, mergeBAM_path, flag_f);
-  }
+
+  //if (!mergeBAM_path.empty()){
+  //    mergebamBQSRWorker(executor, output_path, mergeBAM_path, flag_f);
+  //}
 
   executor.run();
+
+  if (!mergeBAM_path.empty()){
+      Executor merge_executor("Print Reads", get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
+      mergebamBQSRWorker(merge_executor, output_path, mergeBAM_path, flag_f);
+      merge_executor.run();
+  }
+
 }
 
 int bqsr_main(int argc, char** argv, boost::program_options::options_description &opt_desc)
