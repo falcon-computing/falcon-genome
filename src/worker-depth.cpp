@@ -48,15 +48,15 @@ int depth_main(int argc, char** argv,
 
   // Check if required arguments are presented
 
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref","r");
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input","i");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output","o");
-  std::string intv_list = get_argument<std::string>(cmd_vm, "intervalList","L");
-  std::string geneList = get_argument<std::string>(cmd_vm, "geneList","g");
-  bool flag_f = get_argument<bool>(cmd_vm, "force","f");
-  bool flag_baseCoverage     = get_argument<bool>(cmd_vm, "omitDepthOutputAtEachBase","omitBaseOutput");
-  bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "omitIntervalStatistics","omitIntervals");
-  bool flag_sampleSummary    = get_argument<bool>(cmd_vm, "omitPerSampleStats","omitSampleSummary");
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
+  std::string intv_list = get_argument<std::string>(cmd_vm, "intervalList", "L");
+  std::string geneList = get_argument<std::string>(cmd_vm, "geneList", "g");
+  bool flag_f = get_argument<bool>(cmd_vm, "force", "f");
+  bool flag_baseCoverage     = get_argument<bool>(cmd_vm, "omitBaseOutput", "b");
+  bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "omitIntervals", "v");
+  bool flag_sampleSummary    = get_argument<bool>(cmd_vm, "omitSampleSummary", "s");
 
 
   //int depthCutoff = get_argument<int>(cmd_vm, "depthCutoff");
