@@ -132,8 +132,8 @@ static void mergebamBQSRWorker(Executor &executor,
        };
        partsBAM << inputPartsBAM << " ";
   }
-  DLOG(INFO) << "Input Part BAM files: " << partsBAM.str() << "\n";
-  DLOG(INFO) << "Output Merged BAM file: " << mergeBAM_path << "\n";
+  LOG(INFO) << "Input Part BAM files: " << partsBAM.str() << "\n";
+  LOG(INFO) << "Output Merged BAM file: " << mergeBAM_path << "\n";
   Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM_path, check_parts, flag_f));
   executor.addTask(merger_worker);
 }
