@@ -99,25 +99,47 @@ static void prAddWorkers(Executor &executor,
        executor.addTask(worker, contig == 0);
   }
 
-  if (!mergeBAM_path.empty()){
+  //if (!mergeBAM_path.empty()){
       // Check if output_path (Parts BAM files) exists:
-      output_path = check_input(output_path);
-      std::stringstream partsBAM;
-      int check_parts = 1;  // For more than 1 part BAM file
-      std::string inputPartsBAM;
-      for (int n = 0; n < get_config<int>("gatk.ncontigs"); n++) {
-           if (boost::filesystem::is_directory(output_path)) {
-               inputPartsBAM = get_contig_fname(output_path, n);
-           };
-           partsBAM << inputPartsBAM << " ";
-      }
-      DLOG(INFO) << "Input Part BAM files: " << partsBAM.str() << "\n";
-      DLOG(INFO) << "Output Merged BAM file: " << mergeBAM_path << "\n";
-      Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM_path, check_parts, flag_f));
-      executor.addTask(merger_worker);
-  }
+  //    output_path = check_input(output_path);
+  //    std::stringstream partsBAM;
+  //    int check_parts = 1;  // For more than 1 part BAM file
+  //    std::string inputPartsBAM;
+  //    for (int n = 0; n < get_config<int>("gatk.ncontigs"); n++) {
+  //         if (boost::filesystem::is_directory(output_path)) {
+  //             inputPartsBAM = get_contig_fname(output_path, n);
+  //         };
+  //         partsBAM << inputPartsBAM << " ";
+  //    }
+  //    DLOG(INFO) << "Input Part BAM files: " << partsBAM.str() << "\n";
+  //    DLOG(INFO) << "Output Merged BAM file: " << mergeBAM_path << "\n";
+  //    Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM_path, check_parts, flag_f));
+  //    executor.addTask(merger_worker, contig ==0);
+  //}
 
 }
+
+static void mergebamBQSRWorker(Executor &executor,
+  std::string &output_path,
+  std::string &mergeBAM_path, flag_f)
+{
+  output_path = check_input(output_path);
+  std::stringstream partsBAM;
+  int check_parts = 1;  // For more than 1 part BAM file
+  std::string inputPartsBAM;
+  for (int n = 0; n < get_config<int>("gatk.ncontigs"); n++) {
+       if (boost::filesystem::is_directory(output_path)) {
+           inputPartsBAM = get_contig_fname(output_path, n);
+       };
+       partsBAM << inputPartsBAM << " ";
+  }
+  DLOG(INFO) << "Input Part BAM files: " << partsBAM.str() << "\n";
+  DLOG(INFO) << "Output Merged BAM file: " << mergeBAM_path << "\n";
+  Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM_path, check_parts, flag_f));
+  executor.addTask(merger_worker);
+}
+
+
 
 int baserecal_main(int argc, char** argv, boost::program_options::options_description &opt_desc)
 {
@@ -208,8 +230,11 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
   create_dir(output_path);
 
   Executor executor("Print Reads", get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
-  prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path,
-    mergeBAM_path, extra_opts, intv_list, flag_f);
+  prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f);
+  if (!mergeBAM_path.empty()){
+      mergebamBQSRWorker(executor, output_path, mergeBAM_path, flag_f);
+  }
+
   executor.run();
 }
 
@@ -274,7 +299,10 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
   Executor executor("Base Recalibration", get_config<int>("gatk.bqsr.nprocs"));
   // first, do base recal
   baserecalAddWorkers(executor, ref_path, known_sites, extra_opts, input_path, bqsr_path, intv_list, flag_f);
-  prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, mergeBAM_path, extra_opts, intv_list, flag_f);
+  prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f);
+  if (!mergeBAM_path.empty()){
+      mergebamBQSRWorker(executor, output_path, mergeBAM_path, flag_f);
+  }
 
   executor.run();
 
