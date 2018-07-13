@@ -230,11 +230,6 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
 
   Executor executor("Print Reads", get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
   prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f);
-
-  //if (!mergeBAM_path.empty()){
-  //    mergebamBQSRWorker(executor, output_path, mergeBAM_path, flag_f);
-  //}
-
   executor.run();
 
   if (!mergeBAM_path.empty()){
@@ -307,11 +302,13 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
   // first, do base recal
   baserecalAddWorkers(executor, ref_path, known_sites, extra_opts, input_path, bqsr_path, intv_list, flag_f);
   prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f);
-  if (!mergeBAM_path.empty()){
-      mergebamBQSRWorker(executor, output_path, mergeBAM_path, flag_f);
-  }
-
   executor.run();
+
+  if (!mergeBAM_path.empty()){
+      Executor merge_executor("Print Reads", get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
+      mergebamBQSRWorker(merge_executor, output_path, mergeBAM_path, flag_f);
+      merge_executor.run();
+  }
 
   removePartialBQSR(bqsr_path);
 
