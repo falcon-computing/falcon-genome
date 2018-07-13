@@ -121,7 +121,7 @@ static void prAddWorkers(Executor &executor,
 
 static void mergebamBQSRWorker(Executor &executor,
   std::string &output_path,
-  std::string &mergeBAM_path, flag_f)
+  std::string &mergeBAM_path, bool flag_f)
 {
   output_path = check_input(output_path);
   std::stringstream partsBAM;
