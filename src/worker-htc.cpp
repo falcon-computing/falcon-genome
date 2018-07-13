@@ -6,6 +6,7 @@
 #include <string>
 
 
+#include "fcs-genome/BackgroundExecutor.h"
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
@@ -23,12 +24,13 @@ int htc_main(int argc, char** argv,
   bool opt_bool = false;
 
   opt_desc.add_options() 
-    arg_decl_string("ref,r", "reference genome path")
-    arg_decl_string("input,i", "input BAM file or dir")
-    arg_decl_string("output,o", "output GVCF/VCF file (if --skip-concat is set"
+    ("ref,r", po::value<std::string>()->required(), "reference genome path")
+    ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
+    ("output,o", po::value<std::string>()->required(), "output GVCF/VCF file (if --skip-concat is set"
                                 "the output will be a directory of gvcf files)")
     ("produce-vcf,v", "produce VCF files from HaplotypeCaller instead of GVCF")
     // TODO: skip-concat should be deprecated
+    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
     ("skip-concat,s", "(deprecated) produce a set of GVCF/VCF files instead of one");
 
   // Parse arguments
@@ -44,20 +46,19 @@ int htc_main(int argc, char** argv,
   check_memory_config("htc");
 
   // Check if required arguments are presented
-  bool flag_f             = get_argument<bool>(cmd_vm, "force");
-  bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat");
-  bool flag_vcf           = get_argument<bool>(cmd_vm, "produce-vcf");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
-                                get_config<std::string>("ref_genome"));
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
-
+  bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
+  bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat", "s");
+  bool flag_vcf           = get_argument<bool>(cmd_vm, "produce-vcf", "v");
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
+  std::vector<std::string> intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts = 
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
-
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
+  
   // finalize argument parsing
   po::notify(cmd_vm);
-
+  
   std::string temp_dir = conf_temp_dir + "/htc";
 
   // TODO: deal with the case where 
@@ -77,6 +78,13 @@ int htc_main(int argc, char** argv,
 
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+
+  // start an executor for NAM
+  Worker_ptr blaze_worker(new BlazeWorker(
+        get_config<std::string>("blaze.nam_path"),
+        get_config<std::string>("blaze.conf_path")));
+
+  BackgroundExecutor bg_executor("blaze-nam", blaze_worker);
 
   Executor executor("Haplotype Caller", 
                     get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
@@ -102,6 +110,7 @@ int htc_main(int argc, char** argv,
           intv_paths[contig], input_file,
           output_file,
           extra_opts,
+          intv_list,
           contig, 
           flag_vcf,
           flag_htc_f));

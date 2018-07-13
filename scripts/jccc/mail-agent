@@ -1,0 +1,122 @@
+#!/bin/python
+import argparse
+import getpass
+import json
+import logging
+import re
+import os
+import sys, getopt, signal
+import sysv_ipc as ipc
+
+# logger settings
+log_format = "%(asctime)-15s %(levelname)s - %(message)s"
+log_level = logging.DEBUG
+
+# argument settings
+parser = argparse.ArgumentParser(description='Email handler')
+
+parser.add_argument('input_file', nargs='?',
+                     type=argparse.FileType('r'),
+                     default=sys.stdin, help='input message')
+parser.add_argument('-i', '--log-path', dest='log_path', nargs='?',
+                     default='', help='path to logging message')
+parser.add_argument('-o', '--mail-path', dest='mail_path', nargs='?',
+                     default='mails', help='path to normal mail file')
+parser.add_argument('-q', '--queue', dest='queue', nargs='?',
+                     type=int, default=1027, help='id of the manager queue')
+parser.add_argument('-f', '--from', dest='sender', nargs='?',
+                     help='actual sender of the email')
+parser.add_argument('-s', '--expect-sender', dest='expect_sender', nargs='?',
+                     default='root@fcs-internal.fcs-internal',
+                     help='expected sender of the email')
+
+args = parser.parse_args()
+
+if args.log_path:
+  logging.basicConfig(filename=args.log_path, format=log_format, level=log_level)
+else:
+  logging.basicConfig(format=log_format, level=log_level)
+
+logger = logging.getLogger('mail-agent')
+
+logger.info("Start handling a new email")
+logger.debug(sys.argv)
+
+# project dir to save checkpoints
+checkpoint_dir = os.path.expanduser("~")+'/.fcs-genome/checkpoints/mail-agents'
+try:
+  os.makedirs(checkpoint_dir)
+except OSError as e:
+  if e.errno != errno.EEXIST:
+    raise
+
+contents = []
+match_mail = False
+
+for line in args.input_file.readlines():
+  contents.append(line)
+  if "Subject: Credentials Run Folder" in line:
+    match_mail = True
+
+if args.expect_sender.lower() == args.sender.lower() and match_mail: 
+  logger.debug("Receive a valid email from "+args.sender)
+
+  run_id = ''
+  user = ''
+  passwd = ''
+  path = ''
+
+  # start parsing mail contents
+  content_cnt = 0 
+  for line in contents:
+    if "Subject:" in line:
+      pattern_runid = r'Subject: Credentials Run Folder - (?P<run_id>\w+)'
+      m = re.search(pattern_runid, line)
+      if m:
+        run_id = m.group('run_id')
+      else:
+        logger.error("Failed to find run_id from subject line: ", line)
+
+    if content_cnt == 0:
+      if run_id != '' and run_id+' *LIVE*' in line:
+        content_cnt = 1
+    elif content_cnt  == 1: # parse run folder
+      pattern = r'(?P<run_folder>\w+)/'
+      m = re.search(pattern, line)
+      if m:
+        run_folder = m.group('run_folder')
+      else:
+        logger.error("Failed to find run_folder from content line: ", line)
+
+      content_cnt += 1
+    elif content_cnt == 2:  # parse rsync passwd
+      pattern = r'LVrf'+run_id+':(?P<password>\w+)'
+      m = re.search(pattern, line)
+      if m:
+        password = m.group('password')
+      else:
+        logger.error("Failed to find password from content line: ", line)
+      break
+
+  logger.info("run id: "+run_id)
+  logger.info("run folder: "+run_folder)
+  logger.info("password: "+password)
+
+  # encode python
+  msg = json.dumps({'run_id': run_id, 'run_folder': run_folder, 'password': password}, 
+      sort_keys=True, indent=2, separators=(',', ': '))
+
+  try:
+    q = ipc.MessageQueue(args.queue, flags=0)
+    q.send(msg)
+  except ipc.ExistentialError:
+    logger.error("Cannot find rsync-manager queue, saving msg to checkpoint")
+    with open(checkpoint_dir + '/' + run_id +'.json', 'w') as fout:
+      fout.write(msg)
+
+else:
+  logger.info("Received a normal mail, saving to " + args.mail_path)
+  # save mail 
+  with open(args.mail_path, "a") as f:
+    for line in contents:
+      f.write(line)

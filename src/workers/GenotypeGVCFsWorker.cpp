@@ -11,7 +11,8 @@ GenotypeGVCFsWorker::GenotypeGVCFsWorker(
     std::string ref_path,
     std::string input_path,
     std::string output_path,
-    bool &flag_f): Worker(1, 1),
+    std::vector<std::string> extra_opts,
+    bool &flag_f): Worker(1, 1, extra_opts),
   ref_path_(ref_path),
   input_path_(input_path)
 {
@@ -34,7 +35,19 @@ void GenotypeGVCFsWorker::setup() {
       << "--variant " << input_path_ << " "
       // secret option to fix index fopen issue
       << "--disable_auto_index_creation_and_locking_when_reading_rods "
-      << "-o " << output_path_;
+      << "-o " << output_path_ << " ";
+  
+  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
+    cmd << it->first << " ";
+    for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
+      if (!(*vec_iter).empty() && vec_iter == it->second.begin()) {
+        cmd << *vec_iter << " ";
+      }
+      else if (!(*vec_iter).empty()) {
+        cmd << it->first << " " << *vec_iter << " ";
+      }
+    }    
+  }
 
   cmd_ = cmd.str();
 }

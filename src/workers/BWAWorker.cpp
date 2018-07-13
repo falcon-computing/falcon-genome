@@ -55,7 +55,11 @@ void BWAWorker::setup() {
     // is set in user's bash mode
     cmd << get_config<std::string>("mpi_path") << "/bin/mpirun " 
         << "--prefix " << get_config<std::string>("mpi_path") << " "
-        << "--bind-to none "
+        << "--bind-to none ";
+    if (check_config("bwa.mpi_if")) {
+      cmd << "--mca oob_tcp_if_include " << get_config<std::string>("bwa.mpi_if") << " "
+          << "--mca btl_tcp_if_include " << get_config<std::string>("bwa.mpi_if") << " ";
+    }
         /* 
          * This '--mca' option is used to get rid of the problem of
          * hfi_wait_for_device which causes a 15 sec delay.
@@ -63,7 +67,7 @@ void BWAWorker::setup() {
          * Source: 
          * http://users.open-mpi.narkive.com/7efFnJXR/ompi-users-device-failed-to-appear-connection-timed-out
          */
-        << "--mca pml ob1 "
+    cmd << "--mca pml ob1 "
         << "--allow-run-as-root "
         << "-np " << conf_host_list.size() << " ";
 
@@ -114,9 +118,14 @@ void BWAWorker::setup() {
   }
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
     cmd << it->first << " ";
-    if (!it->second.empty()) {
-      cmd << it->second << " ";
-    }
+    for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
+      if (!(*vec_iter).empty() && vec_iter == it->second.begin()) {
+        cmd << *vec_iter << " ";
+      }
+      else if (!(*vec_iter).empty()) {
+        cmd << it->first << " " << *vec_iter << " ";
+      }
+    }    
   }
 
   cmd << ref_path_ << " "

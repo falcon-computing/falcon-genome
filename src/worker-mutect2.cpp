@@ -6,6 +6,7 @@
 #include <string>
 
 
+#include "fcs-genome/BackgroundExecutor.h"
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
@@ -23,12 +24,13 @@ int mutect2_main(int argc, char** argv,
   bool opt_bool = false;
 
   opt_desc.add_options() 
-    arg_decl_string("ref,r", "reference genome path")
-    arg_decl_string("normal,n", "input normal BAM file or dir")
-    arg_decl_string("tumor,t", "input tumor BAM file or dir")
-    arg_decl_string("output,o", "output VCF file")
-    ("dbsnp", po::value<std::vector<std::string> >(), "list of dbsnp files for Mutect2")
-    ("cosmic", po::value<std::vector<std::string> >(), "list of cosmic files for Mutect2")
+    ("ref,r", po::value<std::string>()->required(), "reference genome path")
+    ("normal,n", po::value<std::string>()->required(), "input normal BAM file or dir")
+    ("tumor,t", po::value<std::string>()->required(), "input tumor BAM file or dir")
+    ("output,o", po::value<std::string>()->required(), "output VCF file")
+    ("dbsnp,d", po::value<std::vector<std::string> >(), "list of dbsnp files for Mutect2")
+    ("cosmic,c", po::value<std::vector<std::string> >(), "list of cosmic files for Mutect2")
+    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
     ("skip-concat,s", "produce a set of VCF files instead of one");
     
   // Parse arguments
@@ -44,16 +46,17 @@ int mutect2_main(int argc, char** argv,
   check_memory_config("mutect2");
 
   // Check if required arguments are presented
-  bool flag_f             = get_argument<bool>(cmd_vm, "force");
-  bool flag_skip_concat    = get_argument<bool>(cmd_vm, "skip-concat");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
-                                get_config<std::string>("ref_genome"));
-  std::string normal_path = get_argument<std::string>(cmd_vm, "normal");
-  std::string tumor_path = get_argument<std::string>(cmd_vm, "tumor");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
-  std::vector<std::string> dbsnp_path = get_argument<std::vector<std::string> >(cmd_vm, "dbsnp", std::vector<std::string>());
-  std::vector<std::string> cosmic_path = get_argument<std::vector<std::string> >(cmd_vm, "cosmic", std::vector<std::string>());
-  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options"); 
+  bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
+  bool flag_skip_concat    = get_argument<bool>(cmd_vm, "skip-concat", "s");
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
+  std::string normal_path = get_argument<std::string>(cmd_vm, "normal", "n");
+  std::string tumor_path = get_argument<std::string>(cmd_vm, "tumor", "t");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
+  std::vector<std::string> dbsnp_path = get_argument<std::vector<std::string> >(cmd_vm, "dbsnp", "d", std::vector<std::string>());
+  std::vector<std::string> cosmic_path = get_argument<std::vector<std::string> >(cmd_vm, "cosmic","c", std::vector<std::string>());
+  std::vector<std::string> intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
+  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O"); 
+
   // finalize argument parsing
   po::notify(cmd_vm);
 
@@ -73,6 +76,14 @@ int mutect2_main(int argc, char** argv,
 
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+
+  // start an executor for NAM
+  Worker_ptr blaze_worker(new BlazeWorker(
+        get_config<std::string>("blaze.nam_path"),
+        get_config<std::string>("blaze.conf_path")));
+
+  BackgroundExecutor bg_executor("blaze-nam", blaze_worker);
+
 
   Executor executor("Mutect2", get_config<int>("gatk.mutect2.nprocs"));
   
@@ -101,6 +112,7 @@ int mutect2_main(int argc, char** argv,
           extra_opts,
           dbsnp_path,
           cosmic_path,
+          intv_list,
           contig,
           flag_mutect2_f));
     output_files[contig] = output_file;

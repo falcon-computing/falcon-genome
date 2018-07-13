@@ -22,10 +22,11 @@ int ug_main(int argc, char** argv,
   po::variables_map cmd_vm;
 
   opt_desc.add_options() 
-    arg_decl_string("ref,r", "reference genome path")
-    arg_decl_string("input,i", "input BAM file or dir")
-    arg_decl_string("output,o", "output vcf file (if --skip-concat is set"
+    ("ref,r", po::value<std::string>()->required(), "reference genome path")
+    ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
+    ("output,o", po::value<std::string>()->required(), "output vcf file (if --skip-concat is set"
                                 "the output will be a directory of vcf files)")
+    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
     ("skip-concat,s", "produce a set of vcf files instead of one");
 
   // Parse arguments
@@ -41,15 +42,14 @@ int ug_main(int argc, char** argv,
   check_memory_config("ug");
 
   // Check if required arguments are presented
-  bool flag_f             = get_argument<bool>(cmd_vm, "force");
-  bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",
-                                get_config<std::string>("ref_genome"));
-  std::string input_path  = get_argument<std::string>(cmd_vm, "input");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
-  
+  bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
+  bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat", "s");
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
+  std::vector<std::string> intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts = 
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -96,6 +96,7 @@ int ug_main(int argc, char** argv,
           intv_paths[contig],
           output_file,
           extra_opts,
+          intv_list,
           flag_f));
     output_files[contig] = output_file;
 
@@ -104,7 +105,7 @@ int ug_main(int argc, char** argv,
 
   if (!flag_skip_concat) {
     bool flag = true;
-    bool flag_a = false;
+    bool flag_a = true;
     { // concat gvcfs
       Worker_ptr worker(new VCFConcatWorker(
             output_files, temp_gvcf_path,

@@ -27,6 +27,11 @@ void sigint_handler(int s){
     DLOG(INFO) << "Deleting the executor";
     delete g_executor;
   }
+
+  // delete temp folder
+#ifndef NDEBUG
+  remove_path(conf_temp_dir);
+#endif
   exit(1);
 }
 
