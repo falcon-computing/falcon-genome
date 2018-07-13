@@ -80,10 +80,11 @@ int depth_main(int argc, char** argv,
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
 
   std::vector<std::string> intv_paths;
+  std::vector<std::string> geneList_paths;
   if (!intv_list.empty()) {
       intv_paths = split_by_nprocs(intv_list, "bed");
-      if (!geneList_paths.empty()){
-          std::vector<std::string> geneList_paths = split_by_nprocs(geneList, "list");
+      if (!geneList.empty()){
+          geneList_paths = split_by_nprocs(geneList, "list");
       } else {
           intv_paths = split_ref_by_nproc(ref_path); exit(0);
       }
@@ -91,7 +92,7 @@ int depth_main(int argc, char** argv,
       if (geneList_paths.empty()) {
           intv_paths = split_ref_by_nproc(ref_path); exit(0);
       } else {
-          std::vector<std::string> geneList_paths = split_by_nprocs(geneList, "list");
+          geneList_paths = split_by_nprocs(geneList, "list");
       };
   }
 
