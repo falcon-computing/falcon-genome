@@ -29,9 +29,12 @@ int depth_main(int argc, char** argv,
     //arg_decl_string("geneList,g", "list of genes over which the coverage is calculated")
     ("intervalList,L", "Interval List BED File")
     ("geneList,g", "list of genes over which the coverage is calculated")
-    ("omitDepthOutputAtEachBase,omitBaseOutput", po::value<bool>()->default_value(false), "output coverage depth at each base")
-    ("omitIntervalStatistics,intervalIntervals", po::value<bool>()->default_value(false), "output coverage per-interval statistics")
-    ("omitPerSampleStats,omitSampleSummary", po::value<bool>()->default_value(false), "output summary files for each sample");
+    ("omitDepthOutputAtEachBase,omitBaseOutput", po::value<bool>()->default_value(false),
+            "output coverage depth at each base")
+    ("omitIntervalStatistics,omitIntervals", po::value<bool>()->default_value(false),
+            "output coverage per-interval statistics")
+    ("omitPerSampleStats,omitSampleSummary", po::value<bool>()->default_value(false),
+            "output summary files for each sample");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -45,15 +48,18 @@ int depth_main(int argc, char** argv,
   check_memory_config("depth");
 
   // Check if required arguments are presented
-  bool flag_f             = get_argument<bool>(cmd_vm, "force");
-  bool flag_baseCoverage    = get_argument<bool>(cmd_vm, "baseCoverage");
-  bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "intervalCoverage");
-  bool flag_sampleSummary = get_argument<bool>(cmd_vm, "sampleSummary");
+
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",get_config<std::string>("ref_genome"));
-  std::string input_path = get_argument<std::string>(cmd_vm, "input");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input");
   std::string output_path = get_argument<std::string>(cmd_vm, "output");
   std::string intv_list = get_argument<std::string>(cmd_vm, "intervalList");
   std::string geneList = get_argument<std::string>(cmd_vm, "geneList");
+  bool flag_f = get_argument<bool>(cmd_vm, "force");
+  bool flag_baseCoverage     = get_argument<bool>(cmd_vm, "omitDepthOutputAtEachBase");
+  bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "omitIntervalStatistics");
+  bool flag_sampleSummary    = get_argument<bool>(cmd_vm, "omitPerSampleStats");
+
+
   //int depthCutoff = get_argument<int>(cmd_vm, "depthCutoff");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
 
@@ -143,11 +149,9 @@ int depth_main(int argc, char** argv,
 
   bool flag = true;
 
-  Worker_ptr worker(new DepthCombineWorker(
-        output_files, output_path,
+  Worker_ptr worker(new DepthCombineWorker(output_files, output_path,
         flag_baseCoverage, flag_intervalCoverage, flag_sampleSummary, flag));
   executor.addTask(worker, true);
-
   executor.run();
 
   return 0;

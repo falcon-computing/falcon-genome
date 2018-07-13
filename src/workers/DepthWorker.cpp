@@ -23,7 +23,6 @@ DepthWorker::DepthWorker(std::string ref_path,
   intv_paths_(intv_paths),
   input_path_(input_path),
   geneList_paths_(geneList_paths),
-  depthCutoff_(depthCutoff),
   flag_baseCoverage_(flag_baseCoverage),
   flag_intervalCoverage_(flag_intervalCoverage),
   flag_sampleSummary_(flag_sampleSummary)
@@ -49,17 +48,17 @@ void DepthWorker::setup() {
       << "-T DepthOfCoverage "
       << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " "
-      << "-L " << intv_paths_ << " "
+      << "-L " << intv_paths_ << " ";
 
   if (!geneList_paths_.empty()){
       cmd << "-geneList " << geneList_paths_ << " ";
   }
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
-    cmd << it-> first << " ";
-    if (!it->second.empty()) {
-      cmd << it->second << " ";
-    }
+      cmd << it-> first << " ";
+      if (!it->second.empty()) {
+          cmd << it->second << " ";
+      }
   }
 
   cmd << "-nt " << get_config<int>("gatk.depth.nct", "gatk.nct") << " "
