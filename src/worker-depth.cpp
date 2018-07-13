@@ -86,11 +86,12 @@ int depth_main(int argc, char** argv,
       if (!geneList.empty()){
           geneList_paths = split_by_nprocs(geneList, "list");
       } else {
-          intv_paths = split_ref_by_nproc(ref_path); exit(0);
+          intv_paths = split_ref_by_nprocs(ref_path); exit(0);
+                      
       }
   } else {
       if (geneList_paths.empty()) {
-          intv_paths = split_ref_by_nproc(ref_path); exit(0);
+          intv_paths = split_ref_by_nprocs(ref_path); exit(0);
       } else {
           geneList_paths = split_by_nprocs(geneList, "list");
       };

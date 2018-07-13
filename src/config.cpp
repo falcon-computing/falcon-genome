@@ -478,7 +478,7 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
 }
 
 // Split Reference File :
-std::vector<std::string> split_ref_by_nproc(std::string ref_path) {
+std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
   int ncontigs = get_config<int>("gatk.ncontigs");
 
   std::stringstream ss;
