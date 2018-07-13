@@ -35,18 +35,18 @@ void MergeBamWorker::setup() {
 
   std::stringstream cmd;
   // Create Command if check_parts==1:
-  if (check_parts_ == 1){
+  //if (check_parts_ == 1){
       cmd << get_config<std::string>("sambamba_path") << " merge "
           << "-l 1 "
           << "-t " << get_config<int>("mergebam.nt") << " " << output_file_ << " " << inputPartsBAM_;
       cmd_ = cmd.str();
-      LOG(INFO) << inputPartsBAM_;
-  } else {
-      cmd << "mv " << inputPartsBAM_ << " " << output_file_ << " ; "
-          << get_config<std::string>("sambamba_path") << " index " << "-t "
-          << get_config<int>("mergebam.nt") << " " << output_file_ ;
-      cmd_ = cmd.str();
-  }
+      LOG(INFO) << "The Input : " << inputPartsBAM_;
+  //} else {
+  //    cmd << "mv " << inputPartsBAM_ << " " << output_file_ << " ; "
+  //        << get_config<std::string>("sambamba_path") << " index " << "-t "
+  //        << get_config<int>("mergebam.nt") << " " << output_file_ ;
+  //    cmd_ = cmd.str();
+  //}
 
   LOG(INFO) << cmd_ ;
   DLOG(INFO) << cmd_;
