@@ -13,8 +13,8 @@ MergeBamWorker::MergeBamWorker(std::string inputPartsBAM, std::string outputBAM,
 {
   // check output
   output_file_   = check_output(outputBAM, flag_f, true);
-  inputPartsBAM_(inputPartsBAM);
-  check_parts_(check_parts);
+  inputPartsBAM_ = inputPartsBAM;
+  check_parts_   = check_parts;
 }
 
 void MergeBamWorker::setup() {
@@ -46,6 +46,7 @@ void MergeBamWorker::setup() {
       cmd_ = cmd.str();
   }
 
+  LOG(INFO) << cmd_ ;
   DLOG(INFO) << cmd_;
 }
 } // namespace fcsgenome
