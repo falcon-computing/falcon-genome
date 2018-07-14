@@ -480,6 +480,21 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
   return intv_paths;
 }
 
+
+int roundUp(int numToRound, int multiple){
+    if (multiple == 0) return numToRound;
+    int remainder = abs(numToRound) % multiple;
+    if (remainder == 0) return numToRound;
+    if (numToRound < 0)
+        return -(abs(numToRound) - remainder);
+    else
+        return numToRound + multiple - remainder;
+}
+
+
+
+
+
 // Split Reference File :
 std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
   int ncontigs = get_config<int>("gatk.ncontigs");
@@ -561,8 +576,7 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
     }
     dict.push_back(std::make_pair(chr_name, chr_length));
 
-    if (max_value < chr_length) max_value = chr_length
-
+    if (max_value < chr_length) max_value = chr_length;
 
 
     LOG(INFO) << chr_name << "\t" << chr_length << std::endl;
@@ -570,12 +584,9 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
     dict_length += chr_length;
   }
 
-  int ncontigs = get_config<int>("gatk.ncontigs");
-  int chunk = int(max_value/ncontigs);
-  int nearest_multiple = roundUp(chunk,ncontigs);
-
-
-  LOG(INFO) << max_value << "\t" << chunk << "\t" << nearest_multiple << "\n";
+  int factor = int(max_value/ncontigs);
+  int nearest_multiple = roundUp(factor,ncontigs);
+  LOG(INFO) << max_value << "\t" << factor << "\t" << nearest_multiple << "\n";
 
   //auto element : dict;
   //LOG(INFO) << "High score: " << *max_element( (element.second).begin(), (element.second).end() ) << "\n";
@@ -654,16 +665,6 @@ unsigned int CountLines(const std::vector <char> &buff, int sz) {
         }
     }
     return newlines;
-}
-
-int roundUp(int numToRound, int multiple){
-    if (multiple == 0) return numToRound;
-    int remainder = abs(numToRound) % multiple;
-    if (remainder == 0) return numToRound;
-    if (numToRound < 0)
-        return -(abs(numToRound) - remainder);
-    else
-        return numToRound + multiple - remainder;
 }
 
 
