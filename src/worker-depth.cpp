@@ -28,12 +28,12 @@ int depth_main(int argc, char** argv,
     ("output,o", po::value<std::string>()->required(),"output coverage file")
     ("intervalList,L", "Interval List BED File")
     ("geneList,g", "list of genes over which the coverage is calculated")
-    ("omitDepthOutputAtEachBase,omitBaseOutput", po::value<bool>()->default_value(false),
-            "output coverage depth at each base")
-    ("omitIntervalStatistics,omitIntervals", po::value<bool>()->default_value(false),
-            "output coverage per-interval statistics")
-    ("omitPerSampleStats,omitSampleSummary", po::value<bool>()->default_value(false),
-            "output summary files for each sample");
+    ("omitBaseOutput,b", po::value<bool>()->default_value(false),
+            "omit output coverage depth at each base (default: false)")
+    ("omitIntervals,v", po::value<bool>()->default_value(false),
+            "omit output coverage per-interval statistics (default false)")
+    ("omitSampleSummary,s", po::value<bool>()->default_value(false),
+            "omit output summary files for each sample (default false");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -58,8 +58,6 @@ int depth_main(int argc, char** argv,
   bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "omitIntervals", "v");
   bool flag_sampleSummary    = get_argument<bool>(cmd_vm, "omitSampleSummary", "s");
 
-
-  //int depthCutoff = get_argument<int>(cmd_vm, "depthCutoff");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
@@ -96,11 +94,6 @@ int depth_main(int argc, char** argv,
           geneList_paths = split_by_nprocs(geneList, "list");
       };
   }
-
-
-
-
-
 
   std::string input_file;
   if (boost::filesystem::is_directory(input_path)) {
