@@ -84,16 +84,18 @@ int depth_main(int argc, char** argv,
       if (!geneList.empty()){
           geneList_paths = split_by_nprocs(geneList, "list");
       } else {
-          intv_paths = split_ref_by_nprocs(ref_path); exit(0);
+          intv_paths = split_ref_by_nprocs(ref_path); 
 
       }
   } else {
       if (geneList_paths.empty()) {
-          intv_paths = split_ref_by_nprocs(ref_path); exit(0);
+          intv_paths = split_ref_by_nprocs(ref_path);
       } else {
           geneList_paths = split_by_nprocs(geneList, "list");
       };
   }
+
+  exit(0);
 
   std::string input_file;
   if (boost::filesystem::is_directory(input_path)) {
