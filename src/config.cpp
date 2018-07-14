@@ -565,8 +565,9 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
     dict_length += chr_length;
   }
 
-  auto element:dict;
-  LOG(INFO) << "High score: " << *std::max_element( (element.second).begin(), (element.second).end() ) << "\n";
+  auto element : dict;
+
+  LOG(INFO) << "High score: " << *max_element( (element.second).begin(), (element.second).end() ) << "\n";
 
 
   exit(0);
