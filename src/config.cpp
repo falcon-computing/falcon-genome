@@ -196,9 +196,7 @@ int init_config(boost::program_options::options_description conf_opt) {
 
   // parse host list if scaleout_mode is selected
   if (get_config<bool>("bwa.scaleout_mode") ||
-      get_config<bool>("gatk.scaleout_mode") ||for (auto elem : dict){
-      double max_value = *max_element((elem.second).begin(), (elem.second).end());
-  }
+      get_config<bool>("gatk.scaleout_mode") ||
       get_config<bool>("latency_mode")) {
     std::string hosts = get_config<std::string>("hosts");
 
@@ -535,9 +533,6 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
 
   //std::ifstream ref_file(ref_path);
   //std::string grab_line;
-
-
-
 
   // parse ref.dict files
   std::vector<std::string> dict_lines = get_lines(dict_path, "@SQ.*");
