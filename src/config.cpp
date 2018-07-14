@@ -557,7 +557,7 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
     dict.push_back(std::make_pair(chr_name, chr_length));
 
 
-    DLOG(INFO) << chr_name << "\t" << chr_length << std::endl;
+    LOG(INFO) << chr_name << "\t" << chr_length << std::endl;
 
     dict_length += chr_length;
   }
