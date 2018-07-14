@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/thread.hpp>
@@ -562,7 +563,7 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
     dict_length += chr_length;
   }
 
-  //double max_value = *max_element((elem.second).begin(), (elem.second).end());
+  cout << "High score: " << *std::max_element( dict.begin(), dict.end() ) << endl;
 
 
   exit(0);
