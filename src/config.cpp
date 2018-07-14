@@ -528,6 +528,8 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
   std::vector<std::string> dict_lines = get_lines(dict_path, "@SQ.*");
   std::vector<std::pair<std::string, uint64_t>> dict;
   uint64_t dict_length = 0;
+  int max_value=0;
+
   for (int i = 0; i < dict_lines.size(); i++) {
     if (get_config<bool>("gatk.skip_pseudo_chr") && i >= 25) {
       break;
@@ -559,13 +561,21 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
     }
     dict.push_back(std::make_pair(chr_name, chr_length));
 
+    if (max_value < chr_length) max_value = chr_length
+
+
 
     LOG(INFO) << chr_name << "\t" << chr_length << std::endl;
 
     dict_length += chr_length;
   }
 
-  LOG(INFO) << dict[0];
+  int ncontigs = get_config<int>("gatk.ncontigs");
+  int chunk = int(max_value/ncontigs);
+  int nearest_multiple = roundUp(chunk,ncontigs);
+
+
+  LOG(INFO) << max_value << "\t" << chunk << "\t" << nearest_multiple << "\n";
 
   //auto element : dict;
   //LOG(INFO) << "High score: " << *max_element( (element.second).begin(), (element.second).end() ) << "\n";
