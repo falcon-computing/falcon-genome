@@ -581,7 +581,10 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
 
   int factor = int(max_value/ncontigs);
   int nearest_multiple = roundUp(factor,ncontigs);
-  LOG(INFO) << max_value << "\t" << factor << "\t" << nearest_multiple << "\n";
+
+  int chunk2 = int(dict_length/(nearest_multiple*32));
+
+  LOG(INFO) << max_value << "\t" << factor << "\t" << nearest_multiple << "\t" << chunk2 << "\n";
 
   //auto element : dict;
   //LOG(INFO) << "High score: " << *max_element( (element.second).begin(), (element.second).end() ) << "\n";
