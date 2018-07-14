@@ -586,11 +586,7 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
 
   LOG(INFO) << max_value << "\t" << factor << "\t" << nearest_multiple << "\t" << chunk2 << "\n";
 
-  //auto element : dict;
-  //LOG(INFO) << "High score: " << *max_element( (element.second).begin(), (element.second).end() ) << "\n";
 
-
-  exit(0);
 
   // generate intv.list
   int contig_idx = 0;
@@ -610,6 +606,12 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
   for (int i = 0; i < dict.size(); i++) {
     std::string chr_name = dict[i].first;
     uint64_t chr_length = dict[i].second;
+
+
+
+
+
+
     uint64_t npos = chr_length;
 
     // if the number of positions in one chr is larger than one contig part
