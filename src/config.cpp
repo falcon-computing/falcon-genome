@@ -478,7 +478,6 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
   return intv_paths;
 }
 
-
 int roundUp(int numToRound, int multiple){
     if (multiple == 0) return numToRound;
     int remainder = abs(numToRound) % multiple;
@@ -488,10 +487,6 @@ int roundUp(int numToRound, int multiple){
     else
         return numToRound + multiple - remainder;
 }
-
-
-
-
 
 // Split Reference File :
 std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
@@ -508,8 +503,6 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
        intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
   }
 
-  // TODO: temporary to use old partition method, need to check
-  // if num_contigs = 32
   std::string org_intv_dir = get_config<std::string>("gatk.intv.path");
   if (ncontigs == 32 && !org_intv_dir.empty()) {
     DLOG(INFO) << "Use original interval files";
@@ -530,9 +523,6 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
   boost::filesystem::wpath path(ref_path);
   path = path.replace_extension(".dict");
   std::string dict_path = check_input(path.string());
-
-  //std::ifstream ref_file(ref_path);
-  //std::string grab_line;
 
   // parse ref.dict files
   std::vector<std::string> dict_lines = get_lines(dict_path, "@SQ.*");
@@ -571,84 +561,76 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
     }
     dict.push_back(std::make_pair(chr_name, chr_length));
 
+    // Find the chromosome with the largest number of bases:
     if (max_value < chr_length) max_value = chr_length;
-
-
-    LOG(INFO) << chr_name << "\t" << chr_length << std::endl;
-
+    DLOG(INFO) << "Chromosome: " << chr_name << " has " << chr_length << " bases"<< std::endl;
     dict_length += chr_length;
   }
 
-  int factor = int(max_value/ncontigs);
-  int nearest_multiple = roundUp(factor,ncontigs);
+  uint64_t factor = int(max_value/ncontigs);
+  uint64_t nearest_multiple = roundUp(factor,ncontigs);
+  uint64_t intervals_per_file = int(dict_length/(nearest_multiple*dict.size()));
 
-  int chunk2 = int(dict_length/(nearest_multiple*32));
+  DLOG(INFO) << "Per every \t" << factor << "\t" << nearest_multiple << "\t" << intervals_per_file << "\n";
 
-  LOG(INFO) << max_value << "\t" << factor << "\t" << nearest_multiple << "\t" << chunk2 << "\n";
-
-
-
-  // generate intv.list
-  int contig_idx = 0;
-
-  // positions per contig part
-  uint64_t contig_npos = (dict_length+ncontigs-1)/ncontigs;
-  uint64_t remain_npos = contig_npos;   // remaining positions for partition
-
-  DLOG(INFO) << "contig_npos = " << contig_npos;
-
-  uint64_t lbound = 1;
-  uint64_t ubound = contig_npos;
-
-  std::ofstream fout;
-  fout.open(intv_paths[0]);
-
+  uint64_t lbound;
+  uint64_t ubound;
+  int intCounter=1;
+  std::vector<std::string> splitted_ref;
   for (int i = 0; i < dict.size(); i++) {
     std::string chr_name = dict[i].first;
     uint64_t chr_length = dict[i].second;
+    ubound=nearest_multiple;
 
-
-
-
-
-
-    uint64_t npos = chr_length;
+    if( ubound > chr_length) {
+       ubound=chr_length;
+       splitted_ref.push_back(chr_name+"\t"+ std::to_string(intCounter) + "\t" + std::to_string(ubound));
+       DLOG(INFO) << chr_name << "\t" << chr_length << "\t" << intCounter << "\t" << "1" << "\t" << ubound << "\n";
+       intCounter=1; 
+       continue;
+    }
 
     // if the number of positions in one chr is larger than one contig part
-    while (npos > remain_npos) {
-      ubound = remain_npos + lbound - 1;
+    while (ubound < chr_length) {
+      if (intCounter == 1){
+         lbound = intCounter;
+         ubound = nearest_multiple;
+      }else{
+	 lbound = (intCounter-1)*nearest_multiple;
+         ubound = lbound + nearest_multiple;
+      }
+      
+      splitted_ref.push_back(chr_name+"\t"+ std::to_string(lbound).c_str() + "\t" + std::to_string(ubound).c_str()) ;
+      DLOG(INFO) << chr_name << "\t" << chr_length << "\t" << intCounter << "\t" <<  lbound << "\t" << ubound << "\n";
+      intCounter++;
 
-      write_contig_intv(fout, chr_name, lbound, ubound);
-
-      lbound = ubound + 1;
-      npos -= remain_npos;
-      remain_npos = contig_npos;
-
-      fout.close();
-      fout.open(intv_paths[++contig_idx]);
     }
-    // write remaining positions in the chr to the current contig
-    if (npos > 0) {
-      write_contig_intv(fout, chr_name, lbound, chr_length);
 
-      remain_npos -= npos;
-      lbound = 1;
+    if (ubound > chr_length){
+       ubound = chr_length;
+       DLOG(INFO) << chr_name << "\t" << chr_length << "\t" << intCounter << "\t" <<  lbound << "\t" << ubound << "\n";
+       splitted_ref.push_back(chr_name+"\t"+ std::to_string(lbound).c_str() + "\t" + std::to_string(ubound).c_str()) ;
+       intCounter=1;
     }
   }
-  fout.close();
+
+  int count_lines = 0;
+  int contig_idx = 0;
+  std::ofstream fout;
+  fout.open(intv_paths[contig_idx]);
+  for (auto it=splitted_ref.begin();it!=splitted_ref.end();it++){
+      LOG(INFO) << *it << "\n";
+      fout << *it << "\n";
+      ++count_lines;
+      if (count_lines == intervals_per_file){
+	 fout.close();
+         fout.open(intv_paths[++contig_idx]);
+         count_lines=1;
+      }
+  }
 
   return intv_paths;
 }
-
-
-
-
-
-
-
-
-
-
 
 // Spliting Files begins here :
 unsigned int FileRead(std::istream &is, std::vector <char> & buff) {
@@ -666,7 +648,6 @@ unsigned int CountLines(const std::vector <char> &buff, int sz) {
     }
     return newlines;
 }
-
 
 std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype) {
 
