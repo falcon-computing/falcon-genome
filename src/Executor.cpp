@@ -11,6 +11,7 @@
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/Executor.h"
+#include "fcs-genome/log.h"
 
 namespace fcsgenome {
 
@@ -65,7 +66,7 @@ void Stage::run() {
 
   //check if any error message in log files
   if (!status_.empty()){
-    string match;
+    std::string match;
     if (findError(logs_, match)){
       throw failedCommand(executor_->job_name() + 
                           "failed, error message found:\n" + match);
