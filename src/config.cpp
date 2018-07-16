@@ -357,7 +357,7 @@ int init(char** argv, int argc) {
 static inline void write_contig_intv(std::ofstream& fout,
     std::string chr,
     uint64_t lbound, uint64_t ubound) {
-  fout << chr << ":" << lbound << "-" << ubound << std::endl;
+    fout << chr << ":" << lbound << "-" << ubound << std::endl;
 }
 
 std::vector<std::string> init_contig_intv(std::string ref_path) {
@@ -611,7 +611,7 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
 
   }
 
-  int intervals_per_file = int(splitted_ref.size()/ncontigs);
+  int intervals_per_file = int(round((double) splitted_ref.size()/ (double) ncontigs);
   DLOG(INFO) << "intervals_per_file "  << intervals_per_file << "\t" << ncontigs << "\n";
   DLOG(INFO) << "splitted_ref.size() " << splitted_ref.size() << "\n";
   int count_lines = 0;
