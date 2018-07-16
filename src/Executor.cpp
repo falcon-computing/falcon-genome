@@ -67,7 +67,8 @@ void Stage::run() {
   if (!status_.empty()){
     string match;
     if (findError(logs_, match)){
-      throw failedCommand("Found error message : " + match);
+      throw failedCommand(executor_->job_name() + 
+                          "failed, error message found:\n" + match);
     }
   }
 

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <vector>
 
 namespace fcsgenome {
 
@@ -22,28 +23,25 @@ Bool findError(std::vector<std::string> logs_, std::string match){
       string line;
       if(fin.good()){getline(fin, line);}
       while(fin.good()){
-        getline(fin, line); // get line from file
+        getline(fin, line); 
         size_t pos;
-        pos=line.find("ERROR"); // search
+        pos=line.find("ERROR"); // search ERROR for gatk logs
         if(pos!=string::npos) // string::npos is returned if string is not found
         {
-          match = line;
+          match = match + line;
           if_match = true;
-          break;
         }
-        pos=line.find("fail"); // search
+        pos=line.find("fail"); // search fail for bwa logs
         if(pos!=string::npos) // string::npos is returned if string is not found
         {
-          match = line;
+          match = match + line;
           if_match = true;
-          break;
         }
         pos=line.find("error"); // search
         if(pos!=string::npos) // string::npos is returned if string is not found
         {
-          match = line;
+          match = match + line;
           if_match = true;
-          break;
         }
      }
      if(if_match == true){
