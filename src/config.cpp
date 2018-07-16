@@ -611,7 +611,7 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
 
   }
 
-  int intervals_per_file = int(round((double) splitted_ref.size()/ (double) ncontigs);
+  int intervals_per_file = (int) round((double) splitted_ref.size()/ (double) ncontigs);
   DLOG(INFO) << "intervals_per_file "  << intervals_per_file << "\t" << ncontigs << "\n";
   DLOG(INFO) << "splitted_ref.size() " << splitted_ref.size() << "\n";
   int count_lines = 0;
