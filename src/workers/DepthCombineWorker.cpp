@@ -57,7 +57,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
 
      std::string header;
      for (int i = 0 ; i < input_files_.size() ; i++){
-        DLOG(INFO) << "Merge File : " << input_files_[i] + file_type << std::endl;
+        LOG(INFO) << "Merge File : " << input_files_[i] + file_type << std::endl;
         std::ifstream file((input_files_[i] + file_type).c_str());
         std::string value;
         getline(file,value);
