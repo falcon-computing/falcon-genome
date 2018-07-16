@@ -1,5 +1,10 @@
-Bool findError(std::vector<std::string> logs_, std::string match:w
-){
+#include <iostream>
+#include <string>
+#include <fstream>
+
+namespace fcsgenome {
+
+Bool findError(std::vector<std::string> logs_, std::string match){
   bool if_match = false;
   for (int i = 0; i < logs_.size(); i++){
     std::ifstream fin(logs_[i], std::ios::in);
@@ -26,7 +31,7 @@ Bool findError(std::vector<std::string> logs_, std::string match:w
           if_match = true;
           break;
         }
-        pos=line.find("Error"); // search
+        pos=line.find("fail"); // search
         if(pos!=string::npos) // string::npos is returned if string is not found
         {
           match = line;
@@ -47,4 +52,5 @@ Bool findError(std::vector<std::string> logs_, std::string match:w
   }
 }
 return if_match;
+}
 }
