@@ -49,10 +49,10 @@ void DepthCombineWorker::check() {
 }
 
 void DepthCombineWorker::merge_outputs(std::string file_type) {
-     std::map<std::string, std::vector<int> > InputData;
+     std::map<std::string, std::vector<uint64_t> > InputData;
      std::string sampleName;
-     std::vector<int> results;
-     std::vector<int> temp_round;
+     std::vector<uint64_t> results;
+     std::vector<uint64_t> temp_round;
      std::vector<std::string> temp;
 
      std::string header;
@@ -91,10 +91,10 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                    }
                    temp.clear();
 
-   	           std::map<std::string, std::vector<int>>::iterator iter = InputData.find(sampleName);
+   	               std::map<std::string, std::vector<int>>::iterator iter = InputData.find(sampleName);
                    if (iter != InputData.end()){
-		       results = operator+(results,temp_round);
-	               InputData[sampleName] = results;
+		                   results = operator+(results,temp_round);
+	                     InputData[sampleName] = results;
                    }
                    temp_round.clear();
              }
@@ -275,14 +275,12 @@ void DepthCombineWorker::setup() {
       merge_outputs(".sample_statistics");
   }
   if (flag_baseCoverage_) {
-     //concatenate_outputs("");
-    merge_outputs(".sample_cumulative_coverage_counts");
-    merge_outputs(".sample_interval_statistics");
-    concatenate_outputs(".sample_interval_summary");
-    concatenate_outputs(".sample_gene_summary");
-    merge_outputs(".sample_statistics");
-
-
+      //concatenate_outputs("");
+      merge_outputs(".sample_cumulative_coverage_counts");
+      merge_outputs(".sample_interval_statistics");
+      concatenate_outputs(".sample_interval_summary");
+      concatenate_outputs(".sample_gene_summary");
+      merge_outputs(".sample_statistics");
   }
 }
 
