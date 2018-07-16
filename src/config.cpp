@@ -569,9 +569,8 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
 
   uint64_t factor = int(max_value/ncontigs);
   uint64_t nearest_multiple = roundUp(factor,ncontigs);
-  uint64_t intervals_per_file = int(dict_length/(nearest_multiple*dict.size()));
-
-  DLOG(INFO) << "Per every \t" << factor << "\t" << nearest_multiple << "\t" << intervals_per_file << "\n";
+  //uint64_t intervals_per_file = int(dict_length/(nearest_multiple*dict.size()));
+  //LOG(INFO) << "Per every \t" << factor << "\t" << nearest_multiple << "\t" << intervals_per_file << "\n";
 
   uint64_t lbound;
   uint64_t ubound;
@@ -584,8 +583,8 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
 
     if( ubound > chr_length) {
        ubound=chr_length;
-       splitted_ref.push_back(chr_name+"\t"+ std::to_string(intCounter) + "\t" + std::to_string(ubound));
-       DLOG(INFO) << chr_name << "\t" << chr_length << "\t" << intCounter << "\t" << "1" << "\t" << ubound << "\n";
+       splitted_ref.push_back(chr_name+":"+ std::to_string(intCounter) + "-" + std::to_string(ubound));
+       DLOG(INFO) << chr_name << "\t" << chr_length << "\t" << intCounter << "\t" << ubound << "\n";
        intCounter=1; 
        continue;
     }
@@ -600,35 +599,43 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
          ubound = lbound + nearest_multiple;
       }
       
-      splitted_ref.push_back(chr_name+"\t"+ std::to_string(lbound).c_str() + "\t" + std::to_string(ubound).c_str()) ;
-      DLOG(INFO) << chr_name << "\t" << chr_length << "\t" << intCounter << "\t" <<  lbound << "\t" << ubound << "\n";
-      intCounter++;
-
+      //splitted_ref.push_back(chr_name+":"+ std::to_string(lbound).c_str() + "-" + std::to_string(ubound).c_str()) ;
+      if (ubound < chr_length){
+         DLOG(INFO) << chr_name << "\t" << chr_length  << "\t" <<  lbound << "\t" << ubound << "\n";
+	 splitted_ref.push_back(chr_name+":"+ std::to_string(lbound).c_str() + "-" + std::to_string(ubound).c_str()) ;
+	 intCounter++;
+      } else {
+	 ubound = chr_length;
+	 DLOG(INFO) << chr_name << "\t" << chr_length  << "\t" <<  lbound << "\t" << ubound << "\n";
+	 splitted_ref.push_back(chr_name+":"+ std::to_string(lbound).c_str() + "-" + std::to_string(ubound).c_str()) ;
+         intCounter=1;
+      }
     }
 
-    if (ubound > chr_length){
-       ubound = chr_length;
-       DLOG(INFO) << chr_name << "\t" << chr_length << "\t" << intCounter << "\t" <<  lbound << "\t" << ubound << "\n";
-       splitted_ref.push_back(chr_name+"\t"+ std::to_string(lbound).c_str() + "\t" + std::to_string(ubound).c_str()) ;
-       intCounter=1;
-    }
   }
 
+  int intervals_per_file = int(splitted_ref.size()/ncontigs);
+  DLOG(INFO) << "intervals_per_file "  << intervals_per_file << "\t" << ncontigs << "\n";
+  DLOG(INFO) << "splitted_ref.size() " << splitted_ref.size() << "\n";
   int count_lines = 0;
   int contig_idx = 0;
   std::ofstream fout;
   fout.open(intv_paths[contig_idx]);
+  DLOG(INFO) << "Open " << intv_paths[contig_idx] << "\n";
   for (auto it=splitted_ref.begin();it!=splitted_ref.end();it++){
-      LOG(INFO) << *it << "\n";
+      DLOG(INFO) << *it << "\n";
       fout << *it << "\n";
       ++count_lines;
-      if (count_lines == intervals_per_file){
+      if (count_lines == intervals_per_file && contig_idx < ncontigs-1){
 	 fout.close();
+         DLOG(INFO) << "Closing " << intv_paths[contig_idx] << "\n";
          fout.open(intv_paths[++contig_idx]);
-         count_lines=1;
+         DLOG(INFO) << "Open " << intv_paths[contig_idx] << "\n";
+         count_lines=0;
       }
   }
-
+  DLOG(INFO) << "Closing " << intv_paths[contig_idx] << "\n";
+  fout.close();
   return intv_paths;
 }
 

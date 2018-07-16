@@ -63,8 +63,8 @@ int depth_main(int argc, char** argv,
   // finalize argument parsing
   po::notify(cmd_vm);
 
-  std::string temp_dir = conf_temp_dir + "/depth";
-  //std::string temp_dir = "/genome/disk2/alfonso/depth";
+  //std::string temp_dir = conf_temp_dir + "/depth";
+  std::string temp_dir = "/genome/disk2/alfonso/depth";
   create_dir(temp_dir);
 
   //output path
@@ -84,16 +84,20 @@ int depth_main(int argc, char** argv,
       if (!geneList.empty()){
           geneList_paths = split_by_nprocs(geneList, "list");
       } else {
-          intv_paths = split_ref_by_nprocs(ref_path); 
+          intv_paths = split_ref_by_nprocs(ref_path);
+          for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back(""); 
       }
   } else {
       if (geneList_paths.empty()) {
           intv_paths = split_ref_by_nprocs(ref_path);
+          for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back("");
       } else {
           geneList_paths = split_by_nprocs(geneList, "list");
       };
   }
 
+  DLOG(INFO) << "intv_paths Size: " << intv_paths.size();
+  
   std::string input_file;
   if (boost::filesystem::is_directory(input_path)) {
       // Merging BAM files if the input is a folder containing PARTS BAM files:
@@ -122,6 +126,7 @@ int depth_main(int argc, char** argv,
   }
   else {
       input_file = input_path;
+      LOG(INFO) << "A single BAM File\n";
   }
 
   Executor executor("Depth", get_config<int>("gatk.depth.nprocs"));
