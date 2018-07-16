@@ -1,5 +1,7 @@
 #include <algorithm>
+#include <bits/stdc++.h>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string/regex.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/thread.hpp>
 #include <fstream>
@@ -512,7 +514,6 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
       if (boost::filesystem::exists(intv_paths[i])) {
         break;
       }
-
       boost::filesystem::copy_file(org_intv, intv_paths[i]);
     }
     return intv_paths;
@@ -545,7 +546,7 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
     std::string chr_name;
     uint64_t    chr_length = 0;
     for (tokenizer::iterator it = tok_space.begin();
-         it != tok_space.end(); ++it) {
+      it != tok_space.end(); ++it) {
       // [0] @SQ, [1] SN:contig, [2] LN:length
       if (idx == 1) {
         tokenizer tok{*it, colon_sep};
@@ -569,8 +570,6 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
 
   uint64_t factor = int(max_value/ncontigs);
   uint64_t nearest_multiple = roundUp(factor,ncontigs);
-  //uint64_t intervals_per_file = int(dict_length/(nearest_multiple*dict.size()));
-  //LOG(INFO) << "Per every \t" << factor << "\t" << nearest_multiple << "\t" << intervals_per_file << "\n";
 
   uint64_t lbound;
   uint64_t ubound;
@@ -580,7 +579,6 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
     std::string chr_name = dict[i].first;
     uint64_t chr_length = dict[i].second;
     ubound=nearest_multiple;
-
     if( ubound > chr_length) {
        ubound=chr_length;
        splitted_ref.push_back(chr_name+":"+ std::to_string(intCounter) + "-" + std::to_string(ubound));
@@ -598,8 +596,7 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
 	 lbound = (intCounter-1)*nearest_multiple;
          ubound = lbound + nearest_multiple;
       }
-      
-      //splitted_ref.push_back(chr_name+":"+ std::to_string(lbound).c_str() + "-" + std::to_string(ubound).c_str()) ;
+
       if (ubound < chr_length){
          DLOG(INFO) << chr_name << "\t" << chr_length  << "\t" <<  lbound << "\t" << ubound << "\n";
 	 splitted_ref.push_back(chr_name+":"+ std::to_string(lbound).c_str() + "-" + std::to_string(ubound).c_str()) ;
@@ -623,20 +620,41 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
   fout.open(intv_paths[contig_idx]);
   DLOG(INFO) << "Open " << intv_paths[contig_idx] << "\n";
   for (auto it=splitted_ref.begin();it!=splitted_ref.end();it++){
-      DLOG(INFO) << *it << "\n";
-      fout << *it << "\n";
-      ++count_lines;
-      if (count_lines == intervals_per_file && contig_idx < ncontigs-1){
-	 fout.close();
-         DLOG(INFO) << "Closing " << intv_paths[contig_idx] << "\n";
-         fout.open(intv_paths[++contig_idx]);
-         DLOG(INFO) << "Open " << intv_paths[contig_idx] << "\n";
-         count_lines=0;
-      }
+    std::string data_line = *it;
+    // This condition adds 1 to the Start Position of the first line in the intv list file.
+    // This avoids duplicate coverage computation since each intv file goes to a different thread:   
+    if (count_lines == 0  && contig_idx >0){
+	std::vector <std::string> resultArray;
+	boost::algorithm::split_regex( resultArray, data_line,  boost::regex( ":|-" ));
+        if (std::stoi(resultArray[1]) != 1){
+	   for (int k=0; k<resultArray.size();k++){
+	       if (k == 0){
+	          data_line = resultArray[k] + ":";
+	       } else if (k == 1){
+                  int temp = std::stoi(resultArray[k])+1; 
+	          data_line = data_line + std::to_string(temp) + "-";
+               } else if (k ==2){
+                  data_line = data_line + resultArray[k];
+               }           
+           }
+        }
+    }
+
+    DLOG(INFO) << data_line << "\n";
+    fout << data_line << "\n";
+    ++count_lines;
+    if (count_lines == intervals_per_file && contig_idx < ncontigs-1){
+	fout.close();
+        DLOG(INFO) << "Closing " << intv_paths[contig_idx] << "\n";
+        fout.open(intv_paths[++contig_idx]);
+        DLOG(INFO) << "Open " << intv_paths[contig_idx] << "\n";
+        count_lines=0;
+    }
   }
   DLOG(INFO) << "Closing " << intv_paths[contig_idx] << "\n";
   fout.close();
   return intv_paths;
+
 }
 
 // Spliting Files begins here :
