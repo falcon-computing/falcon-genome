@@ -6,7 +6,6 @@
 #include <boost/thread.hpp>
 #include <fstream>
 #include <iostream>
-#include <cmath>
 #include <string>
 #include <unistd.h>
 
@@ -584,7 +583,7 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
        ubound=chr_length;
        splitted_ref.push_back(chr_name+":"+ std::to_string(intCounter) + "-" + std::to_string(ubound));
        DLOG(INFO) << chr_name << "\t" << chr_length << "\t" << intCounter << "\t" << ubound << "\n";
-       intCounter=1; 
+       intCounter=1;
        continue;
     }
 
@@ -594,30 +593,27 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
          lbound = intCounter;
          ubound = nearest_multiple;
       }else{
-	 lbound = (intCounter-1)*nearest_multiple;
+	       lbound = (intCounter-1)*nearest_multiple;
          ubound = lbound + nearest_multiple;
       }
 
       if (ubound < chr_length){
          DLOG(INFO) << chr_name << "\t" << chr_length  << "\t" <<  lbound << "\t" << ubound << "\n";
-	 splitted_ref.push_back(chr_name+":"+ std::to_string(lbound).c_str() + "-" + std::to_string(ubound).c_str()) ;
-	 intCounter++;
+	       splitted_ref.push_back(chr_name+":"+ std::to_string(lbound).c_str() + "-" + std::to_string(ubound).c_str()) ;
+	       intCounter++;
       } else {
-	 ubound = chr_length;
-	 DLOG(INFO) << chr_name << "\t" << chr_length  << "\t" <<  lbound << "\t" << ubound << "\n";
-	 splitted_ref.push_back(chr_name+":"+ std::to_string(lbound).c_str() + "-" + std::to_string(ubound).c_str()) ;
+	       ubound = chr_length;
+	       DLOG(INFO) << chr_name << "\t" << chr_length  << "\t" <<  lbound << "\t" << ubound << "\n";
+	       splitted_ref.push_back(chr_name+":"+ std::to_string(lbound).c_str() + "-" + std::to_string(ubound).c_str()) ;
          intCounter=1;
       }
     }
 
   }
 
-  double round_number = (double) splitted_ref.size()/(double) ncontigs;
-  round_number = std::round(round_number);
-  
-  int intervals_per_file = (int) round_number;
-  LOG(INFO) << "intervals_per_file "  << intervals_per_file << "\t" << ncontigs << "\n";
-  LOG(INFO) << "splitted_ref.size() " << splitted_ref.size() << "\n";
+  int intervals_per_file = int(splitted_ref.size()/ncontigs);
+  DLOG(INFO) << "intervals_per_file "  << intervals_per_file << "\t" << ncontigs << "\n";
+  DLOG(INFO) << "splitted_ref.size() " << splitted_ref.size() << "\n";
   int count_lines = 0;
   int contig_idx = 0;
   std::ofstream fout;
@@ -626,20 +622,20 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
   for (auto it=splitted_ref.begin();it!=splitted_ref.end();it++){
     std::string data_line = *it;
     // This condition adds 1 to the Start Position of the first line in the intv list file.
-    // This avoids duplicate coverage computation since each intv file goes to a different thread:   
+    // This avoids duplicate coverage computation since each intv file goes to a different thread:
     if (count_lines == 0  && contig_idx >0){
-	std::vector <std::string> resultArray;
-	boost::algorithm::split_regex( resultArray, data_line,  boost::regex( ":|-" ));
+	      std::vector <std::string> resultArray;
+	      boost::algorithm::split_regex( resultArray, data_line,  boost::regex( ":|-" ));
         if (std::stoi(resultArray[1]) != 1){
-	   for (int k = 0; k <resultArray.size();k++){
-	       if (k == 0){
-	          data_line = resultArray[k] + ":";
-	       } else if (k == 1){
-                  int temp = std::stoi(resultArray[k])+1; 
-	          data_line = data_line + std::to_string(temp) + "-";
-               } else if (k ==2){
-                  data_line = data_line + resultArray[k];
-               }           
+	         for (int k=0; k<resultArray.size();k++){
+	              if (k == 0){
+	                  data_line = resultArray[k] + ":";
+	              } else if (k == 1){
+                    int temp = std::stoi(resultArray[k])+1;
+	                  data_line = data_line + std::to_string(temp) + "-";
+                } else if (k ==2){
+                    data_line = data_line + resultArray[k];
+                }
            }
         }
     }
@@ -648,7 +644,7 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
     fout << data_line << "\n";
     ++count_lines;
     if (count_lines == intervals_per_file && contig_idx < ncontigs-1){
-	fout.close();
+	      fout.close();
         DLOG(INFO) << "Closing " << intv_paths[contig_idx] << "\n";
         fout.open(intv_paths[++contig_idx]);
         DLOG(INFO) << "Open " << intv_paths[contig_idx] << "\n";

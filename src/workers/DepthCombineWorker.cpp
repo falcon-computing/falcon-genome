@@ -78,7 +78,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                         results.push_back(atoi(temp.at(k).c_str()));
                    }
                    temp.clear();
-                   InputData.insert( std::pair<std::string,std::vector<int>>(sampleName,results) );
+                   InputData.insert( std::pair<std::string,std::vector<uint64_t>>(sampleName,results) );
                    counter++;
             }
         } else {
@@ -91,7 +91,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                    }
                    temp.clear();
 
-   	               std::map<std::string, std::vector<int>>::iterator iter = InputData.find(sampleName);
+   	               std::map<std::string, std::vector<uint64_t>>::iterator iter = InputData.find(sampleName);
                    if (iter != InputData.end()){
 		                   results = operator+(results,temp_round);
 	                     InputData[sampleName] = results;
@@ -143,7 +143,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                    double normalized_value = datapoint/max_value;
                    if ( normalized_value < 0.01 ) normalized_value = 0.00;
                    fprintf(normalized_file, "%.2f\t", normalized_value);
-	           //normalized_file << std::setprecision(2) << normalized_value << '\t';
+	                 //normalized_file << std::setprecision(2) << normalized_value << '\t';
               }
               fprintf(normalized_file, "\n");
               fclose(normalized_file);
