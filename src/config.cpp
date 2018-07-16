@@ -6,6 +6,7 @@
 #include <boost/thread.hpp>
 #include <fstream>
 #include <iostream>
+#include <cmath>
 #include <string>
 #include <unistd.h>
 
@@ -611,9 +612,12 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
 
   }
 
-  int intervals_per_file = int(splitted_ref.size()/ncontigs);
-  DLOG(INFO) << "intervals_per_file "  << intervals_per_file << "\t" << ncontigs << "\n";
-  DLOG(INFO) << "splitted_ref.size() " << splitted_ref.size() << "\n";
+  double round_number = (double) splitted_ref.size()/(double) ncontigs;
+  round_number = std::round(round_number);
+  
+  int intervals_per_file = (int) round_number;
+  LOG(INFO) << "intervals_per_file "  << intervals_per_file << "\t" << ncontigs << "\n";
+  LOG(INFO) << "splitted_ref.size() " << splitted_ref.size() << "\n";
   int count_lines = 0;
   int contig_idx = 0;
   std::ofstream fout;
@@ -627,7 +631,7 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
 	std::vector <std::string> resultArray;
 	boost::algorithm::split_regex( resultArray, data_line,  boost::regex( ":|-" ));
         if (std::stoi(resultArray[1]) != 1){
-	   for (int k=0; k<resultArray.size();k++){
+	   for (int k = 0; k <resultArray.size();k++){
 	       if (k == 0){
 	          data_line = resultArray[k] + ":";
 	       } else if (k == 1){

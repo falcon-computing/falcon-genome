@@ -68,8 +68,6 @@ void DepthWorker::setup() {
         }
   }
 
-
-
   cmd << "-nt " << get_config<int>("gatk.depth.nct", "gatk.nct") << " "
       << "-o " << output_path_ << " " ;
 
@@ -77,9 +75,9 @@ void DepthWorker::setup() {
      cmd << "-isr INTERSECTION ";
   }
 
-  if (!flag_baseCoverage_)     cmd << " -omitBaseOutput ";
-  if (!flag_sampleSummary_)    cmd << " -omitSampleSummary ";
-  if (!flag_intervalCoverage_) cmd << " --omitIntervals";
+  if (flag_baseCoverage_)     cmd << " -omitBaseOutput ";
+  if (flag_sampleSummary_)    cmd << " -omitSampleSummary ";
+  if (flag_intervalCoverage_) cmd << " -omitIntervals";
 
   cmd_ = cmd.str();
   LOG(INFO) << cmd_;

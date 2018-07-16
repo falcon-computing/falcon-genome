@@ -28,12 +28,9 @@ int depth_main(int argc, char** argv,
     ("output,o", po::value<std::string>()->required(),"output coverage file")
     ("intervalList,L", "Interval List BED File")
     ("geneList,g", "list of genes over which the coverage is calculated")
-    ("omitBaseOutput,b", po::value<bool>()->default_value(false),
-            "omit output coverage depth at each base (default: false)")
-    ("omitIntervals,v", po::value<bool>()->default_value(false),
-            "omit output coverage per-interval statistics (default false)")
-    ("omitSampleSummary,s", po::value<bool>()->default_value(false),
-            "omit output summary files for each sample (default false");
+    ("omitBaseOutput,b", "omit output coverage depth at each base (default: false)")
+    ("omitIntervals,v", "omit output coverage per-interval statistics (default false)")
+    ("omitSampleSummary,s", "omit output summary files for each sample (default false");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -126,7 +123,6 @@ int depth_main(int argc, char** argv,
   }
   else {
       input_file = input_path;
-      LOG(INFO) << "A single BAM File\n";
   }
 
   Executor executor("Depth", get_config<int>("gatk.depth.nprocs"));
