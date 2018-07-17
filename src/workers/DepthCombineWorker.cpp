@@ -5,6 +5,7 @@
 #include <boost/algorithm/string/regex.hpp>
 #include <boost/lexical_cast.hpp>
 #include <fstream>
+#include <inttypes.h>
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -79,7 +80,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
 
      std::string header;
      for (int i = 0 ; i < input_files_.size() ; i++){
-        LOG(INFO) << "Merge File : " << input_files_[i] + file_type << std::endl;
+        DLOG(INFO) << "Merge File : " << input_files_[i] + file_type << std::endl;
         std::ifstream file((input_files_[i] + file_type).c_str());
         std::string value;
         getline(file,value);
@@ -113,12 +114,10 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                    }
                    temp.clear();
 
-   	               std::map<std::string, std::vector<uint64_t>>::iterator iter = InputData.find(sampleName);
+   	           std::map<std::string, std::vector<uint64_t>>::iterator iter = InputData.find(sampleName);
                    if (iter != InputData.end()){
-		                   //LOG(INFO) << "Results Before " << results << "\n";
-	                     results = operator+(results,temp_round);
-                       //LOG(INFO) << "Results After " << results << "\n";
-	                     InputData[sampleName] = results;
+	               results = operator+(results,temp_round);
+	               InputData[sampleName] = results;
                    }
                    temp_round.clear();
              }
@@ -127,34 +126,26 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
 
      } // End for loop
 
-     FILE *countfile;
-     //std::ofstream countfile;
+     std::ofstream countfile;
      if (file_type == ".sample_cumulative_coverage_counts"){
-         countfile = fopen((output_file_ + ".sample_cumulative_coverage_counts").c_str(), "a+");
-         //countfile.open(output_file_ + ".sample_cumulative_coverage_counts");
+         countfile.open(output_file_ + ".sample_cumulative_coverage_counts");
      }
      if (file_type == ".sample_interval_statistics"){
-         countfile = fopen((output_file_ + ".sample_interval_statistics").c_str(), "a+");
-         //countfile.open(output_file_ + ".sample_interval_statistics");
+         countfile.open(output_file_ + ".sample_interval_statistics");
      }
      if (file_type == ".sample_statistics"){
-         countfile = fopen((output_file_ + ".sample_statistics").c_str(), "a+");
-         //countfile.open(output_file_ + ".sample_statistics");
+         countfile.open(output_file_ + ".sample_statistics");
      }
 
      // Inserting Header:
-     //countfile << header << std::endl;
-     fprintf(countfile, "%s\n", header.c_str());
+     countfile << header << std::endl;
      //Inserting Elements:
      for (auto elem : InputData){
-          //countfile << elem.first << "\t" ;
-          fprintf(countfile, "%s\t", (elem.first).c_str());
-          for (auto datapoint : elem.second ){
-               //countfile << datapoint << '\t';
-               fprintf(countfile, "%d\t", datapoint );
+          countfile << elem.first << "\t" ;
+           for (auto datapoint : elem.second ){
+               countfile << datapoint << '\t';
           }
-          fprintf(countfile, "\n");
-          //countfile << std::endl;
+          countfile << std::endl;
 
           // If coverage counts files are used, coverage proportions are computed:
           if (file_type == ".sample_cumulative_coverage_counts"){
@@ -167,15 +158,14 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                    double normalized_value = datapoint/max_value;
                    if ( normalized_value < 0.01 ) normalized_value = 0.00;
                    fprintf(normalized_file, "%.2f\t", normalized_value);
-	                 //normalized_file << std::setprecision(2) << normalized_value << '\t';
               }
               fprintf(normalized_file, "\n");
               fclose(normalized_file);
           }
 
           if (file_type == ".sample_statistics"){
-              FILE *summary_file;
-              summary_file = fopen((output_file_ + ".sample_summary").c_str(), "a+");
+	      std::ofstream summary_file;
+              summary_file.open((output_file_ + ".sample_summary").c_str());
               std::string stat_header = "sample_id\ttotal mean\tgranular_third_quartile\t";
               stat_header = stat_header + "granular_median\tgranular_first_quartile\t\%_bases_above_15\n";
 
@@ -184,7 +174,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
               uint64_t cov_value = 0;
               uint64_t total_coverage15x = 0;
               uint64_t total_coverage = 0;
-              int total = 0;
+              uint64_t total = 0;
               for (auto datapoint : elem.second ){
                    if (cov_value > 14) total_coverage15x += datapoint;
                    total_coverage += cov_value * datapoint;
@@ -192,8 +182,8 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                    total += datapoint;
               };
 
-              double pct15x = 100*float(total_coverage15x)/float(total_coverage);
-              mean = total_coverage/total;
+              double pct15x = 100* static_cast<double>(total_coverage15x)/static_cast<double>(total_coverage);
+              mean = static_cast<double>(total_coverage)/static_cast<double>(total);
 
               // Computing Third Quartile, Mean and First Quartile :
               uint64_t left, right, previous;
@@ -251,14 +241,15 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                        break;
                    }
               }
-              fprintf(summary_file, "%s\t%d\t%.2f\t%d\t%d\t%d\t%.2f\n",
-              sampleName.c_str() ,total_coverage, mean,
-              cov_indexQ3, cov_indexQ2, cov_indexQ1, pct15x);
-              fclose(summary_file);
+              summary_file << sampleName.c_str() << "\t" << total_coverage 
+                           << "\t" << mean << "\t" << cov_indexQ3 
+			   << "\t" << cov_indexQ2 << "\t" << cov_indexQ1 << "\t" << pct15x << "\n";
+              summary_file.close(); summary_file.clear();
+
+
        } // sample_summary file generated
    }
-   fclose(countfile);
-   //countfile.close(); countfile.clear();
+   countfile.close(); countfile.clear();
 }
 
 void DepthCombineWorker::concatenate_outputs(std::string file_type) {
@@ -301,13 +292,11 @@ void DepthCombineWorker::setup() {
       concatenate_outputs(".sample_interval_summary");
   }
   if (flag_baseCoverage_) {
-      //concatenate_outputs("");
       merge_outputs(".sample_cumulative_coverage_counts");
       merge_outputs(".sample_interval_statistics");
       merge_outputs(".sample_statistics");
       concatenate_outputs(".sample_interval_summary");
       concatenate_outputs(".sample_gene_summary");
-
   }
 }
 
