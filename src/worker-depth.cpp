@@ -82,7 +82,7 @@ int depth_main(int argc, char** argv,
           geneList_paths = split_by_nprocs(geneList, "list");
       } else {
           intv_paths = split_ref_by_nprocs(ref_path);
-          for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back(""); 
+          for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back("");
       }
   } else {
       if (geneList_paths.empty()) {
@@ -92,9 +92,11 @@ int depth_main(int argc, char** argv,
           geneList_paths = split_by_nprocs(geneList, "list");
       };
   }
+  std::vector<std::string> intv_paths2=init_contig_intv(ref_path);
+
 
   DLOG(INFO) << "intv_paths Size: " << intv_paths.size();
-  
+
   std::string input_file;
   if (boost::filesystem::is_directory(input_path)) {
       // Merging BAM files if the input is a folder containing PARTS BAM files:
