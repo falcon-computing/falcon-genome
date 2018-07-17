@@ -28,20 +28,23 @@ bool findError(std::vector<std::string> logs_, std::string & match){
         pos=line.find("ERROR"); // search ERROR for gatk logs
         if(pos!=std::string::npos) // string::npos is returned if string is not found
         {
-          match = match + line;
+          match = match + line + "\n";
           if_match = true;
+          continue;
         }
         pos=line.find("fail"); // search fail for bwa logs
         if(pos!=std::string::npos) // string::npos is returned if string is not found
         {
-          match = match + line;
+          match = match + line + "\n";
           if_match = true;
+          continue;
         }
         pos=line.find("error"); // search
         if(pos!=std::string::npos) // string::npos is returned if string is not found
         {
-          match = match + line;
+          match = match + line + "\n";
           if_match = true;
+          continue;
         }
      }
      if(if_match == true){
