@@ -181,9 +181,9 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
 
               // Computing Mean:
               double mean = 0.000;
-              int cov_value = 0;
-              int total_coverage15x = 0;
-              int total_coverage = 0;
+              uint64_t cov_value = 0;
+              uint64_t total_coverage15x = 0;
+              uint64_t total_coverage = 0;
               int total = 0;
               for (auto datapoint : elem.second ){
                    if (cov_value > 14) total_coverage15x += datapoint;
@@ -196,12 +196,12 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
               mean = total_coverage/total;
 
               // Computing Third Quartile, Mean and First Quartile :
-              int left, right, previous;
+              uint64_t left, right, previous;
 
               // Third Quartile:
-              int Q3 = round(3*total/4);
-              int checkQ3 = 0;
-              int cov_indexQ3 = 0;
+              uint64_t Q3 = round(3*total/4);
+              uint64_t checkQ3 = 0;
+              uint64_t cov_indexQ3 = 0;
               previous = 0;
               for (auto datapoint : elem.second ){
                    if (checkQ3 < Q3){
@@ -217,9 +217,9 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
               }
 
               // Computing Median:
-              int Q2 = round(total/2);
-              int checkQ2 = 0;
-              int cov_indexQ2 = 0;
+              uint64_t Q2 = round(total/2);
+              uint64_t checkQ2 = 0;
+              uint64_t cov_indexQ2 = 0;
               previous = 0;
               for (auto datapoint : elem.second ){
                    if (checkQ2 < Q2){
@@ -235,9 +235,9 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
               }
 
               // Computing First Quartile:
-              int Q1 = round(total/4);
-              int checkQ1 = 0;
-              int cov_indexQ1 = 0;
+              uint64_t Q1 = round(total/4);
+              uint64_t checkQ1 = 0;
+              uint64_t cov_indexQ1 = 0;
               previous = 0;
               for (auto datapoint : elem.second ){
                    if (checkQ1 < Q1){

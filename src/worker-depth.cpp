@@ -92,8 +92,6 @@ int depth_main(int argc, char** argv,
           geneList_paths = split_by_nprocs(geneList, "list");
       };
   }
-  std::vector<std::string> intv_paths2=init_contig_intv(ref_path);
-
 
   DLOG(INFO) << "intv_paths Size: " << intv_paths.size();
 
