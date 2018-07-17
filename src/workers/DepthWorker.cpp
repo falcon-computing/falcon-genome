@@ -34,7 +34,9 @@ DepthWorker::DepthWorker(std::string ref_path,
 void DepthWorker::check() {
   ref_path_        = check_input(ref_path_);
   input_path_      = check_input(input_path_);
-  intv_paths_      = check_input(intv_paths_);
+  if (!intv_paths_.empty()){
+      intv_paths_  = check_input(intv_paths_);
+  };
   if (!geneList_paths_.empty()){
       geneList_paths_  = check_input(geneList_paths_);
   };
@@ -49,12 +51,26 @@ void DepthWorker::setup() {
       << "-jar " << get_config<std::string>("gatk_path") << " "
       << "-T DepthOfCoverage "
       << "-R " << ref_path_ << " "
-      << "-I " << input_path_ << " "
-      << "-L " << intv_paths_ << " ";
+      << "-I " << input_path_ << " ";
+
+  if (!intv_paths_.empty()){   
+      cmd << "-L " << intv_paths_ << " ";
+  }
 
   if (!geneList_paths_.empty()){
-      cmd << "-geneList " << geneList_paths_ << " ";
+      cmd << " -geneList " << geneList_paths_ << " ";
   }
+
+  cmd << "-nt " << get_config<int>("gatk.depth.nct", "gatk.nct") << " "
+      << "-o " << output_path_ << " " ;
+
+  if (geneList_paths_.size() > 0 ) {
+    cmd << "-isr INTERSECTION ";
+  }
+
+  if (flag_baseCoverage_)     cmd << " -omitBaseOutput ";
+  if (flag_sampleSummary_)    cmd << " -omitSampleSummary ";
+  if (flag_intervalCoverage_) cmd << " -omitIntervals ";
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
        cmd << it->first << " ";
@@ -67,17 +83,6 @@ void DepthWorker::setup() {
            }
         }
   }
-
-  cmd << "-nt " << get_config<int>("gatk.depth.nct", "gatk.nct") << " "
-      << "-o " << output_path_ << " " ;
-
-  if (geneList_paths_.size() > 0 ) {
-     cmd << "-isr INTERSECTION ";
-  }
-
-  if (flag_baseCoverage_)     cmd << " -omitBaseOutput ";
-  if (flag_sampleSummary_)    cmd << " -omitSampleSummary ";
-  if (flag_intervalCoverage_) cmd << " -omitIntervals ";
 
   cmd_ = cmd.str();
   LOG(INFO) << cmd_;

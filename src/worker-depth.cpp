@@ -26,8 +26,8 @@ int depth_main(int argc, char** argv,
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("input,i", po::value<std::string>()->required(),"input BAM file")
     ("output,o", po::value<std::string>()->required(),"output coverage file")
-    ("intervalList,L", "Interval List BED File")
-    ("geneList,g", "list of genes over which the coverage is calculated")
+    ("intervalList,L", po::value<std::string>(), "Interval List BED File")
+    ("geneList,g", po::value<std::string>(), "list of genes over which the coverage is calculated")
     ("omitBaseOutput,b", "omit output coverage depth at each base (default: false)")
     ("omitIntervals,v", "omit output coverage per-interval statistics (default false)")
     ("omitSampleSummary,s", "omit output summary files for each sample (default false");
@@ -76,21 +76,29 @@ int depth_main(int argc, char** argv,
 
   std::vector<std::string> intv_paths;
   std::vector<std::string> geneList_paths;
-  if (!intv_list.empty()) {
-      intv_paths = split_by_nprocs(intv_list, "bed");
-      if (!geneList.empty()){
-          geneList_paths = split_by_nprocs(geneList, "list");
-      } else {
-          intv_paths = split_ref_by_nprocs(ref_path);
-          for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back("");
-      }
-  } else {
-      if (geneList_paths.empty()) {
-          intv_paths = split_ref_by_nprocs(ref_path);
-          for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back("");
-      } else {
-          geneList_paths = split_by_nprocs(geneList, "list");
-      };
+
+  if (!intv_list.empty() && !geneList.empty()) {
+     DLOG(INFO) << "intv_list NOT EMPTY and geneList NOT EMPTY";
+     intv_paths = split_by_nprocs(intv_list, "bed");
+     geneList_paths = split_by_nprocs(geneList, "list");
+  }
+
+  if (!intv_list.empty() && geneList.empty()) {
+     DLOG(INFO) << "intv_list NOT EMPTY and geneList EMPTY";
+     intv_paths = split_by_nprocs(intv_list, "bed");
+     for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back("");
+  }
+
+  if (intv_list.empty() && geneList.empty()) {
+     DLOG(INFO) << "intv_list EMPTY and geneList EMPTY";
+     intv_paths = split_ref_by_nprocs(ref_path);
+     for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back("");
+  }
+
+  if (intv_list.empty() && !geneList.empty()) {
+     intv_paths = split_ref_by_nprocs(ref_path);
+     for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back("");
+     DLOG(INFO) << "intv_list EMPTY and geneList NOT EMPTY";
   }
 
   DLOG(INFO) << "intv_paths Size: " << intv_paths.size();
