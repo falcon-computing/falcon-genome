@@ -115,9 +115,9 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
 
    	               std::map<std::string, std::vector<uint64_t>>::iterator iter = InputData.find(sampleName);
                    if (iter != InputData.end()){
-		                   LOG(INFO) << "Results Before " << results << "\n";
+		                   //LOG(INFO) << "Results Before " << results << "\n";
 	                     results = operator+(results,temp_round);
-                       LOG(INFO) << "Results After " << results << "\n";
+                       //LOG(INFO) << "Results After " << results << "\n";
 	                     InputData[sampleName] = results;
                    }
                    temp_round.clear();
