@@ -164,7 +164,7 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
           }
 
           if (file_type == ".sample_statistics"){
-	      std::ofstream summary_file;
+	            std::ofstream summary_file;
               summary_file.open((output_file_ + ".sample_summary").c_str());
               std::string stat_header = "sample_id\ttotal mean\tgranular_third_quartile\t";
               stat_header = stat_header + "granular_median\tgranular_first_quartile\t\%_bases_above_15\n";
@@ -241,8 +241,8 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
                        break;
                    }
               }
-              summary_file << sampleName.c_str() << "\t" << total_coverage 
-                           << "\t" << mean << "\t" << cov_indexQ3 
+              summary_file << sampleName.c_str() << "\t" << total_coverage
+                           << "\t" << mean << "\t" << cov_indexQ3
 			   << "\t" << cov_indexQ2 << "\t" << cov_indexQ1 << "\t" << pct15x << "\n";
               summary_file.close(); summary_file.clear();
 
