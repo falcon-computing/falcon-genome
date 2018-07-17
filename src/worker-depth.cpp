@@ -60,8 +60,8 @@ int depth_main(int argc, char** argv,
   // finalize argument parsing
   po::notify(cmd_vm);
 
-  //std::string temp_dir = conf_temp_dir + "/depth";
-  std::string temp_dir = "/genome/disk2/alfonso/depth";
+  std::string temp_dir = conf_temp_dir + "/depth";
+  //std::string temp_dir = "/genome/disk2/alfonso/depth";
   create_dir(temp_dir);
 
   //output path
