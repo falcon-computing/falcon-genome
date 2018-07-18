@@ -235,14 +235,14 @@ int align_main(int argc, char** argv,
         executor.run();
 
         // Generating Log File for each sample:
-        //if (!sampleList.empty()) {
-        //    std::string log_filename  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
-        //    std::ofstream outfile;
-        //    outfile.open(log_filename, std::fstream::in | std::fstream::out | std::fstream::app);
-        //    outfile << sample_id << ":" << read_group << ": Start doing bwa mem " << std::endl;
-        //    outfile << sample_id << ":" << read_group << ": bwa mem finishes in " << getTs() - start_align << " seconds" << std::endl;
-        //    outfile.close(); outfile.clear();
-        //}
+        if (!sampleList.empty()) {
+            std::string log_filename  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
+            std::ofstream outfile;
+            outfile.open(log_filename, std::fstream::in | std::fstream::out | std::fstream::app);
+            outfile << sample_id << ":" << read_group << ": Start doing bwa mem " << std::endl;
+            outfile << sample_id << ":" << read_group << ": bwa mem finishes in " << getTs() - start_align << " seconds" << std::endl;
+            outfile.close(); outfile.clear();
+        }
 
     }; // end loop for list.size()
     std::cout << "Alignment Completed " << sample_id << std::endl;
@@ -260,14 +260,14 @@ int align_main(int argc, char** argv,
 
         output_path = temp;
 
-        //if (!sampleList.empty()) {
-        //    std::string log_filename_md  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
-        //    std::ofstream bwa_log;
-        //    bwa_log.open(log_filename_md, std::ofstream::out | std::ofstream::app);
-        //    bwa_log << sample_id << ": " << "Start doing Mark Duplicates " << std::endl;
-        //    bwa_log << sample_id << ": " << "Mark Duplicates finishes in " << getTs() - start_markdup << " seconds" << std::endl;
-        //    bwa_log.close(); bwa_log.clear();
-        //}
+        if (!sampleList.empty()) {
+            std::string log_filename_md  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
+            std::ofstream bwa_log;
+            bwa_log.open(log_filename_md, std::ofstream::out | std::ofstream::app);
+            bwa_log << sample_id << ": " << "Start doing Mark Duplicates " << std::endl;
+            bwa_log << sample_id << ": " << "Mark Duplicates finishes in " << getTs() - start_markdup << " seconds" << std::endl;
+            bwa_log.close(); bwa_log.clear();
+        }
 
         // Remove parts_dir
         if (list.size() >1) {
@@ -298,12 +298,12 @@ int align_main(int argc, char** argv,
              if (list.size() == 1 && input_files_.size() == 1) check_parts = 0;
          }
 
-         //uint64_t start_merging = getTs();
-         //std::string log_filename_merge  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
-         //std::ofstream merge_log;
-         //merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
-         //merge_log << sample_id << ":" << "--align-only set " << std::endl;
-         //merge_log << sample_id << ":" << "Start Merging BAM Files " << std::endl;
+         uint64_t start_merging = getTs();
+         std::string log_filename_merge  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
+         std::ofstream merge_log;
+         merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
+         merge_log << sample_id << ":" << "--align-only set " << std::endl;
+         merge_log << sample_id << ":" << "Start Merging BAM Files " << std::endl;
 
          Executor merger_executor("Merge BAM files");
          Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, check_parts, flag_f));
@@ -311,8 +311,8 @@ int align_main(int argc, char** argv,
          merger_executor.run();
          DLOG(INFO) << "Merging Parts BAM for  " << sample_id << " completed " << std::endl;
 
-         //merge_log << sample_id << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
-         //merge_log.close(); merge_log.clear();
+         merge_log << sample_id << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
+         merge_log.close(); merge_log.clear();
 
           // Remove parts_dir
          if (list.size() >1) {
