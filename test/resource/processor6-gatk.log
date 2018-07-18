@@ -1,0 +1,1766 @@
+INFO  16:16:44,041 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,048 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:44,048 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:44,048 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:44,050 HelpFormatter - [Wed Jul 11 16:16:44 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:44,050 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:44,055 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv00.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.0 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:44,067 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:44,069 HelpFormatter - Date/Time: 2018/07/11 16:16:44 
+INFO  16:16:44,069 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,074 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,654 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,654 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,655 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:45,437 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:45,471 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:45,630 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.16 
+INFO  16:16:46,741 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,953 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,438 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,455 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,456 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,456 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,542 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,542 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,542 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,542 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,543 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,543 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,928 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,697 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,511 ProgressMeter -      1:11078872         0.0    30.0 s      49.7 w       11.5%     4.4 m       3.9 m 
+INFO  16:17:48,150 ProgressMeter -      1:19518951    100001.0    60.0 s      10.1 m       20.2%     5.0 m       4.0 m 
+INFO  16:18:18,152 ProgressMeter -      1:43908636    300003.0    90.0 s       5.0 m       45.4%     3.3 m     108.0 s 
+INFO  16:18:48,154 ProgressMeter -      1:87814385    600006.0   120.0 s       3.4 m       90.8%     2.2 m      12.0 s 
+INFO  16:18:50,947 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:50,985 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:52,042 BaseRecalibrator - ...done! 
+INFO  16:18:52,043 BaseRecalibrator - BaseRecalibrator was able to recalibrate 687037 reads 
+INFO  16:18:52,045 ProgressMeter -            done    687037.0     2.1 m       3.0 m       99.9%     2.1 m       0.0 s 
+INFO  16:18:52,045 ProgressMeter - Total runtime 124.59 secs, 2.08 min, 0.03 hours 
+INFO  16:18:52,045 MicroScheduler - 102015 reads were filtered out during the traversal out of approximately 789052 total reads (12.93%) 
+INFO  16:18:52,046 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:52,046 MicroScheduler -   -> 49200 reads (6.24% of total) failing DuplicateReadFilter 
+INFO  16:18:52,046 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:52,046 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:52,046 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:52,046 MicroScheduler -   -> 52564 reads (6.66% of total) failing MappingQualityZeroFilter 
+INFO  16:18:52,046 MicroScheduler -   -> 251 reads (0.03% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:52,047 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:44,154 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,157 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:44,158 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:44,158 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:44,160 HelpFormatter - [Wed Jul 11 16:16:44 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:44,160 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:44,164 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv01.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.1 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:44,195 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:44,196 HelpFormatter - Date/Time: 2018/07/11 16:16:44 
+INFO  16:16:44,197 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,197 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,791 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,791 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,792 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:45,215 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:45,238 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:45,329 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.09 
+INFO  16:16:46,484 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,814 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,223 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,230 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,231 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,231 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,300 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,300 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,301 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,305 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,306 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,306 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,067 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:49,421 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,448 ProgressMeter -     1:113993094         0.0    30.0 s      50.0 w       17.8%     2.8 m       2.3 m 
+INFO  16:17:47,450 ProgressMeter -     1:144814931    100001.0    60.0 s      10.0 m       49.7%   120.0 s      60.0 s 
+INFO  16:18:18,933 ProgressMeter -     1:156882964    300004.0    91.0 s       5.1 m       62.2%     2.4 m      55.0 s 
+INFO  16:18:44,086 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:44,151 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:45,810 BaseRecalibrator - ...done! 
+INFO  16:18:45,810 BaseRecalibrator - BaseRecalibrator was able to recalibrate 645199 reads 
+INFO  16:18:45,812 ProgressMeter -            done    645199.0   118.0 s       3.1 m       99.7%   118.0 s       0.0 s 
+INFO  16:18:45,812 ProgressMeter - Total runtime 118.58 secs, 1.98 min, 0.03 hours 
+INFO  16:18:45,812 MicroScheduler - 286370 reads were filtered out during the traversal out of approximately 931569 total reads (30.74%) 
+INFO  16:18:45,812 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:45,813 MicroScheduler -   -> 46638 reads (5.01% of total) failing DuplicateReadFilter 
+INFO  16:18:45,813 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:45,813 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:45,813 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:45,813 MicroScheduler -   -> 239546 reads (25.71% of total) failing MappingQualityZeroFilter 
+INFO  16:18:45,814 MicroScheduler -   -> 186 reads (0.02% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:45,814 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:44,315 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,317 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:44,317 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:44,318 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:44,319 HelpFormatter - [Wed Jul 11 16:16:44 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:44,320 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:44,324 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv02.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.2 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:44,357 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:44,359 HelpFormatter - Date/Time: 2018/07/11 16:16:44 
+INFO  16:16:44,359 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,359 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,883 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,884 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,885 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:45,363 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:45,428 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:45,632 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.20 
+INFO  16:16:47,035 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:47,237 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,509 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,521 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,523 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,523 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,600 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,601 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,606 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,606 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,607 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,607 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,932 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,559 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,559 ProgressMeter -     1:205068875         0.0    30.0 s      49.7 w       12.0%     4.2 m       3.7 m 
+INFO  16:17:47,944 ProgressMeter -     1:216497054    100001.0    60.0 s      10.1 m       23.8%     4.2 m       3.2 m 
+INFO  16:18:06,561 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:18:06,701 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:18:17,974 ProgressMeter -     1:249231253    300003.0    90.0 s       5.0 m       57.6%     2.6 m      66.0 s 
+INFO  16:18:44,497 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:44,562 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:46,177 BaseRecalibrator - ...done! 
+INFO  16:18:46,177 BaseRecalibrator - BaseRecalibrator was able to recalibrate 582461 reads 
+INFO  16:18:46,179 ProgressMeter -            done    582461.0   118.0 s       3.4 m       99.8%   118.0 s       0.0 s 
+INFO  16:18:46,179 ProgressMeter - Total runtime 118.66 secs, 1.98 min, 0.03 hours 
+INFO  16:18:46,180 MicroScheduler - 54744 reads were filtered out during the traversal out of approximately 637205 total reads (8.59%) 
+INFO  16:18:46,201 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:46,201 MicroScheduler -   -> 41060 reads (6.44% of total) failing DuplicateReadFilter 
+INFO  16:18:46,202 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:46,202 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:46,202 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:46,202 MicroScheduler -   -> 13385 reads (2.10% of total) failing MappingQualityZeroFilter 
+INFO  16:18:46,202 MicroScheduler -   -> 299 reads (0.05% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:46,202 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:42,784 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:42,786 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:42,787 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:42,787 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:42,787 HelpFormatter - [Wed Jul 11 16:16:42 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:42,787 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:42,793 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv03.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.3 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:42,821 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:42,821 HelpFormatter - Date/Time: 2018/07/11 16:16:42 
+INFO  16:16:42,821 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:42,822 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:43,422 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:43,422 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:43,423 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:43,691 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:43,700 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:43,861 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.15 
+INFO  16:16:44,767 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:45,031 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:45,986 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:45,987 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:46,008 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:46,009 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:46,076 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:46,076 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:46,076 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:46,076 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:46,076 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:46,077 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:48,175 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:48,451 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:16,057 ProgressMeter -      2:51206476         0.0    30.0 s      49.7 w       10.6%     4.7 m       4.2 m 
+INFO  16:17:46,262 ProgressMeter -      2:66104550    100001.0    60.0 s      10.0 m       26.0%     3.8 m       2.8 m 
+INFO  16:18:16,266 ProgressMeter -      2:97751573    200002.0    90.0 s       7.5 m       58.7%     2.6 m      63.0 s 
+INFO  16:18:43,965 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:44,040 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:45,976 BaseRecalibrator - ...done! 
+INFO  16:18:45,977 BaseRecalibrator - BaseRecalibrator was able to recalibrate 533048 reads 
+INFO  16:18:45,978 ProgressMeter -            done    533048.0   119.0 s       3.8 m       99.9%   119.0 s       0.0 s 
+INFO  16:18:45,978 ProgressMeter - Total runtime 119.99 secs, 2.00 min, 0.03 hours 
+INFO  16:18:45,979 MicroScheduler - 163002 reads were filtered out during the traversal out of approximately 696050 total reads (23.42%) 
+INFO  16:18:45,979 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:45,980 MicroScheduler -   -> 37772 reads (5.43% of total) failing DuplicateReadFilter 
+INFO  16:18:45,980 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:45,980 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:45,980 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:45,981 MicroScheduler -   -> 124993 reads (17.96% of total) failing MappingQualityZeroFilter 
+INFO  16:18:45,981 MicroScheduler -   -> 237 reads (0.03% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:45,981 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,210 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,239 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,239 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,240 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,241 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,241 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,245 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv04.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.4 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,280 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,282 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,282 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,282 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:43,695 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:43,695 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:43,696 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:44,049 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:44,058 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:44,191 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.13 
+INFO  16:16:45,443 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:45,769 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:46,426 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:46,427 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:46,434 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:46,435 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:46,536 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:46,536 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:46,536 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:46,537 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:46,537 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:46,537 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:48,379 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:48,528 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:16,638 ProgressMeter -     2:150062084         0.0    30.0 s      49.9 w       12.8%     3.9 m       3.4 m 
+INFO  16:17:48,200 ProgressMeter -     2:169824975    100001.0    61.0 s      10.3 m       33.2%     3.1 m       2.0 m 
+INFO  16:18:18,202 ProgressMeter -     2:197975691    300003.0    91.0 s       5.1 m       62.3%     2.4 m      55.0 s 
+INFO  16:18:43,340 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:43,401 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:45,243 BaseRecalibrator - ...done! 
+INFO  16:18:45,244 BaseRecalibrator - BaseRecalibrator was able to recalibrate 599923 reads 
+INFO  16:18:45,245 ProgressMeter -            done    599923.0   118.0 s       3.3 m      100.0%   118.0 s       0.0 s 
+INFO  16:18:45,246 ProgressMeter - Total runtime 118.82 secs, 1.98 min, 0.03 hours 
+INFO  16:18:45,246 MicroScheduler - 48790 reads were filtered out during the traversal out of approximately 648713 total reads (7.52%) 
+INFO  16:18:45,246 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:45,247 MicroScheduler -   -> 42809 reads (6.60% of total) failing DuplicateReadFilter 
+INFO  16:18:45,247 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:45,247 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:45,247 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:45,247 MicroScheduler -   -> 5748 reads (0.89% of total) failing MappingQualityZeroFilter 
+INFO  16:18:45,248 MicroScheduler -   -> 233 reads (0.04% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:45,248 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,458 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,461 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,512 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,513 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,514 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,514 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,518 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv05.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.5 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,551 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,552 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,552 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,552 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:43,970 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:43,970 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:43,971 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:44,338 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:44,349 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:44,476 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.13 
+INFO  16:16:45,403 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,087 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:46,379 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:46,380 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:46,381 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:46,382 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:46,539 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:46,539 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:46,539 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:46,539 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:46,539 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:46,539 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:48,975 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:49,302 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:16:52,376 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:53,129 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:16,595 ProgressMeter -     2:243077274         0.0    30.0 s      50.0 w        8.9%     5.6 m       5.1 m 
+INFO  16:17:47,318 ProgressMeter -      3:19926217     55675.0    60.0 s      18.2 m       29.6%     3.4 m       2.4 m 
+INFO  16:18:17,319 ProgressMeter -      3:49881272    255677.0    90.0 s       5.9 m       60.6%     2.5 m      58.0 s 
+INFO  16:18:41,885 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:41,912 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:43,193 BaseRecalibrator - ...done! 
+INFO  16:18:43,194 BaseRecalibrator - BaseRecalibrator was able to recalibrate 516723 reads 
+INFO  16:18:43,195 ProgressMeter -            done    516723.0   116.0 s       3.8 m       99.8%   116.0 s       0.0 s 
+INFO  16:18:43,195 ProgressMeter - Total runtime 116.82 secs, 1.95 min, 0.03 hours 
+INFO  16:18:43,196 MicroScheduler - 46160 reads were filtered out during the traversal out of approximately 562883 total reads (8.20%) 
+INFO  16:18:43,196 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:43,196 MicroScheduler -   -> 36727 reads (6.52% of total) failing DuplicateReadFilter 
+INFO  16:18:43,196 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:43,196 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:43,197 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:43,197 MicroScheduler -   -> 9243 reads (1.64% of total) failing MappingQualityZeroFilter 
+INFO  16:18:43,197 MicroScheduler -   -> 190 reads (0.03% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:43,197 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,558 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,561 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,562 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,562 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,564 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,564 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,568 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv06.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.6 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,582 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,582 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,582 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,582 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:43,962 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:43,962 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:43,964 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:44,275 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:44,309 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:44,373 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.06 
+INFO  16:16:45,493 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:45,827 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:46,464 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:46,472 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:46,474 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:46,475 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:46,615 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:46,615 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:46,615 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:46,615 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:46,616 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:46,616 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,384 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:49,798 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:16,840 ProgressMeter -     3:113118933         0.0    30.0 s      50.2 w       26.0%   115.0 s      85.0 s 
+INFO  16:17:47,008 ProgressMeter -     3:129008009    100001.0    60.0 s      10.1 m       42.4%     2.4 m      81.0 s 
+INFO  16:18:17,011 ProgressMeter -     3:159488004    300003.0    90.0 s       5.0 m       73.9%     2.0 m      31.0 s 
+INFO  16:18:29,464 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:29,576 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:30,826 BaseRecalibrator - ...done! 
+INFO  16:18:30,827 BaseRecalibrator - BaseRecalibrator was able to recalibrate 464083 reads 
+INFO  16:18:30,835 ProgressMeter -            done    464083.0   104.0 s       3.7 m      100.0%   104.0 s       0.0 s 
+INFO  16:18:30,836 ProgressMeter - Total runtime 104.36 secs, 1.74 min, 0.03 hours 
+INFO  16:18:30,836 MicroScheduler - 35738 reads were filtered out during the traversal out of approximately 499821 total reads (7.15%) 
+INFO  16:18:30,837 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:30,839 MicroScheduler -   -> 33152 reads (6.63% of total) failing DuplicateReadFilter 
+INFO  16:18:30,839 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:30,840 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:30,840 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:30,840 MicroScheduler -   -> 2368 reads (0.47% of total) failing MappingQualityZeroFilter 
+INFO  16:18:30,840 MicroScheduler -   -> 218 reads (0.04% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:30,840 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,743 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,746 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,746 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,746 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,748 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,748 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,752 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv07.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.7 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,773 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,774 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,774 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,774 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,133 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,133 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,134 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:44,528 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:44,551 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:44,773 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.22 
+INFO  16:16:45,823 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,135 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:46,558 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:46,563 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:46,566 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:46,566 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:46,697 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:46,697 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:46,697 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:46,699 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:46,699 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:46,699 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,097 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:49,400 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:16:53,469 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:54,334 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:16,646 ProgressMeter -     3:197847264         0.0    30.0 s      49.7 w       13.6%     3.7 m       3.2 m 
+INFO  16:17:48,796 ProgressMeter -      4:11592848     82858.0    62.0 s      12.5 m       25.7%     4.0 m       3.0 m 
+INFO  16:18:18,797 ProgressMeter -      4:56310852    282860.0    92.0 s       5.4 m       71.9%     2.1 m      35.0 s 
+INFO  16:18:33,666 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:33,790 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:36,168 BaseRecalibrator - ...done! 
+INFO  16:18:36,169 BaseRecalibrator - BaseRecalibrator was able to recalibrate 469815 reads 
+INFO  16:18:36,171 ProgressMeter -            done    469815.0   109.0 s       3.9 m      100.0%   109.0 s       0.0 s 
+INFO  16:18:36,171 ProgressMeter - Total runtime 109.61 secs, 1.83 min, 0.03 hours 
+INFO  16:18:36,172 MicroScheduler - 154897 reads were filtered out during the traversal out of approximately 624712 total reads (24.79%) 
+INFO  16:18:36,182 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:36,183 MicroScheduler -   -> 33401 reads (5.35% of total) failing DuplicateReadFilter 
+INFO  16:18:36,183 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:36,183 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:36,183 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:36,183 MicroScheduler -   -> 121265 reads (19.41% of total) failing MappingQualityZeroFilter 
+INFO  16:18:36,184 MicroScheduler -   -> 231 reads (0.04% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:36,184 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,694 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,696 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,697 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,697 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,697 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,697 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,710 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv08.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.8 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,725 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,725 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,725 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,726 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,104 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,105 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,106 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:44,418 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:44,477 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:44,717 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.23 
+INFO  16:16:45,631 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:45,908 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:46,461 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:46,466 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:46,470 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:46,471 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:46,539 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:46,540 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:46,555 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:46,556 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:46,556 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:46,557 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,319 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:49,856 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:16,714 ProgressMeter -      4:89361422         0.0    30.0 s      50.0 w        6.1%     8.2 m       7.7 m 
+INFO  16:17:47,804 ProgressMeter -     4:109578568    100002.0    61.0 s      10.2 m       27.0%     3.8 m       2.7 m 
+INFO  16:18:18,321 ProgressMeter -     4:155219063    200003.0    91.0 s       7.7 m       74.2%     2.0 m      31.0 s 
+INFO  16:18:27,241 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:27,291 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:30,112 BaseRecalibrator - ...done! 
+INFO  16:18:30,113 BaseRecalibrator - BaseRecalibrator was able to recalibrate 340811 reads 
+INFO  16:18:30,114 ProgressMeter -            done    340811.0   103.0 s       5.1 m       99.9%   103.0 s       0.0 s 
+INFO  16:18:30,114 ProgressMeter - Total runtime 103.65 secs, 1.73 min, 0.03 hours 
+INFO  16:18:30,115 MicroScheduler - 26893 reads were filtered out during the traversal out of approximately 367704 total reads (7.31%) 
+INFO  16:18:30,115 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:30,115 MicroScheduler -   -> 24010 reads (6.53% of total) failing DuplicateReadFilter 
+INFO  16:18:30,116 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:30,116 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:30,116 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:30,116 MicroScheduler -   -> 2713 reads (0.74% of total) failing MappingQualityZeroFilter 
+INFO  16:18:30,116 MicroScheduler -   -> 170 reads (0.05% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:30,117 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:44,000 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,003 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:44,003 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:44,004 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:44,005 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:44,006 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:44,010 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv09.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.9 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:44,029 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:44,032 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:44,032 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,032 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,469 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,470 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,470 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:44,934 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:44,945 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:45,085 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.14 
+INFO  16:16:46,549 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,818 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,123 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,130 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,141 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,154 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,235 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,235 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,235 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,236 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,236 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,236 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,524 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:49,853 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:16:53,316 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:53,947 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,249 ProgressMeter -     4:191003096         0.0    30.0 s      49.8 w       11.2%     4.5 m       4.0 m 
+INFO  16:17:47,317 ProgressMeter -      5:13913847     50780.0    60.0 s      19.8 m       25.7%     3.9 m       2.9 m 
+INFO  16:18:17,319 ProgressMeter -      5:69515895    250785.0    90.0 s       6.0 m       83.2%   108.0 s      18.0 s 
+INFO  16:18:27,860 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:27,931 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:30,234 BaseRecalibrator - ...done! 
+INFO  16:18:30,235 BaseRecalibrator - BaseRecalibrator was able to recalibrate 402355 reads 
+INFO  16:18:30,236 ProgressMeter -            done    402355.0   103.0 s       4.3 m       99.8%   103.0 s       0.0 s 
+INFO  16:18:30,236 ProgressMeter - Total runtime 103.11 secs, 1.72 min, 0.03 hours 
+INFO  16:18:30,236 MicroScheduler - 76268 reads were filtered out during the traversal out of approximately 478623 total reads (15.93%) 
+INFO  16:18:30,237 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:30,237 MicroScheduler -   -> 28963 reads (6.05% of total) failing DuplicateReadFilter 
+INFO  16:18:30,237 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:30,237 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:30,238 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:30,238 MicroScheduler -   -> 47118 reads (9.84% of total) failing MappingQualityZeroFilter 
+INFO  16:18:30,238 MicroScheduler -   -> 187 reads (0.04% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:30,238 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,904 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,907 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,907 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,907 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,907 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,908 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,912 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv10.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.10 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,924 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,925 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,925 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,925 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,348 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,352 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,353 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:44,856 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:44,881 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:45,074 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.19 
+INFO  16:16:46,354 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,649 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,195 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,195 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,196 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,196 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,268 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,269 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,269 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,269 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,269 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,269 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,917 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,972 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,247 ProgressMeter -      5:94903635         0.0    30.0 s      49.7 w        9.4%     5.3 m       4.8 m 
+INFO  16:17:47,321 ProgressMeter -     5:138651578    100001.0    60.0 s      10.0 m       54.7%   109.0 s      49.0 s 
+INFO  16:18:13,846 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:18:13,849 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:18:17,325 ProgressMeter -     5:172162311    400004.0    90.0 s       3.8 m       89.3%   100.0 s      10.0 s 
+INFO  16:18:23,697 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:23,758 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:25,959 BaseRecalibrator - ...done! 
+INFO  16:18:25,960 BaseRecalibrator - BaseRecalibrator was able to recalibrate 474823 reads 
+INFO  16:18:25,975 ProgressMeter -            done    474823.0    98.0 s       3.5 m       99.9%    98.0 s       0.0 s 
+INFO  16:18:25,976 ProgressMeter - Total runtime 98.78 secs, 1.65 min, 0.03 hours 
+INFO  16:18:25,976 MicroScheduler - 46799 reads were filtered out during the traversal out of approximately 521622 total reads (8.97%) 
+INFO  16:18:25,977 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:25,977 MicroScheduler -   -> 33588 reads (6.44% of total) failing DuplicateReadFilter 
+INFO  16:18:25,977 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:25,977 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:25,977 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:25,978 MicroScheduler -   -> 13002 reads (2.49% of total) failing MappingQualityZeroFilter 
+INFO  16:18:25,978 MicroScheduler -   -> 209 reads (0.04% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:25,978 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,936 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,939 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,940 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,940 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,940 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,941 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,945 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv11.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.11 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,971 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,971 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,972 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,972 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,706 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,706 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,707 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:45,340 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:45,420 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:45,557 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.14 
+INFO  16:16:46,683 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,820 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,229 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,243 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,244 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,244 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,398 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,399 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,399 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,399 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,400 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,400 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,818 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,131 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,905 ProgressMeter -       6:7301916         0.0    30.0 s      50.7 w        5.9%     8.5 m       8.0 m 
+INFO  16:17:47,914 ProgressMeter -      6:31935220    100001.0    60.0 s      10.1 m       31.4%     3.2 m       2.2 m 
+INFO  16:18:17,916 ProgressMeter -      6:51640710    300003.0    90.0 s       5.0 m       51.7%     2.9 m      84.0 s 
+INFO  16:18:44,867 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:44,918 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:46,413 BaseRecalibrator - ...done! 
+INFO  16:18:46,414 BaseRecalibrator - BaseRecalibrator was able to recalibrate 554946 reads 
+INFO  16:18:46,415 ProgressMeter -            done    554946.0   119.0 s       3.6 m       99.9%   119.0 s       0.0 s 
+INFO  16:18:46,415 ProgressMeter - Total runtime 119.17 secs, 1.99 min, 0.03 hours 
+INFO  16:18:46,416 MicroScheduler - 53046 reads were filtered out during the traversal out of approximately 607992 total reads (8.72%) 
+INFO  16:18:46,416 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:46,417 MicroScheduler -   -> 39306 reads (6.46% of total) failing DuplicateReadFilter 
+INFO  16:18:46,417 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:46,417 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:46,417 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:46,417 MicroScheduler -   -> 13532 reads (2.23% of total) failing MappingQualityZeroFilter 
+INFO  16:18:46,418 MicroScheduler -   -> 208 reads (0.03% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:46,418 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,972 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,975 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,975 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,975 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,977 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,977 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,982 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv12.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.12 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:44,002 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:44,004 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:44,004 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,004 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,590 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,591 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,591 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:45,149 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:45,159 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:45,410 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.25 
+INFO  16:16:46,720 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:47,030 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,473 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,486 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,489 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,489 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,547 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,547 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,547 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,547 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,547 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,548 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,767 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,317 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,514 ProgressMeter -     6:109849810         0.0    30.0 s      49.6 w       11.9%     4.2 m       3.7 m 
+INFO  16:17:47,516 ProgressMeter -     6:129828833    100001.0    60.0 s      10.0 m       32.5%     3.1 m       2.1 m 
+INFO  16:18:09,819 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:18:09,891 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:18:17,518 ProgressMeter -     6:170176646    300003.0    90.0 s       5.0 m       74.3%     2.0 m      31.0 s 
+INFO  16:18:37,196 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:37,273 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:39,047 BaseRecalibrator - ...done! 
+INFO  16:18:39,047 BaseRecalibrator - BaseRecalibrator was able to recalibrate 457932 reads 
+INFO  16:18:39,049 ProgressMeter -            done    457932.0   111.0 s       4.1 m      100.0%   111.0 s       0.0 s 
+INFO  16:18:39,049 ProgressMeter - Total runtime 111.56 secs, 1.86 min, 0.03 hours 
+INFO  16:18:39,053 MicroScheduler - 80477 reads were filtered out during the traversal out of approximately 538409 total reads (14.95%) 
+INFO  16:18:39,054 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:39,054 MicroScheduler -   -> 32443 reads (6.03% of total) failing DuplicateReadFilter 
+INFO  16:18:39,054 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:39,054 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:39,054 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:39,054 MicroScheduler -   -> 47796 reads (8.88% of total) failing MappingQualityZeroFilter 
+INFO  16:18:39,055 MicroScheduler -   -> 238 reads (0.04% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:39,055 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,549 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,552 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,552 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,552 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,554 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,554 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,559 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv13.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.13 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,584 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,587 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,588 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,588 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,007 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,008 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,008 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:44,329 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:44,353 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:44,525 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.15 
+INFO  16:16:45,675 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:45,991 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:46,693 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:46,694 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:46,695 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:46,695 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:46,806 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:46,806 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:46,807 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:46,807 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:46,807 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:46,807 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,318 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:49,761 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:16,740 ProgressMeter -      7:34851448         0.0    30.0 s      49.7 w       11.2%     4.4 m       3.9 m 
+INFO  16:17:47,815 ProgressMeter -      7:48285202    100001.0    61.0 s      10.2 m       25.1%     4.0 m       3.0 m 
+INFO  16:18:17,822 ProgressMeter -      7:98107753    300003.0    91.0 s       5.1 m       76.6%   118.0 s      27.0 s 
+INFO  16:18:40,632 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:40,692 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:42,188 BaseRecalibrator - ...done! 
+INFO  16:18:42,189 BaseRecalibrator - BaseRecalibrator was able to recalibrate 527841 reads 
+INFO  16:18:42,191 ProgressMeter -            done    527841.0   115.0 s       3.6 m      100.0%   115.0 s       0.0 s 
+INFO  16:18:42,191 ProgressMeter - Total runtime 115.50 secs, 1.92 min, 0.03 hours 
+INFO  16:18:42,191 MicroScheduler - 129967 reads were filtered out during the traversal out of approximately 657808 total reads (19.76%) 
+INFO  16:18:42,191 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:42,192 MicroScheduler -   -> 37984 reads (5.77% of total) failing DuplicateReadFilter 
+INFO  16:18:42,192 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:42,192 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:42,192 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:42,192 MicroScheduler -   -> 91682 reads (13.94% of total) failing MappingQualityZeroFilter 
+INFO  16:18:42,193 MicroScheduler -   -> 301 reads (0.05% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:42,193 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,874 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,881 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,882 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,882 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,886 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,886 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,890 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv14.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.14 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,911 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,913 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,913 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,913 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,306 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,306 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,307 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:44,635 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:44,663 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:44,872 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.21 
+INFO  16:16:45,992 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,466 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,065 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,078 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,090 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,090 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,187 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,187 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,189 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,189 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,189 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,190 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,752 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,251 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,174 ProgressMeter -     7:131151242         0.0    30.0 s      49.8 w       10.8%     4.6 m       4.1 m 
+INFO  16:17:47,224 ProgressMeter -     7:150898231    100001.0    60.0 s      10.0 m       31.2%     3.2 m       2.2 m 
+INFO  16:17:48,439 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:17:48,807 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:18:17,226 ProgressMeter -      8:14166631    236718.0    90.0 s       6.3 m       54.4%     2.8 m      75.0 s 
+INFO  16:18:44,065 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:44,129 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:45,713 BaseRecalibrator - ...done! 
+INFO  16:18:45,714 BaseRecalibrator - BaseRecalibrator was able to recalibrate 500703 reads 
+INFO  16:18:45,724 ProgressMeter -            done    500703.0   118.0 s       3.9 m       99.9%   118.0 s       0.0 s 
+INFO  16:18:45,725 ProgressMeter - Total runtime 118.65 secs, 1.98 min, 0.03 hours 
+INFO  16:18:45,725 MicroScheduler - 109386 reads were filtered out during the traversal out of approximately 610089 total reads (17.93%) 
+INFO  16:18:45,726 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:45,726 MicroScheduler -   -> 35626 reads (5.84% of total) failing DuplicateReadFilter 
+INFO  16:18:45,726 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:45,726 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:45,726 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:45,727 MicroScheduler -   -> 73559 reads (12.06% of total) failing MappingQualityZeroFilter 
+INFO  16:18:45,727 MicroScheduler -   -> 201 reads (0.03% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:45,727 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:44,054 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,057 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:44,057 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:44,057 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:44,057 HelpFormatter - [Wed Jul 11 16:16:44 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:44,057 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:44,063 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv15.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.15 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:44,071 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:44,071 HelpFormatter - Date/Time: 2018/07/11 16:16:44 
+INFO  16:16:44,071 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,071 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,509 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,509 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,519 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:44,995 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:45,004 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:45,235 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.23 
+INFO  16:16:46,604 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,765 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,294 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,301 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,302 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,302 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,376 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,377 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,377 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,377 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,378 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,378 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,679 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,423 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,341 ProgressMeter -      8:68178239         0.0    30.0 s      49.7 w       10.2%     4.9 m       4.4 m 
+INFO  16:17:47,343 ProgressMeter -     8:110495230    100001.0    60.0 s      10.0 m       53.9%   111.0 s      51.0 s 
+INFO  16:18:02,040 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:18:02,052 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:18:12,892 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:12,964 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:15,755 BaseRecalibrator - ...done! 
+INFO  16:18:15,755 BaseRecalibrator - BaseRecalibrator was able to recalibrate 371337 reads 
+INFO  16:18:15,757 ProgressMeter -            done    371337.0    88.0 s       4.0 m       99.9%    88.0 s       0.0 s 
+INFO  16:18:15,757 ProgressMeter - Total runtime 88.46 secs, 1.47 min, 0.02 hours 
+INFO  16:18:15,760 MicroScheduler - 42222 reads were filtered out during the traversal out of approximately 413559 total reads (10.21%) 
+INFO  16:18:15,761 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:15,761 MicroScheduler -   -> 26084 reads (6.31% of total) failing DuplicateReadFilter 
+INFO  16:18:15,761 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:15,762 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:15,762 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:15,762 MicroScheduler -   -> 15937 reads (3.85% of total) failing MappingQualityZeroFilter 
+INFO  16:18:15,762 MicroScheduler -   -> 201 reads (0.05% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:15,762 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:44,759 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,762 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:44,762 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:44,766 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:44,771 HelpFormatter - [Wed Jul 11 16:16:44 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:44,771 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:44,775 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv16.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.16 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:44,820 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:44,824 HelpFormatter - Date/Time: 2018/07/11 16:16:44 
+INFO  16:16:44,828 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,830 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:45,565 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:45,565 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:45,566 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:45,914 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:45,936 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:46,020 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.08 
+INFO  16:16:47,126 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:47,409 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,739 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,748 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,749 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,749 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,809 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,809 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,810 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,810 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,810 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,810 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,787 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,333 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,926 ProgressMeter -      9:24353478         0.0    30.0 s      49.7 w       16.2%     3.1 m       2.6 m 
+INFO  16:17:47,980 ProgressMeter -      9:72727969    100001.0    60.0 s      10.0 m       66.2%    90.0 s      30.0 s 
+INFO  16:18:13,380 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:13,528 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:15,690 BaseRecalibrator - ...done! 
+INFO  16:18:15,698 BaseRecalibrator - BaseRecalibrator was able to recalibrate 379792 reads 
+INFO  16:18:15,711 ProgressMeter -            done    379792.0    87.0 s       3.9 m       99.9%    87.0 s       0.0 s 
+INFO  16:18:15,712 ProgressMeter - Total runtime 87.97 secs, 1.47 min, 0.02 hours 
+INFO  16:18:15,718 MicroScheduler - 134223 reads were filtered out during the traversal out of approximately 514015 total reads (26.11%) 
+INFO  16:18:15,719 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:15,719 MicroScheduler -   -> 27157 reads (5.28% of total) failing DuplicateReadFilter 
+INFO  16:18:15,719 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:15,719 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:15,719 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:15,719 MicroScheduler -   -> 106892 reads (20.80% of total) failing MappingQualityZeroFilter 
+INFO  16:18:15,720 MicroScheduler -   -> 174 reads (0.03% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:15,720 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,124 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,127 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,144 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,144 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,146 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,146 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,151 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv17.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.17 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,167 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,167 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,167 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,167 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:43,502 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:43,502 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:43,503 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:43,857 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:43,873 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:43,994 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.12 
+INFO  16:16:44,726 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:45,057 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:45,827 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:45,828 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:45,855 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:45,855 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:45,969 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:45,969 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:45,969 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:45,969 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:45,969 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:45,970 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:47,440 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:47,690 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:15,912 ProgressMeter -     9:123623596         0.0    30.0 s      49.7 w       18.8%     2.7 m       2.2 m 
+INFO  16:17:43,215 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:17:43,339 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:48,943 ProgressMeter -     9:134385737    100001.0    63.0 s      10.5 m       29.9%     3.5 m       2.5 m 
+INFO  16:18:18,945 ProgressMeter -     10:22690329    266718.0    93.0 s       5.8 m       60.4%     2.6 m      60.0 s 
+INFO  16:18:43,181 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:43,238 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:44,924 BaseRecalibrator - ...done! 
+INFO  16:18:44,924 BaseRecalibrator - BaseRecalibrator was able to recalibrate 549556 reads 
+INFO  16:18:44,925 ProgressMeter -            done    549556.0   119.0 s       3.6 m      100.0%   119.0 s       0.0 s 
+INFO  16:18:44,925 ProgressMeter - Total runtime 119.10 secs, 1.98 min, 0.03 hours 
+INFO  16:18:44,926 MicroScheduler - 111209 reads were filtered out during the traversal out of approximately 660765 total reads (16.83%) 
+INFO  16:18:44,927 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:44,927 MicroScheduler -   -> 39133 reads (5.92% of total) failing DuplicateReadFilter 
+INFO  16:18:44,927 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:44,927 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:44,927 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:44,928 MicroScheduler -   -> 71838 reads (10.87% of total) failing MappingQualityZeroFilter 
+INFO  16:18:44,928 MicroScheduler -   -> 238 reads (0.04% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:44,928 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:42,774 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:42,781 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:42,781 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:42,781 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:42,788 HelpFormatter - [Wed Jul 11 16:16:42 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:42,788 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:42,792 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv18.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.18 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:42,838 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:42,839 HelpFormatter - Date/Time: 2018/07/11 16:16:42 
+INFO  16:16:42,839 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:42,840 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:43,371 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:43,371 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:43,372 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:43,754 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:43,762 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:43,891 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.13 
+INFO  16:16:44,695 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:45,076 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:45,950 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:45,953 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:45,956 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:45,957 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:46,095 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:46,096 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:46,096 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:46,096 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:46,096 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:46,096 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:47,590 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:47,928 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:16,014 ProgressMeter -     10:75435650         0.0    30.0 s      49.7 w       15.0%     3.3 m       2.8 m 
+INFO  16:17:47,244 ProgressMeter -     10:96025744    100001.0    61.0 s      10.2 m       36.3%     2.8 m     107.0 s 
+INFO  16:18:14,317 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:18:14,386 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:18:17,293 ProgressMeter -    10:124917177    300003.0    91.0 s       5.1 m       66.1%     2.3 m      46.0 s 
+INFO  16:18:47,169 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:47,241 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:47,295 ProgressMeter -     11:21854961    551317.0     2.0 m       3.7 m       99.7%     2.0 m       0.0 s 
+INFO  16:18:48,403 BaseRecalibrator - ...done! 
+INFO  16:18:48,404 BaseRecalibrator - BaseRecalibrator was able to recalibrate 649108 reads 
+INFO  16:18:48,404 ProgressMeter -            done    649108.0     2.0 m       3.1 m       99.7%     2.0 m       0.0 s 
+INFO  16:18:48,406 ProgressMeter - Total runtime 122.46 secs, 2.04 min, 0.03 hours 
+INFO  16:18:48,406 MicroScheduler - 70691 reads were filtered out during the traversal out of approximately 719799 total reads (9.82%) 
+INFO  16:18:48,406 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:48,406 MicroScheduler -   -> 46333 reads (6.44% of total) failing DuplicateReadFilter 
+INFO  16:18:48,407 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:48,407 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:48,408 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:48,408 MicroScheduler -   -> 24064 reads (3.34% of total) failing MappingQualityZeroFilter 
+INFO  16:18:48,408 MicroScheduler -   -> 294 reads (0.04% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:48,421 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,189 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,192 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,192 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,192 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,192 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,192 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,203 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv19.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.19 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,220 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,220 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,221 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,221 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:43,622 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:43,622 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:43,623 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:43,938 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:43,945 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:44,060 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.11 
+INFO  16:16:44,991 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:45,123 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:46,181 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:46,182 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:46,182 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:46,182 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:46,370 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:46,371 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:46,371 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:46,371 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:46,371 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:46,372 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:48,522 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:48,962 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:16,226 ProgressMeter -     11:34929870         0.0    30.0 s      49.7 w       13.2%     3.8 m       3.3 m 
+INFO  16:17:46,261 ProgressMeter -     11:59940473    100001.0    60.0 s      10.0 m       39.1%     2.6 m      93.0 s 
+INFO  16:18:16,392 ProgressMeter -     11:77705728    300003.0    90.0 s       5.0 m       57.4%     2.6 m      66.0 s 
+INFO  16:18:46,394 ProgressMeter -    11:118015865    500005.0   120.0 s       4.0 m       99.1%     2.0 m       1.0 s 
+INFO  16:18:47,778 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:47,870 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:49,158 BaseRecalibrator - ...done! 
+INFO  16:18:49,158 BaseRecalibrator - BaseRecalibrator was able to recalibrate 618569 reads 
+INFO  16:18:49,160 ProgressMeter -            done    618569.0     2.0 m       3.3 m      100.0%     2.0 m       0.0 s 
+INFO  16:18:49,160 ProgressMeter - Total runtime 122.98 secs, 2.05 min, 0.03 hours 
+INFO  16:18:49,161 MicroScheduler - 70599 reads were filtered out during the traversal out of approximately 689168 total reads (10.24%) 
+INFO  16:18:49,162 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:49,162 MicroScheduler -   -> 44255 reads (6.42% of total) failing DuplicateReadFilter 
+INFO  16:18:49,162 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:49,163 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:49,163 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:49,163 MicroScheduler -   -> 26117 reads (3.79% of total) failing MappingQualityZeroFilter 
+INFO  16:18:49,163 MicroScheduler -   -> 227 reads (0.03% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:49,163 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:44,046 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,049 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:44,049 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:44,049 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:44,053 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:44,053 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:44,058 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv20.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.20 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:44,067 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:44,068 HelpFormatter - Date/Time: 2018/07/11 16:16:44 
+INFO  16:16:44,068 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,068 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,706 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,706 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,707 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:45,140 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:45,149 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:45,286 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.14 
+INFO  16:16:46,693 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,917 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,490 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,490 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,491 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,491 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,569 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,569 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,569 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,569 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,570 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,570 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,871 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,264 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:16:56,222 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:56,552 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,572 ProgressMeter -    11:124908888         0.0    30.0 s      49.7 w        6.2%     8.1 m       7.6 m 
+INFO  16:17:47,584 ProgressMeter -      12:9220577     98159.0    60.0 s      10.2 m       26.2%     3.8 m       2.8 m 
+INFO  16:18:17,586 ProgressMeter -     12:42681458    298161.0    90.0 s       5.0 m       60.8%     2.5 m      58.0 s 
+INFO  16:18:47,588 ProgressMeter -     12:68618881    598164.0   120.0 s       3.3 m       87.6%     2.3 m      17.0 s 
+INFO  16:18:50,841 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:50,865 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:51,986 BaseRecalibrator - ...done! 
+INFO  16:18:51,987 BaseRecalibrator - BaseRecalibrator was able to recalibrate 678778 reads 
+INFO  16:18:51,988 ProgressMeter -            done    678778.0     2.1 m       3.1 m      100.0%     2.1 m       0.0 s 
+INFO  16:18:51,989 ProgressMeter - Total runtime 124.50 secs, 2.07 min, 0.03 hours 
+INFO  16:18:52,000 MicroScheduler - 56346 reads were filtered out during the traversal out of approximately 735124 total reads (7.66%) 
+INFO  16:18:52,000 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:52,000 MicroScheduler -   -> 47887 reads (6.51% of total) failing DuplicateReadFilter 
+INFO  16:18:52,000 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:52,001 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:52,001 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:52,001 MicroScheduler -   -> 8189 reads (1.11% of total) failing MappingQualityZeroFilter 
+INFO  16:18:52,001 MicroScheduler -   -> 270 reads (0.04% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:52,001 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,969 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,972 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,972 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,972 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,972 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,973 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,985 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv21.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.21 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,997 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,997 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,998 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,998 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,775 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,776 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,776 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:45,266 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:45,287 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:45,559 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.27 
+INFO  16:16:46,738 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,844 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,260 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,277 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,279 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,280 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,313 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,318 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,318 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,318 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,318 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,318 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,561 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,234 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,365 ProgressMeter -    12:100402934         0.0    30.0 s      49.7 w       20.4%     2.4 m     116.0 s 
+INFO  16:17:48,201 ProgressMeter -    12:114356055    100001.0    60.0 s      10.2 m       34.9%     2.9 m     112.0 s 
+INFO  16:18:05,151 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:18:05,223 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:18:18,203 ProgressMeter -     13:21918995    322840.0    90.0 s       4.7 m       77.7%   115.0 s      25.0 s 
+INFO  16:18:33,004 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:33,104 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:35,905 BaseRecalibrator - ...done! 
+INFO  16:18:35,916 BaseRecalibrator - BaseRecalibrator was able to recalibrate 471590 reads 
+INFO  16:18:35,923 ProgressMeter -            done    471590.0   108.0 s       3.8 m      100.0%   108.0 s       0.0 s 
+INFO  16:18:35,923 ProgressMeter - Total runtime 108.65 secs, 1.81 min, 0.03 hours 
+INFO  16:18:35,924 MicroScheduler - 38164 reads were filtered out during the traversal out of approximately 509754 total reads (7.49%) 
+INFO  16:18:35,924 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:35,925 MicroScheduler -   -> 33468 reads (6.57% of total) failing DuplicateReadFilter 
+INFO  16:18:35,925 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:35,925 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:35,925 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:35,925 MicroScheduler -   -> 4511 reads (0.88% of total) failing MappingQualityZeroFilter 
+INFO  16:18:35,926 MicroScheduler -   -> 185 reads (0.04% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:35,926 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,749 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,752 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,752 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,752 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,753 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,753 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,760 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv22.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.22 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,778 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,780 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,780 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,780 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,182 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,182 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,182 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:44,422 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:44,432 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:44,598 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.17 
+INFO  16:16:45,630 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:45,821 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:46,647 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:46,650 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:46,652 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:46,653 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:46,722 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:46,723 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:46,728 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:46,728 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:46,729 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:46,729 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:48,565 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:49,190 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:16,688 ProgressMeter -        Starting         0.0    30.0 s      49.7 w      100.0%    30.0 s       0.0 s 
+INFO  16:17:48,006 ProgressMeter -     13:77838328         0.0    61.0 s     101.5 w       35.5%     2.9 m     110.0 s 
+INFO  16:18:04,268 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:18:04,278 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:18:18,008 ProgressMeter -     14:24632597    202521.0    91.0 s       7.5 m       99.5%    91.0 s       0.0 s 
+INFO  16:18:19,501 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:19,594 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:21,995 BaseRecalibrator - ...done! 
+INFO  16:18:21,996 BaseRecalibrator - BaseRecalibrator was able to recalibrate 316421 reads 
+INFO  16:18:21,997 ProgressMeter -            done    316421.0    95.0 s       5.0 m      100.0%    95.0 s       0.0 s 
+INFO  16:18:21,998 ProgressMeter - Total runtime 95.35 secs, 1.59 min, 0.03 hours 
+INFO  16:18:21,998 MicroScheduler - 52922 reads were filtered out during the traversal out of approximately 369343 total reads (14.33%) 
+INFO  16:18:22,002 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:22,006 MicroScheduler -   -> 22411 reads (6.07% of total) failing DuplicateReadFilter 
+INFO  16:18:22,007 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:22,007 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:22,007 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:22,007 MicroScheduler -   -> 30378 reads (8.22% of total) failing MappingQualityZeroFilter 
+INFO  16:18:22,008 MicroScheduler -   -> 133 reads (0.04% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:22,008 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,809 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,812 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,812 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,813 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,815 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,815 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,819 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv23.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.23 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,851 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,859 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,859 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,870 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,273 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,273 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,274 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:44,860 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:44,887 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:45,186 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.30 
+INFO  16:16:46,330 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,634 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,336 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,345 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,347 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,347 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,439 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,439 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,439 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,439 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,440 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,440 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,885 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,479 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,404 ProgressMeter -     14:36159366         0.0    30.0 s      49.7 w       11.4%     4.4 m       3.9 m 
+INFO  16:17:47,417 ProgressMeter -     14:68352511    100001.0    60.0 s      10.0 m       44.7%     2.2 m      74.0 s 
+INFO  16:18:17,420 ProgressMeter -     14:99724111    300004.0    90.0 s       5.0 m       77.1%   116.0 s      26.0 s 
+INFO  16:18:21,207 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:18:21,207 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:18:29,664 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:29,735 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:31,200 BaseRecalibrator - ...done! 
+INFO  16:18:31,200 BaseRecalibrator - BaseRecalibrator was able to recalibrate 449073 reads 
+INFO  16:18:31,201 ProgressMeter -            done    449073.0   103.0 s       3.9 m       85.0%     2.0 m      18.0 s 
+INFO  16:18:31,201 ProgressMeter - Total runtime 103.86 secs, 1.73 min, 0.03 hours 
+INFO  16:18:31,202 MicroScheduler - 34877 reads were filtered out during the traversal out of approximately 483950 total reads (7.21%) 
+INFO  16:18:31,202 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:31,202 MicroScheduler -   -> 31767 reads (6.56% of total) failing DuplicateReadFilter 
+INFO  16:18:31,202 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:31,203 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:31,203 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:31,203 MicroScheduler -   -> 2923 reads (0.60% of total) failing MappingQualityZeroFilter 
+INFO  16:18:31,203 MicroScheduler -   -> 187 reads (0.04% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:31,203 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,626 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,629 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,629 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,629 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,630 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,630 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,647 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv24.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.24 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,663 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,664 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,664 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,664 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,005 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,005 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,005 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:44,254 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:44,271 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:44,473 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.20 
+INFO  16:16:45,740 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,013 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,098 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,098 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,099 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,099 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,156 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,156 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,157 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,157 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,157 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,157 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,683 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,185 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,121 ProgressMeter -     15:31196895         0.0    30.0 s      49.6 w       17.3%     2.9 m       2.4 m 
+INFO  16:17:47,785 ProgressMeter -     15:42853781    100001.0    60.0 s      10.1 m       29.3%     3.4 m       2.4 m 
+INFO  16:18:17,790 ProgressMeter -     15:68466164    300003.0    90.0 s       5.0 m       55.8%     2.7 m      71.0 s 
+INFO  16:18:45,429 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:18:45,503 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:18:47,792 ProgressMeter -    15:102304086    600009.0   120.0 s       3.4 m       90.8%     2.2 m      12.0 s 
+INFO  16:18:54,214 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:54,238 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:55,247 BaseRecalibrator - ...done! 
+INFO  16:18:55,248 BaseRecalibrator - BaseRecalibrator was able to recalibrate 696201 reads 
+INFO  16:18:55,251 ProgressMeter -            done    696201.0     2.1 m       3.1 m       99.9%     2.1 m       0.0 s 
+INFO  16:18:55,252 ProgressMeter - Total runtime 128.15 secs, 2.14 min, 0.04 hours 
+INFO  16:18:55,266 MicroScheduler - 181219 reads were filtered out during the traversal out of approximately 877420 total reads (20.65%) 
+INFO  16:18:55,267 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:55,267 MicroScheduler -   -> 49491 reads (5.64% of total) failing DuplicateReadFilter 
+INFO  16:18:55,295 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:55,295 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:55,296 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:55,296 MicroScheduler -   -> 131458 reads (14.98% of total) failing MappingQualityZeroFilter 
+INFO  16:18:55,296 MicroScheduler -   -> 270 reads (0.03% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:55,303 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:44,177 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,180 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:44,180 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:44,180 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:44,193 HelpFormatter - [Wed Jul 11 16:16:44 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:44,193 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:44,198 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv25.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.25 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:44,205 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:44,205 HelpFormatter - Date/Time: 2018/07/11 16:16:44 
+INFO  16:16:44,206 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,206 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,677 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,677 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,678 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:45,188 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:45,198 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:45,387 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.19 
+INFO  16:16:46,276 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,666 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,475 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,488 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,491 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,491 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,561 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,562 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,562 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,562 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,562 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,562 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,717 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,390 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,550 ProgressMeter -     16:19644607         0.0    30.0 s      49.7 w       11.3%     4.4 m       3.9 m 
+INFO  16:17:47,984 ProgressMeter -     16:31141517    100001.0    60.0 s      10.1 m       23.2%     4.3 m       3.3 m 
+INFO  16:18:17,986 ProgressMeter -     16:70516037    300003.0    90.0 s       5.0 m       63.9%     2.3 m      50.0 s 
+INFO  16:18:33,022 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:18:33,102 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:18:47,988 ProgressMeter -      17:7407034    513880.0   120.0 s       3.9 m       92.1%     2.2 m      10.0 s 
+INFO  16:18:52,788 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:52,810 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:54,076 BaseRecalibrator - ...done! 
+INFO  16:18:54,077 BaseRecalibrator - BaseRecalibrator was able to recalibrate 695263 reads 
+INFO  16:18:54,077 ProgressMeter -            done    695263.0     2.1 m       3.0 m       99.8%     2.1 m       0.0 s 
+INFO  16:18:54,078 ProgressMeter - Total runtime 126.59 secs, 2.11 min, 0.04 hours 
+INFO  16:18:54,078 MicroScheduler - 213724 reads were filtered out during the traversal out of approximately 908987 total reads (23.51%) 
+INFO  16:18:54,078 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:54,078 MicroScheduler -   -> 48951 reads (5.39% of total) failing DuplicateReadFilter 
+INFO  16:18:54,078 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:54,079 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:54,079 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:54,079 MicroScheduler -   -> 164543 reads (18.10% of total) failing MappingQualityZeroFilter 
+INFO  16:18:54,079 MicroScheduler -   -> 230 reads (0.03% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:54,079 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,812 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,816 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,817 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,817 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,832 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,832 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,837 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv26.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.26 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,858 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,858 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,859 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,859 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,389 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,389 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,390 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:44,862 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:44,891 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:45,028 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.14 
+INFO  16:16:46,307 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,830 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,366 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,375 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,376 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,377 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,477 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,477 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,478 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,478 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,478 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,478 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,882 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,476 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,417 ProgressMeter -     17:22261235         0.0    30.0 s      49.7 w        7.4%     6.7 m       6.2 m 
+INFO  16:17:48,135 ProgressMeter -     17:35802701    100001.0    60.0 s      10.1 m       21.4%     4.7 m       3.7 m 
+INFO  16:18:18,137 ProgressMeter -     17:49077071    400004.0    90.0 s       3.8 m       35.1%     4.3 m       2.8 m 
+INFO  16:18:39,922 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:18:39,973 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:18:48,138 ProgressMeter -     17:81188356    600006.0   120.0 s       3.4 m       68.3%     2.9 m      55.0 s 
+INFO  16:18:59,349 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:59,400 BaseRecalibrator - Writing recalibration report... 
+INFO  16:19:00,951 BaseRecalibrator - ...done! 
+INFO  16:19:00,952 BaseRecalibrator - BaseRecalibrator was able to recalibrate 803213 reads 
+INFO  16:19:00,953 ProgressMeter -            done    803213.0     2.2 m       2.8 m       99.9%     2.2 m       0.0 s 
+INFO  16:19:00,954 ProgressMeter - Total runtime 133.58 secs, 2.23 min, 0.04 hours 
+INFO  16:19:00,955 MicroScheduler - 128276 reads were filtered out during the traversal out of approximately 931489 total reads (13.77%) 
+INFO  16:19:00,955 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:19:00,955 MicroScheduler -   -> 57264 reads (6.15% of total) failing DuplicateReadFilter 
+INFO  16:19:00,959 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:19:00,962 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:19:00,963 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:19:00,963 MicroScheduler -   -> 70749 reads (7.60% of total) failing MappingQualityZeroFilter 
+INFO  16:19:00,963 MicroScheduler -   -> 263 reads (0.03% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:19:00,964 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,841 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,843 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,844 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,844 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,859 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,859 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,864 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv27.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.27 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,888 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,888 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,888 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,889 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,235 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,236 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,236 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:44,818 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:44,840 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:45,064 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.22 
+INFO  16:16:46,253 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,735 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,525 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,530 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,531 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,537 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,607 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,607 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,608 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,608 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,608 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,608 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,859 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,335 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,738 ProgressMeter -     18:35011073         0.0    30.0 s      49.9 w        4.5%    11.0 m      10.5 m 
+INFO  16:17:25,964 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:17:26,390 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:48,027 ProgressMeter -       19:372728    146005.0    60.0 s       6.9 m       49.4%     2.0 m      61.0 s 
+INFO  16:18:18,037 ProgressMeter -     19:19680448    346007.0    90.0 s       4.4 m       69.4%     2.2 m      39.0 s 
+INFO  16:18:48,039 ProgressMeter -     19:46973444    646010.0   120.0 s       3.1 m       97.6%     2.0 m       2.0 s 
+INFO  16:18:49,817 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:49,868 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:50,986 BaseRecalibrator - ...done! 
+INFO  16:18:50,986 BaseRecalibrator - BaseRecalibrator was able to recalibrate 734278 reads 
+INFO  16:18:50,987 ProgressMeter -            done    734278.0     2.1 m       2.8 m      100.0%     2.1 m       0.0 s 
+INFO  16:18:50,988 ProgressMeter - Total runtime 123.46 secs, 2.06 min, 0.03 hours 
+INFO  16:18:50,988 MicroScheduler - 72260 reads were filtered out during the traversal out of approximately 806538 total reads (8.96%) 
+INFO  16:18:50,988 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:50,989 MicroScheduler -   -> 52369 reads (6.49% of total) failing DuplicateReadFilter 
+INFO  16:18:50,989 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:50,989 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:50,989 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:50,989 MicroScheduler -   -> 19629 reads (2.43% of total) failing MappingQualityZeroFilter 
+INFO  16:18:50,989 MicroScheduler -   -> 262 reads (0.03% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:50,990 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:44,232 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,236 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:44,236 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:44,236 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:44,238 HelpFormatter - [Wed Jul 11 16:16:44 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:44,238 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:44,243 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv28.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.28 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:44,266 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:44,267 HelpFormatter - Date/Time: 2018/07/11 16:16:44 
+INFO  16:16:44,267 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:44,267 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,803 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,804 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,804 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:45,444 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:45,476 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:45,742 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.24 
+INFO  16:16:46,801 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,958 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,405 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,405 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,406 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,406 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,462 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,463 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,463 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,463 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,463 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,463 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,726 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,313 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,444 ProgressMeter -     19:53343995         0.0    30.0 s      49.7 w        4.2%    11.9 m      11.4 m 
+INFO  16:17:38,265 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:17:38,430 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:47,888 ProgressMeter -     19:59094635    200002.0    60.0 s       5.0 m       10.1%     9.9 m       8.9 m 
+INFO  16:18:17,890 ProgressMeter -     20:33502303    313202.0    90.0 s       4.8 m       44.8%     3.3 m     110.0 s 
+INFO  16:18:39,518 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:18:39,530 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:18:47,891 ProgressMeter -     20:62935028    513204.0   120.0 s       3.9 m       75.2%     2.7 m      39.0 s 
+INFO  16:18:50,934 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:50,957 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:52,218 BaseRecalibrator - ...done! 
+INFO  16:18:52,219 BaseRecalibrator - BaseRecalibrator was able to recalibrate 601555 reads 
+INFO  16:18:52,220 ProgressMeter -            done    601555.0     2.1 m       3.5 m      100.0%     2.1 m       0.0 s 
+INFO  16:18:52,220 ProgressMeter - Total runtime 124.82 secs, 2.08 min, 0.03 hours 
+INFO  16:18:52,221 MicroScheduler - 62095 reads were filtered out during the traversal out of approximately 663650 total reads (9.36%) 
+INFO  16:18:52,221 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:52,221 MicroScheduler -   -> 43064 reads (6.49% of total) failing DuplicateReadFilter 
+INFO  16:18:52,221 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:52,223 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:52,223 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:52,224 MicroScheduler -   -> 18798 reads (2.83% of total) failing MappingQualityZeroFilter 
+INFO  16:18:52,224 MicroScheduler -   -> 233 reads (0.04% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:52,224 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,593 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,595 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,596 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,596 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,596 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,597 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,601 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv29.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.29 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,669 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,669 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,670 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,670 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:44,137 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:44,137 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:44,138 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:44,464 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:44,478 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:44,617 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.14 
+INFO  16:16:45,917 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:46,282 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:47,388 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:47,389 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:47,392 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:47,392 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:47,448 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:47,461 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:47,461 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:47,461 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:47,461 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:47,462 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,870 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:50,537 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:17,423 ProgressMeter -     21:34037291         0.0    30.0 s      49.7 w       10.5%     4.8 m       4.3 m 
+INFO  16:17:32,672 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:17:32,997 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:47,425 ProgressMeter -     21:48083467    100001.0    60.0 s      10.0 m       25.0%     4.0 m       3.0 m 
+INFO  16:18:17,426 ProgressMeter -     22:32239361    243044.0    90.0 s       6.2 m       58.4%     2.6 m      64.0 s 
+INFO  16:18:22,901 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:18:22,988 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:18:48,814 ProgressMeter -      X:19606939    440924.0     2.0 m       4.6 m       98.4%     2.0 m       1.0 s 
+INFO  16:18:49,361 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:49,386 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:50,549 BaseRecalibrator - ...done! 
+INFO  16:18:50,550 BaseRecalibrator - BaseRecalibrator was able to recalibrate 548866 reads 
+INFO  16:18:50,551 ProgressMeter -            done    548866.0     2.1 m       3.7 m       99.8%     2.1 m       0.0 s 
+INFO  16:18:50,551 ProgressMeter - Total runtime 123.16 secs, 2.05 min, 0.03 hours 
+INFO  16:18:50,552 MicroScheduler - 76973 reads were filtered out during the traversal out of approximately 625839 total reads (12.30%) 
+INFO  16:18:50,552 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:50,552 MicroScheduler -   -> 39396 reads (6.29% of total) failing DuplicateReadFilter 
+INFO  16:18:50,554 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:50,554 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:50,554 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:50,555 MicroScheduler -   -> 37375 reads (5.97% of total) failing MappingQualityZeroFilter 
+INFO  16:18:50,555 MicroScheduler -   -> 202 reads (0.03% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:50,555 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,070 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,073 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,073 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,073 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,075 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,076 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,080 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv30.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.30 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,199 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,200 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,200 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,200 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:43,697 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:43,698 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:43,711 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:43,924 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:43,932 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:44,070 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.14 
+INFO  16:16:45,073 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  16:16:45,481 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:46,688 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:46,688 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:46,688 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:46,689 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:46,774 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:46,775 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:46,775 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:46,775 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:46,775 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:46,775 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:49,511 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:49,827 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:16,750 ProgressMeter -      X:44008259         0.0    30.0 s      49.7 w       23.6%     2.1 m      97.0 s 
+INFO  16:17:46,782 ProgressMeter -      X:57475197    100001.0    60.0 s      10.0 m       37.5%     2.7 m      99.0 s 
+INFO  16:18:16,784 ProgressMeter -     X:106109191    300003.0    90.0 s       5.0 m       87.8%   102.0 s      12.0 s 
+INFO  16:18:23,490 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:18:23,546 BaseRecalibrator - Writing recalibration report... 
+INFO  16:18:25,184 BaseRecalibrator - ...done! 
+INFO  16:18:25,185 BaseRecalibrator - BaseRecalibrator was able to recalibrate 412158 reads 
+INFO  16:18:25,186 ProgressMeter -            done    412158.0    98.0 s       4.0 m      100.0%    98.0 s       0.0 s 
+INFO  16:18:25,186 ProgressMeter - Total runtime 98.50 secs, 1.64 min, 0.03 hours 
+INFO  16:18:25,194 MicroScheduler - 109092 reads were filtered out during the traversal out of approximately 521250 total reads (20.93%) 
+INFO  16:18:25,195 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:18:25,196 MicroScheduler -   -> 29469 reads (5.65% of total) failing DuplicateReadFilter 
+INFO  16:18:25,197 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:18:25,197 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:18:25,198 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:18:25,198 MicroScheduler -   -> 79450 reads (15.24% of total) failing MappingQualityZeroFilter 
+INFO  16:18:25,198 MicroScheduler -   -> 173 reads (0.03% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:18:25,210 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+INFO  16:16:43,162 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,165 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.8-falcon-v0.4.3-5-gae6c448, Compiled 2018/07/09 16:42:23 
+INFO  16:16:43,165 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  16:16:43,165 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  16:16:43,165 HelpFormatter - [Wed Jul 11 16:16:43 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  16:16:43,165 HelpFormatter - OpenJDK 64-Bit Server VM 1.8.0_102-b14 
+INFO  16:16:43,176 HelpFormatter - Program Args: -T BaseRecalibrator -R /pool/local/ref/human_g1k_v37.fasta -I /pool/local/work_dir/baselines/bwa/A15_sample_marked.bam -L /pool/local/temp/fcs-genome-tianj-10027/intv_32/intv31.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/work_dir/A15_sample_BQSR.table.31 -knownSites /pool/local/ref/dbsnp_138.b37.vcf -knownSites /pool/local/ref/1000G_phase1.indels.b37.vcf -knownSites /pool/local/ref/Mills_and_1000G_gold_standard.indels.b37.vcf 
+INFO  16:16:43,216 HelpFormatter - Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14. 
+INFO  16:16:43,217 HelpFormatter - Date/Time: 2018/07/11 16:16:43 
+INFO  16:16:43,217 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+INFO  16:16:43,217 HelpFormatter - ---------------------------------------------------------------------------------------------- 
+ERROR StatusLogger Unable to create class org.apache.logging.log4j.core.impl.Log4jContextFactory specified in jar:file:/usr/local/falcon/tools/package/GATK-3.8-falcon.jar!/META-INF/log4j-provider.properties
+ERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...
+INFO  16:16:43,639 GenomeAnalysisEngine - Deflater: IntelDeflater 
+INFO  16:16:43,639 GenomeAnalysisEngine - Inflater: IntelInflater 
+INFO  16:16:43,640 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  16:16:43,888 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  16:16:43,896 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  16:16:44,011 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.11 
+INFO  16:16:45,051 IntervalUtils - Processing 96740434 bp from intervals 
+INFO  16:16:45,445 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+INFO  16:16:46,247 GenomeAnalysisEngine - Done preparing for traversal 
+INFO  16:16:46,254 ProgressMeter - [INITIALIZATION COMPLETE; STARTING PROCESSING] 
+INFO  16:16:46,255 ProgressMeter -                 | processed |    time |    per 1M |           |   total | remaining 
+INFO  16:16:46,257 ProgressMeter -        Location |     reads | elapsed |     reads | completed | runtime |   runtime 
+INFO  16:16:46,393 BaseRecalibrator - The covariates being used here:  
+INFO  16:16:46,394 BaseRecalibrator - 	ReadGroupCovariate 
+INFO  16:16:46,394 BaseRecalibrator - 	QualityScoreCovariate 
+INFO  16:16:46,394 BaseRecalibrator - 	ContextCovariate 
+INFO  16:16:46,394 ContextCovariate - 		Context sizes: base substitution model 2, indel substitution model 3 
+INFO  16:16:46,394 BaseRecalibrator - 	CycleCovariate 
+INFO  16:16:47,996 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:16:48,314 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:16,582 ProgressMeter -     X:134856804         0.0    30.0 s      50.2 w       17.5%     2.9 m       2.4 m 
+INFO  16:17:36,084 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:17:36,463 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:38,657 ReadShardBalancer$1 - Loading BAM index data 
+INFO  16:17:38,658 ReadShardBalancer$1 - Done loading BAM index data 
+INFO  16:17:40,485 BaseRecalibrator - Calculating quantized quality scores... 
+INFO  16:17:40,557 BaseRecalibrator - Writing recalibration report... 
+INFO  16:17:43,601 BaseRecalibrator - ...done! 
+INFO  16:17:43,602 BaseRecalibrator - BaseRecalibrator was able to recalibrate 229589 reads 
+INFO  16:17:43,603 ProgressMeter -            done    229589.0    57.0 s       4.2 m      100.0%    57.0 s       0.0 s 
+INFO  16:17:43,604 ProgressMeter - Total runtime 57.36 secs, 0.96 min, 0.02 hours 
+INFO  16:17:43,605 MicroScheduler - 54495 reads were filtered out during the traversal out of approximately 284084 total reads (19.18%) 
+INFO  16:17:43,605 MicroScheduler -   -> 0 reads (0.00% of total) failing BadCigarFilter 
+INFO  16:17:43,605 MicroScheduler -   -> 16535 reads (5.82% of total) failing DuplicateReadFilter 
+INFO  16:17:43,605 MicroScheduler -   -> 0 reads (0.00% of total) failing FailsVendorQualityCheckFilter 
+INFO  16:17:43,605 MicroScheduler -   -> 0 reads (0.00% of total) failing MalformedReadFilter 
+INFO  16:17:43,606 MicroScheduler -   -> 0 reads (0.00% of total) failing MappingQualityUnavailableFilter 
+INFO  16:17:43,606 MicroScheduler -   -> 37831 reads (13.32% of total) failing MappingQualityZeroFilter 
+INFO  16:17:43,606 MicroScheduler -   -> 129 reads (0.05% of total) failing NotPrimaryAlignmentFilter 
+INFO  16:17:43,606 MicroScheduler -   -> 0 reads (0.00% of total) failing UnmappedReadFilter 
+------------------------------------------------------------------------------------------
+Done. ------------------------------------------------------------------------------------------
+[Wed Jul 11 16:19:01 PDT 2018] org.broadinstitute.gatk.tools.GatherBqsrReports INPUT=[/pool/local/work_dir/A15_sample_BQSR.table.0, /pool/local/work_dir/A15_sample_BQSR.table.1, /pool/local/work_dir/A15_sample_BQSR.table.2, /pool/local/work_dir/A15_sample_BQSR.table.3, /pool/local/work_dir/A15_sample_BQSR.table.4, /pool/local/work_dir/A15_sample_BQSR.table.5, /pool/local/work_dir/A15_sample_BQSR.table.6, /pool/local/work_dir/A15_sample_BQSR.table.7, /pool/local/work_dir/A15_sample_BQSR.table.8, /pool/local/work_dir/A15_sample_BQSR.table.9, /pool/local/work_dir/A15_sample_BQSR.table.10, /pool/local/work_dir/A15_sample_BQSR.table.11, /pool/local/work_dir/A15_sample_BQSR.table.12, /pool/local/work_dir/A15_sample_BQSR.table.13, /pool/local/work_dir/A15_sample_BQSR.table.14, /pool/local/work_dir/A15_sample_BQSR.table.15, /pool/local/work_dir/A15_sample_BQSR.table.16, /pool/local/work_dir/A15_sample_BQSR.table.17, /pool/local/work_dir/A15_sample_BQSR.table.18, /pool/local/work_dir/A15_sample_BQSR.table.19, /pool/local/work_dir/A15_sample_BQSR.table.20, /pool/local/work_dir/A15_sample_BQSR.table.21, /pool/local/work_dir/A15_sample_BQSR.table.22, /pool/local/work_dir/A15_sample_BQSR.table.23, /pool/local/work_dir/A15_sample_BQSR.table.24, /pool/local/work_dir/A15_sample_BQSR.table.25, /pool/local/work_dir/A15_sample_BQSR.table.26, /pool/local/work_dir/A15_sample_BQSR.table.27, /pool/local/work_dir/A15_sample_BQSR.table.28, /pool/local/work_dir/A15_sample_BQSR.table.29, /pool/local/work_dir/A15_sample_BQSR.table.30, /pool/local/work_dir/A15_sample_BQSR.table.31] OUTPUT=/local/work_dir/A15_sample_BQSR.table    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_INDEX=false CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json
+[Wed Jul 11 16:19:01 PDT 2018] Executing as tianj@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_102-b14; Picard version: null
+log4j:WARN No appenders could be found for logger (org.broadinstitute.gatk.engine.recalibration.covariates.ContextCovariate).
+log4j:WARN Please initialize the log4j system properly.
+ERROR ------------------------------------------------------------------------------------------
+ERROR A GATK RUNTIME ERROR has occurred (version 3.7-0-gcfedb67):
+ERROR
+ERROR This might be a bug. Please check the documentation guide to see if this is a known problem.
+ERROR If not, please post the error message, with stack trace, to the GATK forum.
+ERROR Visit our website and forum for extensive documentation and answers to
+ERROR commonly asked questions https://software.broadinstitute.org/gatk
+ERROR
+ERROR MESSAGE: For input string: "0.000"
+ERROR ------------------------------------------------------------------------------------------
+[Wed Jul 11 16:19:09 PDT 2018] org.broadinstitute.gatk.tools.GatherBqsrReports done. Elapsed time: 0.14 minutes.
+Runtime.totalMemory()=2595749888
