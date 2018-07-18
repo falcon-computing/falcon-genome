@@ -1,6 +1,7 @@
 #ifndef FCSGENOME_WORKERS_H
 #define FCSGENOME_WORKERS_H
 
+#include "workers/BlazeWorker.h"
 #include "workers/BQSRWorker.h"
 #include "workers/BWAWorker.h"
 #include "workers/CombineGVCFsWorker.h"

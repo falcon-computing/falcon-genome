@@ -63,7 +63,6 @@ int align_main(int argc, char** argv,
   std::string library_id  = get_argument<std::string>(cmd_vm, "lb", "L");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
-
   std::string master_outputdir = output_path;
 
   // finalize argument parsing

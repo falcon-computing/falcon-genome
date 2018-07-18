@@ -45,7 +45,6 @@ void MergeBamWorker::setup() {
           << get_config<int>("mergebam.nt") << " " << output_file_ ;
       cmd_ = cmd.str();
   }
-
   DLOG(INFO) << cmd_;
 }
 } // namespace fcsgenome
