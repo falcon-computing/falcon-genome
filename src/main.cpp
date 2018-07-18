@@ -59,7 +59,6 @@ namespace fcsgenome {
   int baserecal_main(int argc, char** argv, po::options_description &opt_desc);
   int concat_main(int argc, char** argv, po::options_description &opt_desc);
   int htc_main(int argc, char** argv, po::options_description &opt_desc);
-  int htc_vcf_main(int argc, char** argv, po::options_description &opt_desc);
   int ir_main(int argc, char** argv, po::options_description &opt_desc);
   int joint_main(int argc, char** argv, po::options_description &opt_desc);
   int markdup_main(int argc, char** argv, po::options_description &opt_desc);

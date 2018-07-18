@@ -46,15 +46,12 @@ void create_file_with_wrong_format(std::string fname) {
 };
 
 void create_dir(std::string dirname) {
-    const char *dir_path = dirname.c_str();
-    boost::filesystem::path dir(dir_path);
-    boost::filesystem::create_directory(dir);                    
+    boost::filesystem::path MyDir=dirname.c_str();
+    boost::filesystem::create_directory(MyDir);                    
 };
 
 void create_dir_with_data(std::string dirname) {
-    const char *dir_path = dirname.c_str();
-    boost::filesystem::path dir(dir_path);
-    boost::filesystem::create_directory(dir);
+    create_dir(dirname);
     std::ofstream outfile;
     outfile.open(dirname+"/sampleA_r1.fastq.gz");
     outfile << "Data" << std::endl;
