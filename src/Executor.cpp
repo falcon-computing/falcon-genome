@@ -11,7 +11,7 @@
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/Executor.h"
-#include "fcs-genome/log.h"
+#include "fcs-genome/LogUtils.h"
 
 namespace fcsgenome {
 
@@ -19,7 +19,7 @@ boost::mutex mutex_sig;
 
 // put signal handler here because it will be the worker thread 
 // that catches the signal
-void sigint_handler(int s){
+void sigint_handler(int s) {
   boost::lock_guard<boost::mutex> guard(mutex_sig);
   //DLOG(INFO) << "Caught interrupt in worker";
   LOG(INFO) << "Caught interrupt, cleaning up...";
@@ -65,9 +65,10 @@ void Stage::run() {
   boost::wait_for_all(pending_tasks_.begin(), pending_tasks_.end()); 
 
   //check if any error message in log files
-  if (!status_.empty()){
-    std::string match;
-    if (findError(logs_, match)){
+  if (!status_.empty()) {
+    fcsgenome::LogUtils logUtils;
+    std::string match = logUtils.findError(logs_);
+    if (!match.empty()) {
       throw failedCommand(executor_->job_name() + 
                           "failed, error message found:\n" + match);
     }
@@ -76,14 +77,13 @@ void Stage::run() {
   std::ofstream fout(executor_->log(), std::ios::out|std::ios::app);
   for (int i = 0; i < logs_.size(); i++) {
     std::ifstream fin(logs_[i], std::ios::in);   
-      if (fin) {
-        fout << fin.rdbuf();
-      }
-      fin.close();
+    if (fin) {
+      fout << fin.rdbuf();
+    }
+    fin.close();
 
-      // remove task log
-      // keep logs if errors occur
-      remove_path(logs_[i]);
+    // remove task log
+    remove_path(logs_[i]);
   }
   fout.flush();
   fout.close();
