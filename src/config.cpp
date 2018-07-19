@@ -1,7 +1,11 @@
+#include <algorithm>
+#include <bits/stdc++.h>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string/regex.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/thread.hpp>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <unistd.h>
 
@@ -157,12 +161,14 @@ int init_config(boost::program_options::options_description conf_opt) {
   set_config<int>("gatk.mutect2.nprocs",   "gatk.nprocs");
   set_config<int>("gatk.indel.nprocs", "gatk.nprocs");
   set_config<int>("gatk.ug.nprocs",    "gatk.nprocs");
+  set_config<int>("gatk.depth.nprocs", "gatk.nprocs");
 
   set_config<int>("gatk.bqsr.nct", "gatk.nct");
   set_config<int>("gatk.pr.nct",   "gatk.nct");
   set_config<int>("gatk.htc.nct",  "gatk.nct");
   set_config<int>("gatk.mutect2.nct",  "gatk.nct");
   set_config<int>("gatk.ug.nt",    "gatk.nct");
+  set_config<int>("gatk.depth.nct", "gatk.nct");
 
   set_config<int>("gatk.bqsr.memory",  "gatk.memory");
   set_config<int>("gatk.pr.memory",    "gatk.memory");
@@ -170,6 +176,7 @@ int init_config(boost::program_options::options_description conf_opt) {
   set_config<int>("gatk.mutect2.memory",   "gatk.memory");
   set_config<int>("gatk.indel.memory", "gatk.memory");
   set_config<int>("gatk.ug.memory",    "gatk.memory");
+  set_config<int>("gatk.depth.memory", "gatk.memory");
 
   // create temp dir
   std::string username("");
@@ -316,8 +323,11 @@ int init(char** argv, int argc) {
     arg_decl_int_w_def("gatk.combine.nprocs",  def_nprocs, "default process num in GATK CombineGVCFs")
     arg_decl_int_w_def("gatk.genotype.nprocs", def_nprocs, "default process num in GATK GenotypeGVCFs")
     arg_decl_int_w_def("gatk.genotype.memory", def_memory, "default heap memory in GATK GenotypeGVCFs")
+    arg_decl_int("gatk.depth.nprocs",            "default process num in GATK DepthOfCoverage")
+    arg_decl_int("gatk.depth.nct",               "default thread num in  GATK DepthOfCoverage")
+    arg_decl_int("gatk.depth.memory",            "default heap memory in GATK DepthOfCoverage")
+    arg_decl_bool("gatk.skip_pseudo_chr", "skip pseudo chromosome intervals")
     arg_decl_bool_w_def("gatk.skip_pseudo_chr", true, "skip pseudo chromosome intervals")
-
     arg_decl_string_w_def("blaze.nam_path", conf_root_dir+"/tools/blaze/bin/nam", "path to nam in blaze")
     arg_decl_string_w_def("blaze.conf_path",conf_root_dir+"/tools/blaze/conf",    "path to nam configuration file")
     ;
@@ -347,7 +357,7 @@ int init(char** argv, int argc) {
 static inline void write_contig_intv(std::ofstream& fout,
     std::string chr,
     uint64_t lbound, uint64_t ubound) {
-  fout << chr << ":" << lbound << "-" << ubound << std::endl;
+    fout << chr << ":" << lbound << "-" << ubound << std::endl;
 }
 
 std::vector<std::string> init_contig_intv(std::string ref_path) {
@@ -361,7 +371,7 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
   // record the intv paths
   std::vector<std::string> intv_paths(ncontigs);
   for (int i = 0; i < ncontigs; i++) {
-    intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
+       intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
   }
 
   // TODO: temporary to use old partition method, need to check
@@ -422,7 +432,6 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
     }
     dict.push_back(std::make_pair(chr_name, chr_length));
     dict_length += chr_length;
-    //DLOG(INFO) << chr_name << " : " << chr_length;
   }
 
   // generate intv.list
@@ -470,4 +479,266 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
 
   return intv_paths;
 }
+
+int roundUp(int numToRound, int multiple){
+    if (multiple == 0) return numToRound;
+    int remainder = abs(numToRound) % multiple;
+    if (remainder == 0) return numToRound;
+    if (numToRound < 0)
+        return -(abs(numToRound) - remainder);
+    else
+        return numToRound + multiple - remainder;
+}
+
+// Split Reference File :
+std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
+  int ncontigs = get_config<int>("gatk.ncontigs");
+
+  std::stringstream ss;
+  ss << conf_temp_dir << "/intv_" << ncontigs;
+  std::string intv_dir = ss.str();
+  create_dir(intv_dir);
+
+  // record the intv paths
+  std::vector<std::string> intv_paths(ncontigs);
+  for (int i = 0; i < ncontigs; i++) {
+       intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
+  }
+
+  std::string org_intv_dir = get_config<std::string>("gatk.intv.path");
+  if (ncontigs == 32 && !org_intv_dir.empty()) {
+    DLOG(INFO) << "Use original interval files";
+    // copy intv files
+    for (int i = 0; i < ncontigs; i++) {
+      std::string org_intv = get_contig_fname(org_intv_dir, i, "list", "intv");
+      if (boost::filesystem::exists(intv_paths[i])) {
+        break;
+      }
+      boost::filesystem::copy_file(org_intv, intv_paths[i]);
+    }
+    return intv_paths;
+  }
+
+  // read ref.dict file to get contig lengths
+  ref_path = check_input(ref_path);
+  boost::filesystem::wpath path(ref_path);
+  path = path.replace_extension(".dict");
+  std::string dict_path = check_input(path.string());
+
+  // parse ref.dict files
+  std::vector<std::string> dict_lines = get_lines(dict_path, "@SQ.*");
+  std::vector<std::pair<std::string, uint64_t>> dict;
+  uint64_t dict_length = 0;
+  int max_value=0;
+
+  for (int i = 0; i < dict_lines.size(); i++) {
+    //if (get_config<bool>("gatk.skip_pseudo_chr") && i >= 25) {
+    //  break;
+    //}
+    typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
+    boost::char_separator<char> space_sep(" \t");
+    boost::char_separator<char> colon_sep(":");
+
+    std::string line = dict_lines[i];
+    tokenizer tok_space{line, space_sep};
+
+    int idx = 0;
+    std::string chr_name;
+    uint64_t    chr_length = 0;
+    for (tokenizer::iterator it = tok_space.begin();
+      it != tok_space.end(); ++it) {
+      // [0] @SQ, [1] SN:contig, [2] LN:length
+      if (idx == 1) {
+        tokenizer tok{*it, colon_sep};
+        tokenizer::iterator field_it = tok.begin();
+        chr_name = *(++field_it);
+      }
+      else if (idx == 2) {
+        tokenizer tok{*it, colon_sep};
+        tokenizer::iterator field_it = tok.begin();
+        chr_length = boost::lexical_cast<uint64_t>(*(++field_it));
+      }
+      idx ++;
+    }
+    dict.push_back(std::make_pair(chr_name, chr_length));
+
+    // Find the chromosome with the largest number of bases:
+    if (max_value < chr_length) max_value = chr_length;
+    DLOG(INFO) << "Chromosome: " << chr_name << " has " << chr_length << " bases"<< std::endl;
+    dict_length += chr_length;
+  }
+
+  uint64_t factor = int(max_value/ncontigs);
+  uint64_t nearest_multiple = roundUp(factor,ncontigs);
+
+  uint64_t lbound;
+  uint64_t ubound;
+  int intCounter=1;
+  std::vector<std::string> splitted_ref;
+  for (int i = 0; i < dict.size(); i++) {
+    std::string chr_name = dict[i].first;
+    uint64_t chr_length = dict[i].second;
+    ubound=nearest_multiple;
+    if( ubound > chr_length) {
+       ubound=chr_length;
+       splitted_ref.push_back(chr_name+":"+ std::to_string(intCounter) + "-" + std::to_string(ubound));
+       DLOG(INFO) << chr_name << "\t" << chr_length << "\t" << intCounter << "\t" << ubound << "\n";
+       intCounter=1;
+       continue;
+    }
+
+    // if the number of positions in one chr is larger than one contig part
+    while (ubound < chr_length) {
+      if (intCounter == 1){
+         lbound = intCounter;
+         ubound = nearest_multiple;
+      }else{
+	       lbound = (intCounter-1)*nearest_multiple;
+         ubound = lbound + nearest_multiple;
+      }
+
+      if (ubound < chr_length){
+         DLOG(INFO) << chr_name << "\t" << chr_length  << "\t" <<  lbound << "\t" << ubound << "\n";
+	       splitted_ref.push_back(chr_name+":"+ std::to_string(lbound).c_str() + "-" + std::to_string(ubound).c_str()) ;
+	       intCounter++;
+      } else {
+	       ubound = chr_length;
+	       DLOG(INFO) << chr_name << "\t" << chr_length  << "\t" <<  lbound << "\t" << ubound << "\n";
+	       splitted_ref.push_back(chr_name+":"+ std::to_string(lbound).c_str() + "-" + std::to_string(ubound).c_str()) ;
+         intCounter=1;
+      }
+    }
+
+  }
+
+  int intervals_per_file = (int) round((double) splitted_ref.size()/ (double) ncontigs);
+  DLOG(INFO) << "intervals_per_file "  << intervals_per_file << "\t" << ncontigs << "\n";
+  DLOG(INFO) << "splitted_ref.size() " << splitted_ref.size() << "\n";
+  int count_lines = 0;
+  int contig_idx = 0;
+  std::ofstream fout;
+  fout.open(intv_paths[contig_idx]);
+  DLOG(INFO) << "Open " << intv_paths[contig_idx] << "\n";
+  for (auto it=splitted_ref.begin();it!=splitted_ref.end();it++){
+    std::string data_line = *it;
+    // This condition adds 1 to the Start Position of the first line in the intv list file.
+    // This avoids duplicate coverage computation since each intv file goes to a different thread:
+    if (count_lines == 0  && contig_idx >0){
+	      std::vector <std::string> resultArray;
+	      boost::algorithm::split_regex( resultArray, data_line,  boost::regex( ":|-" ));
+        if (std::stoi(resultArray[1]) != 1){
+	         for (int k=0; k<resultArray.size();k++){
+	              if (k == 0){
+	                  data_line = resultArray[k] + ":";
+	              } else if (k == 1){
+                    int temp = std::stoi(resultArray[k])+1;
+	                  data_line = data_line + std::to_string(temp) + "-";
+                } else if (k ==2){
+                    data_line = data_line + resultArray[k];
+                }
+           }
+        }
+    }
+
+    DLOG(INFO) << data_line << "\n";
+    fout << data_line << "\n";
+    ++count_lines;
+    if (count_lines == intervals_per_file && contig_idx < ncontigs-1){
+	      fout.close();
+        DLOG(INFO) << "Closing " << intv_paths[contig_idx] << "\n";
+        fout.open(intv_paths[++contig_idx]);
+        DLOG(INFO) << "Open " << intv_paths[contig_idx] << "\n";
+        count_lines=0;
+    }
+  }
+  DLOG(INFO) << "Closing " << intv_paths[contig_idx] << "\n";
+  fout.close();
+  return intv_paths;
+
+}
+
+// Spliting Files begins here :
+unsigned int FileRead(std::istream &is, std::vector <char> & buff) {
+    is.read(&buff[0], buff.size());
+    return is.gcount();
+}
+
+unsigned int CountLines(const std::vector <char> &buff, int sz) {
+    int newlines = 0;
+    const char * p = &buff[0];
+    for (int i = 0; i < sz; i++) {
+        if ( p[i] == '\n' ) {
+            newlines++;
+        }
+    }
+    return newlines;
+}
+
+std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype) {
+
+  const int SZ = 1024*1024;
+  std::vector <char> buff( SZ );
+  std::ifstream ifs( intervalFile );
+  int n = 0;
+  while( int cc = FileRead( ifs, buff ) ) {
+      n += CountLines( buff, cc );
+  }
+  DLOG(INFO) << "Number of Genes Intervals : " << n << std::endl;
+
+  int ncontigs = get_config<int>("gatk.ncontigs");
+  int chunk = int(n/ncontigs);
+  int nearest_multiple = roundUp(chunk,ncontigs);
+
+  std::stringstream ss;
+  ss << conf_temp_dir << "/intv_" << ncontigs;
+  std::string intv_dir = ss.str();
+  create_dir(intv_dir);
+
+  std::string inputData[n];
+  std::ifstream in_file(intervalFile);
+  std::string str;
+  int index=0;
+  while (std::getline(in_file, str)) {
+        inputData[index] = str;
+        ++index;
+  }
+
+  std::ofstream myfile;
+  // record the intv paths
+  std::vector<std::string> intv_paths(ncontigs);
+  for (int i = 0; i < ncontigs; i++) {
+      if (filetype=="list") {
+          intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
+          //DLOG(INFO) << "LIST: " << intv_paths[i] << std::endl;
+      } else {
+          intv_paths[i] = get_contig_fname(intv_dir, i, "bed", "intv");
+          //DLOG(INFO) << "BED: " << intv_paths[i] << std::endl;
+      }
+
+      myfile.open(intv_paths[i]);
+      int start = i*nearest_multiple;
+      int last  = start + nearest_multiple;
+      if (last > n) last = n;
+      for (int j = start; j < last; ++j) {
+           myfile <<  inputData[j] << std::endl;
+      }
+      myfile.close(); myfile.clear();
+  }
+
+  std::string org_intv_dir = get_config<std::string>("gatk.intv.path");
+  if (ncontigs == 32 && !org_intv_dir.empty()) {
+    DLOG(INFO) << "Use original interval files";
+    // copy intv files
+    for (int i = 0; i < ncontigs; i++) {
+      std::string org_intv = get_contig_fname(org_intv_dir, i, "list", "intv");
+      if (boost::filesystem::exists(intv_paths[i])) {
+        break;
+      }
+      boost::filesystem::copy_file(org_intv, intv_paths[i]);
+  }
+  return intv_paths;
+}
+
+}
+
 } // namespace fcsgenome
