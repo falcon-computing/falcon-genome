@@ -89,6 +89,7 @@ int init(char** argv, int argc);
 int init_config(boost::program_options::options_description conf_opt);
 
 std::vector<std::string> init_contig_intv(std::string ref_path);
+std::vector<std::string> split_ref_by_nprocs(std::string ref_path);
 std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype);
 
 template <typename T>

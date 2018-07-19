@@ -13,7 +13,6 @@ DepthWorker::DepthWorker(std::string ref_path,
       std::string input_path,
       std::string output_path,
       std::string geneList_paths,
-      int depthCutoff,
       std::vector<std::string> extra_opts,
       int  contig,
       bool &flag_f,
@@ -24,7 +23,6 @@ DepthWorker::DepthWorker(std::string ref_path,
   intv_paths_(intv_paths),
   input_path_(input_path),
   geneList_paths_(geneList_paths),
-  depthCutoff_(depthCutoff),
   flag_baseCoverage_(flag_baseCoverage),
   flag_intervalCoverage_(flag_intervalCoverage),
   flag_sampleSummary_(flag_sampleSummary)
@@ -34,14 +32,18 @@ DepthWorker::DepthWorker(std::string ref_path,
 }
 
 void DepthWorker::check() {
-  ref_path_   = check_input(ref_path_);
-  //input_path_ = check_input(input_path_);
-  intv_paths_  = check_input(intv_paths_);
-  geneList_paths_  = check_input(geneList_paths_);
+  ref_path_        = check_input(ref_path_);
+  input_path_      = check_input(input_path_);
+  if (!intv_paths_.empty()){
+      intv_paths_  = check_input(intv_paths_);
+  };
+  if (!geneList_paths_.empty()){
+      geneList_paths_  = check_input(geneList_paths_);
+  };
+
 }
 
 void DepthWorker::setup() {
-
   // create cmd
   std::stringstream cmd;
   cmd << get_config<std::string>("java_path") << " "
@@ -49,31 +51,41 @@ void DepthWorker::setup() {
       << "-jar " << get_config<std::string>("gatk_path") << " "
       << "-T DepthOfCoverage "
       << "-R " << ref_path_ << " "
-      << "-I " << input_path_ << " "
-      << "-L " << intv_paths_ << " "
-      << "-geneList " << geneList_paths_ << " ";
+      << "-I " << input_path_ << " ";
 
-  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
-    cmd << it-> first << " ";
-    if (!it->second.empty()) {
-      cmd << it->second << " ";
-    }
+  if (!intv_paths_.empty()){
+      cmd << "-L " << intv_paths_ << " ";
+  }
+
+  if (!geneList_paths_.empty()){
+      cmd << " -geneList " << geneList_paths_ << " ";
   }
 
   cmd << "-nt " << get_config<int>("gatk.depth.nct", "gatk.nct") << " "
-      << "-o " << output_path_ << " "
-      << "-ct " << depthCutoff_ << " ";
+      << "-o " << output_path_ << " " ;
 
   if (geneList_paths_.size() > 0 ) {
-     cmd << "-isr INTERSECTION ";
+    cmd << "-isr INTERSECTION ";
   }
 
-  if (!flag_baseCoverage_)     cmd << " -omitBaseOutput ";
-  if (!flag_sampleSummary_)    cmd << " -omitSampleSummary ";
-  if (!flag_intervalCoverage_) cmd << " --omitIntervals";
+  if (flag_baseCoverage_)     cmd << " -omitBaseOutput ";
+  if (flag_sampleSummary_)    cmd << " -omitSampleSummary ";
+  if (flag_intervalCoverage_) cmd << " -omitIntervals ";
+
+  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
+       cmd << it->first << " ";
+       for(auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
+           if (!(*vec_iter).empty() && vec_iter == it->second.begin()) {
+               cmd << *vec_iter << " ";
+           }
+           else if (!(*vec_iter).empty()) {
+               cmd << it->first << " " << *vec_iter << " ";
+           }
+        }
+  }
 
   cmd_ = cmd.str();
-  DLOG(INFO) << cmd_;
+  LOG(INFO) << cmd_;
 }
 
 } // namespace fcsgenome

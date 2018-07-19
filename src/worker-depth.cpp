@@ -23,6 +23,7 @@ int depth_main(int argc, char** argv,
   bool opt_bool = false;
 
   opt_desc.add_options()
+<<<<<<< HEAD
     arg_decl_string("ref,r", "reference genome path")
     arg_decl_string("input,i", "input BAM file")
     arg_decl_string("output,o", "output coverage file")
@@ -36,6 +37,19 @@ int depth_main(int argc, char** argv,
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
       cmd_vm);
+=======
+    ("ref,r", po::value<std::string>()->required(), "reference genome path")
+    ("input,i", po::value<std::string>()->required(),"input BAM file")
+    ("output,o", po::value<std::string>()->required(),"output coverage file")
+    ("intervalList,L", po::value<std::string>(), "Interval List BED File")
+    ("geneList,g", po::value<std::string>(), "list of genes over which the coverage is calculated")
+    ("omitBaseOutput,b", "omit output coverage depth at each base (default: false)")
+    ("omitIntervals,v", "omit output coverage per-interval statistics (default false)")
+    ("omitSampleSummary,s", "omit output summary files for each sample (default false");
+
+  // Parse arguments
+  po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
+>>>>>>> 6379454f4cf2df3bd3d55d57434e1ed7a2c8dc65
 
   if (cmd_vm.count("help")) {
     throw helpRequest();
@@ -46,6 +60,7 @@ int depth_main(int argc, char** argv,
   check_memory_config("depth");
 
   // Check if required arguments are presented
+<<<<<<< HEAD
   bool flag_f             = get_argument<bool>(cmd_vm, "force");
   bool flag_baseCoverage    = get_argument<bool>(cmd_vm, "baseCoverage");
   bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "intervalCoverage");
@@ -57,6 +72,20 @@ int depth_main(int argc, char** argv,
   std::string geneList = get_argument<std::string>(cmd_vm, "geneList");
   int depthCutoff = get_argument<int>(cmd_vm, "depthCutoff");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
+=======
+
+  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
+  std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
+  std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
+  std::string intv_list = get_argument<std::string>(cmd_vm, "intervalList", "L");
+  std::string geneList = get_argument<std::string>(cmd_vm, "geneList", "g");
+  bool flag_f = get_argument<bool>(cmd_vm, "force", "f");
+  bool flag_baseCoverage     = get_argument<bool>(cmd_vm, "omitBaseOutput", "b");
+  bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "omitIntervals", "v");
+  bool flag_sampleSummary    = get_argument<bool>(cmd_vm, "omitSampleSummary", "s");
+
+  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
+>>>>>>> 6379454f4cf2df3bd3d55d57434e1ed7a2c8dc65
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -74,8 +103,40 @@ int depth_main(int argc, char** argv,
 
   // Split Interval List and Gene List into several parts according to gatk.ncontigs:
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
+<<<<<<< HEAD
   std::vector<std::string> intv_paths = split_by_nprocs(intv_list, "bed");
   std::vector<std::string> geneList_paths = split_by_nprocs(geneList, "list");
+=======
+
+  std::vector<std::string> intv_paths;
+  std::vector<std::string> geneList_paths;
+
+  if (!intv_list.empty() && !geneList.empty()) {
+     DLOG(INFO) << "intv_list NOT EMPTY and geneList NOT EMPTY";
+     intv_paths = split_by_nprocs(intv_list, "bed");
+     geneList_paths = split_by_nprocs(geneList, "list");
+  }
+
+  if (!intv_list.empty() && geneList.empty()) {
+     DLOG(INFO) << "intv_list NOT EMPTY and geneList EMPTY";
+     intv_paths = split_by_nprocs(intv_list, "bed");
+     for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back("");
+  }
+
+  if (intv_list.empty() && geneList.empty()) {
+     DLOG(INFO) << "intv_list EMPTY and geneList EMPTY";
+     intv_paths = split_ref_by_nprocs(ref_path);
+     for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back("");
+  }
+
+  if (intv_list.empty() && !geneList.empty()) {
+     intv_paths = split_ref_by_nprocs(ref_path);
+     for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back("");
+     DLOG(INFO) << "intv_list EMPTY and geneList NOT EMPTY";
+  }
+
+  DLOG(INFO) << "intv_paths Size: " << intv_paths.size();
+>>>>>>> 6379454f4cf2df3bd3d55d57434e1ed7a2c8dc65
 
   std::string input_file;
   if (boost::filesystem::is_directory(input_path)) {
@@ -117,7 +178,10 @@ int depth_main(int argc, char** argv,
               input_file,
               output_file,
               geneList_paths[contig],
+<<<<<<< HEAD
               depthCutoff,
+=======
+>>>>>>> 6379454f4cf2df3bd3d55d57434e1ed7a2c8dc65
               extra_opts,
               contig,
               flag_f,
@@ -130,11 +194,17 @@ int depth_main(int argc, char** argv,
 
   bool flag = true;
 
+<<<<<<< HEAD
   Worker_ptr worker(new DepthCombineWorker(
         output_files, output_path,
         flag_baseCoverage, flag_intervalCoverage, flag_sampleSummary, flag));
   executor.addTask(worker, true);
 
+=======
+  Worker_ptr worker(new DepthCombineWorker(output_files, output_path,
+        flag_baseCoverage, flag_intervalCoverage, flag_sampleSummary, flag));
+  executor.addTask(worker, true);
+>>>>>>> 6379454f4cf2df3bd3d55d57434e1ed7a2c8dc65
   executor.run();
 
   return 0;
