@@ -475,7 +475,7 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
     }
   }
   fout.close();
-  
+
   return intv_paths;
 }
 
@@ -531,9 +531,9 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
   int max_value=0;
 
   for (int i = 0; i < dict_lines.size(); i++) {
-    //if (get_config<bool>("gatk.skip_pseudo_chr") && i >= 25) {
-    //  break;
-    //}
+    if (get_config<bool>("gatk.skip_pseudo_chr") && i >= 25) {
+      break;
+    }
     typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
     boost::char_separator<char> space_sep(" \t");
     boost::char_separator<char> colon_sep(":");
