@@ -111,17 +111,19 @@ int depth_main(int argc, char** argv,
       std::stringstream partsBAM;
       std::string parts_dir = input_path;
       std::vector<std::string> input_files_ ;
+      int check_parts = 1;
       get_input_list(parts_dir, input_files_, ".*/part-[0-9].*bam", true);
       for (int n = 0; n < input_files_.size(); n++) {
            partsBAM << input_files_[n] << " ";
       }
+      if (input_files_.size() == 1) check_parts = 0;
       uint64_t start_merging = getTs();
       std::string log_filename_merge  = input_path + "/mergebam.log";
       std::ofstream merge_log;
       merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
       merge_log << input_path << ":" << "Start Merging BAM Files " << std::endl;
       Executor merger_executor("Merge BAM files");
-      Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, flag_f));
+      Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, check_parts, flag_f));
       merger_executor.addTask(merger_worker);
       merger_executor.run();
       DLOG(INFO) << "Merging Parts BAM in  " << input_path << " completed " << std::endl;
