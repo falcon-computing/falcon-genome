@@ -8,13 +8,13 @@
 
 namespace fcsgenome{
 
-MergeBamWorker::MergeBamWorker(std::string inputPartsBAM,
-    std::string outputBAM,
+MergeBamWorker::MergeBamWorker(std::string inputPartsBAM, std::string outputBAM, int check_parts,
     bool &flag_f): Worker(1, get_config<int>("mergebam.nt"))
 {
   // check output
   output_file_   = check_output(outputBAM, flag_f, true);
   inputPartsBAM_ = inputPartsBAM;
+  check_parts_   = check_parts;
 }
 
 void MergeBamWorker::setup() {
@@ -32,12 +32,20 @@ void MergeBamWorker::setup() {
     throw internalError("Failed to update limit");
   }
 
-  // create cmd
   std::stringstream cmd;
-  cmd << get_config<std::string>("sambamba_path") << " merge "
-      << "-l 1 "
-      << "-t " << get_config<int>("mergebam.nt") << " " << output_file_ << " " << inputPartsBAM_;
-  cmd_ = cmd.str();
+  // Create Command if check_parts==1:
+  if (check_parts_ == 1){
+      cmd << get_config<std::string>("sambamba_path") << " merge "
+          << "-l 1 "
+          << "-t " << get_config<int>("mergebam.nt") << " " << output_file_ << " " << inputPartsBAM_;
+      cmd_ = cmd.str();
+  } else {
+      cmd << "mv " << inputPartsBAM_ << " " << output_file_ << " ; "
+          << get_config<std::string>("sambamba_path") << " index " << "-t "
+          << get_config<int>("mergebam.nt") << " " << output_file_ ;
+      cmd_ = cmd.str();
+  }
+
   DLOG(INFO) << cmd_;
 }
 } // namespace fcsgenome
