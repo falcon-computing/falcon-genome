@@ -116,8 +116,8 @@ static void mergebamBQSRWorker(Executor &merge_executor,
        };
        partsBAM << inputPartsBAM << " ";
   }
-  LOG(INFO) << "Input Part BAM files: " << partsBAM.str() << "\n";
-  LOG(INFO) << "Output Merged BAM file: " << mergeBAM_path << "\n";
+  DLOG(INFO) << "Input Part BAM files: " << partsBAM.str() << "\n";
+  DLOG(INFO) << "Output Merged BAM file: " << mergeBAM_path << "\n";
   Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM_path, check_parts, flag_f));
   merge_executor.addTask(merger_worker);
 }
@@ -223,6 +223,9 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
       boost::replace_all(mergeBAM_path, ".bam", "_merged.bam");
       mergebamBQSRWorker(merge_executor, output_path, mergeBAM_path, flag_f);
       merge_executor.run();
+
+      // Removing Part BAM files:
+      remove_path(output_path);
   }
 
 }
@@ -297,6 +300,10 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
       boost::replace_all(mergeBAM_path, ".bam", "_merged.bam");
       mergebamBQSRWorker(merge_executor, output_path, mergeBAM_path, flag_f);
       merge_executor.run();
+
+      // Removing Part BAM files:
+      remove_path(output_path);
+      
   }
 
   removePartialBQSR(bqsr_path);
