@@ -1,6 +1,8 @@
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
+
 #include <cmath>
 #include <iomanip>
 #include <string>
