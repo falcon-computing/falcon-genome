@@ -195,6 +195,7 @@ int init_config(boost::program_options::options_description conf_opt) {
   check_input(get_config<std::string>("tabix_path"), false);
   check_input(get_config<std::string>("genomicsdb_path"), false);
   check_input(get_config<std::string>("gatk_path"), false);
+  check_input(get_config<std::string>("gatk4_path"), false);
 
   // parse host list if scaleout_mode is selected
   if (get_config<bool>("bwa.scaleout_mode") ||
@@ -271,6 +272,7 @@ int init(char** argv, int argc) {
     arg_decl_string_w_def("tabix_path",      conf_root_dir+"/tools/bin/tabix",      "path to tabix")
     arg_decl_string_w_def("genomicsdb_path", conf_root_dir+"/tools/bin/vcf2tiledb", "path to GenomicsDB")
     arg_decl_string_w_def("gatk_path",       conf_root_dir+"/tools/package/GenomeAnalysisTK.jar", "path to gatk.jar")
+    arg_decl_string_w_def("gatk4_path",      "/genome/disk1/benchmarking/gatk4/gatk-package-4.0.4.0-local.jar", "path to gatk4.jar")
     arg_decl_string_w_def("hosts", "",       "host list for scale-out mode")
     arg_decl_bool_w_def("latency_mode", false, "enable sorting in bwa-mem")
     ;
