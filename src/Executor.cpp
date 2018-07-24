@@ -11,6 +11,7 @@
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/Executor.h"
+#include "fcs-genome/LogUtils.h"
 
 namespace fcsgenome {
 
@@ -18,7 +19,7 @@ boost::mutex mutex_sig;
 
 // put signal handler here because it will be the worker thread 
 // that catches the signal
-void sigint_handler(int s){
+void sigint_handler(int s) {
   boost::lock_guard<boost::mutex> guard(mutex_sig);
   //DLOG(INFO) << "Caught interrupt in worker";
   LOG(INFO) << "Caught interrupt, cleaning up...";
@@ -62,6 +63,16 @@ void Stage::run() {
   }
   // wait for tasks to finish
   boost::wait_for_all(pending_tasks_.begin(), pending_tasks_.end()); 
+
+  //check if any error message in log files
+  if (!status_.empty()) {
+    fcsgenome::LogUtils logUtils;
+    std::string match = logUtils.findError(logs_);
+    if (!match.empty()) {
+      throw failedCommand(executor_->job_name() + 
+                          "failed, error message found:\n" + match);
+    }
+  }
 
   std::ofstream fout(executor_->log(), std::ios::out|std::ios::app);
   for (int i = 0; i < logs_.size(); i++) {
