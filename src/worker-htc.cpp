@@ -32,7 +32,7 @@ int htc_main(int argc, char** argv,
     // TODO: skip-concat should be deprecated
     ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
     ("skip-concat,s", "(deprecated) produce a set of GVCF/VCF files instead of one")
-    ("gatk4,g4", "use gatk4 to perform analysis");
+    ("gatk4,g", "use gatk4 to perform analysis");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
@@ -50,7 +50,7 @@ int htc_main(int argc, char** argv,
   bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat", "s");
   bool flag_vcf           = get_argument<bool>(cmd_vm, "produce-vcf", "v");
-  bool flag_gatk          = get_argument<bool>(cmd_vm, "gatk4", "g4");
+  bool flag_gatk          = get_argument<bool>(cmd_vm, "gatk4", "g");
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");

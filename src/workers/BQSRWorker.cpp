@@ -16,15 +16,17 @@ BQSRWorker::BQSRWorker(std::string ref_path,
       std::vector<std::string> extra_opts,
       std::vector<std::string> &intv_list,
       int  contig,
-      bool &flag_f): 
-  Worker(1, 
-         get_config<int>("gatk.bqsr.nct", "gatk.nct"), 
+      bool &flag_f,
+      bool flag_gatk):
+  Worker(1,
+         get_config<int>("gatk.bqsr.nct", "gatk.nct"),
          extra_opts),
   ref_path_(ref_path),
   intv_path_(intv_path),
   input_path_(input_path),
   known_sites_(known_sites),
   intv_list_(intv_list)
+  flag_gatk_(flag_gatk)
 {
   output_path_ = check_output(output_path, flag_f);
 }
@@ -36,16 +38,22 @@ void BQSRWorker::check() {
 
   for (int i = 0; i < known_sites_.size(); i++) {
     known_sites_[i] = check_input(known_sites_[i]);
-  } 
+  }
 }
 
 void BQSRWorker::setup() {
   // create cmd
   std::stringstream cmd;
   cmd << get_config<std::string>("java_path") << " "
-      << "-Xmx" << get_config<int>("gatk.bqsr.memory", "gatk.memory") << "g "
-      << "-jar " << get_config<std::string>("gatk_path") << " "
-      << "-T BaseRecalibrator "
+      << "-Xmx" << get_config<int>("gatk.bqsr.memory", "gatk.memory") << "g ";
+
+  if (flag_gatk_) {
+      cmd << "-jar " << get_config<std::string>("gatk4_path") << " ";
+  } else {
+      cmd << "-jar " << get_config<std::string>("gatk_path") << " ";
+  }
+
+  cmd << "-T BaseRecalibrator "
       << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " "
       << "-L " << intv_path_ << " "
@@ -53,14 +61,14 @@ void BQSRWorker::setup() {
       // secret option to fix index fopen issue
       << "--disable_auto_index_creation_and_locking_when_reading_rods "
       << "-o " << output_path_ << " ";
-  
+
   for (int i = 0; i < intv_list_.size(); i++) {
     cmd << "-L " << intv_list_[i] << " ";
   }
   if (intv_list_.size() > 0 ) {
     cmd << "-isr INTERSECTION ";
   }
-     
+
   //for (int i = 0; i < input_paths.size(); i++) {
   //  cmd << "-I " << input_paths[i] << " ";
   //}
@@ -76,7 +84,7 @@ void BQSRWorker::setup() {
       else if (!(*vec_iter).empty()) {
         cmd << it->first << " " << *vec_iter << " ";
       }
-    }    
+    }
   }
   cmd << "1> /dev/null";
 
@@ -120,13 +128,14 @@ PRWorker::PRWorker(std::string ref_path,
       std::vector<std::string> extra_opts,
       std::vector<std::string> &intv_list,
       int  contig,
-      bool &flag_f): 
+      bool &flag_f, bool flag_gatk):
   Worker(1, get_config<int>("gatk.pr.nct", "gatk.nct"), extra_opts),
   ref_path_(ref_path),
   intv_path_(intv_path),
   bqsr_path_(bqsr_path),
   input_path_(input_path),
-  intv_list_(intv_list)
+  intv_list_(intv_list),
+  flag_gatk_(flag_gatk)
 {
   // check output files
   output_path_ = check_output(output_path, flag_f);
@@ -137,7 +146,7 @@ void PRWorker::check() {
   intv_path_   = check_input(intv_path_);
   bqsr_path_   = check_input(bqsr_path_);
   input_path_  = check_input(input_path_);
-  
+
   DLOG(INFO) << "intv is " << intv_path_;
   DLOG(INFO) << "output is " << output_path_;
 }
@@ -146,23 +155,29 @@ void PRWorker::setup() {
   // create cmd
   std::stringstream cmd;
   cmd << get_config<std::string>("java_path") << " "
-      << "-Xmx" << get_config<int>("gatk.pr.memory", "gatk.memory") << "g "
-      << "-jar " << get_config<std::string>("gatk_path") << " "
-      << "-T PrintReads "
+      << "-Xmx" << get_config<int>("gatk.pr.memory", "gatk.memory") << "g ";
+
+  if (flag_gatk_) {
+      cmd << "-jar " << get_config<std::string>("gatk4_path") << " ";
+  } else {
+      cmd << "-jar " << get_config<std::string>("gatk_path") << " ";
+  }
+
+  cmv << "-T PrintReads "
       << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " "
       << "-BQSR " << bqsr_path_ << " "
       << "-L " << intv_path_ << " "
       << "-nct " << get_config<int>("gatk.pr.nct", "gatk.nct") << " "
       << "-o " << output_path_ << " ";
-  
+
   for (int i = 0; i < intv_list_.size(); i++) {
     cmd << "-L " << intv_list_[i] << " ";
   }
   if (intv_list_.size() > 0 ) {
     cmd << "-isr INTERSECTION ";
-  }  
-      
+  }
+
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
     cmd << it->first << " ";
     for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
@@ -172,7 +187,7 @@ void PRWorker::setup() {
       else if (!(*vec_iter).empty()) {
         cmd << it->first << " " << *vec_iter << " ";
       }
-    }    
+    }
   }
   cmd << "1> /dev/null";
 
