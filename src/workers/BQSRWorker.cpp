@@ -25,7 +25,7 @@ BQSRWorker::BQSRWorker(std::string ref_path,
   intv_path_(intv_path),
   input_path_(input_path),
   known_sites_(known_sites),
-  intv_list_(intv_list)
+  intv_list_(intv_list),
   flag_gatk_(flag_gatk)
 {
   output_path_ = check_output(output_path, flag_f);
