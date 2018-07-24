@@ -163,7 +163,7 @@ void PRWorker::setup() {
       cmd << "-jar " << get_config<std::string>("gatk_path") << " ";
   }
 
-  cmv << "-T PrintReads "
+  cmd << "-T PrintReads "
       << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " "
       << "-BQSR " << bqsr_path_ << " "
