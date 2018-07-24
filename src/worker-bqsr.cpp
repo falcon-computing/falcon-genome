@@ -217,7 +217,7 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
   create_dir(output_path);
 
   Executor executor("Print Reads", get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
-  prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f);
+  prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f, flag_gatk);
   executor.run();
 
   if (merge_bam_flag){
