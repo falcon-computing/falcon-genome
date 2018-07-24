@@ -17,7 +17,8 @@ class HTCWorker : public Worker {
       std::vector<std::string> &intv_list,
       int contig,
       bool flag_vcf,
-      bool &flag_f);
+      bool &flag_f,
+      bool flag_gatk);
 
   void check();
   void setup();
