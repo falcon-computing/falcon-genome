@@ -25,6 +25,7 @@ class HTCWorker : public Worker {
 
  private:
   bool produce_vcf_;
+  bool flag_gatk_;
   std::string ref_path_;
   std::string intv_path_;
   std::string input_path_;
