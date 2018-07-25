@@ -55,11 +55,16 @@ void BQSRWorker::setup() {
 
   cmd << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " "
-      << "-L " << intv_path_ << " "
-      << "-nct " << get_config<int>("gatk.bqsr.nct", "gatk.nct") << " "
-      // secret option to fix index fopen issue
-      << "--disable_auto_index_creation_and_locking_when_reading_rods "
-      << "-o " << output_path_ << " ";
+      << "-L " << intv_path_ << " ";
+
+  if (flag_gatk_) {
+      cmd << "-O " << output_path_  << " ";
+  } else {
+      cmd << "-nct " << get_config<int>("gatk.bqsr.nct", "gatk.nct") << " "
+          // secret option to fix index fopen issue
+          << "--disable_auto_index_creation_and_locking_when_reading_rods "
+          << "-o " << output_path_ << " ";
+  }
 
   for (int i = 0; i < intv_list_.size(); i++) {
     cmd << "-L " << intv_list_[i] << " ";
@@ -157,17 +162,22 @@ void PRWorker::setup() {
       << "-Xmx" << get_config<int>("gatk.pr.memory", "gatk.memory") << "g ";
 
   if (flag_gatk_) {
-      cmd << "-jar " << get_config<std::string>("gatk4_path") << " PrintReads ";
+      cmd << "-jar " << get_config<std::string>("gatk4_path") << " ApplyBQSR ";
   } else {
       cmd << "-jar " << get_config<std::string>("gatk_path") << " -T PrintReads ";
   }
 
   cmd << "-R " << ref_path_ << " "
-      << "-I " << input_path_ << " "
-      << "-BQSR " << bqsr_path_ << " "
-      << "-L " << intv_path_ << " "
-      << "-nct " << get_config<int>("gatk.pr.nct", "gatk.nct") << " "
-      << "-o " << output_path_ << " ";
+      << "-I " << input_path_ << " ";
+
+  if (flag_gatk_) {
+     cmd << "-O " << output_path_ << " --bqsr-recal-file " << bqsr_path_ << " ";
+  } else {
+     cmd << "-BQSR " << bqsr_path_ << " "
+         << "-L " << intv_path_ << " "
+         << "-nct " << get_config<int>("gatk.pr.nct", "gatk.nct") << " "
+         << "-o " << output_path_ << " ";
+  }
 
   for (int i = 0; i < intv_list_.size(); i++) {
     cmd << "-L " << intv_list_[i] << " ";
