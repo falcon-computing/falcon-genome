@@ -56,7 +56,7 @@ static void baserecalAddWorkers(Executor &executor,
     executor.addTask(worker, contig == 0);
   }
   // gather bqsr for contigs
-  Worker_ptr worker(new BQSRGatherWorker(bqsr_paths, output_path, flag_f));
+  Worker_ptr worker(new BQSRGatherWorker(bqsr_paths, output_path, flag_f, flag_gatk));
   executor.addTask(worker, true);
 }
 

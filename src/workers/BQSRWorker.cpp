@@ -101,7 +101,7 @@ void BQSRWorker::setup() {
 }
 
 BQSRGatherWorker::BQSRGatherWorker(std::vector<std::string> &input_files,
-    std::string output_file, bool &flag_f): Worker(1, 1),
+    std::string output_file, bool &flag_f, flag_gatk): Worker(1, 1),
   input_files_(input_files)
 {
   output_file_ = check_output(output_file, flag_f);
@@ -116,9 +116,17 @@ void BQSRGatherWorker::check() {
 void BQSRGatherWorker::setup() {
   // create cmd
   std::stringstream cmd;
-  cmd << get_config<std::string>("java_path") << " "
-      << "-cp " << get_config<std::string>("gatk_path") << " "
-      << "org.broadinstitute.gatk.tools.GatherBqsrReports ";
+  if (flag_gatk_){
+      cmd << get_config<std::string>("java_path") << " "
+          << "-jar " << get_config<std::string>("gatk4_path") << " "
+          << "GatherBQSRReports ";
+  } else {
+      cmd << get_config<std::string>("java_path") << " "
+          << "-cp " << get_config<std::string>("gatk_path") << " "
+          << "org.broadinstitute.gatk.tools.GatherBqsrReports ";
+  }
+
+
   for (int i = 0; i < input_files_.size(); i++) {
     cmd << "I=" << input_files_[i] << " ";
   }
