@@ -71,7 +71,7 @@ void HTCWorker::setup() {
     }
   }
 
-  if (flag_gatk){
+  if (flag_gatk_){
      cmd << "-L " << intv_path_ << " "
          << "-O " << output_path_ << " ";
      cmd << "1> /dev/null";
