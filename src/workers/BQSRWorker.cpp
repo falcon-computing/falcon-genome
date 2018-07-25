@@ -88,7 +88,7 @@ void BQSRWorker::setup() {
   cmd << "1> /dev/null";
 
   cmd_ = cmd.str();
-  DLOG(INFO) << cmd_;
+  LOG(INFO) << cmd_;
 }
 
 BQSRGatherWorker::BQSRGatherWorker(std::vector<std::string> &input_files,
@@ -190,6 +190,6 @@ void PRWorker::setup() {
   cmd << "1> /dev/null";
 
   cmd_ = cmd.str();
-  DLOG(INFO) << cmd_;
+  LOG(INFO) << cmd_;
 }
 } // namespace fcsgenome

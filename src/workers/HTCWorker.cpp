@@ -71,24 +71,30 @@ void HTCWorker::setup() {
     }
   }
 
-  if (!produce_vcf_) {
-    if (!extra_opts_.count("--emitRefConfidence") && !extra_opts_.count("-ERC")) {
-      // if the user has not specified the same arg in extra options, use our default values
-      cmd << "--emitRefConfidence GVCF ";
-    }
-  }
-  if (!extra_opts_.count("--variant_index_type")) {
-    cmd << "--variant_index_type LINEAR ";
-  }
-  if (!extra_opts_.count("--variant_index_parameter")) {
-    cmd << "--variant_index_parameter 128000 ";
-  }
+  if (flag_gatk){
+     cmd << "-L " << intv_path_ << " "
+         << "-O " << output_path_ << " ";
+     cmd << "1> /dev/null";
+  } else{
+     if (!produce_vcf_) {
+        if (!extra_opts_.count("--emitRefConfidence") && !extra_opts_.count("-ERC")) {
+        // if the user has not specified the same arg in extra options, use our default values
+           cmd << "--emitRefConfidence GVCF ";
+        }
+     }
+     if (!extra_opts_.count("--variant_index_type")) {
+        cmd << "--variant_index_type LINEAR ";
+     }
+     if (!extra_opts_.count("--variant_index_parameter")) {
+        cmd << "--variant_index_parameter 128000 ";
+     }
 
-  cmd << "-L " << intv_path_ << " "
-      << "-nct " << get_config<int>("gatk.htc.nct", "gatk.nct") << " "
-      << "-o " << output_path_ << " ";
+     cmd << "-L " << intv_path_ << " "
+         << "-nct " << get_config<int>("gatk.htc.nct", "gatk.nct") << " "
+         << "-o " << output_path_ << " ";
 
-  cmd << "1> /dev/null";
+     cmd << "1> /dev/null";
+  }
 
   cmd_ = cmd.str();
   LOG(INFO) << cmd_;
