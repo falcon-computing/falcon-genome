@@ -97,7 +97,7 @@ void BQSRWorker::setup() {
   cmd << "1> /dev/null";
 
   cmd_ = cmd.str();
-  LOG(INFO) << cmd_;
+  DLOG(INFO) << cmd_;
 }
 
 BQSRGatherWorker::BQSRGatherWorker(std::vector<std::string> &input_files,
@@ -135,9 +135,10 @@ void BQSRGatherWorker::setup() {
       }
       cmd << "O=" << output_file_;
   }
+  cmd << "1> /dev/null";
 
   cmd_ = cmd.str();
-  LOG(INFO) << cmd_;
+  DLOG(INFO) << cmd_;
 }
 
 PRWorker::PRWorker(std::string ref_path,
@@ -216,6 +217,6 @@ void PRWorker::setup() {
   cmd << "1> /dev/null";
 
   cmd_ = cmd.str();
-  LOG(INFO) << cmd_;
+  DLOG(INFO) << cmd_;
 }
 } // namespace fcsgenome
