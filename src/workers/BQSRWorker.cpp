@@ -77,7 +77,11 @@ void BQSRWorker::setup() {
   //  cmd << "-I " << input_paths[i] << " ";
   //}
   for (int i = 0; i < known_sites_.size(); i++) {
-    cmd << "-knownSites " << known_sites_[i] << " ";
+    if (flag_gatk_) {
+        cmd << "-known-sites " << known_sites_[i] << " ";
+    } else {
+        cmd << "-knownSites " << known_sites_[i] << " ";
+    }
   }
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
     cmd << it->first << " ";
