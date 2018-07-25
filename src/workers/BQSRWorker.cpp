@@ -48,13 +48,12 @@ void BQSRWorker::setup() {
       << "-Xmx" << get_config<int>("gatk.bqsr.memory", "gatk.memory") << "g ";
 
   if (flag_gatk_) {
-      cmd << "-jar " << get_config<std::string>("gatk4_path") << " ";
+      cmd << "-jar " << get_config<std::string>("gatk4_path") << " BaseRecalibrator ";
   } else {
-      cmd << "-jar " << get_config<std::string>("gatk_path") << " ";
+      cmd << "-jar " << get_config<std::string>("gatk_path") << " -T BaseRecalibrator ";
   }
 
-  cmd << "-T BaseRecalibrator "
-      << "-R " << ref_path_ << " "
+  cmd << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " "
       << "-L " << intv_path_ << " "
       << "-nct " << get_config<int>("gatk.bqsr.nct", "gatk.nct") << " "
@@ -158,13 +157,12 @@ void PRWorker::setup() {
       << "-Xmx" << get_config<int>("gatk.pr.memory", "gatk.memory") << "g ";
 
   if (flag_gatk_) {
-      cmd << "-jar " << get_config<std::string>("gatk4_path") << " ";
+      cmd << "-jar " << get_config<std::string>("gatk4_path") << " PrintReads ";
   } else {
-      cmd << "-jar " << get_config<std::string>("gatk_path") << " ";
+      cmd << "-jar " << get_config<std::string>("gatk_path") << " -T PrintReads ";
   }
 
-  cmd << "-T PrintReads "
-      << "-R " << ref_path_ << " "
+  cmd << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " "
       << "-BQSR " << bqsr_path_ << " "
       << "-L " << intv_path_ << " "

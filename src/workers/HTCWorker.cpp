@@ -44,13 +44,12 @@ void HTCWorker::setup() {
       << "-Xmx" << get_config<int>("gatk.htc.memory", "gatk.memory") << "g ";
 
   if (flag_gatk_) {
-      cmd << "-jar " << get_config<std::string>("gatk4_path") << " ";
+      cmd << "-jar " << get_config<std::string>("gatk4_path") << " HaplotypeCaller ";
   } else {
-      cmd << "-jar " << get_config<std::string>("gatk_path") << " ";
+      cmd << "-jar " << get_config<std::string>("gatk_path") << " -T HaplotypeCaller ";
   }
 
-  cmd << "-T HaplotypeCaller "
-      << "-R " << ref_path_ << " "
+  cmd << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " ";
 
   for (int i = 0; i < intv_list_.size(); i++) {
