@@ -36,7 +36,7 @@ class BQSRGatherWorker : public Worker {
  public:
   BQSRGatherWorker(std::vector<std::string> &input_files,
       std::string output_file,
-      bool &flag_f);
+      bool &flag_f, bool flag_gatk);
 
   void check();
   void setup();
