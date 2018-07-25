@@ -120,17 +120,20 @@ void BQSRGatherWorker::setup() {
       cmd << get_config<std::string>("java_path") << " "
           << "-jar " << get_config<std::string>("gatk4_path") << " "
           << "GatherBQSRReports ";
+      for (int i = 0; i < input_files_.size(); i++) {
+          cmd << "-I " << input_files_[i] << " ";
+      }
+      cmd << "-O " << output_file_;
+
   } else {
       cmd << get_config<std::string>("java_path") << " "
           << "-cp " << get_config<std::string>("gatk_path") << " "
           << "org.broadinstitute.gatk.tools.GatherBqsrReports ";
+      for (int i = 0; i < input_files_.size(); i++) {
+            cmd << "I=" << input_files_[i] << " ";
+      }
+      cmd << "O=" << output_file_;          
   }
-
-
-  for (int i = 0; i < input_files_.size(); i++) {
-    cmd << "I=" << input_files_[i] << " ";
-  }
-  cmd << "O=" << output_file_;
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
