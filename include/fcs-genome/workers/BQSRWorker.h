@@ -43,7 +43,7 @@ class BQSRGatherWorker : public Worker {
  private:
   std::vector<std::string> input_files_;
   std::string output_file_;
-  bool flag_gatk_
+  bool flag_gatk_;
 };
 
 class PRWorker : public Worker {
