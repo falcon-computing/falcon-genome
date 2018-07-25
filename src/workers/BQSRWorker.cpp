@@ -118,6 +118,7 @@ void BQSRGatherWorker::setup() {
   std::stringstream cmd;
   if (flag_gatk_){
       cmd << get_config<std::string>("java_path") << " "
+          << "-Xmx" << get_config<int>("gatk.bqsr.memory", "gatk.memory") << "g "
           << "-jar " << get_config<std::string>("gatk4_path") << " "
           << "GatherBQSRReports ";
       for (int i = 0; i < input_files_.size(); i++) {
@@ -132,11 +133,11 @@ void BQSRGatherWorker::setup() {
       for (int i = 0; i < input_files_.size(); i++) {
             cmd << "I=" << input_files_[i] << " ";
       }
-      cmd << "O=" << output_file_;          
+      cmd << "O=" << output_file_;
   }
 
   cmd_ = cmd.str();
-  DLOG(INFO) << cmd_;
+  LOG(INFO) << cmd_;
 }
 
 PRWorker::PRWorker(std::string ref_path,
