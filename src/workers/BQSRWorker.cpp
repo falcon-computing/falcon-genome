@@ -102,7 +102,7 @@ void BQSRWorker::setup() {
 
 BQSRGatherWorker::BQSRGatherWorker(std::vector<std::string> &input_files,
     std::string output_file, bool &flag_f, bool flag_gatk): Worker(1, 1),
-  input_files_(input_files)
+  input_files_(input_files),flag_gatk_(flag_gatk)
 {
   output_file_ = check_output(output_file, flag_f);
 }
