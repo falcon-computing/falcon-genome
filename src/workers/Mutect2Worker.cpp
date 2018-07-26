@@ -55,7 +55,7 @@ void Mutect2Worker::setup() {
       << "-R " << ref_path_ << " "
       << "-I:normal " << normal_path_ << " "
       << "-I:tumor " << tumor_path_ << " ";
- 
+
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
     cmd << it->first << " ";
     for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
@@ -67,20 +67,20 @@ void Mutect2Worker::setup() {
       }
     }
   }
-  
+
   if(!extra_opts_.count("--variant_index_type")) {
     cmd << "--variant_index_type LINEAR ";
   }
-  
+
   if (!extra_opts_.count("--variant_index_parameter")) {
     cmd << "--variant_index_parameter 128000 ";
   }
-   
+
   cmd << "-L " << intv_path_ << " "
       << "-nct " << get_config<int>("gatk.mutect2.nct", "gatk.nct") << " "
       << "-o " << output_path_ << " ";
 
-  for (int i = 0; i < dbsnp_path_.size(); i++) {    
+  for (int i = 0; i < dbsnp_path_.size(); i++) {
       cmd << "--dbsnp " << dbsnp_path_[i] << " ";
   }
   for (int j = 0; j < cosmic_path_.size(); j++) {
@@ -94,8 +94,7 @@ void Mutect2Worker::setup() {
   }
 
   cmd_ = cmd.str();
-  DLOG(INFO) << cmd_;
+  LOG(INFO) << cmd_;
 }
 
 } // namespace fcsgenome
-                           
