@@ -138,7 +138,7 @@ void BQSRGatherWorker::setup() {
   cmd << "1> /dev/null";
 
   cmd_ = cmd.str();
-  DLOG(INFO) << cmd_;
+  LOG(INFO) << cmd_;
 }
 
 PRWorker::PRWorker(std::string ref_path,
