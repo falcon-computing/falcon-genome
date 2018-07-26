@@ -135,7 +135,7 @@ void BQSRGatherWorker::setup() {
       }
       cmd << "O=" << output_file_;
   }
-  cmd << "1> /dev/null";
+  cmd << " 1> /dev/null";
 
   cmd_ = cmd.str();
   LOG(INFO) << cmd_;
@@ -214,7 +214,7 @@ void PRWorker::setup() {
       }
     }
   }
-  cmd << "1> /dev/null";
+  cmd << " 1> /dev/null";
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
