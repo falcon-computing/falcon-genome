@@ -115,7 +115,7 @@ int align_main(int argc, char** argv,
   //struct statvfs diskData;
   //statvfs(temp_dir.c_str(), &diskData);
   //unsigned long long available = (diskData.f_bavail * diskData.f_frsize);
-  path p(temp_dir);
+  fs::path p{temp_dir};
   fs::space_info diskSpace = fs::space(p);
   DLOG(INFO) << diskSpace.available;
 
@@ -143,7 +143,7 @@ int align_main(int argc, char** argv,
             size_fastq += 3*fs::file_size(fq2_path);
         }
 
-        if (available < size_fastq) {
+        if (diskSpace.available < size_fastq) {
             LOG(ERROR) << "Not enough space in temporary storage: "
               << temp_dir << ", the size of the temporary folder should be at least 3 times the input FASTQ files";
 
