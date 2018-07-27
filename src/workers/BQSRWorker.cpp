@@ -52,7 +52,7 @@ void BQSRWorker::setup() {
   } else {
       cmd << "-jar " << get_config<std::string>("gatk_path") << " -T BaseRecalibrator ";
   }
-
+GEN-478-GATK4_integrated_in_fcs_genome
   cmd << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " "
       << "-L " << intv_path_ << " ";
@@ -89,7 +89,7 @@ void BQSRWorker::setup() {
       if (!(*vec_iter).empty() && vec_iter == it->second.begin()) {
         cmd << *vec_iter << " ";
       }
-      else if (!(*vec_iter).empty()) {
+      else if (!(*vec_iter).empty()) {GEN-478-GATK4_integrated_in_fcs_genome
         cmd << it->first << " " << *vec_iter << " ";
       }
     }
@@ -188,7 +188,8 @@ void PRWorker::setup() {
       << "-I " << input_path_ << " ";
 
   if (flag_gatk_) {
-     cmd << "-O " << output_path_ << " --bqsr-recal-file " << bqsr_path_ << " ";
+     cmd << "-O " << output_path_ << " --bqsr-recal-file " << bqsr_path_ << " "
+         << "-L " << intv_path_ << " ";
   } else {
      cmd << "-BQSR " << bqsr_path_ << " "
          << "-L " << intv_path_ << " "
