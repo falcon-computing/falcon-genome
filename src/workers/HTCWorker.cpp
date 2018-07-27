@@ -73,7 +73,7 @@ void HTCWorker::setup() {
 
   if (flag_gatk_){
      cmd << "-L " << intv_path_ << " "
-         << "-O " << output_path_ << " ";
+         << "-O " << output_path_ << " --native-pair-hmm-threads=1 --smith-waterman AVX_ENABLED ";
      cmd << "1> /dev/null";
   } else{
      if (!produce_vcf_) {
