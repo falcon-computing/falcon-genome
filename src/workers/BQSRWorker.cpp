@@ -89,7 +89,7 @@ GEN-478-GATK4_integrated_in_fcs_genome
       if (!(*vec_iter).empty() && vec_iter == it->second.begin()) {
         cmd << *vec_iter << " ";
       }
-      else if (!(*vec_iter).empty()) {GEN-478-GATK4_integrated_in_fcs_genome
+      else if (!(*vec_iter).empty()) {
         cmd << it->first << " " << *vec_iter << " ";
       }
     }
