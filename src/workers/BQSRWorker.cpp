@@ -52,7 +52,7 @@ void BQSRWorker::setup() {
   } else {
       cmd << "-jar " << get_config<std::string>("gatk_path") << " -T BaseRecalibrator ";
   }
-GEN-478-GATK4_integrated_in_fcs_genome
+
   cmd << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " "
       << "-L " << intv_path_ << " ";
