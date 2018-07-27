@@ -112,10 +112,12 @@ int align_main(int argc, char** argv,
   // check available space in temp dir
   namespace fs = boost::filesystem;
 
-  struct statvfs diskData;
-  statvfs(temp_dir.c_str(), &diskData);
-  unsigned long long available = (diskData.f_bavail * diskData.f_frsize);
-  DLOG(INFO) << available;
+  //struct statvfs diskData;
+  //statvfs(temp_dir.c_str(), &diskData);
+  //unsigned long long available = (diskData.f_bavail * diskData.f_frsize);
+  path p(temp_dir);
+  fs::space_info diskSpace = fs::space(p);
+  DLOG(INFO) << diskSpace.available;
 
   std::string output_path_temp;
   std::string BAMfile;
