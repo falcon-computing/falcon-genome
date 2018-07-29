@@ -203,7 +203,7 @@ int init_config(boost::program_options::options_description conf_opt) {
       get_config<bool>("latency_mode")) {
     std::string hosts = get_config<std::string>("hosts");
 
-    typedef boost::tokGEN-478-GATK4_integrated_in_fcs_genomeenizer<boost::char_separator<char>> tokenizer;
+    typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
     boost::char_separator<char> sep(", ");
     tokenizer tok{hosts, sep};
 
