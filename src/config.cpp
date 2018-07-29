@@ -67,7 +67,7 @@ void calc_gatk_default_config(
   while (nprocs > cpu_num) {
     nprocs /= 2;
   }
-  // first increase memory if neGEN-478-GATK4_integrated_in_fcs_genomecessary
+  // first increase memory if necessary
   while (nprocs * (memory+2) < memory_size * (1+memory_margin)
       && memory < 16)
   {
@@ -119,7 +119,7 @@ int init_config(boost::program_options::options_description conf_opt) {
   std::string g_conf_fname = conf_root_dir + "/fcs-genome.conf";
   std::string l_conf_fname = "fcs-genome.conf";
 
-  namespace po = boost::prograGEN-478-GATK4_integrated_in_fcs_genomem_options;
+  namespace po = boost::program_options;
 
   try {
     // 1st priority: get conf from environment variables
@@ -139,7 +139,7 @@ int init_config(boost::program_options::options_description conf_opt) {
       if (conf_file) {
         po::store(po::parse_config_file(conf_file, conf_opt), config_vtable);
         DLOG(INFO) << "Load config from " << g_conf_fname;
-      }GEN-478-GATK4_integrated_in_fcs_genome
+      }
     }
     po::notify(config_vtable);
   }
@@ -173,7 +173,7 @@ int init_config(boost::program_options::options_description conf_opt) {
   set_config<int>("gatk.bqsr.memory",  "gatk.memory");
   set_config<int>("gatk.pr.memory",    "gatk.memory");
   set_config<int>("gatk.htc.memory",   "gatk.memory");
-  set_config<int>("gatk.GEN-478-GATK4_integrated_in_fcs_genomemutect2.memory",   "gatk.memory");
+  set_config<int>("gatk.mutect2.memory",   "gatk.memory");
   set_config<int>("gatk.indel.memory", "gatk.memory");
   set_config<int>("gatk.ug.memory",    "gatk.memory");
   set_config<int>("gatk.depth.memory", "gatk.memory");
@@ -184,7 +184,7 @@ int init_config(boost::program_options::options_description conf_opt) {
   conf_temp_dir = get_config<std::string>("temp_dir") +
                   "/fcs-genome-" +
                   username +
-                  "-" GEN-478-GATK4_integrated_in_fcs_genome+
+                  "-" +
                   std::to_string((long long)getpid());
 
   // check tool files
@@ -216,7 +216,7 @@ int init_config(boost::program_options::options_description conf_opt) {
   if (get_config<bool>("gatk.skip_pseudo_chr")) {
     DLOG(INFO) << "skipping pseudo chromosome intervals";
   }
-GEN-478-GATK4_integrated_in_fcs_genome
+
   if (!conf_host_list.empty()) {
     DLOG(INFO) << "Hosts list: ";
     for (int i = 0; i < conf_host_list.size(); i++) {
