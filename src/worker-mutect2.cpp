@@ -96,7 +96,7 @@ int mutect2_main(int argc, char** argv,
   if (!dbsnp_path.empty()){
       std::vector<std::string> tmp_dnsp;
       for (size_t i = 0; i < dbsnp_path.size(); i++){
-           tmp_dnsp = split_vcf_by_nprocs(dbsnp_path[i], intv_paths, "vcf");
+           tmp_dnsp = split_vcf_by_regions(dbsnp_path[i], intv_paths, "vcf");
            dbSNP_sets.insert(pair<size_t, std:vector<std::string>>(i,tmp_dbsnp));
            tmp_dbsnp.clear();
       }
@@ -138,7 +138,7 @@ int mutect2_main(int argc, char** argv,
     }
     std::string file_ext = "vcf";
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
-    Worker_ptr worker(new Mutect2Worker(ref_path,
+    Worker_ptr worker(new Mutect2Worker(ref_path,bcftools_path
           intv_paths[contig], normal_file, tumor_file,
           output_file,
           extra_opts,

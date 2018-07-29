@@ -67,7 +67,7 @@ void Mutect2Worker::setup() {
       }
     }
   }
-
+bcftools_path
   if(!extra_opts_.count("--variant_index_type")) {
     cmd << "--variant_index_type LINEAR ";
   }
