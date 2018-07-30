@@ -150,7 +150,7 @@ PRWorker::PRWorker(std::string ref_path,
       std::vector<std::string> &intv_list,
       int  contig,
       bool &flag_f, bool flag_gatk):
-  Worker(1, get_config<int>("gatk.pr.nct", "gatk.nct"), get_config<bool>("use_gatk4"), extra_opts),
+  Worker(1, get_config<int>("gatk.pr.nct", "gatk.nct"), extra_opts),
   ref_path_(ref_path),
   intv_path_(intv_path),
   bqsr_path_(bqsr_path),
@@ -187,14 +187,8 @@ void PRWorker::setup() {
   cmd << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " ";
 
-<<<<<<< HEAD
   if (flag_gatk_ || get_config<bool>("use_gatk4")) {
      cmd << "-O " << output_path_ << " --bqsr-recal-file " << bqsr_path_ << " ";
-=======
-  if (flag_gatk_) {
-     cmd << "-O " << output_path_ << " --bqsr-recal-file " << bqsr_path_ << " "
-         << "-L " << intv_path_ << " ";
->>>>>>> ca880e8d2dc561f62651c5e2c2825c12c6aa033e
   } else {
      cmd << "-BQSR " << bqsr_path_ << " "
          << "-L " << intv_path_ << " "

@@ -88,9 +88,7 @@ int htc_main(int argc, char** argv,
 
   BackgroundExecutor bg_executor("blaze-nam", blaze_worker);
 
-  Executor executor("Haplotype Caller",
-                    get_config<int>("gatk.htc.nprocs", "gatk.nprocs"),
-                    get_config<bool>("use_gatk4"));
+  Executor executor("Haplotype Caller", get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
 
   bool flag_htc_f = !flag_skip_concat || flag_f;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {

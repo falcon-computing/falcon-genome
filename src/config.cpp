@@ -274,11 +274,7 @@ int init(char** argv, int argc) {
     arg_decl_string_w_def("genomicsdb_path", conf_root_dir+"/tools/bin/vcf2tiledb", "path to GenomicsDB")
     arg_decl_string_w_def("gatk_path",       conf_root_dir+"/tools/package/GenomeAnalysisTK.jar", "path to gatk.jar")
     arg_decl_string_w_def("gatk4_path",      conf_root_dir+"/tools/package/gatk-package-4.0.4.0-local.jar", "path to gatk4.jar")
-<<<<<<< HEAD
-
-=======
     //arg_decl_string_w_def("gatk4_path",      "/pool/storage/alfonso/gatk4/gatk-package-4.0.4.0-local.jar", "path to gatk4.jar")
->>>>>>> ca880e8d2dc561f62651c5e2c2825c12c6aa033e
     arg_decl_string_w_def("hosts", "",       "host list for scale-out mode")
     arg_decl_bool_w_def("latency_mode", false, "enable sorting in bwa-mem")
     arg_decl_bool_w_def("use_gatk4", false, "enable GATK4 in fcs-genome")

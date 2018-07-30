@@ -293,7 +293,7 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
   // the output path will be a directory
   create_dir(output_path);
 
-  Executor executor("Base Recalibration", get_config<int>("gatk.bqsr.nprocs"),get_config<bool>("use_gatk4"));
+  Executor executor("Base Recalibration", get_config<int>("gatk.bqsr.nprocs");
   // first, do base recal
   baserecalAddWorkers(executor, ref_path, known_sites, extra_opts, input_path, bqsr_path, intv_list, flag_f, flag_gatk);
   prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f, flag_gatk);
