@@ -73,7 +73,7 @@ void HTCWorker::setup() {
 
   if (flag_gatk_ || get_config<bool>("use_gatk4")){
      cmd << "-L " << intv_path_ << " "
-         << "-O " << output_path_ << " ";
+         << "-O " << output_path_ << " --native-pair-hmm-threads=1 ";
      cmd << "1> /dev/null";
   } else{
      if (!produce_vcf_) {

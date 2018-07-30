@@ -187,8 +187,14 @@ void PRWorker::setup() {
   cmd << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " ";
 
+<<<<<<< HEAD
   if (flag_gatk_ || get_config<bool>("use_gatk4")) {
      cmd << "-O " << output_path_ << " --bqsr-recal-file " << bqsr_path_ << " ";
+=======
+  if (flag_gatk_) {
+     cmd << "-O " << output_path_ << " --bqsr-recal-file " << bqsr_path_ << " "
+         << "-L " << intv_path_ << " ";
+>>>>>>> ca880e8d2dc561f62651c5e2c2825c12c6aa033e
   } else {
      cmd << "-BQSR " << bqsr_path_ << " "
          << "-L " << intv_path_ << " "
