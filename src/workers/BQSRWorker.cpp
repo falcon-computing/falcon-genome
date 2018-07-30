@@ -57,7 +57,7 @@ void BQSRWorker::setup() {
       << "-I " << input_path_ << " "
       << "-L " << intv_path_ << " ";
 
-  if (flag_gatk_) {
+  if (flag_gatk_ || get_config<bool>("use_gatk4")) {
       cmd << "-O " << output_path_  << " ";
   } else {
       cmd << "-nct " << get_config<int>("gatk.bqsr.nct", "gatk.nct") << " "
@@ -116,7 +116,7 @@ void BQSRGatherWorker::check() {
 void BQSRGatherWorker::setup() {
   // create cmd
   std::stringstream cmd;
-  if (flag_gatk_){
+  if (flag_gatk_ || get_config<bool>("use_gatk4")){
       cmd << get_config<std::string>("java_path") << " "
           << "-Xmx" << get_config<int>("gatk.bqsr.memory", "gatk.memory") << "g "
           << "-jar " << get_config<std::string>("gatk4_path") << " "
@@ -150,7 +150,7 @@ PRWorker::PRWorker(std::string ref_path,
       std::vector<std::string> &intv_list,
       int  contig,
       bool &flag_f, bool flag_gatk):
-  Worker(1, get_config<int>("gatk.pr.nct", "gatk.nct"), extra_opts),
+  Worker(1, get_config<int>("gatk.pr.nct", "gatk.nct"), get_config<bool>("use_gatk4"), extra_opts),
   ref_path_(ref_path),
   intv_path_(intv_path),
   bqsr_path_(bqsr_path),
@@ -178,7 +178,7 @@ void PRWorker::setup() {
   cmd << get_config<std::string>("java_path") << " "
       << "-Xmx" << get_config<int>("gatk.pr.memory", "gatk.memory") << "g ";
 
-  if (flag_gatk_) {
+  if (flag_gatk_ || get_config<bool>("use_gatk4")) {
       cmd << "-jar " << get_config<std::string>("gatk4_path") << " ApplyBQSR ";
   } else {
       cmd << "-jar " << get_config<std::string>("gatk_path") << " -T PrintReads ";
@@ -187,7 +187,7 @@ void PRWorker::setup() {
   cmd << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " ";
 
-  if (flag_gatk_) {
+  if (flag_gatk_ || get_config<bool>("use_gatk4")) {
      cmd << "-O " << output_path_ << " --bqsr-recal-file " << bqsr_path_ << " ";
   } else {
      cmd << "-BQSR " << bqsr_path_ << " "

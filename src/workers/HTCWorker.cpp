@@ -18,7 +18,7 @@ HTCWorker::HTCWorker(std::string ref_path,
       bool flag_vcf,
       bool &flag_f,
       bool flag_gatk):
-  Worker(1, get_config<int>("gatk.htc.nct", "gatk.nct"), extra_opts),
+  Worker(1, get_config<int>("gatk.htc.nct", "gatk.nct"), get_config<bool>("use_gatk4"),extra_opts),
   produce_vcf_(flag_vcf),
   flag_gatk_(flag_gatk),
   ref_path_(ref_path),
@@ -43,7 +43,7 @@ void HTCWorker::setup() {
   cmd << get_config<std::string>("java_path") << " "
       << "-Xmx" << get_config<int>("gatk.htc.memory", "gatk.memory") << "g ";
 
-  if (flag_gatk_) {
+  if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
       cmd << "-jar " << get_config<std::string>("gatk4_path") << " HaplotypeCaller ";
   } else {
       cmd << "-jar " << get_config<std::string>("gatk_path") << " -T HaplotypeCaller ";
@@ -71,7 +71,7 @@ void HTCWorker::setup() {
     }
   }
 
-  if (flag_gatk_){
+  if (flag_gatk_ || get_config<bool>("use_gatk4")){
      cmd << "-L " << intv_path_ << " "
          << "-O " << output_path_ << " ";
      cmd << "1> /dev/null";
