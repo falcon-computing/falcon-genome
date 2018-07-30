@@ -81,41 +81,37 @@ int mutect2_main(int argc, char** argv,
   //std::vector<std::string> intv_paths = init_contig_intv(ref_path);
   std::vector<std::string> intv_paths;
 
-  std::map<size_t, std::vector<std::string> > dbSNP_sets;
-  std::map<size_t, std::vector<std::string> > cosmic_sets;
-
+  std::vector<std::string> RegionsToBeCovered;
   if (!intv_list.empty()) {
      DLOG(INFO) << "Interval list defined for MuTect2";
-     intv_paths = split_by_nprocs(intv_list, "bed");
+     intv_list = split_by_nprocs(intv_list, "bed");
+     RegionsToBeCovered = intv_list;
   } else {
      DLOG(INFO) << "Interval list not defined. "
      DLOG(INFO) << "Coordinates from Reference will be used for MuTect2";
      intv_paths = split_ref_by_nprocs(ref_path);
+     RegionsToBeCovered = intv_paths;
   }
 
   if (!dbsnp_path.empty()){
-      std::vector<std::string> tmp_dnsp;
       for (int i = 0; i < dbsnp_path.size(); i++){
            std::string parts_dbsnp_name = "parts_dbsnp_" + to_string(i);
            Worker_ptr worker(new SplitVCFbyIntervalWorker(dbsnp_path[i],
-             intv_paths,parts_dbsnp_name);
+             RegionsToBeCovered, parts_dbsnp_name);
            executor.addTask(worker);
-
-           dbSNP_sets.insert(pair<size_t, std:vector<std::string>>(i,tmp_dbsnp));
-           tmp_dbsnp.clear();
       }
+      executor.run();
   }
 
   if (!cosmic_path.empty()){
-      std::vector<std::string> tmp_cosmic;
-      for (int i = 0; i < cosmic_path.size(); i++){
-           tmp_dnsp = split_vcf_by_regions(cosmic_path[i], intv_paths, "vcf");
-           cosmic_sets.insert(pair<size_t, std:vector<std::string>>(i,tmp_dbsnp));
-           tmp_dbsnp.clear();
+      for (int i = 0; i < dbsnp_path.size(); i++){
+           std::string parts_cosmic_name = "parts_dbsnp_" + to_string(i);
+           Worker_ptr worker(new SplitVCFbyIntervalWorker(cosmic_path[i],
+             RegionsToBeCovered, parts_cosmic_name);
+           executor.addTask(worker);
       }
+      executor.run();
   }
-
-
 
   // start an executor for NAM
   Worker_ptr blaze_worker(new BlazeWorker(
@@ -144,14 +140,34 @@ int mutect2_main(int argc, char** argv,
     else {
       tumor_file = tumor_path;
     }
+
+    for (int k=0; k<dbsnp_path.size(); k++ ){
+         std::string dbsnp_sets;
+         if (k==0){
+             dbsnp_sets = "parts_dbsnp_" + to_string(k) + "_" + contig + ".vcf";
+         } else {
+             dbsnp_sets = dbsnp_sets + "parts_dbsnp_" + to_string(k) + "_" + contig + ".vcf";
+         }
+    }
+
+    for (int n=0; n<cosmic_path.size(); n++ ){
+         std::string cosmic_sets;
+         if (n==0){
+             cosmic_sets = "parts_cosmic_" + to_string(k) + "_" + contig + ".vcf";
+         } else {
+             cosmic_sets = cosmic_sets + "parts_cosmic_" + to_string(k) + "_" + contig + ".vcf";
+         }
+    }
+
+
     std::string file_ext = "vcf";
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new Mutect2Worker(ref_path,bcftools_path
           intv_paths[contig], normal_file, tumor_file,
           output_file,
           extra_opts,
-          dbsnp_path,
-          cosmic_path,
+          dbsnp_sets,
+          cosmic_sets,
           intv_list,
           contig,
           flag_mutect2_f));
