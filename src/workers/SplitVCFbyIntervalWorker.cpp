@@ -10,7 +10,6 @@ namespace fcsgenome {
 SplitVCFbyIntervalsWorker::SplitVCFbyIntervalsWorker(
       std::string inputVCF,
       std::vector<std::string> intervalSet,
-      std::vector<std::string> &vcfSets,
       std::string commonString, bool &flag_f): Worker(1, 1) {
       inputVCF_(inputVCF),
       intervalSet_(intervalSet),
@@ -28,8 +27,9 @@ void SplitVCFByIntervalWorker::setup() {
   // create cmd
   std::stringstream cmd;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++){
+    std::string outputPartVCF = commonString_ + "_" + to_string(contig);
     cmd << get_config<std::string>("bcftools_path") << " filter "
-        << "-T " << intervalSet_[i] << " -Oz  -o " << vcfSets[i]
+        << "-T " << intervalSet_[i] << " -Oz  -o " << outputPartVCF
         << " " << inputVCF_ << "; " << get_config<std::string>("tabix_path")
         << " " <<  vcfSets[i] ;
     }

@@ -96,8 +96,9 @@ int mutect2_main(int argc, char** argv,
   if (!dbsnp_path.empty()){
       std::vector<std::string> tmp_dnsp;
       for (int i = 0; i < dbsnp_path.size(); i++){
+           std::string parts_dbsnp_name = "parts_dbsnp_" + to_string(i);
            Worker_ptr worker(new SplitVCFbyIntervalWorker(dbsnp_path[i],
-             intv_paths,tmp_dbsnp,"parts_dbsnp_");
+             intv_paths,parts_dbsnp_name);
            executor.addTask(worker);
 
            dbSNP_sets.insert(pair<size_t, std:vector<std::string>>(i,tmp_dbsnp));
