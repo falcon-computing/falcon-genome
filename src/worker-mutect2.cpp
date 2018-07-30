@@ -25,9 +25,8 @@ int mutect2_main(int argc, char** argv,
 
   opt_desc.add_options()
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
-    ("normal,n", po::value<std::string>()->required(), "input normal BAM file or dir")
-    //("tumor,t", po::value<std::string>()->required(), "input tumor BAM file or dir")
-    ("tumor,t", po::value<std::string>(), "input tumor BAM file or dir")
+    ("normal,n", po::value<std::string>(), "input normal BAM file or dir")
+    ("tumor,t", po::value<std::string>()->required(), "input tumor BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output VCF file")
     //("dbsnp,d", po::value<std::vector<std::string> >(), "list of dbsnp files for Mutect2")
     //("cosmic,c", po::value<std::vector<std::string> >(), "list of cosmic files for Mutect2")
@@ -86,26 +85,33 @@ int mutect2_main(int argc, char** argv,
   std::map<size_t, std::vector<std::string> > cosmic_sets;
 
   if (!intv_list.empty()) {
-     DLOG(INFO) << "Interval list defined";
+     DLOG(INFO) << "Interval list defined for MuTect2";
      intv_paths = split_by_nprocs(intv_list, "bed");
   } else {
-     DLOG(INFO) << "Interval list not defined. Coordinates from Reference will be used for MuTect2";
+     DLOG(INFO) << "Interval list not defined. "
+     DLOG(INFO) << "Coordinates from Reference will be used for MuTect2";
      intv_paths = split_ref_by_nprocs(ref_path);
   }
 
   if (!dbsnp_path.empty()){
       std::vector<std::string> tmp_dnsp;
-      for (size_t i = 0; i < dbsnp_path.size(); i++){
-           tmp_dnsp = split_vcf_by_regions(dbsnp_path[i], intv_paths, "vcf");
+      for (int i = 0; i < dbsnp_path.size(); i++){
+           Worker_ptr worker(new SplitVCFbyIntervalWorker(dbsnp_path[i],
+             intv_paths,tmp_dbsnp,"parts_dbsnp_");
+           executor.addTask(worker);
+
            dbSNP_sets.insert(pair<size_t, std:vector<std::string>>(i,tmp_dbsnp));
            tmp_dbsnp.clear();
       }
-
   }
 
   if (!cosmic_path.empty()){
       std::vector<std::string> tmp_cosmic;
-
+      for (int i = 0; i < cosmic_path.size(); i++){
+           tmp_dnsp = split_vcf_by_regions(cosmic_path[i], intv_paths, "vcf");
+           cosmic_sets.insert(pair<size_t, std:vector<std::string>>(i,tmp_dbsnp));
+           tmp_dbsnp.clear();
+      }
   }
 
 
@@ -120,6 +126,7 @@ int mutect2_main(int argc, char** argv,
   Executor executor("Mutect2", get_config<int>("gatk.mutect2.nprocs"));
 
   bool flag_mutect2_f = !flag_skip_concat | flag_f;
+
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
     std::string normal_file;
     std::string tumor_file;
