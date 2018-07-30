@@ -77,7 +77,7 @@ void BQSRWorker::setup() {
   //  cmd << "-I " << input_paths[i] << " ";
   //}
   for (int i = 0; i < known_sites_.size(); i++) {
-    if (flag_gatk_) {
+    if (flag_gatk_ || get_config<bool>("use_gatk4")) {
         cmd << "-known-sites " << known_sites_[i] << " ";
     } else {
         cmd << "-knownSites " << known_sites_[i] << " ";
