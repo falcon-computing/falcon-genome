@@ -47,7 +47,7 @@ void BQSRWorker::setup() {
   cmd << get_config<std::string>("java_path") << " "
       << "-Xmx" << get_config<int>("gatk.bqsr.memory", "gatk.memory") << "g ";
 
-  if (flag_gatk_) {
+  if (flag_gatk_ || get_config<bool>("use_gatk4")) {
       cmd << "-jar " << get_config<std::string>("gatk4_path") << " BaseRecalibrator ";
   } else {
       cmd << "-jar " << get_config<std::string>("gatk_path") << " -T BaseRecalibrator ";
