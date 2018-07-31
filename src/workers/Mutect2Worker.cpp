@@ -59,10 +59,6 @@ void Mutect2Worker::setup() {
       cmd << "-L " << intv_path_ << " ";
   }
 
-  if (!intv_list_.empty()){
-      cmd << "-L " << intv_list_ << " ";
-  }
-
   if (!dbsnp_path_.empty()){
       cmd << "--dbsnp " << dbsnp_path_ << " ";
   }
@@ -74,7 +70,7 @@ void Mutect2Worker::setup() {
   cmd << "-nct " << get_config<int>("gatk.mutect2.nct", "gatk.nct") << " "
       << "-o " << output_path_ << " ";
 
-  if (intv_list_.size() > 0 ) {
+  if (intv_paths_.size() > 0 ) {
     cmd << "-isr INTERSECTION ";
   }
 
