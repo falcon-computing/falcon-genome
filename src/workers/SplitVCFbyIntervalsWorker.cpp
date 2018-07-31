@@ -33,7 +33,7 @@ void SplitVCFbyIntervalsWorker::setup() {
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++){
     std::string outputPartVCF = commonString_ + "_" + boost::to_string(contig) + ".vcf";
     cmd << get_config<std::string>("bcftools_path") << " filter "
-        << "-T " << intervalSet_[i] << " -Oz  -o " << outputPartVCF
+        << "-T " << intervalSet_[contig] << " -Oz  -o " << outputPartVCF
         << " " << inputVCF_ << "; " << get_config<std::string>("tabix_path")
         << " " <<  outputPartVCF ;
     }
