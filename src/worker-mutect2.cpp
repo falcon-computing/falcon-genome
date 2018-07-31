@@ -153,12 +153,11 @@ int mutect2_main(int argc, char** argv,
     std::string cosmic_sets;
     for (int n=0; n<cosmic_path.size(); n++ ){
          if (n==0){
-             cosmic_sets = "parts_cosmic_" + to_string(n) + "_" + contig + ".vcf";
+             cosmic_sets = "parts_cosmic_" + boost::to_string(n) + "_" + contig + ".vcf";
          } else {
-             cosmic_sets = cosmic_sets + "parts_cosmic_" + to_string(n) + "_" + contig + ".vcf";
+             cosmic_sets = cosmic_sets + "parts_cosmic_" + boost::to_string(n) + "_" + contig + ".vcf";
          }
     }
-
 
     std::string file_ext = "vcf";
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
