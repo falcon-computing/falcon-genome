@@ -85,7 +85,7 @@ int mutect2_main(int argc, char** argv,
   if (!intv_list.empty()) {
      DLOG(INFO) << "Interval list defined for MuTect2";
      intv_paths = split_by_nprocs(intv_list, "bed");
-     RegionsToBeCovered.assign(intv_list.begin(), intv_list.end());
+     RegionsToBeCovered.assign(intv_paths.begin(), intv_paths.end());
   } else {
      DLOG(INFO) << "Interval list not defined. ";
      DLOG(INFO) << "Coordinates from Reference will be used for MuTect2";
