@@ -105,7 +105,7 @@ int mutect2_main(int argc, char** argv,
   if (!dbsnp_path.empty()){
       for (int i = 0; i < dbsnp_path.size(); i++){
            std::string parts_dbsnp_name = "parts_dbsnp_" + boost::to_string(i);
-           Worker_ptr worker(new SplitVCFbyIntervalWorker(dbsnp_path[i],
+           Worker_ptr worker(new SplitVCFbyIntervalsWorker(dbsnp_path[i],
              RegionsToBeCovered, parts_dbsnp_name);
            executor.addTask(worker);
       }
@@ -115,7 +115,7 @@ int mutect2_main(int argc, char** argv,
   if (!cosmic_path.empty()){
       for (int i = 0; i < dbsnp_path.size(); i++){
            std::string parts_cosmic_name = "parts_dbsnp_" + to_string(i);
-           Worker_ptr worker(new SplitVCFbyIntervalWorker(cosmic_path[i],
+           Worker_ptr worker(new SplitVCFbyIntervalsWorker(cosmic_path[i],
              RegionsToBeCovered, parts_cosmic_name);
            executor.addTask(worker);
       }
