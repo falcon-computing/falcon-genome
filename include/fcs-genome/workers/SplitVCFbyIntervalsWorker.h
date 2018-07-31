@@ -1,5 +1,5 @@
-#ifndef FCSGENOME_WORKERS_SPLITVCFBYINTERVALWORKER_H
-#define FCSGENOME_WORKERS_SPLITVCFBYINTERVALWORKER_H
+#ifndef FCSGENOME_WORKERS_SPLITVCFBYINTERVALSWORKER_H
+#define FCSGENOME_WORKERS_SPLITVCFBYINTERVALSWORKER_H
 
 #include <string>
 #include <vector>
@@ -27,4 +27,5 @@ class SplitVCFbyIntervalsWorker : public Worker(
 };
 
 } // namespace fcsgenome
+
 #endif
