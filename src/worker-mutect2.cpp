@@ -143,7 +143,6 @@ int mutect2_main(int argc, char** argv,
 
     std::string dbsnp_sets;
     for (int k=0; k<dbsnp_path.size(); k++ ){
-
          if (k==0){
              dbsnp_sets = "parts_dbsnp_" + to_string(k) + "_" + contig + ".vcf";
          } else {
@@ -153,7 +152,6 @@ int mutect2_main(int argc, char** argv,
 
     std::string cosmic_sets;
     for (int n=0; n<cosmic_path.size(); n++ ){
-
          if (n==0){
              cosmic_sets = "parts_cosmic_" + to_string(k) + "_" + contig + ".vcf";
          } else {
@@ -166,7 +164,6 @@ int mutect2_main(int argc, char** argv,
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new Mutect2Worker(
           ref_path,
-          bcftools_path,
           intv_paths[contig], normal_file, tumor_file,
           output_file,
           extra_opts,
