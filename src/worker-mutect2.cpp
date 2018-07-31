@@ -161,6 +161,7 @@ int mutect2_main(int argc, char** argv,
 
     std::string file_ext = "vcf";
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
+
     Worker_ptr worker(new Mutect2Worker(
           ref_path,
           intv_paths[contig],
