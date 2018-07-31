@@ -87,7 +87,7 @@ int mutect2_main(int argc, char** argv,
      intv_list = split_by_nprocs(intv_list, "bed");
      RegionsToBeCovered = intv_list;
   } else {
-     DLOG(INFO) << "Interval list not defined. "
+     DLOG(INFO) << "Interval list not defined. ";
      DLOG(INFO) << "Coordinates from Reference will be used for MuTect2";
      intv_paths = split_ref_by_nprocs(ref_path);
      RegionsToBeCovered = intv_paths;
@@ -158,11 +158,12 @@ int mutect2_main(int argc, char** argv,
              cosmic_sets = cosmic_sets + "parts_cosmic_" + boost::to_string(n) + "_" + boost::to_string(contig) + ".vcf ";
          }
     }
-
+    
     std::string file_ext = "vcf";
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new Mutect2Worker(
           ref_path,
+          intv_path[contig],
           normal_file,
           tumor_file,
           output_file,

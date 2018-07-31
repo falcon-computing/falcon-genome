@@ -10,7 +10,8 @@ namespace fcsgenome {
 SplitVCFbyIntervalsWorker::SplitVCFbyIntervalsWorker(
       std::string inputVCF,
       std::vector<std::string> intervalSet,
-      std::string commonString, bool &flag_f): Worker(1, 1) {
+      std::string commonString,
+      bool &flag_f): Worker(1, 1) {
       inputVCF_(inputVCF),
       intervalSet_(intervalSet),
       commonString_(commonString)
