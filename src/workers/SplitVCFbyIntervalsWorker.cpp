@@ -19,11 +19,11 @@ SplitVCFbyIntervalsWorker::SplitVCFbyIntervalsWorker(
   vcfSets_ = check_output(vcfSets, flag_f);
 }
 
-void SplitVCFByIntervalsWorker::check() {
+void SplitVCFbyIntervalsWorker::check() {
     inputVCF_ = check_input(inputVCF_);
 }
 
-void SplitVCFByIntervalWorker::setup() {
+void SplitVCFbyIntervalsWorker::setup() {
   // create cmd
   std::stringstream cmd;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++){
