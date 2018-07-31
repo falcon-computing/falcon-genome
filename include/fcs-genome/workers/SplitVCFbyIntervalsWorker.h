@@ -20,8 +20,8 @@ class SplitVCFbyIntervalsWorker : public Worker{
    void check();
    void setup();
  private:
-   std::vector<std::string> inputVCF_;
-   std::vector<std::vector> intervalSet_;
+   std::string inputVCF_;
+   std::vector<std::string> intervalSet_;
    std::string commonString_;
 };
 
