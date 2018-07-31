@@ -93,9 +93,18 @@ int mutect2_main(int argc, char** argv,
      RegionsToBeCovered = intv_paths;
   }
 
+  // start an executor for NAM
+  Worker_ptr blaze_worker(new BlazeWorker(
+        get_config<std::string>("blaze.nam_path"),
+        get_config<std::string>("blaze.conf_path")));
+
+  BackgroundExecutor bg_executor("blaze-nam", blaze_worker);
+
+  Executor executor("Mutect2", get_config<int>("gatk.mutect2.nprocs"));
+
   if (!dbsnp_path.empty()){
       for (int i = 0; i < dbsnp_path.size(); i++){
-           std::string parts_dbsnp_name = "parts_dbsnp_" + to_string(i);
+           std::string parts_dbsnp_name = "parts_dbsnp_" + boost::to_string(i);
            Worker_ptr worker(new SplitVCFbyIntervalWorker(dbsnp_path[i],
              RegionsToBeCovered, parts_dbsnp_name);
            executor.addTask(worker);
@@ -112,15 +121,6 @@ int mutect2_main(int argc, char** argv,
       }
       executor.run();
   }
-
-  // start an executor for NAM
-  Worker_ptr blaze_worker(new BlazeWorker(
-        get_config<std::string>("blaze.nam_path"),
-        get_config<std::string>("blaze.conf_path")));
-
-  BackgroundExecutor bg_executor("blaze-nam", blaze_worker);
-
-  Executor executor("Mutect2", get_config<int>("gatk.mutect2.nprocs"));
 
   bool flag_mutect2_f = !flag_skip_concat | flag_f;
 
