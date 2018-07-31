@@ -1,3 +1,6 @@
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+
 #include <string>
 #include <vector>
 
@@ -11,7 +14,7 @@ SplitVCFbyIntervalsWorker::SplitVCFbyIntervalsWorker(
       std::string inputVCF,
       std::vector<std::string> intervalSet,
       std::string commonString,
-      bool &flag_f): Worker(1, 1), 
+      bool &flag_f): Worker(1, 1),
       inputVCF_(inputVCF),
       intervalSet_(intervalSet),
       commonString_(commonString)
@@ -28,7 +31,7 @@ void SplitVCFbyIntervalsWorker::setup() {
   // create cmd
   std::stringstream cmd;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++){
-    std::string outputPartVCF = commonString_ + "_" + to_string(contig) + ".vcf";
+    std::string outputPartVCF = commonString_ + "_" + boost::to_string(contig) + ".vcf";
     cmd << get_config<std::string>("bcftools_path") << " filter "
         << "-T " << intervalSet_[i] << " -Oz  -o " << outputPartVCF
         << " " << inputVCF_ << "; " << get_config<std::string>("tabix_path")
