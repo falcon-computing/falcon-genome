@@ -15,7 +15,8 @@ class SplitVCFbyIntervalsWorker : public Worker{
    SplitVCFbyIntervalsWorker(
       std::string inputVCF,
       std::vector<std::string> intervalSet,
-      std::string commonString, bool &flag_f
+      std::string commonString,
+      bool &flag_f
    );
    void check();
    void setup();

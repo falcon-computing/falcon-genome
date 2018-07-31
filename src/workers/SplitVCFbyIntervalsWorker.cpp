@@ -17,7 +17,7 @@ SplitVCFbyIntervalsWorker::SplitVCFbyIntervalsWorker(
       commonString_(commonString)
 {
   // check output files
-  vcfSets_ = check_output(vcfSets, flag_f);
+  //vcfSets_ = check_output(vcfSets, flag_f);
 }
 
 void SplitVCFbyIntervalsWorker::check() {
