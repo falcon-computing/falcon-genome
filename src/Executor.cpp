@@ -69,8 +69,8 @@ void Stage::run() {
     fcsgenome::LogUtils logUtils;
     std::string match = logUtils.findError(logs_);
     if (!match.empty()) {
-      throw failedCommand(executor_->job_name() + 
-                          "failed, error message found:\n" + match);
+      LOG(ERROR) << "Command failed with the following error message:";
+      std::cout << match;
     }
   }
 

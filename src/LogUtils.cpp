@@ -8,57 +8,39 @@
 namespace fcsgenome {
 
 std::string LogUtils::findError(std::vector<std::string> logs_) {
-  std::string match;
-  bool if_match = false;
+  std::string message;
   for (int i = 0; i < logs_.size(); i++) {
     std::ifstream fin(logs_[i], std::ios::in);
-    if(if_match == true) {
-      return match;
+    std::string match;
+    std::string line;
+    while (fin.good()) {
+      getline(fin, line); 
+      size_t pos;
+      pos = line.find("##### ERROR"); // search ERROR for gatk logs
+      if (pos != std::string::npos) {
+        match = match + line + "\n";
+        continue;
+      }
+      pos = line.find("[E::"); // search fail for bwa logs
+      if(pos != std::string::npos) {
+        match = match + line + "\n";
+        continue;
+      }
+      //pos = line.find("error"); // search
+      //if(pos != std::string::npos) {
+      //  match = match + line + "\n";
+      //  continue;
+      //}
     }
-    else {
-      int search_range = 1000;
-      fin.seekg(0, std::ios_base::end);
-      int length = fin.tellg();
-      if(length > search_range) {
-        fin.seekg(length - search_range, std::ios_base::beg);
+    if (!match.empty()) {
+      if (message.empty()) {
+        message = match;
       }
-      else {
-        fin.seekg(0, std::ios_base::beg);
+      else if (message.compare(match) != 0) {
+        return std::string();
       }
-      std::string line;
-      if(fin.good()) {
-        getline(fin, line);
-      }
-      while(fin.good()) {
-        getline(fin, line); 
-        size_t pos;
-        pos = line.find("ERROR"); // search ERROR for gatk logs
-        if(pos != std::string::npos) // string::npos is returned if string is not found
-        {
-          match = match + line + "\n";
-          if_match = true;
-          continue;
-        }
-        pos = line.find("fail"); // search fail for bwa logs
-        if(pos != std::string::npos) // string::npos is returned if string is not found
-        {
-          match = match + line + "\n";
-          if_match = true;
-          continue;
-        }
-        pos = line.find("error"); // search
-        if(pos != std::string::npos) // string::npos is returned if string is not found
-        {
-          match = match + line + "\n";
-          if_match = true;
-          continue;
-        }
-     }
-     if(if_match == true) {
-       return match;
-     }
+    }
   }
+  return message;
 }
-return match;
-}
-}
+} // namespace fcsgenome

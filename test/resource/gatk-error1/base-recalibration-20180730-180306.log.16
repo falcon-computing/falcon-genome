@@ -1,0 +1,33 @@
+INFO  18:03:10,780 HelpFormatter - ---------------------------------------------------------------------------------- 
+INFO  18:03:10,783 HelpFormatter - The Genome Analysis Toolkit (GATK) v3.7-2-g53263cf, Compiled 2018/06/20 17:26:15 
+INFO  18:03:10,783 HelpFormatter - Copyright (c) 2010-2016 The Broad Institute 
+INFO  18:03:10,784 HelpFormatter - For support and documentation go to https://software.broadinstitute.org/gatk 
+INFO  18:03:10,784 HelpFormatter - [Mon Jul 30 18:03:10 PDT 2018] Executing on Linux 3.10.0-327.36.1.el7.x86_64 amd64 
+INFO  18:03:10,784 HelpFormatter - Java HotSpot(TM) 64-Bit Server VM 1.8.0_31-b13 
+INFO  18:03:10,788 HelpFormatter - Program Args: -T BaseRecalibrator -R /genome/ref/human_g1k_v37.fasta -I /pool/storage/diwu/test-GEN491/A15.markdup.bam -L /pool/local/temp/fcs-genome-diwu-48075/intv_32/intv16.list -nct 1 --disable_auto_index_creation_and_locking_when_reading_rods -o /local/temp/fcs-genome-diwu-48075/bqsr/A15.markdup.bam.grp.16 -knownSites /genome/ref/dbsnp_138.b37.vcf 
+INFO  18:03:10,821 HelpFormatter - Executing as diwu@merlin3 on Linux 3.10.0-327.36.1.el7.x86_64 amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_31-b13. 
+INFO  18:03:10,821 HelpFormatter - Date/Time: 2018/07/30 18:03:10 
+INFO  18:03:10,821 HelpFormatter - ---------------------------------------------------------------------------------- 
+INFO  18:03:10,822 HelpFormatter - ---------------------------------------------------------------------------------- 
+INFO  18:03:10,841 GenomeAnalysisEngine - Strictness is SILENT 
+INFO  18:03:11,048 GenomeAnalysisEngine - Downsampling Settings: No downsampling 
+INFO  18:03:11,057 SAMDataSource$SAMReaders - Initializing SAMRecords in serial 
+INFO  18:03:11,140 SAMDataSource$SAMReaders - Done initializing BAM readers: total time 0.08 
+INFO  18:03:11,436 IntervalUtils - Processing 96740437 bp from intervals 
+INFO  18:03:11,596 GenomeAnalysisEngine - Preparing for traversal over 1 BAM files 
+##### ERROR ------------------------------------------------------------------------------------------
+##### ERROR A USER ERROR has occurred (version 3.7-2-g53263cf): 
+##### ERROR
+##### ERROR This means that one or more arguments or inputs in your command are incorrect.
+##### ERROR The error message below tells you what is the problem.
+##### ERROR
+##### ERROR If the problem is an invalid argument, please check the online documentation guide
+##### ERROR (or rerun your command with --help) to view allowable command-line arguments for this tool.
+##### ERROR
+##### ERROR Visit our website and forum for extensive documentation and answers to 
+##### ERROR commonly asked questions https://software.broadinstitute.org/gatk
+##### ERROR
+##### ERROR Please do NOT post this error to the GATK forum unless you have really tried to fix it yourself.
+##### ERROR
+##### ERROR MESSAGE: Invalid command line: Cannot process the provided BAM/CRAM file(s) because they were not indexed.  The GATK does offer limited processing of unindexed BAM/CRAMs in --unsafe mode, but this feature is unsupported -- use it at your own risk!
+##### ERROR ------------------------------------------------------------------------------------------
