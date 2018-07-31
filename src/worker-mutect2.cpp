@@ -57,7 +57,7 @@ int mutect2_main(int argc, char** argv,
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::vector<std::string> dbsnp_path = get_argument<std::vector<std::string> >(cmd_vm, "dbsnp", "d", std::vector<std::string>());
   std::vector<std::string> cosmic_path = get_argument<std::vector<std::string> >(cmd_vm, "cosmic","c", std::vector<std::string>());
-  std::vector<std::string> intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
+  std::string intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
@@ -101,6 +101,9 @@ int mutect2_main(int argc, char** argv,
   BackgroundExecutor bg_executor("blaze-nam", blaze_worker);
 
   Executor executor("Mutect2", get_config<int>("gatk.mutect2.nprocs"));
+  std::string inputVCF,
+  std::vector<std::string> intervalSet,
+  std::string commonString,
 
   if (!dbsnp_path.empty()){
       for (int i = 0; i < dbsnp_path.size(); i++){
@@ -158,7 +161,7 @@ int mutect2_main(int argc, char** argv,
              cosmic_sets = cosmic_sets + "parts_cosmic_" + boost::to_string(n) + "_" + boost::to_string(contig) + ".vcf ";
          }
     }
-    
+
     std::string file_ext = "vcf";
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new Mutect2Worker(
