@@ -84,7 +84,7 @@ int mutect2_main(int argc, char** argv,
   std::vector<std::string> RegionsToBeCovered;
   if (!intv_list.empty()) {
      DLOG(INFO) << "Interval list defined for MuTect2";
-     intv_list = split_by_nprocs(intv_list, "bed");
+     intv_paths = split_by_nprocs(intv_list, "bed");
      RegionsToBeCovered.assign(intv_list.begin(), intv_list.end());
   } else {
      DLOG(INFO) << "Interval list not defined. ";
@@ -163,14 +163,13 @@ int mutect2_main(int argc, char** argv,
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new Mutect2Worker(
           ref_path,
-          intv_path[contig],
+          intv_paths[contig],
           normal_file,
           tumor_file,
           output_file,
           extra_opts,
           dbsnp_sets,
           cosmic_sets,
-          intv_list[contig],
           contig,
           flag_mutect2_f));
     output_files[contig] = output_file;
