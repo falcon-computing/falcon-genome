@@ -14,9 +14,9 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
       std::string tumor_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
-      std::vector<std::string> &dbsnp_path,
-      std::vector<std::string> &cosmic_path,
-      std::vector<std::string> &intv_list,
+      std::string &dbsnp_path,
+      std::string &cosmic_path,
+      std::string &intv_list,
       int  contig,
       bool &flag_f): Worker(1, get_config<int>("gatk.mutect2.nct", "gatk.nct"), extra_opts),
   ref_path_(ref_path),
@@ -99,7 +99,7 @@ void Mutect2Worker::setup() {
   if (!extra_opts_.count("--variant_index_parameter")) {
     cmd << "--variant_index_parameter 128000 ";
   }
-  
+
   cmd_ = cmd.str();
   LOG(INFO) << cmd_;
 }

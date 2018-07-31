@@ -144,18 +144,18 @@ int mutect2_main(int argc, char** argv,
     std::string dbsnp_sets;
     for (int k=0; k<dbsnp_path.size(); k++ ){
          if (k==0){
-             dbsnp_sets = "parts_dbsnp_" + boost::to_string(k) + "_" + contig + ".vcf";
+             dbsnp_sets = "parts_dbsnp_" + boost::to_string(k) + "_" + contig + ".vcf ";
          } else {
-             dbsnp_sets = dbsnp_sets + "parts_dbsnp_" + boost::to_string(k) + "_" + contig + ".vcf";
+             dbsnp_sets = dbsnp_sets + "parts_dbsnp_" + boost::to_string(k) + "_" + contig + ".vcf ";
          }
     }
 
     std::string cosmic_sets;
     for (int n=0; n<cosmic_path.size(); n++ ){
          if (n==0){
-             cosmic_sets = "parts_cosmic_" + boost::to_string(n) + "_" + contig + ".vcf";
+             cosmic_sets = "parts_cosmic_" + boost::to_string(n) + "_" + boost::to_string(contig) + ".vcf";
          } else {
-             cosmic_sets = cosmic_sets + "parts_cosmic_" + boost::to_string(n) + "_" + contig + ".vcf";
+             cosmic_sets = cosmic_sets + "parts_cosmic_" + boost::to_string(n) + "_" + boost::to_string(contig) + ".vcf ";
          }
     }
 
@@ -163,12 +163,13 @@ int mutect2_main(int argc, char** argv,
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new Mutect2Worker(
           ref_path,
-          intv_paths[contig], normal_file, tumor_file,
+          normal_file,
+          tumor_file,
           output_file,
           extra_opts,
           dbsnp_sets,
           cosmic_sets,
-          intv_list,
+          intv_list[contig],
           contig,
           flag_mutect2_f));
     output_files[contig] = output_file;
