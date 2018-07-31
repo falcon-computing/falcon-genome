@@ -10,7 +10,7 @@
 
 namespace fcsgenome {
 
-class SplitVCFbyIntervalsWorker : public Worker(
+class SplitVCFbyIntervalsWorker : public Worker{
  public:
    SplitVCFbyIntervalsWorker(
       std::vector<std::string> inputVCF,
