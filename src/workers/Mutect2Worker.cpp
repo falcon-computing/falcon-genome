@@ -70,7 +70,7 @@ void Mutect2Worker::setup() {
   cmd << "-nct " << get_config<int>("gatk.mutect2.nct", "gatk.nct") << " "
       << "-o " << output_path_ << " ";
 
-  if (intv_paths_.size() > 0 ) {
+  if (intv_path_.size() > 0 ) {
     cmd << "-isr INTERSECTION ";
   }
 
