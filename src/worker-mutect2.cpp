@@ -101,9 +101,6 @@ int mutect2_main(int argc, char** argv,
   BackgroundExecutor bg_executor("blaze-nam", blaze_worker);
 
   Executor executor("Mutect2", get_config<int>("gatk.mutect2.nprocs"));
-  std::string inputVCF,
-  std::vector<std::string> intervalSet,
-  std::string commonString,
 
   if (!dbsnp_path.empty()){
       for (int i = 0; i < dbsnp_path.size(); i++){
