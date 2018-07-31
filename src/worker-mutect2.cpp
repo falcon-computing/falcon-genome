@@ -144,9 +144,9 @@ int mutect2_main(int argc, char** argv,
     std::string dbsnp_sets;
     for (int k=0; k<dbsnp_path.size(); k++ ){
          if (k==0){
-             dbsnp_sets = "parts_dbsnp_" + boost::to_string(k) + "_" + contig + ".vcf ";
+             dbsnp_sets = "parts_dbsnp_" + boost::to_string(k) + "_" + boost::to_string(contig) + ".vcf ";
          } else {
-             dbsnp_sets = dbsnp_sets + "parts_dbsnp_" + boost::to_string(k) + "_" + contig + ".vcf ";
+             dbsnp_sets = dbsnp_sets + "parts_dbsnp_" + boost::to_string(k) + "_" + boost::to_string(contig) + ".vcf ";
          }
     }
 
