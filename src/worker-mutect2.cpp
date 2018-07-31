@@ -55,9 +55,9 @@ int mutect2_main(int argc, char** argv,
   std::string normal_path = get_argument<std::string>(cmd_vm, "normal", "n");
   std::string tumor_path = get_argument<std::string>(cmd_vm, "tumor", "t");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::vector<std::string> dbsnp_path = get_argument<std::vector<std::string> >(cmd_vm, "dbsnp", "d", std::vector<std::string>());
-  std::vector<std::string> cosmic_path = get_argument<std::vector<std::string> >(cmd_vm, "cosmic","c", std::vector<std::string>());
-  std::string intv_list = get_argument<std::string> >(cmd_vm, "intervalList", "L");
+  std::vector<std::string> dbsnp_path = get_argument<std::vector<std::string> >(cmd_vm, "dbsnp", "d");
+  std::vector<std::string> cosmic_path = get_argument<std::vector<std::string> >(cmd_vm, "cosmic","c");
+  std::string intv_list = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
@@ -106,7 +106,7 @@ int mutect2_main(int argc, char** argv,
       for (int i = 0; i < dbsnp_path.size(); i++){
            std::string parts_dbsnp_name = "parts_dbsnp_" + boost::to_string(i);
            Worker_ptr worker(new SplitVCFbyIntervalsWorker(dbsnp_path[i],
-             RegionsToBeCovered, parts_dbsnp_name, flag_f);
+             RegionsToBeCovered, parts_dbsnp_name, flag_f));
            executor.addTask(worker);
       }
       executor.run();
@@ -116,7 +116,7 @@ int mutect2_main(int argc, char** argv,
       for (int i = 0; i < dbsnp_path.size(); i++){
            std::string parts_cosmic_name = "parts_dbsnp_" + boost::to_string(i);
            Worker_ptr worker(new SplitVCFbyIntervalsWorker(cosmic_path[i],
-             RegionsToBeCovered, parts_cosmic_name, flag_f);
+             RegionsToBeCovered, parts_cosmic_name, flag_f));
            executor.addTask(worker);
       }
       executor.run();
