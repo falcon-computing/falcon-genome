@@ -539,7 +539,7 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
 
     std::string line = dict_lines[i];
     tokenizer tok_space{line, space_sep};
-intervalSet.size()
+
     int idx = 0;
     std::string chr_name;
     uint64_t    chr_length = 0;
