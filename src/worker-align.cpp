@@ -2,7 +2,6 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
 #include <string>
-#include <sys/statvfs.h>
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -112,43 +111,11 @@ int align_main(int argc, char** argv,
   // check available space in temp dir
   namespace fs = boost::filesystem;
 
-  struct statvfs diskData;
-  statvfs(temp_dir.c_str(), &diskData);
-  unsigned long long available = (diskData.f_bavail * diskData.f_frsize);
-  DLOG(INFO) << available;
-
   std::string output_path_temp;
   std::string BAMfile;
   for (auto pair : SampleData) {
     std::string sample_id = pair.first;
     std::vector<SampleDetails> list = pair.second;
-    size_t size_fastq = 0;
-    for (int i = 0; i < list.size(); ++i) {
-        fq1_path = list[i].fastqR1;
-        fq2_path = list[i].fastqR2;
-        // check space occupied by fastq files
-        size_fastq += fs::file_size(fq1_path);
-        size_fastq += fs::file_size(fq2_path);
-
-        DLOG(INFO) << size_fastq;
-
-        // print error message if there is not enough space in temp_dir
-        std::string file_extension;
-        file_extension = fs::extension(fq1_path);
-
-        if (file_extension == ".gz" ) {
-            size_fastq += 3*fs::file_size(fq1_path);
-            size_fastq += 3*fs::file_size(fq2_path);
-        }
-
-        if (available < size_fastq) {
-            LOG(ERROR) << "Not enough space in temporary storage: "
-              << temp_dir << ", the size of the temporary folder should be at least 3 times the input FASTQ files";
-
-            throw silentExit();
-        }
-
-    } // Checking FASTQ files sizes ends
 
     for (int i = 0; i < list.size(); ++i) {
         fq1_path = list[i].fastqR1;
