@@ -144,18 +144,18 @@ int mutect2_main(int argc, char** argv,
     std::string dbsnp_sets;
     for (int k=0; k<dbsnp_path.size(); k++ ){
          if (k==0){
-             dbsnp_sets = "parts_dbsnp_" + to_string(k) + "_" + contig + ".vcf";
+             dbsnp_sets = "parts_dbsnp_" + boost::to_string(k) + "_" + contig + ".vcf";
          } else {
-             dbsnp_sets = dbsnp_sets + "parts_dbsnp_" + to_string(k) + "_" + contig + ".vcf";
+             dbsnp_sets = dbsnp_sets + "parts_dbsnp_" + boost::to_string(k) + "_" + contig + ".vcf";
          }
     }
 
     std::string cosmic_sets;
     for (int n=0; n<cosmic_path.size(); n++ ){
          if (n==0){
-             cosmic_sets = "parts_cosmic_" + to_string(k) + "_" + contig + ".vcf";
+             cosmic_sets = "parts_cosmic_" + to_string(n) + "_" + contig + ".vcf";
          } else {
-             cosmic_sets = cosmic_sets + "parts_cosmic_" + to_string(k) + "_" + contig + ".vcf";
+             cosmic_sets = cosmic_sets + "parts_cosmic_" + to_string(n) + "_" + contig + ".vcf";
          }
     }
 
