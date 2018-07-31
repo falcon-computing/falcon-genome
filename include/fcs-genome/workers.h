@@ -15,5 +15,6 @@
 #include "workers/UGWorker.h"
 #include "workers/DepthWorker.h"
 #include "workers/DepthCombineWorker.h"
+#include "workers/SplitVCFbyIntervalsWorker.h"
 
 #endif
