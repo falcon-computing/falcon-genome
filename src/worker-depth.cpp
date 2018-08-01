@@ -23,21 +23,6 @@ int depth_main(int argc, char** argv,
   bool opt_bool = false;
 
   opt_desc.add_options()
-<<<<<<< HEAD
-    arg_decl_string("ref,r", "reference genome path")
-    arg_decl_string("input,i", "input BAM file")
-    arg_decl_string("output,o", "output coverage file")
-    arg_decl_string("intervalList,L", "Interval List BED File")
-    arg_decl_string("geneList,g", "list of genes over which to calculate coverage")
-    ("depthCutoff,d", po::value<int>()->default_value(15), "cutoff for coverage depth summary")
-    ("baseCoverage,b", "calculate coverage depth of each base")
-    ("intervalCoverage,v", "calculate coverage summary of given intervals")
-    ("sampleSummary,s", "output summary files for each sample");
-
-  // Parse arguments
-  po::store(po::parse_command_line(argc, argv, opt_desc),
-      cmd_vm);
-=======
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("input,i", po::value<std::string>()->required(),"input BAM file")
     ("output,o", po::value<std::string>()->required(),"output coverage file")
@@ -49,7 +34,6 @@ int depth_main(int argc, char** argv,
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
->>>>>>> 6379454f4cf2df3bd3d55d57434e1ed7a2c8dc65
 
   if (cmd_vm.count("help")) {
     throw helpRequest();
@@ -60,20 +44,6 @@ int depth_main(int argc, char** argv,
   check_memory_config("depth");
 
   // Check if required arguments are presented
-<<<<<<< HEAD
-  bool flag_f             = get_argument<bool>(cmd_vm, "force");
-  bool flag_baseCoverage    = get_argument<bool>(cmd_vm, "baseCoverage");
-  bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "intervalCoverage");
-  bool flag_sampleSummary = get_argument<bool>(cmd_vm, "sampleSummary");
-  std::string ref_path    = get_argument<std::string>(cmd_vm, "ref",get_config<std::string>("ref_genome"));
-  std::string input_path = get_argument<std::string>(cmd_vm, "input");
-  std::string output_path = get_argument<std::string>(cmd_vm, "output");
-  std::string intv_list = get_argument<std::string>(cmd_vm, "intervalList");
-  std::string geneList = get_argument<std::string>(cmd_vm, "geneList");
-  int depthCutoff = get_argument<int>(cmd_vm, "depthCutoff");
-  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options");
-=======
-
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
@@ -85,8 +55,6 @@ int depth_main(int argc, char** argv,
   bool flag_sampleSummary    = get_argument<bool>(cmd_vm, "omitSampleSummary", "s");
 
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
->>>>>>> 6379454f4cf2df3bd3d55d57434e1ed7a2c8dc65
-
   // finalize argument parsing
   po::notify(cmd_vm);
 
@@ -103,10 +71,6 @@ int depth_main(int argc, char** argv,
 
   // Split Interval List and Gene List into several parts according to gatk.ncontigs:
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
-<<<<<<< HEAD
-  std::vector<std::string> intv_paths = split_by_nprocs(intv_list, "bed");
-  std::vector<std::string> geneList_paths = split_by_nprocs(geneList, "list");
-=======
 
   std::vector<std::string> intv_paths;
   std::vector<std::string> geneList_paths;
@@ -136,7 +100,6 @@ int depth_main(int argc, char** argv,
   }
 
   DLOG(INFO) << "intv_paths Size: " << intv_paths.size();
->>>>>>> 6379454f4cf2df3bd3d55d57434e1ed7a2c8dc65
 
   std::string input_file;
   if (boost::filesystem::is_directory(input_path)) {
@@ -180,10 +143,6 @@ int depth_main(int argc, char** argv,
               input_file,
               output_file,
               geneList_paths[contig],
-<<<<<<< HEAD
-              depthCutoff,
-=======
->>>>>>> 6379454f4cf2df3bd3d55d57434e1ed7a2c8dc65
               extra_opts,
               contig,
               flag_f,
@@ -196,17 +155,10 @@ int depth_main(int argc, char** argv,
 
   bool flag = true;
 
-<<<<<<< HEAD
-  Worker_ptr worker(new DepthCombineWorker(
-        output_files, output_path,
-        flag_baseCoverage, flag_intervalCoverage, flag_sampleSummary, flag));
-  executor.addTask(worker, true);
-
-=======
   Worker_ptr worker(new DepthCombineWorker(output_files, output_path,
         flag_baseCoverage, flag_intervalCoverage, flag_sampleSummary, flag));
   executor.addTask(worker, true);
->>>>>>> 6379454f4cf2df3bd3d55d57434e1ed7a2c8dc65
+
   executor.run();
 
   return 0;
