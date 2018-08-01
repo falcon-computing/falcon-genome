@@ -5,6 +5,7 @@ class TestConfig;
 
 int main(int argc, char *argv[]) {
   google::InitGoogleLogging(argv[0]);
+  FLAGS_logtostderr = true;
   ::testing::InitGoogleTest(&argc, argv);
 
   // run all tests
