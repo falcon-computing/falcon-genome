@@ -672,17 +672,6 @@ unsigned int CountLines(const std::vector <char> &buff, int sz) {
     return newlines;
 }
 
-int roundUp(int numToRound, int multiple){
-    if (multiple == 0) return numToRound;
-    int remainder = abs(numToRound) % multiple;
-    if (remainder == 0) return numToRound;
-    if (numToRound < 0)
-        return -(abs(numToRound) - remainder);
-    else
-        return numToRound + multiple - remainder;
-}
-
-
 std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype) {
 
   const int SZ = 1024*1024;
