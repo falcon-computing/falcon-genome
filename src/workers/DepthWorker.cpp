@@ -53,7 +53,7 @@ void DepthWorker::setup() {
       << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " ";
 
-  if (!intv_paths_.empty()){   
+  if (!intv_paths_.empty()){
       cmd << "-L " << intv_paths_ << " ";
   }
 

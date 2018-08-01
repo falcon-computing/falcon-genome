@@ -73,7 +73,6 @@ int depth_main(int argc, char** argv,
 
   // Split Interval List and Gene List into several parts according to gatk.ncontigs:
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
-
   std::vector<std::string> intv_paths;
   std::vector<std::string> geneList_paths;
 
@@ -156,7 +155,6 @@ int depth_main(int argc, char** argv,
   }
 
   bool flag = true;
-
   Worker_ptr worker(new DepthCombineWorker(output_files, output_path,
         flag_baseCoverage, flag_intervalCoverage, flag_sampleSummary, flag));
   executor.addTask(worker, true);
