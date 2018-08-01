@@ -36,9 +36,50 @@ void BQSRWorker::check() {
   intv_path_  = check_input(intv_path_);
   input_path_ = check_input(input_path_);
 
+  namespace fs = boost::filesystem;
   for (int i = 0; i < known_sites_.size(); i++) {
     known_sites_[i] = check_input(known_sites_[i]);
-  }
+    std::string site = known_sites_[i];
+    std::string ext  = fs::extension(site);
+    std::string idx_ext;
+
+    // check for '.idx' suffix 
+    if (ext == ".vcf") { 
+      idx_ext = ".idx";
+    }
+    else if (ext == ".gz") {
+      idx_ext = ".tbi";
+    }
+    else { // unrecognized extension
+      LOG(ERROR) << "Unrecognized extension for known site: " << site; 
+      throw silentExit();
+    }
+
+    auto vcf_file = fs::path(site);
+    auto idx_file = fs::path(site + idx_ext);
+
+    if (std::difftime(
+          fs::last_write_time(vcf_file),
+          fs::last_write_time(idx_file)) > 0) {
+      // if idx is older than vcf
+      //LOG(WARNING) << idx_file << " is older than "
+      //  << vcf_file << ", which will cause slowdown in GATK";
+
+      boost::system::error_code err;
+
+      fs::last_write_time(idx_file, std::time(NULL), err);
+      if (err != 0) {
+        LOG(ERROR) << "Attempting to update the last modified time for " << idx_file
+                   << ", but failed.";
+        LOG(ERROR) << "Please fix it manually before running this command again, "
+                   << "otherwise GATK will be slowed down significantly.";
+        throw silentExit();
+      }
+      else {
+        VLOG(1) << "Successfully updated stat for " << idx_file;
+      }
+    }
+  } 
 }
 
 void BQSRWorker::setup() {

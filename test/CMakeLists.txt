@@ -16,4 +16,5 @@ target_link_libraries(test_app
     ${JsonCPP_LIBRARIES}
     ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/resource DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 add_test(fcs-genome-test test_app)

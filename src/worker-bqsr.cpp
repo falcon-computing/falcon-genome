@@ -52,11 +52,13 @@ static void baserecalAddWorkers(Executor &executor,
           intv_paths[contig],
           input_file, bqsr_paths[contig],
           extra_opts, intv_list,
+
           contig, flag_f, flag_gatk));
     executor.addTask(worker, contig == 0);
   }
   // gather bqsr for contigs
   Worker_ptr worker(new BQSRGatherWorker(bqsr_paths, output_path, flag_f, flag_gatk));
+
   executor.addTask(worker, true);
 }
 
@@ -166,6 +168,7 @@ int baserecal_main(int argc, char** argv, boost::program_options::options_descri
 
   Executor executor("Base Recalibrator", get_config<int>("gatk.bqsr.nprocs"));
   baserecalAddWorkers(executor, ref_path, known_sites, extra_opts, input_path, output_path, intv_list, flag_f, flag_gatk);
+
   executor.run();
 
   // delete all partial contig bqsr
@@ -218,6 +221,7 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
 
   Executor executor("Print Reads", get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
   prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f, flag_gatk);
+
   executor.run();
 
   if (merge_bam_flag){
@@ -295,8 +299,10 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
 
   Executor executor("Base Recalibration", get_config<int>("gatk.bqsr.nprocs"));
   // first, do base recal
+
   baserecalAddWorkers(executor, ref_path, known_sites, extra_opts, input_path, bqsr_path, intv_list, flag_f, flag_gatk);
   prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f, flag_gatk);
+ 
   executor.run();
 
   if (merge_bam_flag){
@@ -308,7 +314,6 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
 
       // Removing Part BAM files:
       remove_path(output_path);
-
   }
 
   removePartialBQSR(bqsr_path);
