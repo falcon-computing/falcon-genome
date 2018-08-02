@@ -105,7 +105,7 @@ void HTCWorker::setup() {
   }
 
   cmd_ = cmd.str();
-  LOG(INFO) << cmd_;
+  DLOG(INFO) << cmd_;
 }
 
 } // namespace fcsgenome
