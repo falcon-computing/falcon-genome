@@ -237,7 +237,7 @@ int main(int argc, char** argv) {
     ret = 1;
   }
   catch (failedCommand &e) {
-    LOG(ERROR) << e.what();
+    //LOG(ERROR) << e.what();
     ret = 4;
   }
 

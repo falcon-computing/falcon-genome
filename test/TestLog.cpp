@@ -34,21 +34,23 @@ std::string get_log(std::string path) {
   return output;
 }
 
-TEST_F(TestLog, TestNormal) {
-  ASSERT_TRUE(get_log(fcsgenome::get_bin_dir() + 
-        "/resource/normal-gatk.log").empty());
-
-  ASSERT_TRUE(get_log(fcsgenome::get_bin_dir() + 
-        "/resource/normal-bwa.log").empty());
-}
-
 TEST_F(TestLog, TestBwaLog ) {
-  std::string output = get_log(fcsgenome::get_bin_dir() + 
-        "/resource/error-bwa.log");
-  std::string target = "[E::mem_pestat] fail to locate the index files\n";
 
-  ASSERT_FALSE(output.empty());
-  ASSERT_EQ(target, output);
+  {
+    std::string output = get_log(fcsgenome::get_bin_dir() + 
+          "/resource/bwa1.log");
+    std::string target = "[mem_sam_pe] paired reads have different names: \"HWI-ST973:246:C2DU9ACXX:8:1101:1477:2036\", \"HWI-ST973:152:H0BA0ADXX:1:1101:1194:1964\"\n";
+    ASSERT_FALSE(output.empty());
+    ASSERT_EQ(target, output);
+  }
+  {
+    std::string output = get_log(fcsgenome::get_bin_dir() + 
+          "/resource/bwa2.log");
+    std::string target = "[E::mem_pestat] fail to locate the index files\n";
+
+    ASSERT_FALSE(output.empty());
+    ASSERT_EQ(target, output);
+  }
 }
 
 TEST_F(TestLog, TestGATKLog) {
