@@ -16,7 +16,8 @@ class BQSRWorker : public Worker {
       std::vector<std::string> extra_opts,
       std::vector<std::string> &intv_list,
       int contig,
-      bool &flag_f);
+      bool &flag_f,
+      bool flag_gatk);
 
   void check();
   void setup();
@@ -28,19 +29,21 @@ class BQSRWorker : public Worker {
   std::string input_path_;
   std::string output_path_;
   std::vector<std::string> intv_list_;
+  bool flag_gatk_;
 };
 
 class BQSRGatherWorker : public Worker {
  public:
   BQSRGatherWorker(std::vector<std::string> &input_files,
       std::string output_file,
-      bool &flag_f);
+      bool &flag_f, bool flag_gatk);
 
   void check();
   void setup();
  private:
   std::vector<std::string> input_files_;
   std::string output_file_;
+  bool flag_gatk_;
 };
 
 class PRWorker : public Worker {
@@ -52,7 +55,7 @@ class PRWorker : public Worker {
       std::string output_path,
       std::vector<std::string> extra_opts,
       std::vector<std::string> &intv_list,
-      int contig, bool &flag_f);
+      int contig, bool &flag_f, bool flag_gatk);
 
   void check();
   void setup();
@@ -64,6 +67,7 @@ class PRWorker : public Worker {
   std::string input_path_;
   std::string output_path_;
   std::vector<std::string> intv_list_;
+  bool flag_gatk_;
 };
 } // namespace fcsgenome
 #endif
