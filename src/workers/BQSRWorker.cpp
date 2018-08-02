@@ -43,15 +43,15 @@ void BQSRWorker::check() {
     std::string ext  = fs::extension(site);
     std::string idx_ext;
 
-    // check for '.idx' suffix 
-    if (ext == ".vcf") { 
+    // check for '.idx' suffix
+    if (ext == ".vcf") {
       idx_ext = ".idx";
     }
     else if (ext == ".gz") {
       idx_ext = ".tbi";
     }
     else { // unrecognized extension
-      LOG(ERROR) << "Unrecognized extension for known site: " << site; 
+      LOG(ERROR) << "Unrecognized extension for known site: " << site;
       throw silentExit();
     }
 
@@ -79,7 +79,7 @@ void BQSRWorker::check() {
         VLOG(1) << "Successfully updated stat for " << idx_file;
       }
     }
-  } 
+  }
 }
 
 void BQSRWorker::setup() {
@@ -229,7 +229,8 @@ void PRWorker::setup() {
       << "-I " << input_path_ << " ";
 
   if (flag_gatk_ || get_config<bool>("use_gatk4")) {
-     cmd << "-O " << output_path_ << " --bqsr-recal-file " << bqsr_path_ << " ";
+     cmd << "-O " << output_path_ << " --bqsr-recal-file " << bqsr_path_ << " "
+         << "-L " << intv_path_ << " ";
   } else {
      cmd << "-BQSR " << bqsr_path_ << " "
          << "-L " << intv_path_ << " "
