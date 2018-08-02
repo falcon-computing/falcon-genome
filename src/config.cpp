@@ -272,9 +272,8 @@ int init(char** argv, int argc) {
     arg_decl_string_w_def("bgzip_path",      conf_root_dir+"/tools/bin/bgzip",      "path to bgzip")
     arg_decl_string_w_def("tabix_path",      conf_root_dir+"/tools/bin/tabix",      "path to tabix")
     arg_decl_string_w_def("genomicsdb_path", conf_root_dir+"/tools/bin/vcf2tiledb", "path to GenomicsDB")
-    arg_decl_string_w_def("gatk_path",       conf_root_dir+"/tools/package/GenomeAnalysisTK.jar", "path to gatk.jar")
-    arg_decl_string_w_def("gatk4_path",      conf_root_dir+"/tools/package/GATK-4.0-local.jar", "path to gatk4.jar")
-    //arg_decl_string_w_def("gatk4_path",      "/pool/storage/alfonso/gatk4/gatk-package-4.0.4.0-local.jar", "path to gatk4.jar")
+    arg_decl_string_w_def("gatk_path",       conf_root_dir+"/tools/package/GenomeAnalysisTK.jar", "path to the GATK 3.x jar file")
+    arg_decl_string_w_def("gatk4_path",      conf_root_dir+"/tools/package/GATK4.jar", "path to the GATK 4.x jar file")
     arg_decl_string_w_def("hosts", "",       "host list for scale-out mode")
     arg_decl_bool_w_def("latency_mode", false, "enable sorting in bwa-mem")
     arg_decl_bool_w_def("use_gatk4", false, "enable GATK4 in fcs-genome")
@@ -333,8 +332,8 @@ int init(char** argv, int argc) {
     arg_decl_int("gatk.depth.memory",            "default heap memory in GATK DepthOfCoverage")
     arg_decl_bool("gatk.skip_pseudo_chr", "skip pseudo chromosome intervals")
     arg_decl_bool_w_def("gatk.skip_pseudo_chr", true, "skip pseudo chromosome intervals")
-    arg_decl_string_w_def("blaze.nam_path", conf_root_dir+"/tools/blaze/bin/nam", "path to nam in blaze")
-    arg_decl_string_w_def("blaze.conf_path",conf_root_dir+"/tools/blaze/conf",    "path to nam configuration file")
+    arg_decl_string_w_def("blaze.nam_path", conf_root_dir+"/blaze/bin/nam", "path to nam in blaze")
+    arg_decl_string_w_def("blaze.conf_path",conf_root_dir+"/blaze/conf",    "path to nam configuration file")
     ;
 
   conf_opt.add(common_opt).add(tools_opt);
