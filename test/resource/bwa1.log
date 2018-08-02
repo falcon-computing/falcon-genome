@@ -1,0 +1,7 @@
+[2018-08-01 13:20:31.189 falcon-bwa] WARNING: Continue without using FPGA
+[M::mem_pestat] skip orientation FF as there are not enough pairs
+[M::mem_pestat] skip orientation FR as there are not enough pairs
+[M::mem_pestat] skip orientation RF as there are not enough pairs
+[M::mem_pestat] skip orientation RR as there are not enough pairs
+[mem_sam_pe] paired reads have different names: "HWI-ST973:246:C2DU9ACXX:8:1101:1477:2036", "HWI-ST973:152:H0BA0ADXX:1:1101:1194:1964"
+

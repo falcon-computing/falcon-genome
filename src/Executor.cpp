@@ -64,16 +64,7 @@ void Stage::run() {
   // wait for tasks to finish
   boost::wait_for_all(pending_tasks_.begin(), pending_tasks_.end()); 
 
-  //check if any error message in log files
-  if (!status_.empty()) {
-    fcsgenome::LogUtils logUtils;
-    std::string match = logUtils.findError(logs_);
-    if (!match.empty()) {
-      LOG(ERROR) << "Command failed with the following error message:";
-      std::cout << match;
-    }
-  }
-
+  // concat all logs
   std::ofstream fout(executor_->log(), std::ios::out|std::ios::app);
   for (int i = 0; i < logs_.size(); i++) {
     std::ifstream fin(logs_[i], std::ios::in);   
@@ -81,18 +72,28 @@ void Stage::run() {
       fout << fin.rdbuf();
     }
     fin.close();
-
-    // remove task log
-    remove_path(logs_[i]);
   }
   fout.flush();
   fout.close();
 
-  // check results
+  //check if any error message in log files
   if (!status_.empty()) {
-    throw failedCommand(executor_->job_name() +
-        " failed, please check log: " + executor_->log() +
-        " for details");
+    fcsgenome::LogUtils logUtils;
+    std::string match = logUtils.findError(logs_);
+    LOG(ERROR) << executor_->job_name() 
+               << " failed, please check log: "
+               << executor_->log() 
+               << " for details.";
+    if (!match.empty()) {
+      LOG(INFO) << "Potential errors:";
+      std::cout << match;
+    }
+    throw failedCommand("");
+  }
+
+  for (int i = 0; i < logs_.size(); i++) {
+    // remove task log
+    remove_path(logs_[i]);
   }
   DLOG(INFO) << "Stage finishes in "
              << getTs() - start_ts << " seconds";

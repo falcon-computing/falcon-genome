@@ -1598,5 +1598,6 @@
 [M::mem_pestat] low and high boundaries for proper pairs: (1, 565)
 [M::mem_pestat] skip orientation RF as there are not enough pairs
 [M::mem_pestat] skip orientation RR as there are not enough pairs
+[E::mem_pestat] fail to locate the index files
 Version: falcon-bwa v0.4.4-4-gf1dfbc6
 Real time: 262.036 sec, CPU time: 3021.38 sec

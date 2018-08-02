@@ -12,35 +12,30 @@ std::string LogUtils::findError(std::vector<std::string> logs_) {
   for (int i = 0; i < logs_.size(); i++) {
     std::ifstream fin(logs_[i], std::ios::in);
     std::string match;
-    std::string line;
+    std::string last_line;
     while (fin.good()) {
+      std::string line;
       getline(fin, line); 
-      size_t pos;
-      pos = line.find("##### ERROR"); // search ERROR for gatk logs
-      if (pos != std::string::npos) {
+      if (line.find("##### ERROR") != std::string::npos) {
         match = match + line + "\n";
-        continue;
       }
-      pos = line.find("[E::"); // search fail for bwa logs
-      if(pos != std::string::npos) {
+      else if (line.find("[E::") != std::string::npos) {
         match = match + line + "\n";
-        continue;
       }
-      //pos = line.find("error"); // search
-      //if(pos != std::string::npos) {
-      //  match = match + line + "\n";
-      //  continue;
-      //}
+      else if (!line.empty()) {
+        last_line = line + '\n';
+      }
     }
-    if (!match.empty()) {
-      if (message.empty()) {
-        message = match;
-      }
-      else if (message.compare(match) != 0) {
-        return std::string();
-      }
+    if (message.empty()) {
+      if (!match.empty()) message = match;
+      else message = last_line; // get the last line and treat it as error
+    }
+    else if (message.compare(match) != 0) {
+      if (!match.empty()) return match;
+      else return std::string();
     }
   }
+  // message will be the shared message accross all logs
   return message;
 }
 } // namespace fcsgenome
