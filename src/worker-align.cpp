@@ -105,7 +105,7 @@ int align_main(int argc, char** argv,
   // start execution
   std::string parts_dir;
   //std::string temp_dir = conf_temp_dir + "/align";
-  std::string temp_dir = "/local/" + conf_temp_dir + "align";
+  std::string temp_dir = conf_temp_dir + "align";
   create_dir(temp_dir);
 
   // check available space in temp dir
