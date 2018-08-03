@@ -76,10 +76,10 @@ void HTCWorker::setup() {
      cmd << "-L " << intv_path_ << " " << "-O " << output_path_
          << " --native-pair-hmm-threads=" << get_config<int>("gatk.htc.nct", "gatk.nct") << " ";
      if (!produce_vcf_){
-         cmd << "--emit-ref-confidence=GVCF" ;
+         cmd << "--emit-ref-confidence=GVCF" << " ";
      } else {
          // This is the DEFAULT:
-         cmd << "--emit-ref-confidence=NONE" ;
+         cmd << "--emit-ref-confidence=NONE" << " " ;
      }
 
      cmd << "1> /dev/null";
