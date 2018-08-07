@@ -196,6 +196,8 @@ int init_config(boost::program_options::options_description conf_opt) {
   check_input(get_config<std::string>("genomicsdb_path"), false);
   check_input(get_config<std::string>("gatk_path"), false);
 
+  check_input(get_config<std::string>("gatk4_path"), false);
+
   // parse host list if scaleout_mode is selected
   if (get_config<bool>("bwa.scaleout_mode") ||
       get_config<bool>("gatk.scaleout_mode") ||
@@ -264,15 +266,17 @@ int init(char** argv, int argc) {
     arg_decl_string_w_def("ref_genome",      "",          "(deprecated) default reference genome path")
     arg_decl_string_w_def("java_path",       "java -d64", "java binary")
     arg_decl_string_w_def("mpi_path",        "/usr/lib64/openmpi",                  "path to mpi installation")
-    arg_decl_string_w_def("bwa_path",        conf_root_dir+"/tools/bin/bwa-bin",    "path to bwa binary")
+    arg_decl_string_w_def("bwa_path",        conf_root_dir+"/tools/bin/bwa-flow",    "path to bwa binary")
     arg_decl_string_w_def("sambamba_path",   conf_root_dir+"/tools/bin/sambamba",   "path to sambamba")
     arg_decl_string_w_def("bcftools_path",   conf_root_dir+"/tools/bin/bcftools",   "path to bcftools")
     arg_decl_string_w_def("bgzip_path",      conf_root_dir+"/tools/bin/bgzip",      "path to bgzip")
     arg_decl_string_w_def("tabix_path",      conf_root_dir+"/tools/bin/tabix",      "path to tabix")
     arg_decl_string_w_def("genomicsdb_path", conf_root_dir+"/tools/bin/vcf2tiledb", "path to GenomicsDB")
-    arg_decl_string_w_def("gatk_path",       conf_root_dir+"/tools/package/GenomeAnalysisTK.jar", "path to gatk.jar")
+    arg_decl_string_w_def("gatk_path",       conf_root_dir+"/tools/package/GenomeAnalysisTK.jar", "path to the GATK 3.x jar file")
+    arg_decl_string_w_def("gatk4_path",      conf_root_dir+"/tools/package/GATK4.jar", "path to the GATK 4.x jar file")
     arg_decl_string_w_def("hosts", "",       "host list for scale-out mode")
     arg_decl_bool_w_def("latency_mode", false, "enable sorting in bwa-mem")
+    arg_decl_bool_w_def("use_gatk4", false, "enable GATK4 in fcs-genome")
     ;
 
   tools_opt.add_options()
@@ -282,7 +286,7 @@ int init(char** argv, int argc) {
     arg_decl_bool_w_def("bwa.use_fpga",            true,  "option to enable FPGA for bwa-mem")
     arg_decl_bool_w_def("bwa.use_sort",            true,  "enable sorting in bwa-mem")
     arg_decl_bool_w_def("bwa.enforce_order",       false,  "enforce strict sorting ordering")
-    arg_decl_string_w_def("bwa.fpga.bit_path",     conf_root_dir+"/tools/bitstreams/bitstream.xclbin", "path to FPGA bitstream for bwa")
+    arg_decl_string_w_def("bwa.fpga.bit_path",     conf_root_dir+"/fpga/sw.xclbin", "path to FPGA bitstream for bwa")
     arg_decl_string_w_def("bwa.fpga.pac_path",     "",    "(deprecated) path to PAC reference used by FPGA for bwa")
     arg_decl_string("bwa.mpi_if", "network interface to use mpi connection")
     arg_decl_bool("bwa.scaleout_mode", "enable scale-out mode for bwa")
@@ -327,8 +331,8 @@ int init(char** argv, int argc) {
     arg_decl_int("gatk.depth.nct",               "default thread num in  GATK DepthOfCoverage")
     arg_decl_int("gatk.depth.memory",            "default heap memory in GATK DepthOfCoverage")
     arg_decl_bool_w_def("gatk.skip_pseudo_chr", true, "skip pseudo chromosome intervals")
-    arg_decl_string_w_def("blaze.nam_path", conf_root_dir+"/tools/blaze/bin/nam", "path to nam in blaze")
-    arg_decl_string_w_def("blaze.conf_path",conf_root_dir+"/tools/blaze/conf",    "path to nam configuration file")
+    arg_decl_string_w_def("blaze.nam_path", conf_root_dir+"/blaze/bin/nam", "path to nam in blaze")
+    arg_decl_string_w_def("blaze.conf_path",conf_root_dir+"/blaze/conf",    "path to nam configuration file")
     ;
 
   conf_opt.add(common_opt).add(tools_opt);

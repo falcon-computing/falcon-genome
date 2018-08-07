@@ -15,7 +15,7 @@
 namespace fcsgenome {
 
 int htc_main(int argc, char** argv,
-    boost::program_options::options_description &opt_desc) 
+    boost::program_options::options_description &opt_desc)
 {
   namespace po = boost::program_options;
 
@@ -23,7 +23,7 @@ int htc_main(int argc, char** argv,
   po::variables_map cmd_vm;
   bool opt_bool = false;
 
-  opt_desc.add_options() 
+  opt_desc.add_options()
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output GVCF/VCF file (if --skip-concat is set"
@@ -31,15 +31,16 @@ int htc_main(int argc, char** argv,
     ("produce-vcf,v", "produce VCF files from HaplotypeCaller instead of GVCF")
     // TODO: skip-concat should be deprecated
     ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
-    ("skip-concat,s", "(deprecated) produce a set of GVCF/VCF files instead of one");
+    ("skip-concat,s", "(deprecated) produce a set of GVCF/VCF files instead of one")
+    ("gatk4,g", "use gatk4 to perform analysis");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
       cmd_vm);
 
-  if (cmd_vm.count("help")) { 
+  if (cmd_vm.count("help")) {
     throw helpRequest();
-  } 
+  }
 
   // check configurations
   check_nprocs_config("htc");
@@ -49,19 +50,20 @@ int htc_main(int argc, char** argv,
   bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat", "s");
   bool flag_vcf           = get_argument<bool>(cmd_vm, "produce-vcf", "v");
+  bool flag_gatk          = get_argument<bool>(cmd_vm, "gatk4", "g");
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::vector<std::string> intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
-  std::vector<std::string> extra_opts = 
+  std::vector<std::string> extra_opts =
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
-  
+
   // finalize argument parsing
   po::notify(cmd_vm);
-  
+
   std::string temp_dir = conf_temp_dir + "/htc";
 
-  // TODO: deal with the case where 
+  // TODO: deal with the case where
   // 1. output_path is a dir but should not be deleted
   // 2. output_path is a file
   std::string output_dir;
@@ -86,8 +88,7 @@ int htc_main(int argc, char** argv,
 
   BackgroundExecutor bg_executor("blaze-nam", blaze_worker);
 
-  Executor executor("Haplotype Caller", 
-                    get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
+  Executor executor("Haplotype Caller", get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
 
   bool flag_htc_f = !flag_skip_concat || flag_f;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
@@ -111,9 +112,10 @@ int htc_main(int argc, char** argv,
           output_file,
           extra_opts,
           intv_list,
-          contig, 
+          contig,
           flag_vcf,
-          flag_htc_f));
+          flag_htc_f,
+          flag_gatk));
     output_files[contig] = output_file;
 
     executor.addTask(worker);

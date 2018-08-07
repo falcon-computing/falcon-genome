@@ -32,29 +32,28 @@ class Worker {
     num_thread_(num_t),
     extra_opts_()
   {  
-     for (int i =0; i < extra_opts.size(); i++) {
-       std::string type;
-       std::string value;    
-       std::vector<std::string> type_and_value;
-       boost::split(type_and_value, extra_opts[i], boost::is_any_of(" "));
-       for (int i=0; i < type_and_value.size(); i++) {
-         value="";
-         if (boost::starts_with(type_and_value[i], "--") || boost::starts_with(type_and_value[i], "-")) {
-           type=type_and_value[i];
-           if ( (i+1) != type_and_value.size() ) {
-             if (!boost::starts_with(type_and_value[i+1], "--") && !boost::starts_with(type_and_value[i+1], "-")) {
-               value=type_and_value[i+1];
-               i++;
-             }
-           }
-         }
-         if (type != "-nct") {
-           extra_opts_[type].push_back(value);
-           LOG(INFO) << "Parsing one extra option: Key=" << type << ", Value=" << value;
-         }
-       }
+    for (int i = 0; i < extra_opts.size(); i++) {
+      std::vector<std::string> type_and_value;
+      boost::split(type_and_value, extra_opts[i], boost::is_any_of(" "));
+      for (int i = 0; i < type_and_value.size(); i++) {
+        std::string value;    
+        std::string type;
+        if (boost::starts_with(type_and_value[i], "--") || boost::starts_with(type_and_value[i], "-")) {
+          type = type_and_value[i];
+          if ( (i+1) != type_and_value.size() ) {
+            if (!boost::starts_with(type_and_value[i+1], "--") && !boost::starts_with(type_and_value[i+1], "-")) {
+              value = type_and_value[i+1];
+              i++;
+            }
+          }
+        }
+        if (type != "-nct") {
+          extra_opts_[type].push_back(value);
+          DLOG(INFO) << "Parsing one extra option: Key=" << type << ", Value=" << value;
+        }
+      }
     }
- }
+  }
   virtual void check() {}
   virtual void setup() {}
   virtual void teardown() {}

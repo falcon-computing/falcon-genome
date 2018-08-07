@@ -17,13 +17,15 @@ class HTCWorker : public Worker {
       std::vector<std::string> &intv_list,
       int contig,
       bool flag_vcf,
-      bool &flag_f);
+      bool &flag_f,
+      bool flag_gatk);
 
   void check();
   void setup();
 
  private:
   bool produce_vcf_;
+  bool flag_gatk_;
   std::string ref_path_;
   std::string intv_path_;
   std::string input_path_;
