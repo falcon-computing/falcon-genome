@@ -24,7 +24,7 @@ static void baserecalAddWorkers(Executor &executor,
     std::vector<std::string> &intv_list,
     bool flag_f, bool flag_gatk)
 {
-  std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+  std::vector<std::string> intv_paths = split_by_nprocs(intv_list, "bed");
   std::vector<std::string> bqsr_paths(get_config<int>("gatk.ncontigs"));
 
   // compute bqsr for each contigs
@@ -275,6 +275,7 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::vector<std::string> intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
   bool merge_bam_flag     = get_argument<bool>(cmd_vm, "merge-bam", "m");
+  bool capture_flag       = get_argument<bool>(cmd_vm, "no-capture", "c");
 
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
@@ -302,7 +303,7 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
 
   baserecalAddWorkers(executor, ref_path, known_sites, extra_opts, input_path, bqsr_path, intv_list, flag_f, flag_gatk);
   prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f, flag_gatk);
- 
+
   executor.run();
 
   if (merge_bam_flag){
