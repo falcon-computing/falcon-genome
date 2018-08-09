@@ -84,6 +84,9 @@ int align_main(int argc, char** argv,
      if (fq2_path.empty() && !sampleList.empty()) {
          throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (defined, undefined) and Sample Sheet defined. Set either FASTQ filenames or Sample Sheet");
      }
+     if (!fq2_path.empty() && !sampleList.empty()) {
+         throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (defined, defined) and Sample Sheet defined. Set either FASTQ filenames or Sample Sheet");
+     }
   };
 
   SampleSheetMap SampleData;
