@@ -61,13 +61,11 @@ int depth_main(int argc, char** argv,
   po::notify(cmd_vm);
 
   std::string temp_dir = conf_temp_dir + "/depth";
-  //std::string temp_dir = "/genome/disk2/alfonso/depth";
   create_dir(temp_dir);
 
   //output path
   std::string output_dir;
-  //output_dir = check_output(output_path, flag_f);
-  output_dir = temp_dir;
+  output_dir = check_output(output_path, flag_f);
   create_dir(output_dir);
   std::string temp_depth_path = output_dir + "/" + get_basename(output_path);
 
