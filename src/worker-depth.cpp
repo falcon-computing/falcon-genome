@@ -55,6 +55,13 @@ int depth_main(int argc, char** argv,
   bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "omitIntervals", "v");
   bool flag_sampleSummary    = get_argument<bool>(cmd_vm, "omitSampleSummary", "s");
 
+  bool flag_genes;
+  if ( !intv_list.empty() && !geneList.empty() ){
+    flag_genes=true;
+  } else {
+    flag_genes=false;
+  }
+
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
@@ -62,12 +69,10 @@ int depth_main(int argc, char** argv,
 
   std::string temp_dir = conf_temp_dir + "/depth";
   create_dir(temp_dir);
-
-  //output path
+ 
   std::string output_dir;
-  output_dir = check_output(output_path, flag_f);
+  output_dir = temp_dir;
   create_dir(output_dir);
-  std::string temp_depth_path = output_dir + "/" + get_basename(output_path);
 
   // Split Interval List and Gene List into several parts according to gatk.ncontigs:
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
@@ -156,7 +161,7 @@ int depth_main(int argc, char** argv,
   bool flag = true;
 
   Worker_ptr worker(new DepthCombineWorker(output_files, output_path,
-        flag_baseCoverage, flag_intervalCoverage, flag_sampleSummary, flag));
+        flag_baseCoverage, flag_intervalCoverage, flag_sampleSummary, flag_genes, flag));
   executor.addTask(worker, true);
   executor.run();
 
