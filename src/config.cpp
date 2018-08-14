@@ -696,7 +696,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   while( int cc = FileRead( ifs, buff ) ) {
       n += CountLines( buff, cc );
   }
-  DLOG(INFO) << "Number of Genes Intervals : " << n << std::endl;
+  DLOG(INFO) << "Number of Intervals : " << n << std::endl;
 
   int ncontigs = get_config<int>("gatk.ncontigs");
   int chunk = int(n/ncontigs);

@@ -14,7 +14,7 @@ BQSRWorker::BQSRWorker(std::string ref_path,
       std::string input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
-      std::vector<std::string> &intv_list,
+      std:map std::vector<std::string> &intv_list,
       int  contig,
       bool &flag_f,
       bool flag_gatk):
@@ -95,8 +95,7 @@ void BQSRWorker::setup() {
   }
 
   cmd << "-R " << ref_path_ << " "
-      << "-I " << input_path_ << " "
-      << "-L " << intv_path_ << " ";
+      << "-I " << input_path_ << " ";
 
   if (flag_gatk_ || get_config<bool>("use_gatk4")) {
       cmd << "-O " << output_path_  << " ";
@@ -107,9 +106,14 @@ void BQSRWorker::setup() {
           << "-o " << output_path_ << " ";
   }
 
-  for (int i = 0; i < intv_list_.size(); i++) {
-    cmd << "-L " << intv_list_[i] << " ";
+  if (!intv_list_.empty()){
+      for (int i = 0; i < intv_list_.size(); i++) {
+           cmd << "-L " << intv_list_[i] << " ";
+      }
+  } else {
+      cmd << "-L " << intv_path_ << " ";
   }
+
   if (intv_list_.size() > 0 ) {
     cmd << "-isr INTERSECTION ";
   }
@@ -229,18 +233,21 @@ void PRWorker::setup() {
       << "-I " << input_path_ << " ";
 
   if (flag_gatk_ || get_config<bool>("use_gatk4")) {
-     cmd << "-O " << output_path_ << " --bqsr-recal-file " << bqsr_path_ << " "
-         << "-L " << intv_path_ << " ";
+     cmd << "-O " << output_path_ << " --bqsr-recal-file " << bqsr_path_ << " ";
   } else {
      cmd << "-BQSR " << bqsr_path_ << " "
-         << "-L " << intv_path_ << " "
          << "-nct " << get_config<int>("gatk.pr.nct", "gatk.nct") << " "
          << "-o " << output_path_ << " ";
   }
 
-  for (int i = 0; i < intv_list_.size(); i++) {
-    cmd << "-L " << intv_list_[i] << " ";
+  if (!intv_list_.empty()){
+      for (int i = 0; i < intv_list_.size(); i++) {
+           cmd << "-L " << intv_list_[i] << " ";4,41
+      }
+  } else {
+      cmd << "-L " << intv_path_ << " ";
   }
+
   if (intv_list_.size() > 0 ) {
     cmd << "-isr INTERSECTION ";
   }

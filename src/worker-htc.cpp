@@ -79,7 +79,23 @@ int htc_main(int argc, char** argv,
   create_dir(output_dir);
 
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
-  std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+
+  std::map<int, std::vector<std::string> intv_sets;
+  if (!intv_list.empty()){
+      for (int i = 0; i < intv_list_.size(); i++) {
+          std::vector<std::string> temp_intv = split_by_nprocs(intv_list[i], "bed");
+          for (int k = 0; k < temp_intv_.size(); k++) {
+               std::map<int, std::string>::iterator it = intv_paths.find(k);
+               if (it != intv_paths.end()){
+                   it->second.push_back(temp_intv[k]);
+               }
+          }
+          temp_intv.clear();
+      }
+  }
+  else {
+     std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+  }
 
   // start an executor for NAM
   Worker_ptr blaze_worker(new BlazeWorker(
@@ -111,7 +127,7 @@ int htc_main(int argc, char** argv,
           intv_paths[contig], input_file,
           output_file,
           extra_opts,
-          intv_list,
+          intv_sets[contig],
           contig,
           flag_vcf,
           flag_htc_f,

@@ -24,7 +24,23 @@ static void baserecalAddWorkers(Executor &executor,
     std::vector<std::string> &intv_list,
     bool flag_f, bool flag_gatk)
 {
-  std::vector<std::string> intv_paths = split_by_nprocs(intv_list, "bed");
+  std::map<int, std::vector<std::string> intv_sets;
+  if (!intv_list.empty()){
+      for (int i = 0; i < intv_list_.size(); i++) {
+          std::vector<std::string> temp_intv = split_by_nprocs(intv_list[i], "bed");
+          for (int k = 0; k < temp_intv_.size(); k++) {
+               std::map<int, std::string>::iterator it = intv_sets.find(k);
+               if (it != intv_sets.end()){
+                   it->second.push_back(temp_intv[k]);
+               }
+          }
+          temp_intv.clear();
+      }
+  }
+  else {
+     std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+  }
+
   std::vector<std::string> bqsr_paths(get_config<int>("gatk.ncontigs"));
 
   // compute bqsr for each contigs
@@ -47,11 +63,14 @@ static void baserecalAddWorkers(Executor &executor,
     bqsr_paths[contig] = ss.str();
 
     DLOG(INFO) << "Task " << contig << " bqsr: " << bqsr_paths[contig];
+    //for(auto element : intv_sets){
+    //    std::cout << it->first << " " << it->second.first << " " << it->second.second << "\n";
+    //}
 
     Worker_ptr worker(new BQSRWorker(ref_path, known_sites,
           intv_paths[contig],
           input_file, bqsr_paths[contig],
-          extra_opts, intv_list,
+          extra_opts, intv_sets[contig],
 
           contig, flag_f, flag_gatk));
     executor.addTask(worker, contig == 0);
@@ -80,7 +99,23 @@ static void prAddWorkers(Executor &executor,
   std::vector<std::string> &intv_list,
   bool flag_f, bool flag_gatk)
 {
-  std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+  std::map<int, std::vector<std::string> intv_sets;
+  if (!intv_list.empty()){
+      for (int i = 0; i < intv_list_.size(); i++) {
+          std::vector<std::string> temp_intv = split_by_nprocs(intv_list[i], "bed");
+          for (int k = 0; k < temp_intv_.size(); k++) {
+               std::map<int, std::string>::iterator it = intv_paths.find(k);
+               if (it != intv_paths.end()){
+                   it->second.push_back(temp_intv[k]);
+               }
+          }
+          temp_intv.clear();
+      }
+  }
+  else {
+     std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+  }
+
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
        // handle input as directory
        std::string input_file;
@@ -97,7 +132,7 @@ static void prAddWorkers(Executor &executor,
           intv_paths[contig], bqsr_path,
           input_file,
           get_contig_fname(output_path, contig),
-          extra_opts, intv_list,
+          extra_opts, intv_sets[contig],
           contig, flag_f, flag_gatk));
        executor.addTask(worker, contig == 0);
   }
