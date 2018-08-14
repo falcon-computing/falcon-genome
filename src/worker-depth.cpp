@@ -78,7 +78,7 @@ int depth_main(int argc, char** argv,
   if (!intv_list.empty() && !geneList.empty()) {
      DLOG(INFO) << "intv_list NOT EMPTY and geneList NOT EMPTY";
      intv_paths = split_by_nprocs(intv_list, "bed",1);
-     geneList_paths = split_by_nprocs(geneList, "list");
+     geneList_paths = split_by_nprocs(geneList, "list", 1);
   }
 
   if (!intv_list.empty() && geneList.empty()) {
