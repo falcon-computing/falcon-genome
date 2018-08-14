@@ -14,7 +14,7 @@ BQSRWorker::BQSRWorker(std::string ref_path,
       std::string input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
-      std::string &intv_list,
+      std::vector<std::string> &intv_list,
       int  contig,
       bool &flag_f,
       bool flag_gatk):
@@ -242,7 +242,7 @@ void PRWorker::setup() {
 
   if (!intv_list_.empty()){
       for (int i = 0; i < intv_list_.size(); i++) {
-           cmd << "-L " << intv_list_[i] << " ";4,41
+           cmd << "-L " << intv_list_[i] << " ";
       }
   } else {
       cmd << "-L " << intv_path_ << " ";
