@@ -25,24 +25,25 @@ static void baserecalAddWorkers(Executor &executor,
     bool flag_f, bool flag_gatk)
 {
   std::map<int, std::vector<std::string>> intv_sets;
+  std::vector<std::string> intv_paths;
   if (!intv_list.empty()){
-      for (int i = 0; i < intv_list_.size(); i++) {
-          std::vector<std::string> temp_intv = split_by_nprocs(intv_list[i], "bed", i);
-          for (int k = 0; k < temp_intv.size(); k++) {
-               if (i==0){
-                   std::vector<std::string> ivect;
-                   ivect.push_back(temp_intv[k]);
-                   intv_sets.insert(std::make_pair(k, ivect ) );
-                   ivect.clear();
-               }else{
-                   intv_sets[k].push_back(temp_intv[k]);
-               }
-          }
-          temp_intv.clear();
-      }
+    for (int i = 0; i < intv_list.size(); i++) {
+        std::vector<std::string> temp_intv = split_by_nprocs(intv_list[i], "bed", i);
+        for (int k = 0; k < temp_intv.size(); k++) {
+           if (i==0){
+             std::vector<std::string> ivect;
+             ivect.push_back(temp_intv[k]);
+             intv_sets.insert(std::make_pair(k, ivect ) );
+             ivect.clear();
+           }else{
+             intv_sets[k].push_back(temp_intv[k]);
+           }
+        }
+        temp_intv.clear();
+    }
   }
   else {
-     std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+     intv_paths = init_contig_intv(ref_path);
   }
 
   std::vector<std::string> bqsr_paths(get_config<int>("gatk.ncontigs"));
@@ -72,7 +73,7 @@ static void baserecalAddWorkers(Executor &executor,
     //}
     std::vector <std::string> IntervalFiles;
     if (!intv_list.empty()){
-        IntervalFiles=intv_sets.find(contig)->second;
+      IntervalFiles=intv_sets.find(contig)->second;
     }
     Worker_ptr worker(new BQSRWorker(ref_path, known_sites,
           intv_paths[contig],
@@ -90,9 +91,9 @@ static void baserecalAddWorkers(Executor &executor,
 static void removePartialBQSR(std::string bqsr_path) {
   // delete all partial contig bqsr
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
-       std::stringstream ss;
-       ss << bqsr_path << "." << contig;
-       remove_path(ss.str());
+     std::stringstream ss;
+     ss << bqsr_path << "." << contig;
+     remove_path(ss.str());
   }
 }
 
@@ -109,23 +110,23 @@ static void prAddWorkers(Executor &executor,
   std::map<int, std::vector<std::string>> intv_sets;
   std::vector<std::string> intv_paths;
   if (!intv_list.empty()){
-      for (int i = 0; i < intv_list.size(); i++) {
-          std::vector<std::string> temp_intv = split_by_nprocs(intv_list[i], "bed", i);
-          for (int k = 0; k < temp_intv.size(); k++) {
-               if (i==0){
-                   std::vector<std::string> ivect;
-                   ivect.push_back(temp_intv[k]);
-                   intv_sets.insert(std::make_pair(k, ivect ) );
-                   ivect.clear();
-               }else{
-                   intv_sets[k].push_back(temp_intv[k]);
-               }
+    for (int i = 0; i < intv_list.size(); i++) {
+       std::vector<std::string> temp_intv = split_by_nprocs(intv_list[i], "bed", i);
+       for (int k = 0; k < temp_intv.size(); k++) {
+          if (i==0){
+            std::vector<std::string> ivect;
+            ivect.push_back(temp_intv[k]);
+            intv_sets.insert(std::make_pair(k, ivect ) );
+            ivect.clear();
+          }else{
+            intv_sets[k].push_back(temp_intv[k]);
           }
-          temp_intv.clear();
-      }
+       }
+       temp_intv.clear();
+    }
   }
   else {
-     intv_paths = init_contig_intv(ref_path);
+    intv_paths = init_contig_intv(ref_path);
   }
 
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
