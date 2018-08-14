@@ -70,7 +70,7 @@ static void baserecalAddWorkers(Executor &executor,
     //for(auto element : intv_sets){
     //    std::cout << it->first << " " << it->second.first << " " << it->second.second << "\n";
     //}
-    std::vector <std::string> IntervalFile;
+    std::vector <std::string> IntervalFiles;
     if (!intv_list.empty()){
         IntervalFiles=intv_sets.find(contig)->second;
     }
@@ -107,8 +107,9 @@ static void prAddWorkers(Executor &executor,
 {
 
   std::map<int, std::vector<std::string> intv_sets;
+  std::vector<std::string> intv_paths;
   if (!intv_list.empty()){
-      for (int i = 0; i < intv_list_.size(); i++) {
+      for (int i = 0; i < intv_list.size(); i++) {
           std::vector<std::string> temp_intv = split_by_nprocs(intv_list[i], "bed", i);
           for (int k = 0; k < temp_intv.size(); k++) {
                if (i==0){
@@ -124,7 +125,7 @@ static void prAddWorkers(Executor &executor,
       }
   }
   else {
-     std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+     intv_paths = init_contig_intv(ref_path);
   }
 
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
@@ -139,7 +140,7 @@ static void prAddWorkers(Executor &executor,
        else {
           input_file = input_path;
        }
-       std::vector <std::string> IntervalFile;
+       std::vector <std::string> IntervalFiles;
        if (!intv_list.empty()){
            IntervalFiles=intv_sets.find(contig)->second;
        }
@@ -173,8 +174,6 @@ static void mergebamBQSRWorker(Executor &merge_executor,
   Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM_path, check_parts, flag_f));
   merge_executor.addTask(merger_worker);
 }
-
-
 
 int baserecal_main(int argc, char** argv, boost::program_options::options_description &opt_desc)
 {

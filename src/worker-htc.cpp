@@ -81,8 +81,9 @@ int htc_main(int argc, char** argv,
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
 
   std::map<int, std::vector<std::string> intv_sets;
+  std::vector<std::string> intv_paths;
   if (!intv_list.empty()){
-      for (int i = 0; i < intv_list_.size(); i++) {
+      for (int i = 0; i < intv_list.size(); i++) {
           std::vector<std::string> temp_intv = split_by_nprocs(intv_list[i], "bed", i);
           for (int k = 0; k < temp_intv.size(); k++) {
                if (i==0){
@@ -98,7 +99,7 @@ int htc_main(int argc, char** argv,
       }
   }
   else {
-     std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+     intv_paths = init_contig_intv(ref_path);
   }
 
   // start an executor for NAM
@@ -126,7 +127,7 @@ int htc_main(int argc, char** argv,
     if (!flag_vcf) {
       file_ext = "g." + file_ext;
     }
-    std::vector <std::string> IntervalFile;
+    std::vector <std::string> IntervalFiles;
     if (!intv_list.empty()){
         IntervalFiles=intv_sets.find(contig)->second;
     }
