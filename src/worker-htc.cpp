@@ -83,11 +83,15 @@ int htc_main(int argc, char** argv,
   std::map<int, std::vector<std::string> intv_sets;
   if (!intv_list.empty()){
       for (int i = 0; i < intv_list_.size(); i++) {
-          std::vector<std::string> temp_intv = split_by_nprocs(intv_list[i], "bed");
-          for (int k = 0; k < temp_intv_.size(); k++) {
-               std::map<int, std::string>::iterator it = intv_paths.find(k);
-               if (it != intv_paths.end()){
-                   it->second.push_back(temp_intv[k]);
+          std::vector<std::string> temp_intv = split_by_nprocs(intv_list[i], "bed", i);
+          for (int k = 0; k < temp_intv.size(); k++) {
+               if (i==0){
+                   std::vector<std::string> ivect;
+                   ivect.push_back(temp_intv[k]);
+                   intv_sets.insert(std::make_pair(k, ivect ) );
+                   ivect.clear();
+               }else{
+                   intv_sets[k].push_back(temp_intv[k]);
                }
           }
           temp_intv.clear();
@@ -122,12 +126,16 @@ int htc_main(int argc, char** argv,
     if (!flag_vcf) {
       file_ext = "g." + file_ext;
     }
+    std::vector <std::string> IntervalFile;
+    if (!intv_list.empty()){
+        IntervalFiles=intv_sets.find(contig)->second;
+    }
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new HTCWorker(ref_path,
           intv_paths[contig], input_file,
           output_file,
           extra_opts,
-          intv_sets[contig],
+          IntervalFiles,
           contig,
           flag_vcf,
           flag_htc_f,

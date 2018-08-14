@@ -77,13 +77,13 @@ int depth_main(int argc, char** argv,
 
   if (!intv_list.empty() && !geneList.empty()) {
      DLOG(INFO) << "intv_list NOT EMPTY and geneList NOT EMPTY";
-     intv_paths = split_by_nprocs(intv_list, "bed");
+     intv_paths = split_by_nprocs(intv_list, "bed",1);
      geneList_paths = split_by_nprocs(geneList, "list");
   }
 
   if (!intv_list.empty() && geneList.empty()) {
      DLOG(INFO) << "intv_list NOT EMPTY and geneList EMPTY";
-     intv_paths = split_by_nprocs(intv_list, "bed");
+     intv_paths = split_by_nprocs(intv_list, "bed",1);
      for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back("");
   }
 

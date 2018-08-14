@@ -52,11 +52,16 @@ void HTCWorker::setup() {
   cmd << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " ";
 
-  for (int i = 0; i < intv_list_.size(); i++) {
-    cmd << "-L " << intv_list_[i] << " ";
+  if (!boost::filesystem::is_directory(input_path_)){
+    if (intv_list_.size() > 0){
+      for (int i = 0; i < intv_list_.size(); i++) {
+          cmd << "-L " << intv_list_[i] << " ";
+      }
+      cmd << "-isr INTERSECTION ";
+    }
   }
-  if (intv_list_.size() > 0 ) {
-    cmd << "-isr INTERSECTION ";
+  else{
+    cmd << "-L " << intv_path_ << " " ;
   }
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
@@ -71,9 +76,8 @@ void HTCWorker::setup() {
     }
   }
 
-
   if (flag_gatk_ || get_config<bool>("use_gatk4")){
-     cmd << "-L " << intv_path_ << " " << "-O " << output_path_
+     cmd << "-O " << output_path_  << " "
          << " --native-pair-hmm-threads=" << get_config<int>("gatk.htc.nct", "gatk.nct") << " ";
      if (!produce_vcf_){
          cmd << "--emit-ref-confidence=GVCF" << " ";
@@ -81,8 +85,6 @@ void HTCWorker::setup() {
          // This is the DEFAULT:
          cmd << "--emit-ref-confidence=NONE" << " " ;
      }
-
-     cmd << "1> /dev/null";
   } else{
      if (!produce_vcf_) {
         if (!extra_opts_.count("--emitRefConfidence") && !extra_opts_.count("-ERC")) {
@@ -96,15 +98,13 @@ void HTCWorker::setup() {
      if (!extra_opts_.count("--variant_index_parameter")) {
         cmd << "--variant_index_parameter 128000 ";
      }
-
-     cmd << "-L " << intv_path_ << " "
-         << "-nct " << get_config<int>("gatk.htc.nct", "gatk.nct") << " "
+     cmd << "-nct " << get_config<int>("gatk.htc.nct", "gatk.nct") << " "
          << "-o " << output_path_ << " ";
-
-     cmd << "1> /dev/null";
   }
 
+  cmd << "1> /dev/null";
   cmd_ = cmd.str();
+  
   DLOG(INFO) << cmd_;
 }
 
