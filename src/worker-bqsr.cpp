@@ -24,7 +24,7 @@ static void baserecalAddWorkers(Executor &executor,
     std::vector<std::string> &intv_list,
     bool flag_f, bool flag_gatk)
 {
-  std::map<int, std::vector<std::string> intv_sets;
+  std::map<int, std::vector<std::string>> intv_sets;
   if (!intv_list.empty()){
       for (int i = 0; i < intv_list_.size(); i++) {
           std::vector<std::string> temp_intv = split_by_nprocs(intv_list[i], "bed", i);
@@ -106,7 +106,7 @@ static void prAddWorkers(Executor &executor,
   bool flag_f, bool flag_gatk)
 {
 
-  std::map<int, std::vector<std::string> intv_sets;
+  std::map<int, std::vector<std::string>> intv_sets;
   std::vector<std::string> intv_paths;
   if (!intv_list.empty()){
       for (int i = 0; i < intv_list.size(); i++) {

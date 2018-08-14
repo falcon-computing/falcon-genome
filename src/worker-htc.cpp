@@ -80,7 +80,7 @@ int htc_main(int argc, char** argv,
 
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
 
-  std::map<int, std::vector<std::string> intv_sets;
+  std::map<int, std::vector<std::string>> intv_sets;
   std::vector<std::string> intv_paths;
   if (!intv_list.empty()){
       for (int i = 0; i < intv_list.size(); i++) {
