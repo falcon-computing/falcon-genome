@@ -52,16 +52,19 @@ void HTCWorker::setup() {
   cmd << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " ";
 
-  if (!boost::filesystem::is_directory(input_path_)){
-    if (intv_list_.size() > 0){
-      for (int i = 0; i < intv_list_.size(); i++) {
-          cmd << "-L " << intv_list_[i] << " ";
-      }
-      cmd << "-isr INTERSECTION ";
-    }
+  for (int i = 0; i < intv_list_.size(); i++) {
+       cmd << "-L " << intv_list_[i] << " ";
   }
-  else{
-    cmd << "-L " << intv_path_ << " " ;
+
+  if (boost::filesystem::is_directory(input_path_)){
+      cmd << "-L " << intv_path_ << " " ;
+      cmd << "-isr INTERSECTION ";
+  } else {
+      if (intv_list_.size()==0){
+          cmd << "-L " << intv_path_ << " " ;
+          cmd << "-isr INTERSECTION ";
+      }
+
   }
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
@@ -104,7 +107,7 @@ void HTCWorker::setup() {
 
   cmd << "1> /dev/null";
   cmd_ = cmd.str();
-  
+
   DLOG(INFO) << cmd_;
 }
 
