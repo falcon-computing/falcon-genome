@@ -71,7 +71,7 @@ int depth_main(int argc, char** argv,
   create_dir(temp_dir);
  
   std::string output_dir;
-  output_dir = temp_dir;
+  output_dir = check_output(output_path, flag_f);
   create_dir(output_dir);
 
   // Split Interval List and Gene List into several parts according to gatk.ncontigs:
