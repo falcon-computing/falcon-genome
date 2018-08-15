@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <regex>
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -52,20 +53,26 @@ void HTCWorker::setup() {
   cmd << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " ";
 
-  for (int i = 0; i < intv_list_.size(); i++) {
-       cmd << "-L " << intv_list_[i] << " ";
-  }
-
-  if (boost::filesystem::is_directory(input_path_)){
+  std::regex regex_parts("(.*)(part)(.*)");
+  if (std::regex_match(input_path_,regex_parts)) {
       cmd << "-L " << intv_path_ << " " ;
       cmd << "-isr INTERSECTION ";
-  } else {
-      if (intv_list_.size()==0){
-          cmd << "-L " << intv_path_ << " " ;
-          cmd << "-isr INTERSECTION ";
+      for (int i = 0; i < intv_list_.size(); i++) {
+	cmd << "-L " << intv_list_[i] << " ";
       }
-
   }
+  else{
+    if (intv_list_.size()==0){
+      cmd << "-L " << intv_path_ << " " ;
+      cmd << "-isr INTERSECTION ";
+    }
+    else {
+      for (int i = 0; i < intv_list_.size(); i++) {
+	cmd << "-L " << intv_list_[i] << " ";
+      }
+    }
+  }
+
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
     cmd << it->first << " ";

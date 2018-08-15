@@ -101,26 +101,23 @@ void BQSRWorker::setup() {
       cmd << "-O " << output_path_  << " ";
   } else {
       cmd << "-nct " << get_config<int>("gatk.bqsr.nct", "gatk.nct") << " "
-          // secret option to fix index fopen issue
           << "--disable_auto_index_creation_and_locking_when_reading_rods "
           << "-o " << output_path_ << " ";
   }
 
   if (!intv_list_.empty()){
-      for (int i = 0; i < intv_list_.size(); i++) {
-           cmd << "-L " << intv_list_[i] << " ";
-      }
+     for (int i = 0; i < intv_list_.size(); i++) {
+        cmd << "-L " << intv_list_[i] << " ";
+        LOG(INFO) << "command " << cmd << "\n";
+     }
   } else {
-      cmd << "-L " << intv_path_ << " ";
+     cmd << "-L " << intv_path_ << " ";
   }
 
   if (intv_list_.size() > 0 ) {
     cmd << "-isr INTERSECTION ";
   }
 
-  //for (int i = 0; i < input_paths.size(); i++) {
-  //  cmd << "-I " << input_paths[i] << " ";
-  //}
   for (int i = 0; i < known_sites_.size(); i++) {
     if (flag_gatk_ || get_config<bool>("use_gatk4")) {
         cmd << "-known-sites " << known_sites_[i] << " ";
