@@ -14,6 +14,7 @@ class DepthCombineWorker : public Worker {
       bool &flag_baseCoverage,
       bool &flag_intervalCoverage,
       bool &flag_sampleSummary,
+      bool &flag_genes,
       bool &flag_f);
 
   void check();
@@ -26,6 +27,7 @@ class DepthCombineWorker : public Worker {
   bool flag_baseCoverage_;
   bool flag_intervalCoverage_;
   bool flag_sampleSummary_;
+  bool flag_genes_;
 };
 } //namespace fcsgenome
 #endif

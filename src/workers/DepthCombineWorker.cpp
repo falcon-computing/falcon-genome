@@ -26,11 +26,13 @@ DepthCombineWorker::DepthCombineWorker(
      bool &flag_baseCoverage,
      bool &flag_intervalCoverage,
      bool &flag_sampleSummary,
+     bool &flag_genes,
      bool &flag_f): Worker(1, 1),
      input_files_(input_files),
      flag_baseCoverage_(flag_baseCoverage),
      flag_intervalCoverage_(flag_intervalCoverage),
-     flag_sampleSummary_(flag_sampleSummary)
+     flag_sampleSummary_(flag_sampleSummary),
+     flag_genes_(flag_genes)
 {
      // check output files
      output_file_ = check_output(output_path, flag_f);
@@ -68,6 +70,9 @@ void DepthCombineWorker::check() {
            check_input(input_files_[i] + ".sample_interval_summary");
        }
 
+       if ( flag_genes_ ){
+	   check_input(input_files_[i] + ".sample_gene_summary"); 
+       }
      }
 }
 
@@ -163,8 +168,8 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
               fclose(normalized_file);
           }
 
-          if (file_type == ".sample_statistics"){
-	            std::ofstream summary_file;
+          if (file_type == ".sample_statistics" && !flag_sampleSummary_){
+	      std::ofstream summary_file;
               summary_file.open((output_file_ + ".sample_summary").c_str());
               std::string stat_header = "sample_id\ttotal mean\tgranular_third_quartile\t";
               stat_header = stat_header + "granular_median\tgranular_first_quartile\t\%_bases_above_15\n";
@@ -246,7 +251,6 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
 			   << "\t" << cov_indexQ2 << "\t" << cov_indexQ1 << "\t" << pct15x << "\n";
               summary_file.close(); summary_file.clear();
 
-
        } // sample_summary file generated
    }
    countfile.close(); countfile.clear();
@@ -254,13 +258,14 @@ void DepthCombineWorker::merge_outputs(std::string file_type) {
 
 void DepthCombineWorker::concatenate_outputs(std::string file_type) {
    std::string temp = "";
-   std::string fileCov;
+   std::string fileCov = output_file_ + file_type;
    if (file_type == ".sample_summary"){
       // All parts-[0-9].cov will be concatenated:
       temp = file_type;
       file_type = ".cov";
       fileCov = output_file_ + file_type;
    }
+   
    std::ofstream concatenated_file(fileCov, std::ios::out | std::ios::app);
    for (int i = 0 ; i < input_files_.size() ; i++){
         DLOG(INFO) << "Concatenating File : " << input_files_[i] + file_type << std::endl;
@@ -280,24 +285,32 @@ void DepthCombineWorker::concatenate_outputs(std::string file_type) {
 }
 
 void DepthCombineWorker::setup() {
-  if (flag_intervalCoverage_) {
+  // This creates the sample_cumulative_coverage_proportions file after merging:
+  if (boost::filesystem::exists( input_files_[0] + ".sample_cumulative_coverage_counts" )){
       merge_outputs(".sample_cumulative_coverage_counts");
+  }
+
+  // This create the sample_interval_summary file after merging:
+  if (boost::filesystem::exists( input_files_[0] + ".sample_interval_statistics" )){
       merge_outputs(".sample_interval_statistics");
+  }
+
+  if (boost::filesystem::exists( input_files_[0] + ".sample_statistics" )){
       merge_outputs(".sample_statistics");
   }
-  if (flag_sampleSummary_) {
-      concatenate_outputs("");
-      merge_outputs(".sample_cumulative_coverage_counts");
-      merge_outputs(".sample_interval_statistics");
-      concatenate_outputs(".sample_interval_summary");
+
+  if (boost::filesystem::exists( input_files_[0] )){
+    concatenate_outputs("");
   }
-  if (flag_baseCoverage_) {
-      merge_outputs(".sample_cumulative_coverage_counts");
-      merge_outputs(".sample_interval_statistics");
-      merge_outputs(".sample_statistics");
-      concatenate_outputs(".sample_interval_summary");
-      concatenate_outputs(".sample_gene_summary");
+
+  if (boost::filesystem::exists( input_files_[0] + ".sample_interval_summary" )){
+    concatenate_outputs(".sample_interval_summary");
   }
+
+  if (boost::filesystem::exists( input_files_[0] + ".sample_gene_summary" )){
+    concatenate_outputs(".sample_gene_summary");
+  }
+
 }
 
 } // namespace fcsgenome
