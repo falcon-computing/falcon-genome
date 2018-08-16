@@ -30,7 +30,6 @@ static void baserecalAddWorkers(Executor &executor,
     for (int i = 0; i < intv_list.size(); i++) {
         std::vector<std::string> temp_intv = split_by_nprocs(intv_list[i], "bed", i);
         for (int k = 0; k < temp_intv.size(); k++) {
-  	  LOG(INFO) << "Processing " << temp_intv[k] << "\n";
            if (i==0){
              std::vector<std::string> ivect;
              ivect.push_back(temp_intv[k]);
@@ -137,7 +136,7 @@ static void prAddWorkers(Executor &executor,
           intv_paths[contig], bqsr_path,
           input_file,
           get_contig_fname(output_path, contig),
-	  extra_opts, intv_sets.find(contig)->second,
+	        extra_opts, intv_sets.find(contig)->second,
           contig, flag_f, flag_gatk));
        executor.addTask(worker, contig == 0);
   }

@@ -53,26 +53,31 @@ void HTCWorker::setup() {
   cmd << "-R " << ref_path_ << " "
       << "-I " << input_path_ << " ";
 
+  // If the input is a BAM folder with parts#.bam:
   std::regex regex_parts("(.*)(part)(.*)");
   if (std::regex_match(input_path_,regex_parts)) {
       cmd << "-L " << intv_path_ << " " ;
-      cmd << "-isr INTERSECTION ";
       for (int i = 0; i < intv_list_.size(); i++) {
-	cmd << "-L " << intv_list_[i] << " ";
+	        cmd << "-L " << intv_list_[i] << " ";
       }
+      // if Genome is used and Capture is defined, the intersected regions will be used
+      if (intv_list_.size()>0){
+          cmd << " -isr INTERSECTION ";
+      }
+
   }
   else{
+    // This is the case for a single BAM file:
     if (intv_list_.size()==0){
-      cmd << "-L " << intv_path_ << " " ;
-      cmd << "-isr INTERSECTION ";
+        cmd << "-L " << intv_path_ << " " ;
     }
     else {
+      // This will perform analysis on the captured regions in each thread:
       for (int i = 0; i < intv_list_.size(); i++) {
-	cmd << "-L " << intv_list_[i] << " ";
+	         cmd << "-L " << intv_list_[i] << " ";
       }
     }
   }
-
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
     cmd << it->first << " ";

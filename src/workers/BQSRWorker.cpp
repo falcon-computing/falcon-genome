@@ -104,18 +104,18 @@ void BQSRWorker::setup() {
           << "--disable_auto_index_creation_and_locking_when_reading_rods "
           << "-o " << output_path_ << " ";
   }
-
+  // If capture is defined -L, BQSR will be performed on the regions defined by capture,
+  // otherwise Genome will be used
   if (!intv_list_.empty()){
      for (int i = 0; i < intv_list_.size(); i++) {
         cmd << "-L " << intv_list_[i] << " ";
-        LOG(INFO) << "command " << cmd << "\n";
      }
   } else {
      cmd << "-L " << intv_path_ << " ";
   }
 
   if (intv_list_.size() > 0 ) {
-    cmd << "-isr INTERSECTION ";
+    cmd << " -isr INTERSECTION ";
   }
 
   for (int i = 0; i < known_sites_.size(); i++) {
@@ -237,6 +237,8 @@ void PRWorker::setup() {
          << "-o " << output_path_ << " ";
   }
 
+  // If capture is defined in -L , BQSR will be performed on the regions defined by capture,
+  // otherwise Genome will be used
   if (!intv_list_.empty()){
       for (int i = 0; i < intv_list_.size(); i++) {
            cmd << "-L " << intv_list_[i] << " ";
