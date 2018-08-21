@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <regex>
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -14,7 +13,7 @@ HTCWorker::HTCWorker(std::string ref_path,
       std::string input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
-      std::vector<std::string> &intv_list,
+      std::string &intv_list,
       int  contig,
       bool flag_vcf,
       bool &flag_f,
@@ -50,33 +49,12 @@ void HTCWorker::setup() {
       cmd << "-jar " << get_config<std::string>("gatk_path") << " -T HaplotypeCaller ";
   }
 
-  cmd << "-R " << ref_path_ << " "
-      << "-I " << input_path_ << " ";
+  cmd << "-R " << ref_path_   << " "
+      << "-I " << input_path_ << " "
+      << "-L " << intv_path_  << " " ;
 
-  // If the input is a BAM folder with parts#.bam:
-  std::regex regex_parts("(.*)(part)(.*)");
-  if (std::regex_match(input_path_,regex_parts)) {
-      cmd << "-L " << intv_path_ << " " ;
-      for (int i = 0; i < intv_list_.size(); i++) {
-	        cmd << "-L " << intv_list_[i] << " ";
-      }
-      // if Genome is used and Capture is defined, the intersected regions will be used
-      if (intv_list_.size()>0){
-          cmd << " -isr INTERSECTION ";
-      }
-
-  }
-  else{
-    // This is the case for a single BAM file:
-    if (intv_list_.size()==0){
-        cmd << "-L " << intv_path_ << " " ;
-    }
-    else {
-      // This will perform analysis on the captured regions in each thread:
-      for (int i = 0; i < intv_list_.size(); i++) {
-	         cmd << "-L " << intv_list_[i] << " ";
-      }
-    }
+  if (!intv_list_.empty()) {
+	    cmd << "-L " << intv_list_ << " -isr INTERSECTION ";
   }
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {

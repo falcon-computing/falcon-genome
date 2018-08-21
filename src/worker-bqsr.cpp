@@ -25,22 +25,9 @@ static void baserecalAddWorkers(Executor &executor,
     bool flag_f, bool flag_gatk)
 {
 
-  std::map<int, std::vector<std::string>> intv_sets;
+  std::vector<std::string> intv_sets;
   if (!intv_list.empty()){
-    for (int i = 0; i < intv_list.size(); i++) {
-        std::vector<std::string> temp_intv = split_by_nprocs(intv_list[i], "bed", i);
-        for (int k = 0; k < temp_intv.size(); k++) {
-           if (i==0){
-             std::vector<std::string> ivect;
-             ivect.push_back(temp_intv[k]);
-             intv_sets.insert(std::make_pair(k, ivect ) );
-             ivect.clear();
-           }else{
-             intv_sets[k].push_back(temp_intv[k]);
-           }
-        }
-        temp_intv.clear();
-    }
+     intv_sets  = split_by_nprocs(intv_list, "bed");
   }
 
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
@@ -65,11 +52,12 @@ static void baserecalAddWorkers(Executor &executor,
     ss << output_path << "." << contig;
     bqsr_paths[contig] = ss.str();
     DLOG(INFO) << "Task " << contig << " bqsr: " << bqsr_paths[contig];
+    if (intv_list.empty()) intv_sets[contig] = " ";
 
     Worker_ptr worker(new BQSRWorker(ref_path, known_sites,
 	  intv_paths[contig],
 	  input_file, bqsr_paths[contig],
-	  extra_opts, intv_sets.find(contig)->second,
+	  extra_opts, intv_sets[contig],
 	  contig, flag_f, flag_gatk));
     executor.addTask(worker, contig == 0);
   }
@@ -99,24 +87,10 @@ static void prAddWorkers(Executor &executor,
   bool flag_f, bool flag_gatk)
 {
 
-  std::map<int, std::vector<std::string>> intv_sets;
+  std::vector<std::string> intv_sets;
   if (!intv_list.empty()){
-    for (int i = 0; i < intv_list.size(); i++) {
-       std::vector<std::string> temp_intv = split_by_nprocs(intv_list[i], "bed", i);
-       for (int k = 0; k < temp_intv.size(); k++) {
-          if (i==0){
-            std::vector<std::string> ivect;
-            ivect.push_back(temp_intv[k]);
-            intv_sets.insert(std::make_pair(k, ivect ) );
-            ivect.clear();
-          }else{
-            intv_sets[k].push_back(temp_intv[k]);
-          }
-       }
-       temp_intv.clear();
-    }
+     intv_sets  = split_by_nprocs(intv_list, "bed");
   }
-
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
 
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
@@ -131,12 +105,13 @@ static void prAddWorkers(Executor &executor,
        else {
           input_file = input_path;
        }
+       if (intv_list.empty()) intv_sets[contig] = " ";
 
        Worker_ptr worker(new PRWorker(ref_path,
           intv_paths[contig], bqsr_path,
           input_file,
           get_contig_fname(output_path, contig),
-	        extra_opts, intv_sets.find(contig)->second,
+	        extra_opts, intv_sets[contig],
           contig, flag_f, flag_gatk));
        executor.addTask(worker, contig == 0);
   }
@@ -310,9 +285,8 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::vector<std::string> intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
+  std::string intv_list   = get_argument<std::string> >(cmd_vm, "intervalList", "L");
   bool merge_bam_flag     = get_argument<bool>(cmd_vm, "merge-bam", "m");
-  bool capture_flag       = get_argument<bool>(cmd_vm, "no-capture", "c");
 
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 

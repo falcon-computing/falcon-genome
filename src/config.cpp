@@ -676,7 +676,7 @@ unsigned int CountLines(const std::vector <char> &buff, int sz) {
     return newlines;
 }
 
-std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype, int TAG) {
+std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype) {
 
   const int SZ = 1024*1024;
   std::vector <char> buff( SZ );
@@ -710,10 +710,10 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   std::vector<std::string> intv_paths(ncontigs);
   for (int i = 0; i < ncontigs; i++) {
       if (filetype=="list") {
-          intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv" + std::to_string(TAG));
+          intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
           //DLOG(INFO) << "LIST: " << intv_paths[i] << std::endl;
       } else {
-          intv_paths[i] = get_contig_fname(intv_dir, i, "bed", "intv" + std::to_string(TAG));
+          intv_paths[i] = get_contig_fname(intv_dir, i, "bed", "intv");
           //DLOG(INFO) << "BED: " << intv_paths[i] << std::endl;
       }
 

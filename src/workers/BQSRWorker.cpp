@@ -14,7 +14,7 @@ BQSRWorker::BQSRWorker(std::string ref_path,
       std::string input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
-      std::vector<std::string> &intv_list,
+      std::string &intv_list,
       int  contig,
       bool &flag_f,
       bool flag_gatk):
@@ -107,9 +107,7 @@ void BQSRWorker::setup() {
   // If capture is defined -L, BQSR will be performed on the regions defined by capture,
   // otherwise Genome will be used
   if (!intv_list_.empty()){
-     for (int i = 0; i < intv_list_.size(); i++) {
-        cmd << "-L " << intv_list_[i] << " ";
-     }
+     cmd << "-L " << intv_list_ << " ";
   } else {
      cmd << "-L " << intv_path_ << " ";
   }
@@ -240,9 +238,7 @@ void PRWorker::setup() {
   // If capture is defined in -L , BQSR will be performed on the regions defined by capture,
   // otherwise Genome will be used
   if (!intv_list_.empty()){
-      for (int i = 0; i < intv_list_.size(); i++) {
-           cmd << "-L " << intv_list_[i] << " ";
-      }
+      cmd << "-L " << intv_list_ << " ";
   } else {
       cmd << "-L " << intv_path_ << " ";
   }

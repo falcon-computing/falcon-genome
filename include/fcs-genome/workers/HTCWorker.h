@@ -14,7 +14,7 @@ class HTCWorker : public Worker {
       std::string input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
-      std::vector<std::string> &intv_list,
+      std::string &intv_list,
       int contig,
       bool flag_vcf,
       bool &flag_f,
