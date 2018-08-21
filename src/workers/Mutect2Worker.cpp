@@ -16,15 +16,17 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
       std::vector<std::string> extra_opts,
       std::vector<std::string> &dbsnp_path,
       std::vector<std::string> &cosmic_path,
+      std::string &germline_path,
       std::vector<std::string> &intv_list,
       int  contig,
-      bool &flag_f): Worker(1, get_config<int>("gatk.mutect2.nct", "gatk.nct"), extra_opts),
+      bool &flag_f, bool &flag_gatk): Worker(1, get_config<int>("gatk.mutect2.nct", "gatk.nct"), extra_opts),
   ref_path_(ref_path),
   intv_path_(intv_path),
   normal_path_(normal_path),
   tumor_path_(tumor_path),
   dbsnp_path_(dbsnp_path),
   cosmic_path_(cosmic_path),
+  germline_path_(germline_path),
   intv_list_(intv_list)
 {
   // check input/output files
@@ -51,36 +53,34 @@ void Mutect2Worker::setup() {
   cmd << get_config<std::string>("java_path") << " "
       << "-Xmx" << get_config<int>("gatk.mutect2.memory", "gatk.memory") << "g "
       << "-jar " << get_config<std::string>("gatk_path") << " "
+      << "-R " << ref_path_ << " ";
+
+  if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
+      cmd << "Mutect2" << " "
+          << "-I " << normal_path_ << " "
+          << "-I " << tumor_path_ << " "
+          << "-normal " << " normal "
+          << "-tumor "  << " tumor ";
+
       << "-T MuTect2 "
-      << "-R " << ref_path_ << " "
       << "-I:normal " << normal_path_ << " "
       << "-I:tumor " << tumor_path_ << " ";
- 
-  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
-    cmd << it->first << " ";
-    for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
-      if (!(*vec_iter).empty() && vec_iter == it->second.begin()) {
-        cmd << *vec_iter << " ";
-      }
-      else if (!(*vec_iter).empty()) {
-        cmd << it->first << " " << *vec_iter << " ";
-      }
-    }
-  }
-  
+
+
+
   if(!extra_opts_.count("--variant_index_type")) {
     cmd << "--variant_index_type LINEAR ";
   }
-  
+
   if (!extra_opts_.count("--variant_index_parameter")) {
     cmd << "--variant_index_parameter 128000 ";
   }
-   
+
   cmd << "-L " << intv_path_ << " "
       << "-nct " << get_config<int>("gatk.mutect2.nct", "gatk.nct") << " "
       << "-o " << output_path_ << " ";
 
-  for (int i = 0; i < dbsnp_path_.size(); i++) {    
+  for (int i = 0; i < dbsnp_path_.size(); i++) {
       cmd << "--dbsnp " << dbsnp_path_[i] << " ";
   }
   for (int j = 0; j < cosmic_path_.size(); j++) {
@@ -93,9 +93,23 @@ void Mutect2Worker::setup() {
     cmd << "-isr INTERSECTION ";
   }
 
+} // End checking GATK version
+
+  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
+    cmd << it->first << " ";
+    for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
+      if (!(*vec_iter).empty() && vec_iter == it->second.begin()) {
+        cmd << *vec_iter << " ";
+      }
+      else if (!(*vec_iter).empty()) {
+        cmd << it->first << " " << *vec_iter << " ";
+      }
+    }
+  }
+
+
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
 }
 
 } // namespace fcsgenome
-                           
