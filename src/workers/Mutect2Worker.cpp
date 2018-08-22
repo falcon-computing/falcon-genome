@@ -53,11 +53,12 @@ void Mutect2Worker::setup() {
   // create cmd
   std::stringstream cmd;
   cmd << get_config<std::string>("java_path") << " "
-      << "-Xmx" << get_config<int>("gatk.mutect2.memory", "gatk.memory") << "g "
+      << "-Xmx" << get_config<int>("gatk.mutect2.memory", "gatk.memory") << "g ";
 
   if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
       cmd << "-jar " << get_config<std::string>("gatk4_path") << " Mutect2 ";
-  } else {
+  }
+  else{
       cmd << "-jar " << get_config<std::string>("gatk_path") << " -T MuTect2 ";
   }
 
@@ -96,7 +97,8 @@ void Mutect2Worker::setup() {
 
   if (!intv_list_.empty()){
      cmd << "-L " << intv_list_ << " -isr INTERSECTION ";
-  } else {
+  }
+  else {
      cmd << "-L " << intv_path_ << " -isr INTERSECTION ";
   }
 
