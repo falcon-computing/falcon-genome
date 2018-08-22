@@ -33,7 +33,7 @@ class Mutect2Worker : public Worker {
   std::string output_path_;
   std::vector<std::string> &dbsnp_path_;
   std::vector<std::string> &cosmic_path_;
-  std::string &germline_path;
+  std::string &germline_path_;
   std::string intv_list_;
   bool flag_gatk_;
 };
