@@ -20,7 +20,7 @@ class Mutect2Worker : public Worker {
       std::string &germline_path,
       std::vector<std::string> &intv_list,
       int contig,
-      bool &flag_f);
+      bool &flag_f, bool flag_gatk);
 
   void check();
   void setup();
@@ -34,7 +34,8 @@ class Mutect2Worker : public Worker {
   std::vector<std::string> &dbsnp_path_;
   std::vector<std::string> &cosmic_path_;
   std::string &germline_path;
-  std::vector<std::string> intv_list_;
+  std::string intv_list_;
+  bool flag_gatk_;
 };
 } // namespace fcsgenome
 #endif

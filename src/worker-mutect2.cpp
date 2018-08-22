@@ -31,7 +31,7 @@ int mutect2_main(int argc, char** argv,
     ("dbsnp,d", po::value<std::vector<std::string> >(), "list of dbsnp files for Mutect2 (gatk3)")
     ("cosmic,c", po::value<std::vector<std::string> >(), "list of cosmic files for Mutect2 (gatk3)")
     ("germline,m", po::value<std::vector<std::string> >(), "germline VCF file (gatk4)")
-    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
+    ("intervalList,L", po::value<std::string>(), "interval list file")
     ("gatk4,g", "use gatk4 to perform analysis");
     ("skip-concat,s", "produce a set of VCF files instead of one");
 

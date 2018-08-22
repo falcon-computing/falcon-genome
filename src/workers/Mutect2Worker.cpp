@@ -19,7 +19,7 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
       std::string &germline_path,
       std::string &intv_list,
       int  contig,
-      bool &flag_f, bool &flag_gatk): Worker(1, get_config<int>("gatk.mutect2.nct", "gatk.nct"), extra_opts),
+      bool &flag_f, bool flag_gatk): Worker(1, get_config<int>("gatk.mutect2.nct", "gatk.nct"), extra_opts),
   ref_path_(ref_path),
   intv_path_(intv_path),
   normal_path_(normal_path),
@@ -27,7 +27,8 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
   dbsnp_path_(dbsnp_path),
   cosmic_path_(cosmic_path),
   germline_path_(germline_path),
-  intv_list_(intv_list)
+  intv_list_(intv_list),
+  flag_gatk_(flag_gatk)
 {
   // check input/output files
   output_path_ = check_output(output_path, flag_f);
