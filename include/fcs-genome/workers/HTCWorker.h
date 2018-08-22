@@ -30,7 +30,7 @@ class HTCWorker : public Worker {
   std::string intv_path_;
   std::string input_path_;
   std::string output_path_;
-  std::vector<std::string> intv_list_;
+  std::string intv_list_;
 };
 } // namespace fcsgenome
 #endif

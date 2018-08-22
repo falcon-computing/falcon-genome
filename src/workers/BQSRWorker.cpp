@@ -187,7 +187,7 @@ PRWorker::PRWorker(std::string ref_path,
       std::string input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
-      std::vector<std::string> &intv_list,
+      std::string &intv_list,
       int  contig,
       bool &flag_f, bool flag_gatk):
   Worker(1, get_config<int>("gatk.pr.nct", "gatk.nct"), extra_opts),

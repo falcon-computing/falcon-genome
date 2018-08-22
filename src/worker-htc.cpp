@@ -121,7 +121,6 @@ int htc_main(int argc, char** argv,
           flag_gatk)
     );
 
-    IntervalFiles.clear();
     output_files[contig] = output_file;
 
     executor.addTask(worker);
