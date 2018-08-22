@@ -150,7 +150,7 @@ int baserecal_main(int argc, char** argv, boost::program_options::options_descri
     ("output,o", po::value<std::string>()->required(), "output BQSR file")
     ("knownSites,K", po::value<std::vector<std::string> >(), "known sites for base recalibration")
     ("gatk4,g", "use gatk4 to perform analysis")
-    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file");
+    ("intervalList,L", po::value<std::string>(), "interval list file");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -165,7 +165,7 @@ int baserecal_main(int argc, char** argv, boost::program_options::options_descri
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::vector<std::string> intv_list = get_argument<std::vector<std::string>>(cmd_vm, "intervalList", "L");
+  std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> known_sites = get_argument<std::vector<std::string>>(cmd_vm, "knownSites", "K");
 
   std::vector<std::string> extra_opts =
@@ -201,7 +201,7 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
     ("output,o", po::value<std::string>()->required(), "output Folder with Parts BAM files")
     ("merge-bam,m", "merge Parts BAM files")
     ("gatk4,g", "use gatk4 to perform analysis")
-    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file");
+    ("intervalList,L", po::value<std::string>(), "interval list file");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -218,7 +218,7 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   bool merge_bam_flag     = get_argument<bool>(cmd_vm, "merge-bam", "m");
-  std::vector<std::string> intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
+  std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
@@ -262,7 +262,7 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output directory of BAM files")
     ("knownSites,K", po::value<std::vector<std::string> >()->required(), "known sites for base recalibration")
-    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
+    ("intervalList,L", po::value<std::string>(), "interval list file")
     ("gatk4,g", "use gatk4 to perform analysis")
     ("merge-bam,m", "merge Parts BAM files");
 
