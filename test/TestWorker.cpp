@@ -99,7 +99,7 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   known.push_back(temp_dir + "/" + "known3.vcf1");
   {
   fcs::BQSRWorker worker(ref, known, intv, input, output,
-      empty, empty, 0, flag, false);
+      empty, emptyString, 0, flag, false);
   CHECK_EXCEPTION;
   }
 
