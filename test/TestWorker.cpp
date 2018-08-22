@@ -85,7 +85,7 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
 
   {
   fcs::BQSRWorker worker(ref, known, intv, input, output,
-      empty, empty, 0, flag, false);
+      empty, emptyString, 0, flag, false);
 
   touch(known[1]);
   CHECK_EXCEPTION;
