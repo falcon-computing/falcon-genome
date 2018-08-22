@@ -70,7 +70,6 @@ int depth_main(int argc, char** argv,
   std::string temp_dir = conf_temp_dir + "/depth";
   create_dir(temp_dir);
   std::string output_dir = temp_dir;
-  //create_dir(output_dir);
 
   // Split Interval List and Gene List into several parts according to gatk.ncontigs:
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));

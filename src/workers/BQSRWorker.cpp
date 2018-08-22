@@ -28,6 +28,12 @@ BQSRWorker::BQSRWorker(std::string ref_path,
   intv_list_(intv_list),
   flag_gatk_(flag_gatk)
 {
+  LOG_IF_EVERY_N(WARNING,  
+                 get_config<int>("gatk.bqsr.nct", "gatk.nct") > 1,
+                 get_config<int>("gatk.ncontigs"))
+    << "Current version does not support nct > 1 in BaseRecalibrator, "
+    << "resetting it to 1";
+  num_thread_ = 1;
   output_path_ = check_output(output_path, flag_f);
 }
 
@@ -101,7 +107,7 @@ void BQSRWorker::setup() {
   if (flag_gatk_ || get_config<bool>("use_gatk4")) {
       cmd << "-O " << output_path_  << " ";
   } else {
-      cmd << "-nct " << get_config<int>("gatk.bqsr.nct", "gatk.nct") << " "
+      cmd << "-nct " << num_thread_ << " "
           // secret option to fix index fopen issue
           << "--disable_auto_index_creation_and_locking_when_reading_rods "
           << "-o " << output_path_ << " ";
@@ -199,6 +205,14 @@ PRWorker::PRWorker(std::string ref_path,
   intv_list_(intv_list),
   flag_gatk_(flag_gatk)
 {
+  LOG_IF_EVERY_N(WARNING,  
+                 get_config<int>("gatk.bqsr.nct", "gatk.nct") > 1,
+                 get_config<int>("gatk.ncontigs"))
+    << "Current version does not support nct > 1 in "
+    << ((flag_gatk_ || get_config<bool>("use_gatk4")) ? "ApplyBQSR" : "PrintReads")
+    << ", resetting it to 1";
+  num_thread_ = 1;
+
   // check output files
   output_path_ = check_output(output_path, flag_f);
 }
@@ -234,7 +248,7 @@ void PRWorker::setup() {
   } else {
      cmd << "-BQSR " << bqsr_path_ << " "
          << "-L " << intv_path_ << " "
-         << "-nct " << get_config<int>("gatk.pr.nct", "gatk.nct") << " "
+         << "-nct " << num_thread_ << " "
          << "-o " << output_path_ << " ";
   }
 
