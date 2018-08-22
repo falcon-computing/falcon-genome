@@ -90,7 +90,7 @@ int init_config(boost::program_options::options_description conf_opt);
 
 std::vector<std::string> init_contig_intv(std::string ref_path);
 std::vector<std::string> split_ref_by_nprocs(std::string ref_path);
-std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype, int TAG);
+std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype);
 
 template <typename T>
 std::vector<T> operator+(const std::vector<T>& a, const std::vector<T>& b){
