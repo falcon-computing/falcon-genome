@@ -28,9 +28,9 @@ int mutect2_main(int argc, char** argv,
     ("normal,n", po::value<std::string>()->required(), "input normal BAM file or dir")
     ("tumor,t", po::value<std::string>()->required(), "input tumor BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output VCF file")
-    ("dbsnp,d", po::value<std::vector<std::string> >(), "list of dbsnp files for Mutect2")
-    ("cosmic,c", po::value<std::vector<std::string> >(), "list of cosmic files for Mutect2")
-    ("germline,m", po::value<std::vector<std::string> >(), "germline VCF file")
+    ("dbsnp,d", po::value<std::vector<std::string> >(), "list of dbsnp files for Mutect2 (gatk3)")
+    ("cosmic,c", po::value<std::vector<std::string> >(), "list of cosmic files for Mutect2 (gatk3)")
+    ("germline,m", po::value<std::vector<std::string> >(), "germline VCF file (gatk4)")
     ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
     ("gatk4,g", "use gatk4 to perform analysis");
     ("skip-concat,s", "produce a set of VCF files instead of one");
