@@ -60,15 +60,8 @@ int depth_main(int argc, char** argv,
   po::notify(cmd_vm);
 
   std::string temp_dir = conf_temp_dir + "/depth";
-  //std::string temp_dir = "/genome/disk2/alfonso/depth";
   create_dir(temp_dir);
-
-  //output path
-  std::string output_dir;
-  //output_dir = check_output(output_path, flag_f);
-  output_dir = temp_dir;
-  create_dir(output_dir);
-  std::string temp_depth_path = output_dir + "/" + get_basename(output_path);
+  std::string output_dir = temp_dir;
 
   // Split Interval List and Gene List into several parts according to gatk.ncontigs:
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
@@ -77,13 +70,13 @@ int depth_main(int argc, char** argv,
 
   if (!intv_list.empty() && !geneList.empty()) {
      DLOG(INFO) << "intv_list NOT EMPTY and geneList NOT EMPTY";
-     intv_paths = split_by_nprocs(intv_list, "bed",1);
-     geneList_paths = split_by_nprocs(geneList, "list", 1);
+     intv_paths = split_by_nprocs(intv_list, "bed");
+     geneList_paths = split_by_nprocs(geneList, "list");
   }
 
   if (!intv_list.empty() && geneList.empty()) {
      DLOG(INFO) << "intv_list NOT EMPTY and geneList EMPTY";
-     intv_paths = split_by_nprocs(intv_list, "bed",1);
+     intv_paths = split_by_nprocs(intv_list, "bed");
      for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back("");
   }
 
