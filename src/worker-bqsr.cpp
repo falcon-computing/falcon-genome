@@ -21,7 +21,7 @@ static void baserecalAddWorkers(Executor &executor,
     std::vector<std::string> &extra_opts,
     std::string &input_path,
     std::string &output_path,
-    std::vector<std::string> &intv_list,
+    std::string &intv_list,
     bool flag_f, bool flag_gatk)
 {
 
@@ -83,7 +83,7 @@ static void prAddWorkers(Executor &executor,
   std::string &bqsr_path,
   std::string &output_path,
   std::vector<std::string> &extra_opts,
-  std::vector<std::string> &intv_list,
+  std::string &intv_list,
   bool flag_f, bool flag_gatk)
 {
 
@@ -285,7 +285,7 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::string intv_list   = get_argument<std::string> >(cmd_vm, "intervalList", "L");
+  std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   bool merge_bam_flag     = get_argument<bool>(cmd_vm, "merge-bam", "m");
 
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
