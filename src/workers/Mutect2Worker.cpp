@@ -94,8 +94,8 @@ void Mutect2Worker::setup() {
 
   if (!intv_list_.empty()){
      cmd << "-L " << intv_list_ << " -isr INTERSECTION ";
-  } else{
-     cmd << "-L " << intv_path_ << " -isr INTERSECTION "
+  } else {
+     cmd << "-L " << intv_path_ << " -isr INTERSECTION ";
   }
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
