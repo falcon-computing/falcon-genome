@@ -16,16 +16,20 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
       std::vector<std::string> extra_opts,
       std::vector<std::string> &dbsnp_path,
       std::vector<std::string> &cosmic_path,
-      std::vector<std::string> &intv_list,
+      std::string &germline_path,
+      std::string &intv_list,
       int  contig,
-      bool &flag_f): Worker(1, get_config<int>("gatk.mutect2.nct", "gatk.nct"), extra_opts),
+      bool &flag_f,
+      bool flag_gatk): Worker(1, get_config<int>("gatk.mutect2.nct", "gatk.nct"), extra_opts),
   ref_path_(ref_path),
   intv_path_(intv_path),
   normal_path_(normal_path),
   tumor_path_(tumor_path),
   dbsnp_path_(dbsnp_path),
   cosmic_path_(cosmic_path),
-  intv_list_(intv_list)
+  germline_path_(germline_path),
+  intv_list_(intv_list),
+  flag_gatk_(flag_gatk)
 {
   // check input/output files
   output_path_ = check_output(output_path, flag_f);
@@ -49,48 +53,65 @@ void Mutect2Worker::setup() {
   // create cmd
   std::stringstream cmd;
   cmd << get_config<std::string>("java_path") << " "
-      << "-Xmx" << get_config<int>("gatk.mutect2.memory", "gatk.memory") << "g "
-      << "-jar " << get_config<std::string>("gatk_path") << " "
-      << "-T MuTect2 "
-      << "-R " << ref_path_ << " "
-      << "-I:normal " << normal_path_ << " "
-      << "-I:tumor " << tumor_path_ << " ";
- 
-  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
-    cmd << it->first << " ";
-    for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
-      if (!(*vec_iter).empty() && vec_iter == it->second.begin()) {
-        cmd << *vec_iter << " ";
-      }
-      else if (!(*vec_iter).empty()) {
-        cmd << it->first << " " << *vec_iter << " ";
-      }
-    }
-  }
-  
-  if(!extra_opts_.count("--variant_index_type")) {
-    cmd << "--variant_index_type LINEAR ";
-  }
-  
-  if (!extra_opts_.count("--variant_index_parameter")) {
-    cmd << "--variant_index_parameter 128000 ";
-  }
-   
-  cmd << "-L " << intv_path_ << " "
-      << "-nct " << get_config<int>("gatk.mutect2.nct", "gatk.nct") << " "
-      << "-o " << output_path_ << " ";
+      << "-Xmx" << get_config<int>("gatk.mutect2.memory", "gatk.memory") << "g ";
 
-  for (int i = 0; i < dbsnp_path_.size(); i++) {    
-      cmd << "--dbsnp " << dbsnp_path_[i] << " ";
+  if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
+      cmd << "-jar " << get_config<std::string>("gatk4_path") << " Mutect2 ";
   }
-  for (int j = 0; j < cosmic_path_.size(); j++) {
-      cmd << "--cosmic " << cosmic_path_[j] << " ";
+  else{
+      cmd << "-jar " << get_config<std::string>("gatk_path") << " -T MuTect2 ";
   }
-  for (int i = 0; i < intv_list_.size(); i++) {
-    cmd << "-L " << intv_list_[i] << " ";
+
+  cmd << "-R " << ref_path_ << " ";
+
+  if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
+      cmd << "-I " << normal_path_ << " "
+          << "-I " << tumor_path_ << " "
+          << "-normal " << " normal "
+          << "-tumor "  << " tumor "
+          << "--germline_resource " << germline_path_ ;
   }
-  if (intv_list_.size() > 0 ) {
-    cmd << "-isr INTERSECTION ";
+  else{
+      cmd << "-I:normal " << normal_path_ << " "
+          << "-I:tumor " << tumor_path_   << " ";
+
+      if (!extra_opts_.count("--variant_index_type")) {
+         cmd << "--variant_index_type LINEAR ";
+      }
+
+      if (!extra_opts_.count("--variant_index_parameter")) {
+         cmd << "--variant_index_parameter 128000 ";
+      }
+
+      cmd << "-nct " << get_config<int>("gatk.mutect2.nct", "gatk.nct") << " "
+          << "-o " << output_path_ << " ";
+
+      for (int i = 0; i < dbsnp_path_.size(); i++) {
+          cmd << "--dbsnp " << dbsnp_path_[i] << " ";
+      }
+      for (int j = 0; j < cosmic_path_.size(); j++) {
+          cmd << "--cosmic " << cosmic_path_[j] << " ";
+      }
+
+  } // End checking GATK version
+
+  if (!intv_list_.empty()){
+     cmd << "-L " << intv_list_ << " -isr INTERSECTION ";
+  }
+  else {
+     cmd << "-L " << intv_path_ << " -isr INTERSECTION ";
+  }
+
+  for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
+      cmd << it->first << " ";
+      for ( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
+         if (!(*vec_iter).empty() && vec_iter == it->second.begin()) {
+            cmd << *vec_iter << " ";
+          }
+          else if (!(*vec_iter).empty()) {
+                  cmd << it->first << " " << *vec_iter << " ";
+          }
+      }
   }
 
   cmd_ = cmd.str();
@@ -98,4 +119,3 @@ void Mutect2Worker::setup() {
 }
 
 } // namespace fcsgenome
-                           
