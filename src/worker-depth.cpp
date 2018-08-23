@@ -54,6 +54,13 @@ int depth_main(int argc, char** argv,
   bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "omitIntervals", "v");
   bool flag_sampleSummary    = get_argument<bool>(cmd_vm, "omitSampleSummary", "s");
 
+  bool flag_genes;
+  if ( !intv_list.empty() && !geneList.empty() ){
+    flag_genes=true;
+  } else {
+    flag_genes=false;
+  }
+
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
@@ -149,7 +156,7 @@ int depth_main(int argc, char** argv,
   bool flag = true;
 
   Worker_ptr worker(new DepthCombineWorker(output_files, output_path,
-        flag_baseCoverage, flag_intervalCoverage, flag_sampleSummary, flag));
+        flag_baseCoverage, flag_intervalCoverage, flag_sampleSummary, flag_genes, flag));
   executor.addTask(worker, true);
   executor.run();
 

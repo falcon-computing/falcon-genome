@@ -65,7 +65,6 @@ class Worker {
   std::string log_fname_;
   std::map<std::string, std::vector<std::string> > extra_opts_;
 
- private:
   int num_process_;   // num_processes per task
   int num_thread_;    // num_thread per task process
 };

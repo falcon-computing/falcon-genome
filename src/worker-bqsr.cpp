@@ -49,7 +49,9 @@ static void baserecalAddWorkers(Executor &executor,
 
     // output bqsr filename
     std::stringstream ss;
-    ss << output_path << "." << contig;
+    std::string temp_dir = conf_temp_dir + "/bqsr";
+    boost::filesystem::path p(output_path);
+    ss << temp_dir << "/" << p.filename() << "." << contig;
     bqsr_paths[contig] = ss.str();
     DLOG(INFO) << "Task " << contig << " bqsr: " << bqsr_paths[contig];
     if (intv_list.empty()) intv_sets[contig] = " ";

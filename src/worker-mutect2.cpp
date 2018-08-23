@@ -15,7 +15,7 @@
 namespace fcsgenome {
 
 int mutect2_main(int argc, char** argv,
-    boost::program_options::options_description &opt_desc) 
+    boost::program_options::options_description &opt_desc)
 {
   namespace po = boost::program_options;
 
@@ -23,24 +23,26 @@ int mutect2_main(int argc, char** argv,
   po::variables_map cmd_vm;
   bool opt_bool = false;
 
-  opt_desc.add_options() 
+  opt_desc.add_options()
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("normal,n", po::value<std::string>()->required(), "input normal BAM file or dir")
     ("tumor,t", po::value<std::string>()->required(), "input tumor BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output VCF file")
-    ("dbsnp,d", po::value<std::vector<std::string> >(), "list of dbsnp files for Mutect2")
-    ("cosmic,c", po::value<std::vector<std::string> >(), "list of cosmic files for Mutect2")
-    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
+    ("dbsnp,d", po::value<std::vector<std::string> >(), "list of dbsnp files for Mutect2 (gatk3)")
+    ("cosmic,c", po::value<std::vector<std::string> >(), "list of cosmic files for Mutect2 (gatk3)")
+    ("germline,m", po::value<std::vector<std::string> >(), "germline VCF file (gatk4)")
+    ("intervalList,L", po::value<std::string>(), "interval list file")
+    ("gatk4,g", "use gatk4 to perform analysis");
     ("skip-concat,s", "produce a set of VCF files instead of one");
-    
+
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
       cmd_vm);
 
-  if (cmd_vm.count("help")) { 
+  if (cmd_vm.count("help")) {
     throw helpRequest();
-  } 
-  
+  }
+
   // Check configurations
   check_nprocs_config("mutect2");
   check_memory_config("mutect2");
@@ -48,17 +50,32 @@ int mutect2_main(int argc, char** argv,
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_skip_concat    = get_argument<bool>(cmd_vm, "skip-concat", "s");
+  bool flag_gatk          = get_argument<bool>(cmd_vm, "gatk4", "g");
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string normal_path = get_argument<std::string>(cmd_vm, "normal", "n");
   std::string tumor_path = get_argument<std::string>(cmd_vm, "tumor", "t");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::vector<std::string> dbsnp_path = get_argument<std::vector<std::string> >(cmd_vm, "dbsnp", "d", std::vector<std::string>());
   std::vector<std::string> cosmic_path = get_argument<std::vector<std::string> >(cmd_vm, "cosmic","c", std::vector<std::string>());
-  std::vector<std::string> intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
-  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O"); 
+  std::string germline_path = get_argument<std::string> (cmd_vm, "germline","m");
+  std::string intv_list  = get_argument<std::string>(cmd_vm, "intervalList", "L");
+  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);
+
+  if (!cosmic_path.empty() && flag_gatk) {
+      throw std::runtime_error("Cosmic VCF file is only for MuTect2 GATK3. Use --germline instead.");
+  }
+  if (!dbsnp_path.empty() && flag_gatk) {
+      throw std::runtime_error("dnsnp VCF file is only for MuTect2 GATK3. Use --germline instead.");
+  }
+  if (!cosmic_path.empty() && !dbsnp_path.empty() && flag_gatk) {
+      throw std::runtime_error("Cosmic and dbsnp VCF files are only for MuTect2 GATK3. Use --germline instead.");
+  }
+  if (!germline_path.empty() && !flag_gatk) {
+      throw std::runtime_error("Germline VCF file is only for MuTect2 GATK4. Use --dbsnp or --cosmic instead.");
+  }
 
   std::string temp_dir = conf_temp_dir + "/mutect2";
   create_dir(temp_dir);
@@ -75,6 +92,8 @@ int mutect2_main(int argc, char** argv,
   create_dir(output_dir);
 
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
+  std::vector<std::string> intv_sets;
+  if (!intv_list.empty()) intv_sets = split_by_nprocs(intv_list, "bed");
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
 
   // start an executor for NAM
@@ -84,10 +103,9 @@ int mutect2_main(int argc, char** argv,
 
   BackgroundExecutor bg_executor("blaze-nam", blaze_worker);
 
-
   Executor executor("Mutect2", get_config<int>("gatk.mutect2.nprocs"));
-  
-  bool flag_mutect2_f = !flag_skip_concat | flag_f;  
+
+  bool flag_mutect2_f = !flag_skip_concat | flag_f;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
     std::string normal_file;
     std::string tumor_file;
@@ -112,14 +130,16 @@ int mutect2_main(int argc, char** argv,
           extra_opts,
           dbsnp_path,
           cosmic_path,
-          intv_list,
+          germline_path,
+          intv_sets[contig],
           contig,
-          flag_mutect2_f));
+          flag_mutect2_f,
+          flag_gatk));
     output_files[contig] = output_file;
 
     executor.addTask(worker);
   }
-  
+
   if (!flag_skip_concat) {
 
     bool flag = true;
@@ -130,7 +150,7 @@ int mutect2_main(int argc, char** argv,
             flag_a, flag));
       executor.addTask(worker, true);
     }
-    
+
     { // bgzip gvcf
       Worker_ptr worker(new ZIPWorker(
         temp_gvcf_path, output_path+".gz",
