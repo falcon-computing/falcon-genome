@@ -566,8 +566,8 @@ std::vector<std::string> split_ref_by_nprocs(std::string ref_path) {
 
     // Find the chromosome with the largest number of bases:
     if (max_value < chr_length) max_value = chr_length;
-    DLOG(INFO) << "Chromosome: " << chr_name << " has " << chr_length << " bases"<< std::endl;
-    dict_length += chr_length;
+      DLOG(INFO) << "Chromosome: " << chr_name << " has " << chr_length << " bases"<< std::endl;
+      dict_length += chr_length;
   }
 
   uint64_t factor = int(max_value/ncontigs);
@@ -685,7 +685,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   while( int cc = FileRead( ifs, buff ) ) {
       n += CountLines( buff, cc );
   }
-  DLOG(INFO) << "Number of Genes Intervals : " << n << std::endl;
+  DLOG(INFO) << "Number of Intervals : " << n << std::endl;
 
   int ncontigs = get_config<int>("gatk.ncontigs");
   int chunk = int(n/ncontigs);
@@ -736,6 +736,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
       if (boost::filesystem::exists(intv_paths[i])) {
         break;
       }
+
       boost::filesystem::copy_file(org_intv, intv_paths[i]);
   }
   return intv_paths;

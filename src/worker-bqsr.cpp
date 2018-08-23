@@ -21,9 +21,15 @@ static void baserecalAddWorkers(Executor &executor,
     std::vector<std::string> &extra_opts,
     std::string &input_path,
     std::string &output_path,
-    std::vector<std::string> &intv_list,
+    std::string &intv_list,
     bool flag_f, bool flag_gatk)
 {
+
+  std::vector<std::string> intv_sets;
+  if (!intv_list.empty()){
+     intv_sets  = split_by_nprocs(intv_list, "bed");
+  }
+
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
   std::vector<std::string> bqsr_paths(get_config<int>("gatk.ncontigs"));
 
@@ -47,17 +53,17 @@ static void baserecalAddWorkers(Executor &executor,
     boost::filesystem::path p(output_path);
     ss << temp_dir << "/" << p.filename() << "." << contig;
     bqsr_paths[contig] = ss.str();
-
     DLOG(INFO) << "Task " << contig << " bqsr: " << bqsr_paths[contig];
+    if (intv_list.empty()) intv_sets[contig] = " ";
 
     Worker_ptr worker(new BQSRWorker(ref_path, known_sites,
-          intv_paths[contig],
-          input_file, bqsr_paths[contig],
-          extra_opts, intv_list,
-
-          contig, flag_f, flag_gatk));
+	  intv_paths[contig],
+	  input_file, bqsr_paths[contig],
+	  extra_opts, intv_sets[contig],
+	  contig, flag_f, flag_gatk));
     executor.addTask(worker, contig == 0);
   }
+
   // gather bqsr for contigs
   Worker_ptr worker(new BQSRGatherWorker(bqsr_paths, output_path, flag_f, flag_gatk));
 
@@ -67,9 +73,9 @@ static void baserecalAddWorkers(Executor &executor,
 static void removePartialBQSR(std::string bqsr_path) {
   // delete all partial contig bqsr
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
-       std::stringstream ss;
-       ss << bqsr_path << "." << contig;
-       remove_path(ss.str());
+     std::stringstream ss;
+     ss << bqsr_path << "." << contig;
+     remove_path(ss.str());
   }
 }
 
@@ -79,10 +85,16 @@ static void prAddWorkers(Executor &executor,
   std::string &bqsr_path,
   std::string &output_path,
   std::vector<std::string> &extra_opts,
-  std::vector<std::string> &intv_list,
+  std::string &intv_list,
   bool flag_f, bool flag_gatk)
 {
+
+  std::vector<std::string> intv_sets;
+  if (!intv_list.empty()){
+     intv_sets  = split_by_nprocs(intv_list, "bed");
+  }
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
        // handle input as directory
        std::string input_file;
@@ -95,11 +107,13 @@ static void prAddWorkers(Executor &executor,
        else {
           input_file = input_path;
        }
+       if (intv_list.empty()) intv_sets[contig] = " ";
+
        Worker_ptr worker(new PRWorker(ref_path,
           intv_paths[contig], bqsr_path,
           input_file,
           get_contig_fname(output_path, contig),
-          extra_opts, intv_list,
+	        extra_opts, intv_sets[contig],
           contig, flag_f, flag_gatk));
        executor.addTask(worker, contig == 0);
   }
@@ -126,8 +140,6 @@ static void mergebamBQSRWorker(Executor &merge_executor,
   merge_executor.addTask(merger_worker);
 }
 
-
-
 int baserecal_main(int argc, char** argv, boost::program_options::options_description &opt_desc)
 {
   namespace po = boost::program_options;
@@ -140,7 +152,7 @@ int baserecal_main(int argc, char** argv, boost::program_options::options_descri
     ("output,o", po::value<std::string>()->required(), "output BQSR file")
     ("knownSites,K", po::value<std::vector<std::string> >(), "known sites for base recalibration")
     ("gatk4,g", "use gatk4 to perform analysis")
-    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file");
+    ("intervalList,L", po::value<std::string>(), "interval list file");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -155,7 +167,7 @@ int baserecal_main(int argc, char** argv, boost::program_options::options_descri
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::vector<std::string> intv_list = get_argument<std::vector<std::string>>(cmd_vm, "intervalList", "L");
+  std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> known_sites = get_argument<std::vector<std::string>>(cmd_vm, "knownSites", "K");
 
   std::vector<std::string> extra_opts =
@@ -191,7 +203,7 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
     ("output,o", po::value<std::string>()->required(), "output Folder with Parts BAM files")
     ("merge-bam,m", "merge Parts BAM files")
     ("gatk4,g", "use gatk4 to perform analysis")
-    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file");
+    ("intervalList,L", po::value<std::string>(), "interval list file");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -208,7 +220,7 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   bool merge_bam_flag     = get_argument<bool>(cmd_vm, "merge-bam", "m");
-  std::vector<std::string> intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
+  std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
@@ -252,7 +264,7 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output directory of BAM files")
     ("knownSites,K", po::value<std::vector<std::string> >()->required(), "known sites for base recalibration")
-    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
+    ("intervalList,L", po::value<std::string>(), "interval list file")
     ("gatk4,g", "use gatk4 to perform analysis")
     ("merge-bam,m", "merge Parts BAM files");
 
@@ -275,7 +287,7 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::vector<std::string> intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
+  std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   bool merge_bam_flag     = get_argument<bool>(cmd_vm, "merge-bam", "m");
 
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
@@ -304,7 +316,7 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
 
   baserecalAddWorkers(executor, ref_path, known_sites, extra_opts, input_path, bqsr_path, intv_list, flag_f, flag_gatk);
   prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f, flag_gatk);
- 
+
   executor.run();
 
   if (merge_bam_flag){

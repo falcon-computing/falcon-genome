@@ -44,7 +44,6 @@ int depth_main(int argc, char** argv,
   check_memory_config("depth");
 
   // Check if required arguments are presented
-
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
@@ -73,7 +72,6 @@ int depth_main(int argc, char** argv,
 
   // Split Interval List and Gene List into several parts according to gatk.ncontigs:
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
-
   std::vector<std::string> intv_paths;
   std::vector<std::string> geneList_paths;
 

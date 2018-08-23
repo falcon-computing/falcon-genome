@@ -54,7 +54,7 @@ int htc_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::vector<std::string> intv_list = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
+  std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts =
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
@@ -79,6 +79,7 @@ int htc_main(int argc, char** argv,
   create_dir(output_dir);
 
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
+
   std::vector<std::string> intv_paths = init_contig_intv(ref_path);
 
   // start an executor for NAM
@@ -102,10 +103,12 @@ int htc_main(int argc, char** argv,
     else {
       input_file = input_path;
     }
+
     std::string file_ext = "vcf";
     if (!flag_vcf) {
       file_ext = "g." + file_ext;
     }
+
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new HTCWorker(ref_path,
           intv_paths[contig], input_file,
@@ -115,7 +118,9 @@ int htc_main(int argc, char** argv,
           contig,
           flag_vcf,
           flag_htc_f,
-          flag_gatk));
+          flag_gatk)
+    );
+
     output_files[contig] = output_file;
 
     executor.addTask(worker);

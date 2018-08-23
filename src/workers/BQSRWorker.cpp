@@ -14,7 +14,7 @@ BQSRWorker::BQSRWorker(std::string ref_path,
       std::string input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
-      std::vector<std::string> &intv_list,
+      std::string &intv_list,
       int  contig,
       bool &flag_f,
       bool flag_gatk):
@@ -101,8 +101,7 @@ void BQSRWorker::setup() {
   }
 
   cmd << "-R " << ref_path_ << " "
-      << "-I " << input_path_ << " "
-      << "-L " << intv_path_ << " ";
+      << "-I " << input_path_ << " ";
 
   if (flag_gatk_ || get_config<bool>("use_gatk4")) {
       cmd << "-O " << output_path_  << " ";
@@ -112,17 +111,18 @@ void BQSRWorker::setup() {
           << "--disable_auto_index_creation_and_locking_when_reading_rods "
           << "-o " << output_path_ << " ";
   }
-
-  for (int i = 0; i < intv_list_.size(); i++) {
-    cmd << "-L " << intv_list_[i] << " ";
+  // If capture is defined -L, BQSR will be performed on the regions defined by capture,
+  // otherwise Genome will be used
+  if (!intv_list_.empty()){
+     cmd << "-L " << intv_list_ << " ";
+  } else {
+     cmd << "-L " << intv_path_ << " ";
   }
+
   if (intv_list_.size() > 0 ) {
-    cmd << "-isr INTERSECTION ";
+    cmd << " -isr INTERSECTION ";
   }
 
-  //for (int i = 0; i < input_paths.size(); i++) {
-  //  cmd << "-I " << input_paths[i] << " ";
-  //}
   for (int i = 0; i < known_sites_.size(); i++) {
     if (flag_gatk_ || get_config<bool>("use_gatk4")) {
         cmd << "-known-sites " << known_sites_[i] << " ";
@@ -194,7 +194,7 @@ PRWorker::PRWorker(std::string ref_path,
       std::string input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
-      std::vector<std::string> &intv_list,
+      std::string &intv_list,
       int  contig,
       bool &flag_f, bool flag_gatk):
   Worker(1, get_config<int>("gatk.pr.nct", "gatk.nct"), extra_opts),
@@ -243,18 +243,21 @@ void PRWorker::setup() {
       << "-I " << input_path_ << " ";
 
   if (flag_gatk_ || get_config<bool>("use_gatk4")) {
-     cmd << "-O " << output_path_ << " --bqsr-recal-file " << bqsr_path_ << " "
-         << "-L " << intv_path_ << " ";
+     cmd << "-O " << output_path_ << " --bqsr-recal-file " << bqsr_path_ << " ";
   } else {
      cmd << "-BQSR " << bqsr_path_ << " "
-         << "-L " << intv_path_ << " "
          << "-nct " << num_thread_ << " "
          << "-o " << output_path_ << " ";
   }
 
-  for (int i = 0; i < intv_list_.size(); i++) {
-    cmd << "-L " << intv_list_[i] << " ";
+  // If capture is defined in -L , BQSR will be performed on the regions defined by capture,
+  // otherwise Genome will be used
+  if (!intv_list_.empty()){
+      cmd << "-L " << intv_list_ << " ";
+  } else {
+      cmd << "-L " << intv_path_ << " ";
   }
+
   if (intv_list_.size() > 0 ) {
     cmd << "-isr INTERSECTION ";
   }

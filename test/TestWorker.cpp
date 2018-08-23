@@ -15,17 +15,17 @@ namespace fcs = fcsgenome;
 namespace fs = boost::filesystem;
 
 class TestWorker : public ::testing::Test {
-  ; 
+  ;
 };
 
 void touch(std::string path) {
   DLOG(INFO) << "touching " << path;
-  fs::ofstream f(path); 
+  fs::ofstream f(path);
   f.close();
 }
 
 TEST_F(TestWorker, TestBQSRWorker_check) {
-  std::string temp_dir = "/tmp/fcs-genome-test-" + 
+  std::string temp_dir = "/tmp/fcs-genome-test-" +
     std::to_string((long long)fcs::getTid());
   fcs::create_dir(temp_dir);
 
@@ -39,9 +39,10 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   bool flag = true;
 
   std::vector<std::string> empty;
+  std::string emptyString;
 
-  fcs::BQSRWorker worker(ref, known, intv, input, output, 
-      empty, empty, 0, flag, false);
+  fcs::BQSRWorker worker(ref, known, intv, input, output,
+      empty, emptyString, 0, flag, false);
 
 #define CHECK_EXCEPTION try { \
     worker.check(); \
@@ -49,7 +50,7 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   } \
   catch (...) { \
     ; \
-  } 
+  }
 
 #define CHECK_NOEXCEPTION try { \
     worker.check(); \
@@ -72,10 +73,10 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   CHECK_NOEXCEPTION;
 
   // test index
-  boost::this_thread::sleep_for(boost::chrono::seconds(1)); 
+  boost::this_thread::sleep_for(boost::chrono::seconds(1));
 
   touch(known[0]); // now known will be older than idx
-  CHECK_NOEXCEPTION; 
+  CHECK_NOEXCEPTION;
   // no exception will be thrown since the tool will try
   // to update file
 
@@ -83,8 +84,8 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   known.push_back(temp_dir + "/" + "known2.vcf.gz");
 
   {
-  fcs::BQSRWorker worker(ref, known, intv, input, output, 
-      empty, empty, 0, flag, false);
+  fcs::BQSRWorker worker(ref, known, intv, input, output,
+      empty, emptyString, 0, flag, false);
 
   touch(known[1]);
   CHECK_EXCEPTION;
@@ -97,8 +98,8 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   // test wrong known site exception
   known.push_back(temp_dir + "/" + "known3.vcf1");
   {
-  fcs::BQSRWorker worker(ref, known, intv, input, output, 
-      empty, empty, 0, flag, false);
+  fcs::BQSRWorker worker(ref, known, intv, input, output,
+      empty, emptyString, 0, flag, false);
   CHECK_EXCEPTION;
   }
 
