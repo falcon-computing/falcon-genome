@@ -98,7 +98,6 @@ int main(int argc, char** argv) {
   // transform all cmd to lower-case
   std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
 
-  falconlic::set_verbose(3);
   int licret = license_verify();
   if (licret != 0) {
     LOG(ERROR) << "Cannot authorize software usage: " << licret;
