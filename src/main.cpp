@@ -8,10 +8,7 @@
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
 
-// use flexlm
-#ifdef USELICENSE
-#include "falcon-lic/license.h"
-#endif
+#include "falcon-lic/genome.h"
 
 #define print_cmd_col(str1, str2) std::cout \
     << "  " << std::left << std::setw(16) << str1 \
@@ -101,25 +98,13 @@ int main(int argc, char** argv) {
   // transform all cmd to lower-case
   std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
 
-#ifdef USELICENSE
-  namespace fc   = falconlic;
-#ifdef DEPLOY_aws
-  fc::enable_aws();
-#endif
-#ifdef DEPLOY_hwc
-  fc::enable_hwc();
-#endif
-  fc::enable_flexlm();
-
-  namespace fclm = falconlic::flexlm;
-  fclm::add_feature(fclm::FALCON_DNA);
-  int licret = fc::license_verify();
-  if (licret != fc::SUCCESS) {
+  falconlic::set_verbose(3);
+  int licret = license_verify();
+  if (licret != 0) {
     LOG(ERROR) << "Cannot authorize software usage: " << licret;
     LOG(ERROR) << "Please contact support@falcon-computing.com for details.";
     return licret;
   }
-#endif
 
   signal(SIGINT, sigint_handler);
 
@@ -248,8 +233,5 @@ int main(int argc, char** argv) {
     ret = -1;
   }
 
-#ifdef USELICENSE
-  fc::license_clean();
-#endif
   return ret;
 }

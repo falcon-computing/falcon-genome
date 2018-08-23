@@ -330,7 +330,6 @@ int init(char** argv, int argc) {
     arg_decl_int("gatk.depth.nprocs",            "default process num in GATK DepthOfCoverage")
     arg_decl_int("gatk.depth.nct",               "default thread num in  GATK DepthOfCoverage")
     arg_decl_int("gatk.depth.memory",            "default heap memory in GATK DepthOfCoverage")
-    arg_decl_bool("gatk.skip_pseudo_chr", "skip pseudo chromosome intervals")
     arg_decl_bool_w_def("gatk.skip_pseudo_chr", true, "skip pseudo chromosome intervals")
     arg_decl_string_w_def("blaze.nam_path", conf_root_dir+"/blaze/bin/nam", "path to nam in blaze")
     arg_decl_string_w_def("blaze.conf_path",conf_root_dir+"/blaze/conf",    "path to nam configuration file")
