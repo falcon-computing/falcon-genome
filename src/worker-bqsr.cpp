@@ -51,7 +51,7 @@ static void baserecalAddWorkers(Executor &executor,
     std::stringstream ss;
     std::string temp_dir = conf_temp_dir + "/bqsr";
     boost::filesystem::path p(output_path);
-    ss << temp_dir << "/" << p.filename() << "." << contig;
+    ss << temp_dir << "/" << p.filename().string() << "." << contig;
     bqsr_paths[contig] = ss.str();
     DLOG(INFO) << "Task " << contig << " bqsr: " << bqsr_paths[contig];
     if (intv_list.empty()) intv_sets[contig] = " ";
@@ -176,6 +176,9 @@ int baserecal_main(int argc, char** argv, boost::program_options::options_descri
   // finalize argument parsing
   po::notify(cmd_vm);
 
+  std::string temp_dir = conf_temp_dir + "/bqsr";
+  create_dir(temp_dir);
+
   // check configurations
   check_nprocs_config("bqsr");
   check_memory_config("bqsr");
@@ -211,6 +214,9 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
   if (cmd_vm.count("help")) {
     throw helpRequest();
   }
+
+  std::string temp_dir = conf_temp_dir + "/bqsr";
+  create_dir(temp_dir);
 
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
