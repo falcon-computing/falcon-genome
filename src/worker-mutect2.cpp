@@ -92,9 +92,13 @@ int mutect2_main(int argc, char** argv,
   create_dir(output_dir);
 
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
-  std::vector<std::string> intv_sets;
-  if (!intv_list.empty()) intv_sets = split_by_nprocs(intv_list, "bed");
-  std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+  std::vector<std::string> intv_paths;
+  if (!intv_list.empty()) {
+    intv_paths = split_by_nprocs(intv_list, "bed");
+  }
+  else {
+    intv_paths = init_contig_intv(ref_path);
+  }
 
   // start an executor for NAM
   Worker_ptr blaze_worker(new BlazeWorker(
@@ -131,7 +135,6 @@ int mutect2_main(int argc, char** argv,
           dbsnp_path,
           cosmic_path,
           germline_path,
-          intv_sets[contig],
           contig,
           flag_mutect2_f,
           flag_gatk));

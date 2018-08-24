@@ -14,7 +14,6 @@ BQSRWorker::BQSRWorker(std::string ref_path,
       std::string input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
-      std::string &intv_list,
       int  contig,
       bool &flag_f,
       bool flag_gatk):
@@ -25,7 +24,6 @@ BQSRWorker::BQSRWorker(std::string ref_path,
   intv_path_(intv_path),
   input_path_(input_path),
   known_sites_(known_sites),
-  intv_list_(intv_list),
   flag_gatk_(flag_gatk)
 {
   LOG_IF_EVERY_N(WARNING,  
@@ -111,17 +109,8 @@ void BQSRWorker::setup() {
           << "--disable_auto_index_creation_and_locking_when_reading_rods "
           << "-o " << output_path_ << " ";
   }
-  // If capture is defined -L, BQSR will be performed on the regions defined by capture,
-  // otherwise Genome will be used
-  if (!intv_list_.empty()){
-     cmd << "-L " << intv_list_ << " ";
-  } else {
-     cmd << "-L " << intv_path_ << " ";
-  }
-
-  if (intv_list_.size() > 0 ) {
-    cmd << " -isr INTERSECTION ";
-  }
+  cmd << "-L " << intv_path_ << " "
+      << " -isr INTERSECTION ";
 
   for (int i = 0; i < known_sites_.size(); i++) {
     if (flag_gatk_ || get_config<bool>("use_gatk4")) {
@@ -194,7 +183,6 @@ PRWorker::PRWorker(std::string ref_path,
       std::string input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
-      std::string &intv_list,
       int  contig,
       bool &flag_f, bool flag_gatk):
   Worker(1, get_config<int>("gatk.pr.nct", "gatk.nct"), extra_opts),
@@ -202,7 +190,6 @@ PRWorker::PRWorker(std::string ref_path,
   intv_path_(intv_path),
   bqsr_path_(bqsr_path),
   input_path_(input_path),
-  intv_list_(intv_list),
   flag_gatk_(flag_gatk)
 {
   LOG_IF_EVERY_N(WARNING,  
@@ -249,18 +236,8 @@ void PRWorker::setup() {
          << "-nct " << num_thread_ << " "
          << "-o " << output_path_ << " ";
   }
-
-  // If capture is defined in -L , BQSR will be performed on the regions defined by capture,
-  // otherwise Genome will be used
-  if (!intv_list_.empty()){
-      cmd << "-L " << intv_list_ << " ";
-  } else {
-      cmd << "-L " << intv_path_ << " ";
-  }
-
-  if (intv_list_.size() > 0 ) {
-    cmd << "-isr INTERSECTION ";
-  }
+  cmd << "-L " << intv_path_ << " "
+      << "-isr INTERSECTION ";
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
     cmd << it->first << " ";

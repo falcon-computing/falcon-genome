@@ -17,7 +17,6 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
       std::vector<std::string> &dbsnp_path,
       std::vector<std::string> &cosmic_path,
       std::string &germline_path,
-      std::string &intv_list,
       int  contig,
       bool &flag_f,
       bool flag_gatk): Worker(1, get_config<int>("gatk.mutect2.nct", "gatk.nct"), extra_opts),
@@ -28,7 +27,6 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
   dbsnp_path_(dbsnp_path),
   cosmic_path_(cosmic_path),
   germline_path_(germline_path),
-  intv_list_(intv_list),
   flag_gatk_(flag_gatk)
 {
   // check input/output files
@@ -95,12 +93,7 @@ void Mutect2Worker::setup() {
 
   } // End checking GATK version
 
-  if (!intv_list_.empty()){
-     cmd << "-L " << intv_list_ << " -isr INTERSECTION ";
-  }
-  else {
-     cmd << "-L " << intv_path_ << " -isr INTERSECTION ";
-  }
+  cmd << "-L " << intv_path_ << " -isr INTERSECTION ";
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
       cmd << it->first << " ";

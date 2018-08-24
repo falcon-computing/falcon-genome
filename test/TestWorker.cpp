@@ -38,11 +38,8 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   known.push_back(temp_dir + "/" + "known1.vcf");
   bool flag = true;
 
-  std::vector<std::string> empty;
-  std::string emptyString;
-
   fcs::BQSRWorker worker(ref, known, intv, input, output,
-      empty, emptyString, 0, flag, false);
+     std::vector<std::string>(), 0, flag, false);
 
 #define CHECK_EXCEPTION try { \
     worker.check(); \
@@ -85,7 +82,7 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
 
   {
   fcs::BQSRWorker worker(ref, known, intv, input, output,
-      empty, emptyString, 0, flag, false);
+      std::vector<std::string>(), 0, flag, false);
 
   touch(known[1]);
   CHECK_EXCEPTION;
@@ -99,7 +96,7 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   known.push_back(temp_dir + "/" + "known3.vcf1");
   {
   fcs::BQSRWorker worker(ref, known, intv, input, output,
-      empty, emptyString, 0, flag, false);
+      std::vector<std::string>(), 0, flag, false);
   CHECK_EXCEPTION;
   }
 
