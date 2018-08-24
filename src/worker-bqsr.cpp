@@ -24,13 +24,14 @@ static void baserecalAddWorkers(Executor &executor,
     std::string &intv_list,
     bool flag_f, bool flag_gatk)
 {
-
-  std::vector<std::string> intv_sets;
+  std::vector<std::string> intv_paths;
   if (!intv_list.empty()){
-     intv_sets  = split_by_nprocs(intv_list, "bed");
+    intv_paths = split_by_nprocs(intv_list, "bed");
+  }
+  else {
+    intv_paths = init_contig_intv(ref_path);
   }
 
-  std::vector<std::string> intv_paths = init_contig_intv(ref_path);
   std::vector<std::string> bqsr_paths(get_config<int>("gatk.ncontigs"));
 
   // compute bqsr for each contigs
@@ -50,16 +51,15 @@ static void baserecalAddWorkers(Executor &executor,
     // output bqsr filename
     std::stringstream ss;
     std::string temp_dir = conf_temp_dir + "/bqsr";
-    boost::filesystem::path p(output_path);
-    ss << temp_dir << "/" << p.filename().string() << "." << contig;
+    ss << temp_dir << "/" << get_basename(output_path) << "." << contig;
+
     bqsr_paths[contig] = ss.str();
     DLOG(INFO) << "Task " << contig << " bqsr: " << bqsr_paths[contig];
-    if (intv_list.empty()) intv_sets[contig] = " ";
 
     Worker_ptr worker(new BQSRWorker(ref_path, known_sites,
 	  intv_paths[contig],
 	  input_file, bqsr_paths[contig],
-	  extra_opts, intv_sets[contig],
+	  extra_opts,
 	  contig, flag_f, flag_gatk));
     executor.addTask(worker, contig == 0);
   }
@@ -88,12 +88,13 @@ static void prAddWorkers(Executor &executor,
   std::string &intv_list,
   bool flag_f, bool flag_gatk)
 {
-
-  std::vector<std::string> intv_sets;
+  std::vector<std::string> intv_paths;
   if (!intv_list.empty()){
-     intv_sets  = split_by_nprocs(intv_list, "bed");
+    intv_paths = split_by_nprocs(intv_list, "bed");
   }
-  std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+  else {
+    intv_paths = init_contig_intv(ref_path);
+  }
 
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
        // handle input as directory
@@ -107,13 +108,12 @@ static void prAddWorkers(Executor &executor,
        else {
           input_file = input_path;
        }
-       if (intv_list.empty()) intv_sets[contig] = " ";
 
        Worker_ptr worker(new PRWorker(ref_path,
           intv_paths[contig], bqsr_path,
           input_file,
           get_contig_fname(output_path, contig),
-	        extra_opts, intv_sets[contig],
+	        extra_opts,
           contig, flag_f, flag_gatk));
        executor.addTask(worker, contig == 0);
   }
