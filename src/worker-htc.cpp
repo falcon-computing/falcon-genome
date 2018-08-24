@@ -80,7 +80,13 @@ int htc_main(int argc, char** argv,
 
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
 
-  std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+  std::vector<std::string> intv_paths;
+  if (!intv_list.empty()) {
+    intv_paths = init_contig_intv(ref_path);
+  }
+  else {
+    intv_paths = split_by_nprocs(intv_list, "bed");
+  }
 
   // start an executor for NAM
   Worker_ptr blaze_worker(new BlazeWorker(

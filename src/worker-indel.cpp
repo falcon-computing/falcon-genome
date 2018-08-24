@@ -46,7 +46,7 @@ int ir_main(int argc, char** argv,
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output diretory of BAM files")
-    ("intervalList,L", po::value<std::vector<std::string> >(), "interval list file")
+    ("intervalList,L", po::value<std::string>(), "interval list file")
     ("merge-bam,m", "merge Parts BAM files")
     ("known,K", po::value<std::vector<std::string> >(),
      "known indels for realignment");
@@ -70,7 +70,7 @@ int ir_main(int argc, char** argv,
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string target_path = input_path + ".intervals";
   bool merge_bam_flag     = get_argument<bool>(cmd_vm, "merge-bam", "m");
-  std::vector<std::string> intv_list   = get_argument<std::vector<std::string> >(cmd_vm, "intervalList", "L");
+  std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> known_indels = get_argument<
     std::vector<std::string> >(cmd_vm, "known", "K", std::vector<std::string>());
 
@@ -93,7 +93,14 @@ int ir_main(int argc, char** argv,
     executor.addTask(worker, true);
   }
 
-  std::vector<std::string> intv_paths = init_contig_intv(ref_path);
+  std::vector<std::string> intv_paths;
+  if (!intv_list.empty()) {
+    intv_paths = split_by_nprocs(intv_list, "bed");
+  }
+  else {
+    intv_paths = init_contig_intv(ref_path);
+  }
+
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
     std::string input_file;
     if (boost::filesystem::is_directory(input_path)) {
@@ -110,7 +117,6 @@ int ir_main(int argc, char** argv,
           input_file, target_path,
           get_contig_fname(output_path, contig),
           extra_opts,
-          intv_list,
           flag_f));
     executor.addTask(worker, contig==0);
   }

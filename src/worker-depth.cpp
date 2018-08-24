@@ -47,21 +47,22 @@ int depth_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::string intv_list = get_argument<std::string>(cmd_vm, "intervalList", "L");
-  std::string geneList = get_argument<std::string>(cmd_vm, "geneList", "g");
-  bool flag_f = get_argument<bool>(cmd_vm, "force", "f");
+  std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
+  std::string geneList    = get_argument<std::string>(cmd_vm, "geneList", "g");
+  bool flag_f                = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_baseCoverage     = get_argument<bool>(cmd_vm, "omitBaseOutput", "b");
   bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "omitIntervals", "v");
   bool flag_sampleSummary    = get_argument<bool>(cmd_vm, "omitSampleSummary", "s");
+  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   bool flag_genes;
-  if ( !intv_list.empty() && !geneList.empty() ){
-    flag_genes=true;
+  if (!intv_list.empty() && 
+      !geneList.empty())
+  {
+    flag_genes = true;
   } else {
-    flag_genes=false;
+    flag_genes = false;
   }
-
-  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -71,66 +72,52 @@ int depth_main(int argc, char** argv,
   std::string output_dir = temp_dir;
 
   // Split Interval List and Gene List into several parts according to gatk.ncontigs:
-  std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
-  std::vector<std::string> intv_paths;
-  std::vector<std::string> geneList_paths;
+  int ncontigs = get_config<int>("gatk.ncontigs");
+  std::vector<std::string> output_files(ncontigs);
+  std::vector<std::string> intv_paths(ncontigs);
+  std::vector<std::string> geneList_paths(ncontigs);
 
-  if (!intv_list.empty() && !geneList.empty()) {
-     DLOG(INFO) << "intv_list NOT EMPTY and geneList NOT EMPTY";
-     intv_paths = split_by_nprocs(intv_list, "bed");
-     geneList_paths = split_by_nprocs(geneList, "list");
+  if (!geneList.empty()) {
+    geneList_paths = split_by_nprocs(geneList, "list");
   }
 
-  if (!intv_list.empty() && geneList.empty()) {
-     DLOG(INFO) << "intv_list NOT EMPTY and geneList EMPTY";
-     intv_paths = split_by_nprocs(intv_list, "bed");
-     for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back("");
+  if (!intv_list.empty()) {
+    intv_paths = split_by_nprocs(intv_list, "bed");
   }
-
-  if (intv_list.empty() && geneList.empty()) {
-     DLOG(INFO) << "intv_list EMPTY and geneList EMPTY";
-     intv_paths = split_ref_by_nprocs(ref_path);
-     for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back("");
+  else {
+    intv_paths = split_ref_by_nprocs(ref_path);
   }
-
-  if (intv_list.empty() && !geneList.empty()) {
-     intv_paths = split_ref_by_nprocs(ref_path);
-     for (int k = 0; k < get_config<int>("gatk.ncontigs"); k++ ) geneList_paths.push_back("");
-     DLOG(INFO) << "intv_list EMPTY and geneList NOT EMPTY";
-  }
-
-  DLOG(INFO) << "intv_paths Size: " << intv_paths.size();
 
   std::string input_file;
   if (boost::filesystem::is_directory(input_path)) {
-      // Merging BAM files if the input is a folder containing PARTS BAM files:
-      DLOG(INFO) << input_path << " is a directory.  Proceed to merge all BAM files" << std::endl;
-      std::string mergeBAM = input_path + "/merge_parts.bam  ";
-      std::stringstream partsBAM;
-      std::string parts_dir = input_path;
-      std::vector<std::string> input_files_ ;
-      int check_parts = 1;
-      get_input_list(parts_dir, input_files_, ".*/part-[0-9].*bam", true);
-      for (int n = 0; n < input_files_.size(); n++) {
-           partsBAM << input_files_[n] << " ";
-      }
-      if (input_files_.size() == 1) check_parts = 0;
-      uint64_t start_merging = getTs();
-      std::string log_filename_merge  = input_path + "/mergebam.log";
-      std::ofstream merge_log;
-      merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
-      merge_log << input_path << ":" << "Start Merging BAM Files " << std::endl;
-      Executor merger_executor("Merge BAM files");
-      Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, check_parts, flag_f));
-      merger_executor.addTask(merger_worker);
-      merger_executor.run();
-      DLOG(INFO) << "Merging Parts BAM in  " << input_path << " completed " << std::endl;
-      merge_log << input_path << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
-      merge_log.close(); merge_log.clear();
-      input_file = mergeBAM;
+    // Merging BAM files if the input is a folder containing PARTS BAM files:
+    DLOG(INFO) << input_path << " is a directory.  Proceed to merge all BAM files";
+    std::string mergeBAM = input_path + "/merge_parts.bam  ";
+    std::stringstream partsBAM;
+    std::string parts_dir = input_path;
+    std::vector<std::string> input_files_ ;
+    int check_parts = 1;
+    get_input_list(parts_dir, input_files_, ".*/part-[0-9].*bam", true);
+    for (int n = 0; n < input_files_.size(); n++) {
+      partsBAM << input_files_[n] << " ";
+    }
+    if (input_files_.size() == 1) check_parts = 0;
+    uint64_t start_merging = getTs();
+    std::string log_filename_merge  = input_path + "/mergebam.log";
+    std::ofstream merge_log;
+    merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
+    merge_log << input_path << ":" << "Start Merging BAM Files " << std::endl;
+    Executor merger_executor("Merge BAM files");
+    Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM, check_parts, flag_f));
+    merger_executor.addTask(merger_worker);
+    merger_executor.run();
+    DLOG(INFO) << "Merging Parts BAM in  " << input_path << " completed " << std::endl;
+    merge_log << input_path << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
+    merge_log.close(); merge_log.clear();
+    input_file = mergeBAM;
   }
   else {
-      input_file = input_path;
+    input_file = input_path;
   }
 
   Executor executor("Depth", get_config<int>("gatk.depth.nprocs"));
