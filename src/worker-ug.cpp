@@ -75,10 +75,10 @@ int ug_main(int argc, char** argv,
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
   std::vector<std::string> intv_paths;
   if (!intv_list.empty()) {
-    intv_paths = init_contig_intv(ref_path);
+    intv_paths = split_by_nprocs(intv_list, "bed");
   }
   else {
-    intv_paths = split_by_nprocs(intv_list, "bed");
+    intv_paths = init_contig_intv(ref_path);
   }
 
   Executor executor("Unified Genotyper", 

@@ -82,10 +82,10 @@ int htc_main(int argc, char** argv,
 
   std::vector<std::string> intv_paths;
   if (!intv_list.empty()) {
-    intv_paths = init_contig_intv(ref_path);
+    intv_paths = split_by_nprocs(intv_list, "bed");
   }
   else {
-    intv_paths = split_by_nprocs(intv_list, "bed");
+    intv_paths = init_contig_intv(ref_path);
   }
 
   // start an executor for NAM
@@ -120,7 +120,6 @@ int htc_main(int argc, char** argv,
           intv_paths[contig], input_file,
           output_file,
           extra_opts,
-          intv_list,
           contig,
           flag_vcf,
           flag_htc_f,
