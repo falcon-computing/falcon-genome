@@ -25,7 +25,7 @@ static void baserecalAddWorkers(Executor &executor,
     bool flag_f, bool flag_gatk)
 {
   std::vector<std::string> intv_paths;
-  if (!intv_list.empty()){
+  if (!intv_list.empty()) {
     intv_paths = split_by_nprocs(intv_list, "bed");
   }
   else {
@@ -89,7 +89,7 @@ static void prAddWorkers(Executor &executor,
   bool flag_f, bool flag_gatk)
 {
   std::vector<std::string> intv_paths;
-  if (!intv_list.empty()){
+  if (!intv_list.empty()) {
     intv_paths = split_by_nprocs(intv_list, "bed");
   }
   else {

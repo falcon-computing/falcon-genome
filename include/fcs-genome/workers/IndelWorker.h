@@ -33,7 +33,6 @@ class IndelWorker : public Worker {
       std::string target_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
-      std::vector<std::string> &intv_list,
       bool &flag_f);
 
   void check();
@@ -46,7 +45,6 @@ class IndelWorker : public Worker {
   std::string input_path_;
   std::string target_path_;
   std::string output_path_;
-  std::vector<std::string> intv_list_;
 };
 
 
