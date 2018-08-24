@@ -13,7 +13,6 @@ HTCWorker::HTCWorker(std::string ref_path,
       std::string input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
-      std::string &intv_list,
       int  contig,
       bool flag_vcf,
       bool &flag_f,
@@ -23,8 +22,7 @@ HTCWorker::HTCWorker(std::string ref_path,
   flag_gatk_(flag_gatk),
   ref_path_(ref_path),
   intv_path_(intv_path),
-  input_path_(input_path),
-  intv_list_(intv_list)
+  input_path_(input_path)
 {
   // check input/output files
   output_path_ = check_output(output_path, flag_f);
@@ -51,11 +49,8 @@ void HTCWorker::setup() {
 
   cmd << "-R " << ref_path_   << " "
       << "-I " << input_path_ << " "
-      << "-L " << intv_path_  << " " ;
-
-  if (!intv_list_.empty()) {
-	    cmd << "-L " << intv_list_ << " -isr INTERSECTION ";
-  }
+      << "-L " << intv_path_  << " "
+	    << " -isr INTERSECTION ";
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
     cmd << it->first << " ";
