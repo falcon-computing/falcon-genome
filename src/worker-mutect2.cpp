@@ -83,9 +83,9 @@ int mutect2_main(int argc, char** argv,
       throw std::runtime_error("Germline VCF file is only for MuTect2 GATK4. Use --dbsnp or --cosmic instead.");
   }
 
-  if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
-     if (normal_fname.empty()) throw pathEmpty("normal_fname");
-     if (tumor_fname.empty()) throw pathEmpty("tumor_fname");
+  if (flag_gatk || get_config<bool>("use_gatk4") ) {
+     if (normal_name.empty()) throw pathEmpty("normal_name");
+     if (tumor_name.empty()) throw pathEmpty("tumor_name");
   }
 
   std::string temp_dir = conf_temp_dir + "/mutect2";
