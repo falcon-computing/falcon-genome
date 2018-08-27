@@ -70,6 +70,7 @@ void Mutect2Worker::setup() {
           << "-normal " << " normal "
           << "-tumor "  << " tumor "
           << "--germline-resource " << germline_path_  << " -pon " << panels_of_normals_  << " ";
+          << "--output " << output_path_ << " ";
   }
   else{
       cmd << "-I:normal " << normal_path_ << " "
