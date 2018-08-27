@@ -30,11 +30,11 @@ int mutect2_main(int argc, char** argv,
     ("output,o", po::value<std::string>()->required(), "output VCF file")
     ("dbsnp,d", po::value<std::vector<std::string> >(), "list of dbsnp files for Mutect2 (gatk3)")
     ("cosmic,c", po::value<std::vector<std::string> >(), "list of cosmic files for Mutect2 (gatk3)")
-    ("germline,m", po::value<std::string>(), "germline VCF file (gatk4)")
+    ("germline,m", po::value<std::string>(), "VCF file containing annotate variant alleles by specifying a population germline resource (gatk4)")
     ("panels_of_normals,p", po::value<std::string>(), "Panels of normals VCF file")
     ("intervalList,L", po::value<std::string>(), "interval list file")
-    ("normal_fname,a", po::value<std::string>(), "Normal Sample BAM header (gatk4)")
-    ("tumor_fname,b", po::value<std::string>(), "Tumor Sample BAM header (gatk4)")
+    ("normal_name,a", po::value<std::string>(), "Sample name for Normal Input BAM. Must match the SM tag in the BAM header (gatk4) ")
+    ("tumor_name,b", po::value<std::string>(), "Sample name for Tumor Input BAM. Must match the SM tag in the BAM header (gatk4)")
     ("gatk4,g", "use gatk4 to perform analysis");
     ("skip-concat,s", "produce a set of VCF files instead of one");
 
@@ -63,8 +63,8 @@ int mutect2_main(int argc, char** argv,
   std::string germline_path = get_argument<std::string> (cmd_vm, "germline","m");
   std::string panels_of_normals = get_argument<std::string> (cmd_vm, "panels_of_normals","p");
   std::string intv_list  = get_argument<std::string>(cmd_vm, "intervalList", "L");
-  std::string normal_fname = get_argument<std::string> (cmd_vm, "normal_fname","a");
-  std::string tumor_fname = get_argument<std::string> (cmd_vm, "tumor_fname","b");
+  std::string normal_name = get_argument<std::string> (cmd_vm, "normal_name","a");
+  std::string tumor_name = get_argument<std::string> (cmd_vm, "tumor_name","b");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
@@ -82,14 +82,10 @@ int mutect2_main(int argc, char** argv,
   if (!germline_path.empty() && !flag_gatk) {
       throw std::runtime_error("Germline VCF file is only for MuTect2 GATK4. Use --dbsnp or --cosmic instead.");
   }
-  if (!normal_fname.empty() && tumor_fname.empty()) {
-      throw std::runtime_error("BAM headers (Normal, Tumor) = (defined, undefined). They must be both defined in MuTect2 GATK4");
-  }
-  if (normal_fname.empty() && !tumor_fname.empty()) {
-      throw std::runtime_error("BAM headers (Normal, Tumor) = (undefined, defined). They must be both defined in MuTect2 GATK4");
-  }
-  if (normal_fname.empty() && tumor_fname.empty()) {
-      throw std::runtime_error("BAM headers (Normal, Tumor) = (undefined, undefined). They must be both defined in MuTect2 GATK4");
+
+  if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
+     if (normal_fname.empty()) throw pathEmpty("normal_fname");
+     if (tumor_fname.empty()) throw pathEmpty("tumor_fname");
   }
 
   std::string temp_dir = conf_temp_dir + "/mutect2";

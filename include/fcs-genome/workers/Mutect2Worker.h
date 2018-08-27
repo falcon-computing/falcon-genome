@@ -19,8 +19,8 @@ class Mutect2Worker : public Worker {
       std::vector<std::string> &cosmic_path,
       std::string &germline_path,
       std::string &panels_of_normals,
-      std::string &normal_fname,
-      std::string &tumor_fname,
+      std::string &normal_name,
+      std::string &tumor_name,
       int contig,
       bool &flag_f, bool flag_gatk);
 
@@ -37,8 +37,8 @@ class Mutect2Worker : public Worker {
   std::vector<std::string> &cosmic_path_;
   std::string &germline_path_;
   std::string &panels_of_normals_;
-  std::string &normal_fname_;
-  std::string &tumor_fname_;
+  std::string &normal_name_;
+  std::string &tumor_name_;
   bool flag_gatk_;
 };
 } // namespace fcsgenome
