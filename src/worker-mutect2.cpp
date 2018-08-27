@@ -31,7 +31,7 @@ int mutect2_main(int argc, char** argv,
     ("dbsnp,d", po::value<std::vector<std::string> >(), "list of dbsnp files for Mutect2 (gatk3)")
     ("cosmic,c", po::value<std::vector<std::string> >(), "list of cosmic files for Mutect2 (gatk3)")
     ("germline,m", po::value<std::string>(), "VCF file containing annotate variant alleles by specifying a population germline resource (gatk4)")
-    ("panels_of_normals,p", po::value<std::string>, "Panels of normals VCF file")
+    ("panels_of_normals,p", po::value<std::string>(), "Panels of normals VCF file")
     ("intervalList,L", po::value<std::string>(), "interval list file")
     ("normal_name,a", po::value<std::string>(), "Sample name for Normal Input BAM. Must match the SM tag in the BAM header (gatk4) ")
     ("tumor_name,b", po::value<std::string>(), "Sample name for Tumor Input BAM. Must match the SM tag in the BAM header (gatk4)")
