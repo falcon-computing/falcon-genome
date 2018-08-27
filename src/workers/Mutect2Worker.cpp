@@ -17,6 +17,7 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
       std::vector<std::string> &dbsnp_path,
       std::vector<std::string> &cosmic_path,
       std::string &germline_path,
+      std::string &panels_of_normals,
       int  contig,
       bool &flag_f,
       bool flag_gatk): Worker(1, get_config<int>("gatk.mutect2.nct", "gatk.nct"), extra_opts),
@@ -27,6 +28,7 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
   dbsnp_path_(dbsnp_path),
   cosmic_path_(cosmic_path),
   germline_path_(germline_path),
+  panels_of_normals_(panels_of_normals),
   flag_gatk_(flag_gatk)
 {
   // check input/output files
@@ -67,7 +69,7 @@ void Mutect2Worker::setup() {
           << "-I " << tumor_path_ << " "
           << "-normal " << " normal "
           << "-tumor "  << " tumor "
-          << "--germline_resource " << germline_path_ ;
+          << "--germline_resource " << germline_path_  << " -pon " << panels_of_normals_  << " ";
   }
   else{
       cmd << "-I:normal " << normal_path_ << " "

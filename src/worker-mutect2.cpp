@@ -30,7 +30,8 @@ int mutect2_main(int argc, char** argv,
     ("output,o", po::value<std::string>()->required(), "output VCF file")
     ("dbsnp,d", po::value<std::vector<std::string> >(), "list of dbsnp files for Mutect2 (gatk3)")
     ("cosmic,c", po::value<std::vector<std::string> >(), "list of cosmic files for Mutect2 (gatk3)")
-    ("germline,m", po::value<std::vector<std::string> >(), "germline VCF file (gatk4)")
+    ("germline,m", po::value<std::string>(), "germline VCF file (gatk4)")
+    ("panels_of_normals,p", po::value<std::string>(), "Panels of normals VCF file")
     ("intervalList,L", po::value<std::string>(), "interval list file")
     ("gatk4,g", "use gatk4 to perform analysis");
     ("skip-concat,s", "produce a set of VCF files instead of one");
@@ -58,6 +59,7 @@ int mutect2_main(int argc, char** argv,
   std::vector<std::string> dbsnp_path = get_argument<std::vector<std::string> >(cmd_vm, "dbsnp", "d", std::vector<std::string>());
   std::vector<std::string> cosmic_path = get_argument<std::vector<std::string> >(cmd_vm, "cosmic","c", std::vector<std::string>());
   std::string germline_path = get_argument<std::string> (cmd_vm, "germline","m");
+  std::string panels_of_normals = get_argument<std::string> (cmd_vm, "panels_of_normals","p")
   std::string intv_list  = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
@@ -135,6 +137,7 @@ int mutect2_main(int argc, char** argv,
           dbsnp_path,
           cosmic_path,
           germline_path,
+          panels_of_normals,
           contig,
           flag_mutect2_f,
           flag_gatk));
