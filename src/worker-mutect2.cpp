@@ -71,8 +71,8 @@ int mutect2_main(int argc, char** argv,
   po::notify(cmd_vm);
 
   if (flag_gatk || get_config<bool>("use_gatk4") ) {
-     if (!cosmic_path.empty()) LOG(INFO) << "WARNING: cosmic VCF file only used in GATK3. Ignored in GATK4";
-     if (!dbsnp_path.empty())  LOG(INFO) << "WARNING: dbSNP VCF file only used in GATK3. Ignored in GATK4";
+     if (!cosmic_path.empty()) LOG(INFO) << "WARNING: cosmic VCF file ignored in GATK4";
+     if (!dbsnp_path.empty())  LOG(INFO) << "WARNING: dbSNP VCF file ignored in GATK4";
      if (normal_name.empty())  throw pathEmpty("normal_name");
      if (tumor_name.empty())   throw pathEmpty("tumor_name");
      if (germline_path.empty()) throw pathEmpty("germline_path");
