@@ -35,7 +35,7 @@ int mutect2_main(int argc, char** argv,
     ("intervalList,L", po::value<std::string>(), "interval list file")
     ("normal_name,a", po::value<std::string>(), "Sample name for Normal Input BAM. Must match the SM tag in the BAM header (gatk4) ")
     ("tumor_name,b", po::value<std::string>(), "Sample name for Tumor Input BAM. Must match the SM tag in the BAM header (gatk4)")
-    ("gatk4,g", "use gatk4 to perform analysis");
+    ("gatk4,g", "use gatk4 to perform analysis")
     ("skip-concat,s", "produce a set of VCF files instead of one");
 
   // Parse arguments
