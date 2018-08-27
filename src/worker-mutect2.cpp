@@ -31,7 +31,7 @@ int mutect2_main(int argc, char** argv,
     ("dbsnp,d", po::value<std::vector<std::string> >(), "list of dbsnp files for Mutect2 (gatk3)")
     ("cosmic,c", po::value<std::vector<std::string> >(), "list of cosmic files for Mutect2 (gatk3)")
     ("germline,m", po::value<std::string>(), "VCF file containing annotate variant alleles by specifying a population germline resource (gatk4)")
-    ("panels_of_normals,p", po::value<std::string>(), "Panels of normals VCF file")
+    ("panels_of_normals,p", po::value<std::string>, "Panels of normals VCF file")
     ("intervalList,L", po::value<std::string>(), "interval list file")
     ("normal_name,a", po::value<std::string>(), "Sample name for Normal Input BAM. Must match the SM tag in the BAM header (gatk4) ")
     ("tumor_name,b", po::value<std::string>(), "Sample name for Tumor Input BAM. Must match the SM tag in the BAM header (gatk4)")
@@ -52,40 +52,31 @@ int mutect2_main(int argc, char** argv,
 
   // Check if required arguments are presented
   bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
-  bool flag_skip_concat    = get_argument<bool>(cmd_vm, "skip-concat", "s");
+  bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat", "s");
   bool flag_gatk          = get_argument<bool>(cmd_vm, "gatk4", "g");
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string normal_path = get_argument<std::string>(cmd_vm, "normal", "n");
-  std::string tumor_path = get_argument<std::string>(cmd_vm, "tumor", "t");
+  std::string tumor_path  = get_argument<std::string>(cmd_vm, "tumor", "t");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::vector<std::string> dbsnp_path = get_argument<std::vector<std::string> >(cmd_vm, "dbsnp", "d", std::vector<std::string>());
   std::vector<std::string> cosmic_path = get_argument<std::vector<std::string> >(cmd_vm, "cosmic","c", std::vector<std::string>());
   std::string germline_path = get_argument<std::string> (cmd_vm, "germline","m");
   std::string panels_of_normals = get_argument<std::string> (cmd_vm, "panels_of_normals","p");
-  std::string intv_list  = get_argument<std::string>(cmd_vm, "intervalList", "L");
+  std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::string normal_name = get_argument<std::string> (cmd_vm, "normal_name","a");
-  std::string tumor_name = get_argument<std::string> (cmd_vm, "tumor_name","b");
+  std::string tumor_name  = get_argument<std::string> (cmd_vm, "tumor_name","b");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);
 
-  if (!cosmic_path.empty() && flag_gatk) {
-      throw std::runtime_error("Cosmic VCF file is only for MuTect2 GATK3. Use --germline instead.");
-  }
-  if (!dbsnp_path.empty() && flag_gatk) {
-      throw std::runtime_error("dnsnp VCF file is only for MuTect2 GATK3. Use --germline instead.");
-  }
-  if (!cosmic_path.empty() && !dbsnp_path.empty() && flag_gatk) {
-      throw std::runtime_error("Cosmic and dbsnp VCF files are only for MuTect2 GATK3. Use --germline instead.");
-  }
-  if (!germline_path.empty() && !flag_gatk) {
-      throw std::runtime_error("Germline VCF file is only for MuTect2 GATK4. Use --dbsnp or --cosmic instead.");
-  }
-
   if (flag_gatk || get_config<bool>("use_gatk4") ) {
-     if (normal_name.empty()) throw pathEmpty("normal_name");
-     if (tumor_name.empty()) throw pathEmpty("tumor_name");
+     if (!cosmic_path.empty()) throw std::runtime_error("cosmic VCF file only applicable for GATK3");
+     if (!dbsnp_path.empty())  throw std::runtime_error("dbSNP VCF file only applicable for GATK3");
+     if (normal_name.empty())  throw pathEmpty("normal_name");
+     if (tumor_name.empty())   throw pathEmpty("tumor_name");
+     if (germline_path.empty()) throw pathEmpty("germline_path");
+     if (panels_of_normals.empty()) throw pathEmpty("panels_of_normals");
   }
 
   std::string temp_dir = conf_temp_dir + "/mutect2";

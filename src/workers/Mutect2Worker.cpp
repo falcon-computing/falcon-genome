@@ -40,16 +40,22 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
 }
 
 void Mutect2Worker::check() {
-  ref_path_   = check_input(ref_path_);
-  intv_path_  = check_input(intv_path_);
+  ref_path_    = check_input(ref_path_);
+  intv_path_   = check_input(intv_path_);
   normal_path_ = check_input(normal_path_);
-  tumor_path_ = check_input(tumor_path_);
-  for(int i = 0; i < dbsnp_path_.size(); i++) {
-    dbsnp_path_[i] = check_input(dbsnp_path_[i]);
+  tumor_path_  = check_input(tumor_path_);
+  if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
+    germline_path_     = check_input(germline_path_);
+    panels_of_normals_ = check_input(panels_of_normals_);
+  } else {
+     for (int i = 0; i < dbsnp_path_.size(); i++) {
+         dbsnp_path_[i] = check_input(dbsnp_path_[i]);
+     }
+     for (int j = 0; j < cosmic_path_.size(); j++) {
+         cosmic_path_[j] = check_input(cosmic_path_[j]);
+     }
   }
-  for(int j = 0; j < cosmic_path_.size(); j++) {
-    cosmic_path_[j] = check_input(cosmic_path_[j]);
-  }
+
 }
 
 void Mutect2Worker::setup() {
