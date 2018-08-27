@@ -17,6 +17,9 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
       std::vector<std::string> &dbsnp_path,
       std::vector<std::string> &cosmic_path,
       std::string &germline_path,
+      std::string &panels_of_normals,
+      std::string &normal_name,
+      std::string &tumor_name,
       int  contig,
       bool &flag_f,
       bool flag_gatk): Worker(1, get_config<int>("gatk.mutect2.nct", "gatk.nct"), extra_opts),
@@ -27,6 +30,9 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
   dbsnp_path_(dbsnp_path),
   cosmic_path_(cosmic_path),
   germline_path_(germline_path),
+  panels_of_normals_(panels_of_normals),
+  normal_name_(normal_name),
+  tumor_name_(tumor_name),
   flag_gatk_(flag_gatk)
 {
   // check input/output files
@@ -34,16 +40,22 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
 }
 
 void Mutect2Worker::check() {
-  ref_path_   = check_input(ref_path_);
-  intv_path_  = check_input(intv_path_);
+  ref_path_    = check_input(ref_path_);
+  intv_path_   = check_input(intv_path_);
   normal_path_ = check_input(normal_path_);
-  tumor_path_ = check_input(tumor_path_);
-  for(int i = 0; i < dbsnp_path_.size(); i++) {
-    dbsnp_path_[i] = check_input(dbsnp_path_[i]);
+  tumor_path_  = check_input(tumor_path_);
+  if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
+    germline_path_     = check_input(germline_path_);
+    panels_of_normals_ = check_input(panels_of_normals_);
+  } else {
+     for (int i = 0; i < dbsnp_path_.size(); i++) {
+         dbsnp_path_[i] = check_input(dbsnp_path_[i]);
+     }
+     for (int j = 0; j < cosmic_path_.size(); j++) {
+         cosmic_path_[j] = check_input(cosmic_path_[j]);
+     }
   }
-  for(int j = 0; j < cosmic_path_.size(); j++) {
-    cosmic_path_[j] = check_input(cosmic_path_[j]);
-  }
+
 }
 
 void Mutect2Worker::setup() {
@@ -65,9 +77,10 @@ void Mutect2Worker::setup() {
   if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
       cmd << "-I " << normal_path_ << " "
           << "-I " << tumor_path_ << " "
-          << "-normal " << " normal "
-          << "-tumor "  << " tumor "
-          << "--germline_resource " << germline_path_ ;
+          << "-normal " << normal_name_ << " "
+          << "-tumor "  << tumor_name_ << " "
+          << "--germline-resource " << germline_path_  << " -pon " << panels_of_normals_  << " "
+          << "--output " << output_path_ << " ";
   }
   else{
       cmd << "-I:normal " << normal_path_ << " "
