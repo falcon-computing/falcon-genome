@@ -59,7 +59,7 @@ int mutect2_main(int argc, char** argv,
   std::vector<std::string> dbsnp_path = get_argument<std::vector<std::string> >(cmd_vm, "dbsnp", "d", std::vector<std::string>());
   std::vector<std::string> cosmic_path = get_argument<std::vector<std::string> >(cmd_vm, "cosmic","c", std::vector<std::string>());
   std::string germline_path = get_argument<std::string> (cmd_vm, "germline","m");
-  std::string panels_of_normals = get_argument<std::string> (cmd_vm, "panels_of_normals","p")
+  std::string panels_of_normals = get_argument<std::string> (cmd_vm, "panels_of_normals","p");
   std::string intv_list  = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
