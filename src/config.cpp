@@ -678,6 +678,8 @@ unsigned int CountLines(const std::vector <char> &buff, int sz) {
 
 std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype) {
 
+  intervalFile = check_input(intervalFile);
+
   const int SZ = 1024*1024;
   std::vector <char> buff( SZ );
   std::ifstream ifs( intervalFile );
