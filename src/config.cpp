@@ -678,9 +678,7 @@ unsigned int CountLines(const std::vector <char> &buff, int sz) {
 
 std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype) {
 
-  if (!boost::filesystem::exists(intervalFile)) {
-     throw std::runtime_error("File " + intervalFile + " does not exist");
-  };
+  intervalFile = check_input(intervalFile);
 
   const int SZ = 1024*1024;
   std::vector <char> buff( SZ );
