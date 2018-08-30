@@ -89,6 +89,9 @@ int align_main(int argc, char** argv,
      }
   };
 
+  // Sample Sheet must satisfy the following format:
+  // #sample_id,fastq1,fastq2,rg,platform_id,library_id
+
   SampleSheetMap SampleData;
   std::vector<SampleDetails> SampleInfoVect;
   if (sampleList.empty()){
@@ -115,6 +118,7 @@ int align_main(int argc, char** argv,
   namespace fs = boost::filesystem;
   std::string output_path_temp;
   std::string BAMfile;
+  // Going through each line in the Sample Sheet:
   for (auto pair : SampleData) {
     std::string sample_id = pair.first;
     std::vector<SampleDetails> list = pair.second;
@@ -126,6 +130,7 @@ int align_main(int argc, char** argv,
         platform_id = list[i].Platform;
         library_id = list[i].LibraryID;
 
+        // A sample with sample_id may have more than 1 pair of FASTQ files:
         if (list.size() >1) {
            if (boost::filesystem::exists(output_path) &&
               !boost::filesystem::is_directory(output_path)) {
@@ -143,7 +148,7 @@ int align_main(int argc, char** argv,
            }
 
         } else {
-
+           // Here sample has only 1 pair of FASTQ files. Check if align only was set:
            if (flag_align_only) {
               // Check if output in path already exists but is not a dir
               if (boost::filesystem::exists(output_path) &&
@@ -159,20 +164,18 @@ int align_main(int argc, char** argv,
               // workaround for output check
               create_dir(output_path+"/"+sample_id);
            }  else {
+              // Check if Sample Sheet variable is empty or not:
               if (sampleList.empty()) {
                  // check output path before alignment
                  output_path = check_output(output_path, flag_f, true);
 
                  // require output to be a file
-                 parts_dir = temp_dir + "/" +
-                 get_basename(output_path) + ".parts";
+                 parts_dir = temp_dir + "/" + get_basename(output_path) + ".parts";
               } else {
                  // Check if output in path already exists but is not a dir
                  if (boost::filesystem::exists(output_path) &&
                     !boost::filesystem::is_directory(output_path)) {
-                    throw fileNotFound("Output path '" +
-                    output_path +
-                    "' is not a directory");
+                    throw fileNotFound("Output path '" + output_path +  "' is not a directory");
                  }
                  // require output to be a file
                  std::string sample_dir = output_path + "/" + sample_id;
@@ -180,8 +183,7 @@ int align_main(int argc, char** argv,
 
                  BAMfile = sample_dir + "/" + sample_id + ".bam";;
 
-                 parts_dir = temp_dir + "/" +
-                 get_basename(BAMfile) + ".parts";
+                 parts_dir = temp_dir + "/" + get_basename(BAMfile) + ".parts";
                  output_path_temp=BAMfile;
               } // Check if sampleList is empty or not
 
