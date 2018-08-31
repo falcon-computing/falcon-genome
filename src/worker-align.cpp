@@ -140,6 +140,7 @@ int align_main(int argc, char** argv,
            }
            //parts_dir = output_path + "/" + sample_id + "/" + read_group;
            parts_dir = temp_dir + "/" + sample_id + "/" + read_group;
+           LOG(INFO) << parts_dir;
            // workaround for output check
            if (i == 0) {
               create_dir(output_path + "/" + sample_id);
@@ -158,7 +159,7 @@ int align_main(int argc, char** argv,
               }
               //parts_dir = output_path + "/" +  sample_id + "/" +  read_group;
               parts_dir = temp_dir + "/" +  sample_id + "/" +  read_group;
-
+              LOG(INFO) << parts_dir;
               // workaround for output check
               create_dir(output_path+"/"+sample_id);
            }  else {
