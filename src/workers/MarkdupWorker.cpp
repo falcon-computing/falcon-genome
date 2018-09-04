@@ -36,6 +36,12 @@ void MarkdupWorker::setup() {
     throw internalError("Failed to update limit");
   }
 
+  // Check if bai file of output exists:
+  if (boost::filesystem::exists(output_file_ + ".bai") {
+    remove_path(output_file_ + ".bai");
+    DLOG(INFO) << "Removing '" << output_file_ + ".bai" << "'";
+  }
+
   // create cmd
   std::stringstream cmd;
   cmd << get_config<std::string>("sambamba_path") << " markdup "
