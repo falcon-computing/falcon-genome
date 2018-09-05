@@ -66,52 +66,44 @@ int align_main(int argc, char** argv,
   // finalize argument parsing
   po::notify(cmd_vm);
 
-  if (fq1_path.empty()) {
-     if (fq2_path.empty() && sampleList.empty()) {
-       throw std::runtime_error("FASTQ filenames and Sample Sheet cannot be undefined at the same time. Set either FASTQ filenames (fastq1, fastq2) or Sample Sheet.");
-     }
-     if (!fq2_path.empty() && sampleList.empty()) {
-       throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (undefined, defined). Both fastq1 and fastq2 must be defined.");
-     }
-     if (!fq2_path.empty() && !sampleList.empty()) {
-       throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (undefined, defined) and Sample Sheet defined. Set either FASTQ filenames or Sample Sheet");
-     }
-  } else {
-     if (fq2_path.empty() && sampleList.empty()) {
-       throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (defined, undefined). Both fastq1 and fastq2 must be defined.");
-     }
-     if (fq2_path.empty() && !sampleList.empty()) {
-       throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (defined, undefined) and Sample Sheet defined. Set either FASTQ filenames or Sample Sheet");
-     }
-     if (!fq2_path.empty() && !sampleList.empty()) {
-       throw std::runtime_error("FASTQ filenames (fastq1, fastq2) = (defined, defined) and Sample Sheet defined. Set either FASTQ filenames or Sample Sheet");
-     }
-  };
-
-  // Sample Sheet must satisfy the following format:
+  // Sample Sheet must satisfy the following format:     
   // #sample_id,fastq1,fastq2,rg,platform_id,library_id
-
-  SampleSheetMap SampleData;
-  std::vector<SampleDetails> SampleInfoVect;
-  if (sampleList.empty()){
-    SampleDetails SampleInfo;
-    SampleInfo.fastqR1 = fq1_path;
-    SampleInfo.fastqR2 = fq2_path;
-    SampleInfo.ReadGroup = read_group;
-    SampleInfo.Platform = platform_id;
-    SampleInfo.LibraryID = library_id;
-    SampleInfoVect.push_back(SampleInfo);
-    SampleData.insert(make_pair(sample_id, SampleInfoVect));
-  }else{
-    SampleSheet my_sheet(sampleList);
-    SampleData=my_sheet.get();
-  };
+    
+  SampleSheetMap sample_data;
+  std::vector<SampleDetails> sample_info_vect;
+  if (sampleList.empty()) {
+    if (fq1_path.empty() || fq2_path.empty()) {
+      LOG(ERROR) << "Either --sample-sheet or --fastq1,fastq2 needs to be specified";
+      throw invalidParam("");
+    }
+    else {
+      SampleDetails sample_info;
+      sample_info.fastqR1 = fq1_path;
+      sample_info.fastqR2 = fq2_path;
+      sample_info.ReadGroup = read_group;
+      sample_info.Platform = platform_id;
+      sample_info.LibraryID = library_id;
+      sample_info_vect.push_back(sample_info);
+      sample_data.insert(make_pair(sample_id, sample_info_vect));
+	}
+  }
+  else {
+    if (!fq1_path.empty() || !fq2_path.empty()) {
+      LOG(ERROR) << "--sample-sheet and --fastq1,fastq2 cannot be specified at the same time";
+      throw invalidParam("");
+    }
+    else {
+      SampleSheet my_sheet(sampleList);
+      sample_data = my_sheet.get();
+    }
+  }
 
   // start execution
   std::string parts_dir;
   std::string temp_dir = conf_temp_dir + "align";
   create_dir(temp_dir);
 
+  // Check if the output path is writable:
   if (boost::filesystem::exists(output_path) && !boost::filesystem::is_directory(output_path)) {
     throw fileNotFound("Output path '" +  output_path + "' is not a directory");
   }
@@ -121,7 +113,7 @@ int align_main(int argc, char** argv,
   std::string output_path_temp;
   std::string BAMfile;
   // Going through each line in the Sample Sheet:
-  for (auto pair : SampleData) {
+  for (auto pair : sample_data) {
     std::string sample_id = pair.first;
     std::vector<SampleDetails> list = pair.second;
 
