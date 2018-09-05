@@ -32,6 +32,7 @@ void RTCWorker::check() {
 
   for (int i = 0; i < known_indels_.size(); i++) {
     known_indels_[i] = check_input(known_indels_[i]);
+    check_vcf_index(known_indels_[i]);
   }
 }
 
