@@ -31,15 +31,24 @@ void MarkdupWorker::setup() {
     throw internalError("Failed to update limit");
   }
   getrlimit(RLIMIT_NOFILE, &file_limit);
-  if (file_limit.rlim_cur != get_config<int>("markdup.max_files") || 
+  if (file_limit.rlim_cur != get_config<int>("markdup.max_files") ||
       file_limit.rlim_max != get_config<int>("markdup.max_files")) {
     throw internalError("Failed to update limit");
   }
 
   // Check if bai file of output exists:
-  if (boost::filesystem::exists(output_file_ + ".bai") {
-    remove_path(output_file_ + ".bai");
-    DLOG(INFO) << "Removing '" << output_file_ + ".bai" << "'";
+  std::string bai = output_file_ + ".bai";
+  boost::filesystem::path p(bai);
+  boost::filesystem::file_status s=status(p);
+  if (boost::filesystem::exists(bai)) {
+    if (s.permission()>= 666){
+       remove_path(output_file_ + ".bai");
+       DLOG(INFO) << "Removing '" << output_file_ + ".bai" << "'";
+    }
+    else{
+       LOG(ERROR) << "No permission to modify or remove " << bai;
+       throw silentExit();
+    }
   }
 
   // create cmd
