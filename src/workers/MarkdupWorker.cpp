@@ -13,6 +13,7 @@ MarkdupWorker::MarkdupWorker(std::string input_path,
 {
   // check output
   output_file_ = check_output(output_path, flag_f, true);
+  output_file_ + ".bai" = check_output(output_path + ".bai", flag_f, true);
   input_path_ = input_path;
 }
 
@@ -34,21 +35,6 @@ void MarkdupWorker::setup() {
   if (file_limit.rlim_cur != get_config<int>("markdup.max_files") ||
       file_limit.rlim_max != get_config<int>("markdup.max_files")) {
     throw internalError("Failed to update limit");
-  }
-
-  // Check if bai file of output exists:
-  std::string bai = output_file_ + ".bai";
-  boost::filesystem::path p(bai);
-  boost::filesystem::file_status s=status(p);
-  if (boost::filesystem::exists(bai)) {
-    if (s.permission()>= 666){
-       remove_path(output_file_ + ".bai");
-       DLOG(INFO) << "Removing '" << output_file_ + ".bai" << "'";
-    }
-    else{
-       LOG(ERROR) << "No permission to modify or remove " << bai;
-       throw silentExit();
-    }
   }
 
   // create cmd
