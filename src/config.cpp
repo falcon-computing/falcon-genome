@@ -179,8 +179,13 @@ int init_config(boost::program_options::options_description conf_opt) {
   set_config<int>("gatk.depth.memory", "gatk.memory");
 
   // create temp dir
-  std::string username("");
-  username = std::getenv("USER");
+  std::string username;
+  if (std::getenv("USER")) {
+    username = std::getenv("USER");
+  }
+  else {
+    username = "root";
+  }
   conf_temp_dir = get_config<std::string>("temp_dir") +
                   "/fcs-genome-" +
                   username +
