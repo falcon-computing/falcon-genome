@@ -103,8 +103,11 @@ int align_main(int argc, char** argv,
   std::string temp_dir = conf_temp_dir + "align";
   create_dir(temp_dir);
 
-  // Check if the output path is writable:
-  if (boost::filesystem::exists(output_path) && !boost::filesystem::is_directory(output_path)) {
+  // Check if the output path directory is writable:
+  boost::filesystem::path p(output_path);
+  boost::filesystem::file_status s=status(p);
+  if (boost::filesystem::exists(output_path) && s.permission() != 777) {
+    LOG(ERROR) << 
     throw fileNotFound("Output path '" +  output_path + "' is not a directory");
   }
 
