@@ -135,6 +135,25 @@ Executor::Executor(std::string job_name,
   // create temp dir for the executor
   temp_dir_ = conf_temp_dir + "/executor";
   create_dir(temp_dir_);
+
+  // create log folder :  
+  std::string log_dir_ = get_config<std::string>("log_dir");
+  boost::filesystem::path p(log_dir_);
+  boost::filesystem::path dir = p.parent_path();
+  if (!boost::filesystem::exists(log_dir_)){
+    boost::filesystem::path p(log_dir_);
+    boost::filesystem::path dir = p.parent_path();
+    if (!is_folder_writable(dir.c_str())) {
+      LOG(WARNING) << dir << " Failed to be created. Parent directory has no writting permission";
+      LOG(WARNING) << "Using " + conf_temp_dir + "/log/ instead";
+      log_dir_ = conf_temp_dir + "/log"
+      boost::filesystem::create_directories(log_dir_);
+    }
+    else{
+      boost::filesystem::create_directories(log_dir_);
+    }
+  }
+  
 }
 
 Executor::~Executor() {
@@ -175,9 +194,6 @@ void Executor::addTask(Worker_ptr worker, bool wait_for_prev) {
 
 void Executor::run() {
   uint64_t start_ts = getTs();
-
-  create_dir(get_config<std::string>("log_dir"));
-  log_fname_ = get_log_name(job_name_);
 
   LOG(INFO) << "Start doing " << job_name_;
 

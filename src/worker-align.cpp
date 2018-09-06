@@ -102,19 +102,6 @@ int align_main(int argc, char** argv,
   std::string temp_dir = conf_temp_dir + "align";
   create_dir(temp_dir);
 
-  if (boost::filesystem::exists(output_path) && !is_folder_writable(output_path.c_str())) {
-    LOG(ERROR) << output_path << " does not have permission to write";
-    throw silentExit(); 
-  }
-  else{
-    boost::filesystem::path p(output_path);
-    boost::filesystem::path dir = p.parent_path();
-    if (!is_folder_writable(output_path.c_str())) {
-      LOG(ERROR) << output_path << " cannot be created. Parent directory " << dir << " does not have permission to write.";
-      throw silentExit();
-    }
-  }
-
   // check available space in temp dir
   namespace fs = boost::filesystem;
   std::string output_path_temp;
@@ -128,13 +115,8 @@ int align_main(int argc, char** argv,
     std::vector<std::string> input_files_ ;
     int counting_rg = 0;
 
-    DLOG(INFO) << "Creating (i==0): " + output_path + "/" + sample_id;
-    try{
-       create_dir(output_path + "/" + sample_id);
-    } catch (po::error &e) {
-       LOG(ERROR) << output_path + "/" + sample_id << " cannot be created";
-       throw silentExit();
-    }
+    DLOG(INFO) << "Creating : " + output_path + "/" + sample_id;
+    create_dir(output_path + "/" + sample_id);
 
     // Loop through all the pairs of FASTQ files:
     for (int i = 0; i < list.size(); ++i) {
@@ -152,7 +134,7 @@ int align_main(int argc, char** argv,
       DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
       
       uint64_t start_align = getTs();
-      Executor executor("bwa mem for " + sample_id + " - Read Group : " + read_group);
+      Executor executor("bwa mem " + sample_id + " ReadGroup" + read_group);
       Worker_ptr worker(new BWAWorker(ref_path,
            fq1_path, fq2_path,
            parts_dir,
@@ -163,16 +145,6 @@ int align_main(int argc, char** argv,
       executor.addTask(worker);
       executor.run();
 
-      // Generating Log File for each sample :
-      if (!sampleList.empty()) {
-        std::string log_filename  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
-        std::ofstream outfile;
-        outfile.open(log_filename, std::fstream::in | std::fstream::out | std::fstream::app);
-        outfile << sample_id << ":" << read_group << ": Start doing bwa mem " << std::endl;
-        outfile << sample_id << ":" << read_group << ": bwa mem finishes in " << getTs() - start_align << " seconds" << std::endl;
-        outfile.close(); outfile.clear();
-      }
-
       DLOG(INFO) << "Alignment Completed for " << sample_id;
 
       // Preparing Parts BAM for merge:
@@ -180,13 +152,13 @@ int align_main(int argc, char** argv,
       for (int n = 0; n < input_files_.size(); n++) {
           inputBAMsforMerge = inputBAMsforMerge + " " + input_files_[n];
       }      
-
       counting_rg++;
 
       // Once the sample reach its last pair of FASTQ files, we proceed to merge and mark duplicates (if requested): 
       if (i == list.size()-1){ 
 	std::string mergeBAM;
         if (!flag_align_only){
+          // Planning to mark duplicates, so this BAM file will go to the temporal folder:
 	  mergeBAM = temp_dir + "/" + sample_id + "/" + sample_id + ".bam";
         } 
         else {
@@ -202,7 +174,7 @@ int align_main(int argc, char** argv,
         merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
         merge_log << sample_id << ":" << "Start Merging BAM Files " << std::endl;
 
-        Executor merger_executor("Merge BAM files for " + sample_id);
+        Executor merger_executor("Merge BAM files " + sample_id);
         Worker_ptr merger_worker(new MergeBamWorker(inputBAMsforMerge, mergeBAM, check_parts, flag_f));
         merger_executor.addTask(merger_worker);
         merger_executor.run();
@@ -219,23 +191,14 @@ int align_main(int argc, char** argv,
 	  std::string markedBAM;                                                                                                                                             
 	  markedBAM = output_path + "/" + sample_id + "/" + sample_id  + "_marked.bam";                                                                       
 	  uint64_t start_markdup = getTs();                                                                                                                             
-	  Executor executor("Mark Duplicates");                                                                                                                              
+	  Executor executor("Mark Duplicates " + sample_id);                                                                                                                              
 	  Worker_ptr worker(new MarkdupWorker(mergeBAM, markedBAM, flag_f));
           executor.addTask(worker);                                                                                                                                          
 	  executor.run();                                                                                                                                                      
-	  if (!sampleList.empty()) {                                                                                                                                         
-	    std::string log_filename_md  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";                                                                    
-	    std::ofstream bwa_log;                                                                                                                                          
-	    bwa_log.open(log_filename_md, std::ofstream::out | std::ofstream::app);                                                                                         
-	    bwa_log << sample_id << ": " << read_group  << ": Start doing Mark Duplicates " << std::endl;                                                                   
-	    bwa_log << sample_id << ": " << read_group  << ": Mark Duplicates finishes in " << getTs() - start_markdup << " seconds" << std::endl;                          
-	    bwa_log.close(); bwa_log.clear();                                                                                                                               
-	  }                                                                                    
 	}
 
         // Removing temporal data :
         remove_path(temp_dir + "/" + sample_id);
-
       }
      
     }; // for (int i = 0; i < list.size(); ++i)  ends
