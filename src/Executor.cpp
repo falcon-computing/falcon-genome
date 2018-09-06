@@ -146,7 +146,7 @@ Executor::Executor(std::string job_name,
     if (!is_folder_writable(dir.c_str())) {
       LOG(WARNING) << dir << " Failed to be created. Parent directory has no writting permission";
       LOG(WARNING) << "Using " + conf_temp_dir + "/log/ instead";
-      log_dir_ = conf_temp_dir + "/log"
+      log_dir_ = conf_temp_dir + "/log";
       boost::filesystem::create_directories(log_dir_);
     }
     else{
