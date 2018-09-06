@@ -68,7 +68,6 @@ int align_main(int argc, char** argv,
 
   // Sample Sheet must satisfy the following format:     
   // #sample_id,fastq1,fastq2,rg,platform_id,library_id
-    
   SampleSheetMap sample_data;
   std::vector<SampleDetails> sample_info_vect;
   if (sampleList.empty()) {
@@ -103,12 +102,17 @@ int align_main(int argc, char** argv,
   std::string temp_dir = conf_temp_dir + "align";
   create_dir(temp_dir);
 
-  // Check if the output path directory is writable:
-  boost::filesystem::path p(output_path);
-  boost::filesystem::file_status s=status(p);
-  if (boost::filesystem::exists(output_path) && s.permission() != 777) {
-    LOG(ERROR) << 
-    throw fileNotFound("Output path '" +  output_path + "' is not a directory");
+  if (boost::filesystem::exists(output_path) && !is_folder_writable(output_path.c_str())) {
+    LOG(ERROR) << output_path << " does not have permission to write";
+    throw silentExit(); 
+  }
+  else{
+    boost::filesystem::path p(output_path);
+    boost::filesystem::path dir = p.parent_path();
+    if (!is_folder_writable(output_path.c_str())) {
+      LOG(ERROR) << output_path << " cannot be created. Parent directory " << dir << " does not have permission to write.";
+      throw silentExit();
+    }
   }
 
   // check available space in temp dir
@@ -124,20 +128,21 @@ int align_main(int argc, char** argv,
     std::vector<std::string> input_files_ ;
     int counting_rg = 0;
 
-    // Loop through all the FASTQ files:
+    DLOG(INFO) << "Creating (i==0): " + output_path + "/" + sample_id;
+    try{
+       create_dir(output_path + "/" + sample_id);
+    } catch (po::error &e) {
+       LOG(ERROR) << output_path + "/" + sample_id << " cannot be created";
+       throw silentExit();
+    }
+
+    // Loop through all the pairs of FASTQ files:
     for (int i = 0; i < list.size(); ++i) {
       fq1_path = list[i].fastqR1;
       fq2_path = list[i].fastqR2;
       read_group = list[i].ReadGroup;
       platform_id = list[i].Platform;
       library_id = list[i].LibraryID;
-
-      // Each sample has at least 1 pair of FASTQ files. So, it is safe to create
-      // the main output folder:
-      if (i == 0) {
-        DLOG(INFO) << "Creating (i==0): " + output_path + "/" + sample_id;
-        create_dir(output_path + "/" + sample_id);
-      }
 
       // Every sample will have a temporal folder where each pair of FASTQ files will have its own
       // folder using the Read Group as label.
@@ -147,7 +152,7 @@ int align_main(int argc, char** argv,
       DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
       
       uint64_t start_align = getTs();
-      Executor executor("bwa mem");
+      Executor executor("bwa mem for " + sample_id + " - Read Group : " + read_group);
       Worker_ptr worker(new BWAWorker(ref_path,
            fq1_path, fq2_path,
            parts_dir,
@@ -170,82 +175,70 @@ int align_main(int argc, char** argv,
 
       DLOG(INFO) << "Alignment Completed for " << sample_id;
 
-      // !flag_align_only means all parts BAM files will be sorted, 
-      // marked duplicated and merged into a single BAM.  Otherwise, sorting and merging will be
-      // done only. 
+      // Preparing Parts BAM for merge:
+      get_input_list(parts_dir, input_files_, ".*/part-[0-9].*", true);
+      for (int n = 0; n < input_files_.size(); n++) {
+          inputBAMsforMerge = inputBAMsforMerge + " " + input_files_[n];
+      }      
 
-      if (!flag_align_only) {
-        std::string markedBAM;
-        markedBAM = temp_dir + "/" + sample_id + "/" + sample_id + "_" + read_group + "_marked.bam";
-        if (i==0){
-           inputBAMsforMerge = markedBAM + " ";
-           counting_rg++;
-        } else {
-           inputBAMsforMerge = inputBAMsforMerge + " " + markedBAM;
-           counting_rg++;
-        }
-        
-        uint64_t start_markdup = getTs();
-        Executor executor("Mark Duplicates");
-        Worker_ptr worker(new MarkdupWorker(parts_dir, markedBAM, flag_f));
-        executor.addTask(worker);
-        executor.run();
-        if (!sampleList.empty()) {
-           std::string log_filename_md  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
-           std::ofstream bwa_log;
-           bwa_log.open(log_filename_md, std::ofstream::out | std::ofstream::app);
-           bwa_log << sample_id << ": " << read_group  << ": Start doing Mark Duplicates " << std::endl;
-           bwa_log << sample_id << ": " << read_group  << ": Mark Duplicates finishes in " << getTs() - start_markdup << " seconds" << std::endl;
-           bwa_log.close(); bwa_log.clear();
-        }
-          
-      } else {
-        get_input_list(parts_dir, input_files_, ".*/part-[0-9].*", true);
-        for (int n = 0; n < input_files_.size(); n++) {
-            inputBAMsforMerge = inputBAMsforMerge + " " + input_files_[n];
-        }
-        counting_rg++;
-      } // if (!flag_align_only): Marking Duplicates condition ends
+      counting_rg++;
 
-      int check_parts = 1;  // It is 1 if sample has multiple pairs of FASTQ files
-      if (counting_rg == 1) check_parts = 0;
- 
-      // Merge BAM files for samples that have more than one pair of FASTQ files:
-      if (i == list.size()-1){
-        std::string mergeBAM;
+      // Once the sample reach its last pair of FASTQ files, we proceed to merge and mark duplicates (if requested): 
+      if (i == list.size()-1){ 
+	std::string mergeBAM;
         if (!flag_align_only){
-            mergeBAM = output_path + "/" + sample_id + "/" + sample_id + "_marked.bam";
-        } else {
-            mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
-        }	   
+	  mergeBAM = temp_dir + "/" + sample_id + "/" + sample_id + ".bam";
+        } 
+        else {
+	  mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
+	}
+
+        int check_parts = 1;  // It is 1 if sample has multiple pairs of FASTQ files                                                                                         
+	if (counting_rg == 1) check_parts = 0;             
 
         uint64_t start_merging = getTs();
-        std::string log_filename_merge  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
-        std::ofstream merge_log;
+	std::string log_filename_merge  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
+	std::ofstream merge_log;
         merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
         merge_log << sample_id << ":" << "Start Merging BAM Files " << std::endl;
 
-        Executor merger_executor("Merge BAM files");
+        Executor merger_executor("Merge BAM files for " + sample_id);
         Worker_ptr merger_worker(new MergeBamWorker(inputBAMsforMerge, mergeBAM, check_parts, flag_f));
         merger_executor.addTask(merger_worker);
         merger_executor.run();
         if (list.size() > 1){
-           DLOG(INFO) << "Merging BAM files  " << inputBAMsforMerge << " for " << sample_id << " completed " << std::endl;
+	  DLOG(INFO) << "Merging BAM files  " << inputBAMsforMerge << " for " << sample_id << " completed " << std::endl;
         } else {
-           DLOG(INFO) << "BAM file " << inputBAMsforMerge << " for " << sample_id << " posted in main folder " << std::endl; 
+	  DLOG(INFO) << "BAM file " << inputBAMsforMerge << " for " << sample_id << " posted in main folder " << std::endl;
         }
         merge_log << sample_id << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
         merge_log.close(); merge_log.clear();
-      } 
 
+	if (!flag_align_only) {                                                                                                                                              
+	  // Marking Duplicates:                                                                                                       
+	  std::string markedBAM;                                                                                                                                             
+	  markedBAM = output_path + "/" + sample_id + "/" + sample_id  + "_marked.bam";                                                                       
+	  uint64_t start_markdup = getTs();                                                                                                                             
+	  Executor executor("Mark Duplicates");                                                                                                                              
+	  Worker_ptr worker(new MarkdupWorker(mergeBAM, markedBAM, flag_f));
+          executor.addTask(worker);                                                                                                                                          
+	  executor.run();                                                                                                                                                      
+	  if (!sampleList.empty()) {                                                                                                                                         
+	    std::string log_filename_md  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";                                                                    
+	    std::ofstream bwa_log;                                                                                                                                          
+	    bwa_log.open(log_filename_md, std::ofstream::out | std::ofstream::app);                                                                                         
+	    bwa_log << sample_id << ": " << read_group  << ": Start doing Mark Duplicates " << std::endl;                                                                   
+	    bwa_log << sample_id << ": " << read_group  << ": Mark Duplicates finishes in " << getTs() - start_markdup << " seconds" << std::endl;                          
+	    bwa_log.close(); bwa_log.clear();                                                                                                                               
+	  }                                                                                    
+	}
+
+        // Removing temporal data :
+        remove_path(temp_dir + "/" + sample_id);
+
+      }
+     
     }; // for (int i = 0; i < list.size(); ++i)  ends
-
-    for (int i = 0; i < list.size(); ++i) {
-      read_group = list[i].ReadGroup;
-      parts_dir = temp_dir + "/" + sample_id + "/" + read_group;
-      DLOG(INFO) << "Removing " << parts_dir;
-      remove_path(parts_dir);
-    };
     
   }; //for (auto pair : SampleData)
 

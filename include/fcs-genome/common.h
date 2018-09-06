@@ -110,7 +110,7 @@ inline void create_dir(std::string path) {
   if (!boost::filesystem::exists(path)) {
     if (!boost::filesystem::create_directories(path)) {
     //if (!boost::filesystem::exists(path)) {
-      throw fileNotFound("Cannot create dir: " + path);
+       throw fileNotFound("Cannot create dir: " + path);
     }
   }
 }
@@ -231,6 +231,8 @@ void get_input_list(std::string path,
 
 std::vector<std::string> get_lines(std::string fname,
     std::string pattern = ".*");
+
+bool is_folder_writable(const char* str);
 
 uint32_t getTid();
 

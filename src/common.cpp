@@ -232,4 +232,14 @@ std::vector<std::string> get_lines(std::string fname, std::string pattern) {
   }
   return lines;
 }
+
+bool is_folder_writable(const char* str) {
+  if (access(str, W_OK) == 0) {
+    return true;
+  } 
+  else {
+    return false;   
+  }
+}
+
 } // namespace fcsgenome
