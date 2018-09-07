@@ -46,13 +46,17 @@ void Mutect2Worker::check() {
   tumor_path_  = check_input(tumor_path_);
   if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
     germline_path_     = check_input(germline_path_);
+    check_vcf_index(germline_path_);
     panels_of_normals_ = check_input(panels_of_normals_);
+    check_vcf_index(panels_of_normals_);
   } else {
      for (int i = 0; i < dbsnp_path_.size(); i++) {
          dbsnp_path_[i] = check_input(dbsnp_path_[i]);
+         check_vcf_index(dbsnp_path_[i]);
      }
      for (int j = 0; j < cosmic_path_.size(); j++) {
          cosmic_path_[j] = check_input(cosmic_path_[j]);
+         check_vcf_index(cosmic_path_[j]);
      }
   }
 
