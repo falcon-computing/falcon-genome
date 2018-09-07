@@ -65,7 +65,11 @@ void Stage::run() {
   boost::wait_for_all(pending_tasks_.begin(), pending_tasks_.end()); 
 
   // concat all logs
-  std::ofstream fout(executor_->log(), std::ios::out|std::ios::app);
+  //std::ofstream fout(executor_->log(), std::ios::out|std::ios::app);
+  //std::string output_logname=logs_[0];
+  std::string output_logname=executor_->log();
+  //boost::replace_all(output_logname, ".log.0", ".log");
+  std::ofstream fout(output_logname, std::ios::out|std::ios::app); 
   for (int i = 0; i < logs_.size(); i++) {
     std::ifstream fin(logs_[i], std::ios::in);   
     if (fin) {
@@ -138,22 +142,13 @@ Executor::Executor(std::string job_name,
 
   // create log folder :  
   std::string log_dir_ = get_config<std::string>("log_dir");
-  boost::filesystem::path p(log_dir_);
-  boost::filesystem::path dir = p.parent_path();
-  if (!boost::filesystem::exists(log_dir_)){
-    boost::filesystem::path p(log_dir_);
-    boost::filesystem::path dir = p.parent_path();
-    if (!is_folder_writable(dir.c_str())) {
-      LOG(WARNING) << dir << " Failed to be created. Parent directory has no writting permission";
-      LOG(WARNING) << "Using " + conf_temp_dir + "/log/ instead";
-      log_dir_ = conf_temp_dir + "/log";
-      boost::filesystem::create_directories(log_dir_);
-    }
-    else{
-      boost::filesystem::create_directories(log_dir_);
-    }
+  try {
+    create_dir(log_dir_);
+  } catch (silentExit & e) {
+    log_dir_ = "/tmp/log" + job_id_ ;
+    create_dir(log_dir_);
   }
-  
+  //log_fname_ = get_log_name(job_name_);
 }
 
 Executor::~Executor() {
@@ -195,6 +190,7 @@ void Executor::addTask(Worker_ptr worker, bool wait_for_prev) {
 void Executor::run() {
   uint64_t start_ts = getTs();
 
+  //log_fname_ = get_log_name(job_name_);
   LOG(INFO) << "Start doing " << job_name_;
 
   while (!job_stages_.empty()) {
@@ -279,4 +275,5 @@ int Executor::execute(Worker_ptr worker, std::string log) {
     return 1;
   }
 }
+
 } // namespace fcsgenome

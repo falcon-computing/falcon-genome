@@ -62,7 +62,7 @@ class Executor
   void addTask(Worker_ptr worker, bool wait_for_prev = false);
 
  protected:
-  std::string get_log_name();
+  //std::string get_log_name();
 
   int                   num_executors_;
   std::string           job_name_;
@@ -70,6 +70,8 @@ class Executor
   std::string           log_dir_;
   std::string           log_fname_;
   std::string           temp_dir_;
+
+  std::string get_log_name(std::string var, int index);
 
   boost::atomic<int>               job_id_;
   //std::map<boost::thread::id, int> thread_table_;

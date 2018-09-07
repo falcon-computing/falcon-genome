@@ -156,21 +156,21 @@ int align_main(int argc, char** argv,
 
       // Once the sample reach its last pair of FASTQ files, we proceed to merge and mark duplicates (if requested):
       if (i == list.size()-1){
-	      std::string mergeBAM;
+	std::string mergeBAM;
         if (!flag_align_only){
           // Planning to mark duplicates, so this BAM file will go to the temporal folder:
-	        mergeBAM = temp_dir + "/" + sample_id + "/" + sample_id + ".bam";
+          mergeBAM = temp_dir + "/" + sample_id + "/" + sample_id + ".bam";
         }
         else {
-	        mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
-	      }
+          mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
+	}
 
         int check_parts = 1;  // It is 1 if sample has multiple pairs of FASTQ files
-	      if (counting_rg == 1) check_parts = 0;
+        if (counting_rg == 1) check_parts = 0;
 
         uint64_t start_merging = getTs();
-	      std::string log_filename_merge  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
-	      std::ofstream merge_log;
+        std::string log_filename_merge  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
+        std::ofstream merge_log;
         merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
         merge_log << sample_id << ":" << "Start Merging BAM Files " << std::endl;
 
@@ -186,16 +186,16 @@ int align_main(int argc, char** argv,
         merge_log << sample_id << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
         merge_log.close(); merge_log.clear();
 
-	      if (!flag_align_only) {
-	        // Marking Duplicates:
-	        std::string markedBAM;
-	        markedBAM = output_path + "/" + sample_id + "/" + sample_id  + "_marked.bam";
-	        uint64_t start_markdup = getTs();
-	        Executor executor("Mark Duplicates " + sample_id);
-	        Worker_ptr worker(new MarkdupWorker(mergeBAM, markedBAM, flag_f));
+	if (!flag_align_only) {
+	  // Marking Duplicates:
+	  std::string markedBAM;
+	  markedBAM = output_path + "/" + sample_id + "/" + sample_id  + "_marked.bam";
+	  uint64_t start_markdup = getTs();
+	  Executor executor("Mark Duplicates " + sample_id);
+	  Worker_ptr worker(new MarkdupWorker(mergeBAM, markedBAM, flag_f));
           executor.addTask(worker);
-	        executor.run();
-	      }
+	  executor.run();
+        }
 
         // Removing temporal data :
         remove_path(temp_dir + "/" + sample_id);
