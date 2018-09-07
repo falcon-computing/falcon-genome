@@ -39,7 +39,8 @@ void sigint_handler(int s) {
 Stage::Stage(Executor* executor): executor_(executor) {;}
 
 void Stage::add(Worker_ptr worker) {
-  logs_.push_back(get_log_name(executor_->job_name(), logs_.size()));
+  DLOG(INFO) << "Stage::add " << executor_->get_log_name(executor_->job_name(), logs_.size());
+  logs_.push_back(executor_->get_log_name(executor_->job_name(), logs_.size()));
   tasks_.push_back(worker);
 }
 
@@ -65,7 +66,8 @@ void Stage::run() {
   boost::wait_for_all(pending_tasks_.begin(), pending_tasks_.end()); 
 
   // concat all logs
-  std::ofstream fout(executor_->log(), std::ios::out|std::ios::app);
+  std::string output_logname=executor_->log();
+  std::ofstream fout(output_logname, std::ios::out|std::ios::app); 
   for (int i = 0; i < logs_.size(); i++) {
     std::ifstream fin(logs_[i], std::ios::in);   
     if (fin) {
@@ -135,6 +137,18 @@ Executor::Executor(std::string job_name,
   // create temp dir for the executor
   temp_dir_ = conf_temp_dir + "/executor";
   create_dir(temp_dir_);
+
+  // crate log folder :  
+  log_dir_ = get_config<std::string>("log_dir");
+  try {
+    create_dir(log_dir_);
+  } catch (silentExit & e) {
+    std::string username("");
+    username = std::getenv("USER");
+    log_dir_ = "/tmp/log" + username;
+    create_dir(log_dir_);
+  }
+  log_fname_ = get_log_name(job_name);
 }
 
 Executor::~Executor() {
@@ -176,9 +190,7 @@ void Executor::addTask(Worker_ptr worker, bool wait_for_prev) {
 void Executor::run() {
   uint64_t start_ts = getTs();
 
-  create_dir(get_config<std::string>("log_dir"));
-  log_fname_ = get_log_name(job_name_);
-
+  //log_fname_ = get_log_name(job_name_); 
   LOG(INFO) << "Start doing " << job_name_;
 
   while (!job_stages_.empty()) {
@@ -263,4 +275,35 @@ int Executor::execute(Worker_ptr worker, std::string log) {
     return 1;
   }
 }
+
+std::string Executor:: get_log_name(std::string job_name, int idx) {
+  time_t timestamp = ::time(0);
+  struct ::tm tm_time;
+  localtime_r(&timestamp, &tm_time);
+
+  // manipulate stage_name to replace all spaces and to lower case
+  std::string log_name = job_name;
+  std::transform(log_name.begin(), log_name.end(), log_name.begin(),
+		   [](char c) {
+		     return c == ' ' ? '-' : ::tolower(c);
+		   });
+
+  std::stringstream ss;
+  ss << log_dir_ << "/"
+     << log_name << "-"
+     << 1900 + tm_time.tm_year
+     << std::setw(2) << std::setfill('0') << 1+tm_time.tm_mon
+     << std::setw(2) << std::setfill('0') << tm_time.tm_mday
+     << '-'
+     << std::setw(2) << std::setfill('0') << tm_time.tm_hour
+     << std::setw(2) << std::setfill('0') << tm_time.tm_min
+     << std::setw(2) << std::setfill('0') << tm_time.tm_sec
+     << ".log";
+  if (idx >= 0) {
+    ss << "." << idx;
+  }
+  DLOG(INFO) << "Log File : "  << ss.str();
+  return  ss.str();
+}
+
 } // namespace fcsgenome

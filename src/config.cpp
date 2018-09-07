@@ -352,7 +352,7 @@ int init(char** argv, int argc) {
   }
 
   // Other starting procedures
-  //create_dir(get_config<std::string>("log_dir"));
+  // create_dir(get_config<std::string>("log_dir"));
   create_dir(conf_temp_dir);
 
   // set main thread pid
@@ -743,12 +743,10 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
       if (boost::filesystem::exists(intv_paths[i])) {
         break;
       }
-
       boost::filesystem::copy_file(org_intv, intv_paths[i]);
+    }
+    return intv_paths;
   }
-  return intv_paths;
-}
-
 }
 
 void check_vcf_index(std::string inputVCF){

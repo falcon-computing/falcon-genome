@@ -61,10 +61,14 @@ class Executor
 
   void addTask(Worker_ptr worker, bool wait_for_prev = false);
 
+  std::string get_log_name(std::string fname, int a = -1);
+
  protected:
+
   int                   num_executors_;
   std::string           job_name_;
   std::queue<Stage_ptr> job_stages_; 
+  std::string           log_dir_;
   std::string           log_fname_;
   std::string           temp_dir_;
 

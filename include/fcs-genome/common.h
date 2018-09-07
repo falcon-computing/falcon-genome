@@ -10,6 +10,7 @@
 #include <sys/time.h>
 #include <syscall.h>
 #include <time.h>
+#include <regex>
 
 #ifdef NDEBUG
 #define LOG_HEADER "fcs-genome"
@@ -106,11 +107,19 @@ inline void log_time(std::string stage_name, uint64_t start_ts) {
             << getTs() - start_ts << " seconds";
 }
 
+bool is_folder_writable(const char* str);
+
 inline void create_dir(std::string path) {
-  if (!boost::filesystem::exists(path)) {
-    if (!boost::filesystem::create_directories(path)) {
-    //if (!boost::filesystem::exists(path)) {
-      throw fileNotFound("Cannot create dir: " + path);
+  if (!boost::filesystem::exists(path)){
+    boost::filesystem::path p(path);
+    boost::filesystem::path dir = p.parent_path();
+    if (!is_folder_writable(dir.c_str())) {
+       LOG(ERROR) << path << " cannot be created. Parent directory either has no writting permission or does not exist.";
+       throw silentExit();
+    }
+    else {
+       DLOG(INFO) << "Creating " << path;
+       boost::filesystem::create_directories(path);
     }
   }
 }
@@ -223,7 +232,7 @@ std::string get_absolute_path(std::string path);
 std::string check_input(std::string path, bool req = true);
 std::string check_output(std::string path, bool &f, bool req_file = false);
 std::string get_bin_dir();
-std::string get_log_name(std::string job_name, int idx = -1);
+//std::string get_log_name(std::string job_name, int idx = -1);
 void get_input_list(std::string path, 
     std::vector<std::string> &list,
     std::string pattern = ".*",
