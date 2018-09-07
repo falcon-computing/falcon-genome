@@ -169,35 +169,6 @@ std::string get_bin_dir() {
   return bin_path.parent_path().string();
 }
 
-std::string get_log_name(std::string job_name, int idx) {
-  time_t timestamp = ::time(0);
-  struct ::tm tm_time;
-  localtime_r(&timestamp, &tm_time);
-
-  // manipulate stage_name to replace all spaces and to lower case
-  std::string log_name = job_name;
-  std::transform(log_name.begin(), log_name.end(), log_name.begin(),
-      [](char c) {
-        return c == ' ' ? '-' : ::tolower(c);
-      });
-
-  std::stringstream ss;
-  ss << get_config<std::string>("log_dir") << "/"
-     << log_name << "-"
-     << 1900 + tm_time.tm_year
-     << std::setw(2) << std::setfill('0') << 1+tm_time.tm_mon
-     << std::setw(2) << std::setfill('0') << tm_time.tm_mday
-     << '-'
-     << std::setw(2) << std::setfill('0') << tm_time.tm_hour
-     << std::setw(2) << std::setfill('0') << tm_time.tm_min
-     << std::setw(2) << std::setfill('0') << tm_time.tm_sec
-     << ".log";
-  if (idx >= 0) {
-    ss << "." << idx;
-  }
-  return get_absolute_path(ss.str());
-}
-
 unsigned int l_distance(const std::string& s1, const std::string& s2) 
 {
   const std::size_t len1 = s1.size(), len2 = s2.size();
