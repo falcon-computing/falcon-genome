@@ -190,7 +190,7 @@ void Executor::addTask(Worker_ptr worker, bool wait_for_prev) {
 void Executor::run() {
   uint64_t start_ts = getTs();
 
-  //log_fname_ = get_log_name(job_name_);
+  log_fname_ = get_log_name(job_name_);
   LOG(INFO) << "Start doing " << job_name_;
 
   while (!job_stages_.empty()) {

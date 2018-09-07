@@ -71,8 +71,6 @@ class Executor
   std::string           log_fname_;
   std::string           temp_dir_;
 
-  std::string get_log_name(std::string var, int index);
-
   boost::atomic<int>               job_id_;
   //std::map<boost::thread::id, int> thread_table_;
   std::map<boost::thread::id, int> pid_table_;
