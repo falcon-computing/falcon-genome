@@ -13,6 +13,7 @@ MarkdupWorker::MarkdupWorker(std::string input_path,
 {
   // check output
   output_file_ = check_output(output_path, flag_f, true);
+  std::string bai_file = check_output(output_path + ".bai", flag_f, true);
   input_path_ = input_path;
 }
 
@@ -31,7 +32,7 @@ void MarkdupWorker::setup() {
     throw internalError("Failed to update limit");
   }
   getrlimit(RLIMIT_NOFILE, &file_limit);
-  if (file_limit.rlim_cur != get_config<int>("markdup.max_files") || 
+  if (file_limit.rlim_cur != get_config<int>("markdup.max_files") ||
       file_limit.rlim_max != get_config<int>("markdup.max_files")) {
     throw internalError("Failed to update limit");
   }
