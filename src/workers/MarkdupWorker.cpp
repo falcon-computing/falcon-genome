@@ -13,7 +13,7 @@ MarkdupWorker::MarkdupWorker(std::string input_path,
 {
   // check output
   output_file_ = check_output(output_path, flag_f, true);
-  output_file_ + ".bai" = check_output(output_path + ".bai", flag_f, true);
+  std::string bai_file = check_output(output_path + ".bai", flag_f, true);
   input_path_ = input_path;
 }
 
