@@ -31,8 +31,8 @@ int align_main(int argc, char** argv,
     ("fastq1,1", po::value<std::string>(), "input pair-end fastq file")
     ("fastq2,2", po::value<std::string>(), "input pair-end fastq file")
     ("output,o", po::value<std::string>()->required(), "output BAM file (if --align-only is set "
-                                "the output will be a directory of BAM "
-                                "files)")
+                                "the output will be a directory of BAM files. if --sample-sheet is set "
+                                " output will be the folder where all outputs of the samples defined in --sample-sheet will be placed)")
     arg_decl_string("sample_sheet,F", "Sample Sheet or Folder")
     arg_decl_string_w_def("rg,R", "sample",   "read group id ('ID' in BAM header)")
     arg_decl_string_w_def("sp,S", "sample",   "sample id ('SM' in BAM header)")
@@ -62,6 +62,10 @@ int align_main(int argc, char** argv,
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
   std::string master_outputdir = output_path;
+
+  if (sampleList.empty()) {
+    output_path = check_output(output_path, flag_f, true);
+  }
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -112,9 +116,13 @@ int align_main(int argc, char** argv,
     std::vector<SampleDetails> list = pair.second;
     std::vector<std::string> input_files_ ;
 
-    DLOG(INFO) << "Creating : " + output_path + "/" + sample_id;
-    create_dir(output_path + "/" + sample_id);
-
+    // If sample sheet is defined, then output_path is the parent dir and for each sample in the sample sheet, 
+    // a folder is created in the parent dir. 
+    if (!sampleList.empty()) {
+      DLOG(INFO) << "Creating : " + output_path + "/" + sample_id  + ".bam";
+      create_dir(output_path + "/" + sample_id);
+    } 
+  
     // Loop through all the pairs of FASTQ files:
     for (int i = 0; i < list.size(); ++i) {
       fq1_path = list[i].fastqR1;
@@ -145,28 +153,23 @@ int align_main(int argc, char** argv,
 
       // Once the sample reach its last pair of FASTQ files, we proceed to merge and mark duplicates (if requested):
       if (i == list.size()-1) {
-	std::string mergeBAM;
-        if (!flag_align_only){
-          // Planning to mark duplicates, so this BAM file will go to the temporal folder:
-          mergeBAM = temp_dir + "/" + sample_id + "/" + sample_id + ".bam";
-        }
-        else {
-          mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
-	}
-
-        Executor merger_executor("Merge BAM files " + sample_id);                                                                                                        
-        Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, "merge", flag_f));                                                             
-        merger_executor.addTask(merger_worker);                                                                                                                          
-        merger_executor.run();                                        
-
 	if (!flag_align_only) {
 	  // Marking Duplicates:
 	  std::string markedBAM;
 	  markedBAM = output_path + "/" + sample_id + "/" + sample_id  + "_marked.bam";
+          if (sampleList.empty()) markedBAM = output_path;
 	  Executor executor("Mark Duplicates " + sample_id);
-	  Worker_ptr worker(new SambambaWorker(mergeBAM, markedBAM, "markdup", flag_f));
-          executor.addTask(worker);
+	  Worker_ptr worker(new SambambaWorker(temp_dir + "/" + sample_id, markedBAM, SambambaWorker::MARKDUP, flag_f));
+	  executor.addTask(worker);
 	  executor.run();
+	} 
+        else {
+	  std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
+          if (sampleList.empty()) mergeBAM = output_path;
+          Executor merger_executor("Merge BAM files " + sample_id);
+	  Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, flag_f));
+	  merger_executor.addTask(merger_worker);
+	  merger_executor.run();
         }
 
         // Removing temporal data :

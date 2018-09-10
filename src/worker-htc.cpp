@@ -55,7 +55,7 @@ int htc_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::string sample_name = get_argument<std::string>(cmd_vm, "sample-name", "s");
+  std::string sample_name = get_argument<std::string>(cmd_vm, "sample-name", "n");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts =
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
@@ -91,14 +91,10 @@ int htc_main(int argc, char** argv,
   }
 
   std::string BLAZEtag = "blaze-nam";
-  if (!sample_name.empty()) {
-    BLAZEtag = BLAZEtag + " " + sample_name;
-  }
+  if (!sample_name.empty()) BLAZEtag = BLAZEtag + " " + sample_name;
 
   std::string HTCtag = "Haplotype Caller";
-  if (!sample_name.empty()) {
-    HTCtag = HTCtag + " " + sample_name;
-  }
+  if (!sample_name.empty())  HTCtag = HTCtag + " " + sample_name;
 
   // start an executor for NAM
   Worker_ptr blaze_worker(new BlazeWorker(

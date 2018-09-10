@@ -40,7 +40,7 @@ int markdup_main(int argc, char** argv,
   po::notify(cmd_vm);
 
   Executor executor("Mark Duplicates");
-  Worker_ptr worker(new MarkdupWorker(input_path, output_path, flag_f));
+  Worker_ptr worker(new SambambaWorker(input_path, output_path, SambambaWorker::MARKDUP, flag_f));
   executor.addTask(worker);
   executor.run();
 

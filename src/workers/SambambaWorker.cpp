@@ -9,7 +9,7 @@
 namespace fcsgenome{
 
 SambambaWorker::SambambaWorker(std::string input_path,
-    std::string output_path, std::string action, 
+			       std::string output_path,  Action action, //std::string action, 
     bool &flag_f): Worker(1, get_config<int>("markdup.nt"))
 {
   // check output
@@ -39,39 +39,38 @@ void SambambaWorker::setup() {
     throw internalError("Failed to update limit");
   }
 
-  // create cmd
-  std::stringstream cmd;
-
-  if (action_ == "markdup") {
-    cmd << get_config<std::string>("sambamba_path") << " markdup ";
-  }
-   
-  if (action_ == "merge") {
-    cmd << get_config<std::string>("sambamba_path") << " merge "  << output_file_ << " ";
-  }
-
-  LOG(INFO) << input_files_.size();
+  // create cmd:  
+  std::stringstream inputBAMs;
   for (int i = 0; i < input_files_.size(); i++) {
     if (boost::filesystem::extension(input_files_[i]) == ".bam" || boost::filesystem::extension(input_files_[i]) == ""){
-        cmd << input_files_[i] << " ";
+      inputBAMs << input_files_[i] << " ";
     }
   }
 
-  cmd << "-l 1 " << "-t " << get_config<int>("sambamba.nt") << " ";
-
-  if (action_ == "markdup") {
-    cmd << "--overflow-list-size=" << get_config<int>("sambamba.overflow-list-size") << " "
-        << "--tmpdir=" << get_config<std::string>("temp_dir") << " " << output_file_;
+  std::stringstream cmd;
+  switch (action_) {
+  case MARKDUP: 
+    cmd << get_config<std::string>("sambamba_path") << " markdup "
+        << "--overflow-list-size=" << get_config<int>("markdup.overflow-list-size") << " " 
+        << inputBAMs.str() << " "
+        << "--tmpdir=" << get_config<std::string>("temp_dir") << " " << output_file_ << " "
+        << "-l 1 " << "-t " << get_config<int>("markdup.nt") << " ";
+    break;
+  case MERGE:
+    if (input_files_.size() > 1) {
+      cmd << get_config<std::string>("sambamba_path") << " merge "  << output_file_ << " "
+          << inputBAMs.str() <<    " "
+          << "-l 1 " << "-t " << get_config<int>("mergebam.nt") << " ";    
+    }
+    else { 
+      cmd << "mv " << inputBAMs.str() <<  " " <<  output_file_;
+    }
+    break;
+  default:
+    throw internalError("Invalid action");
   }
-
-  LOG(INFO) << "Reach here " ;
 
   cmd_ = cmd.str();
-  if (action_ == "merge"  && input_files_.size() == 1) {
-     cmd_ = "mv " + input_files_[0] + " " + output_file_;
-  }
-
-  LOG(INFO) << cmd_;
   DLOG(INFO) << cmd_;
 }
 } // namespace fcsgenome
