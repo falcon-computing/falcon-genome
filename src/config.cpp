@@ -303,6 +303,10 @@ int init(char** argv, int argc) {
     arg_decl_int_w_def("mergebam.max_files",    4096, "max opened files in mergebam")
     arg_decl_int_w_def("mergebam.nt",           (16 > cpu_num ? cpu_num : 16),   "thread num in mergebam")
 
+    arg_decl_int_w_def("sambamba.max_files",    4096, "max opened files in markdup")
+    arg_decl_int_w_def("sambamba.nt",           (16 > cpu_num ? cpu_num : 16),   "thread num in markdup")
+    arg_decl_int_w_def("sambamba.overflow-list-size", 2000000, "overflow list size in markdup")
+
     arg_decl_bool("gatk.scalout_mode", "enable scale-out mode for gatk")
     arg_decl_string_w_def("gatk.intv.path",    "", "default path to existing contig intervals")
     arg_decl_int_w_def("gatk.ncontigs", def_ncontigs, "default contig partition num in GATK steps")

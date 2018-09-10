@@ -110,10 +110,7 @@ int align_main(int argc, char** argv,
   for (auto pair : sample_data) {
     std::string sample_id = pair.first;
     std::vector<SampleDetails> list = pair.second;
-
-    std::string inputBAMsforMerge;
     std::vector<std::string> input_files_ ;
-    int counting_rg = 0;
 
     DLOG(INFO) << "Creating : " + output_path + "/" + sample_id;
     create_dir(output_path + "/" + sample_id);
@@ -133,7 +130,6 @@ int align_main(int argc, char** argv,
 
       DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
-      uint64_t start_align = getTs();
       Executor executor("bwa mem " + sample_id + " ReadGroup" + read_group);
       Worker_ptr worker(new BWAWorker(ref_path,
            fq1_path, fq2_path,
@@ -147,15 +143,8 @@ int align_main(int argc, char** argv,
 
       DLOG(INFO) << "Alignment Completed for " << sample_id;
 
-      // Preparing Parts BAM for merge:
-      get_input_list(parts_dir, input_files_, ".*/part-[0-9].*", true);
-      for (int n = 0; n < input_files_.size(); n++) {
-          inputBAMsforMerge = inputBAMsforMerge + " " + input_files_[n];
-      }
-      counting_rg++;
-
       // Once the sample reach its last pair of FASTQ files, we proceed to merge and mark duplicates (if requested):
-      if (i == list.size()-1){
+      if (i == list.size()-1) {
 	std::string mergeBAM;
         if (!flag_align_only){
           // Planning to mark duplicates, so this BAM file will go to the temporal folder:
@@ -165,34 +154,17 @@ int align_main(int argc, char** argv,
           mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
 	}
 
-        int check_parts = 1;  // It is 1 if sample has multiple pairs of FASTQ files
-        if (counting_rg == 1) check_parts = 0;
-
-        uint64_t start_merging = getTs();
-        std::string log_filename_merge  = output_path + "/" + sample_id + "/" + sample_id + "_bwa.log";
-        std::ofstream merge_log;
-        merge_log.open(log_filename_merge, std::ofstream::out | std::ofstream::app);
-        merge_log << sample_id << ":" << "Start Merging BAM Files " << std::endl;
-
-        Executor merger_executor("Merge BAM files " + sample_id);
-        Worker_ptr merger_worker(new MergeBamWorker(inputBAMsforMerge, mergeBAM, check_parts, flag_f));
-        merger_executor.addTask(merger_worker);
-        merger_executor.run();
-        if (list.size() > 1){
-	        DLOG(INFO) << "Merging BAM files  " << inputBAMsforMerge << " for " << sample_id << " completed " << std::endl;
-        } else {
-	        DLOG(INFO) << "BAM file " << inputBAMsforMerge << " for " << sample_id << " posted in main folder " << std::endl;
-        }
-        merge_log << sample_id << ":" << "Merging BAM files finishes in " << getTs() - start_merging << " seconds" << std::endl;
-        merge_log.close(); merge_log.clear();
+        Executor merger_executor("Merge BAM files " + sample_id);                                                                                                        
+        Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, "merge", flag_f));                                                             
+        merger_executor.addTask(merger_worker);                                                                                                                          
+        merger_executor.run();                                        
 
 	if (!flag_align_only) {
 	  // Marking Duplicates:
 	  std::string markedBAM;
 	  markedBAM = output_path + "/" + sample_id + "/" + sample_id  + "_marked.bam";
-	  uint64_t start_markdup = getTs();
 	  Executor executor("Mark Duplicates " + sample_id);
-	  Worker_ptr worker(new MarkdupWorker(mergeBAM, markedBAM, flag_f));
+	  Worker_ptr worker(new SambambaWorker(mergeBAM, markedBAM, "markdup", flag_f));
           executor.addTask(worker);
 	  executor.run();
         }

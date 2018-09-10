@@ -113,8 +113,13 @@ inline void create_dir(std::string path) {
   if (!boost::filesystem::exists(path)){
     boost::filesystem::path p(path);
     boost::filesystem::path dir = p.parent_path();
+    DLOG(INFO) << "Parent dir is : " << dir;
+    if (dir == ""){
+      boost::filesystem::path new_full_path( boost::filesystem::current_path() );
+      dir=new_full_path;
+    } 
     if (!is_folder_writable(dir.c_str())) {
-       LOG(ERROR) << path << " cannot be created. Parent directory either has no writting permission or does not exist.";
+       LOG(ERROR) << path << " cannot be created. Parent directory "<< dir << " either has no writting permission or does not exist.";
        throw silentExit();
     }
     else {

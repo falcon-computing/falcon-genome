@@ -71,12 +71,12 @@ int mutect2_main(int argc, char** argv,
   po::notify(cmd_vm);
 
   if (flag_gatk || get_config<bool>("use_gatk4") ) {
-     if (!cosmic_path.empty()) LOG(WARNING) << "cosmic VCF file ignored in GATK4";
-     if (!dbsnp_path.empty())  LOG(WARNING) << "dbSNP VCF file ignored in GATK4";
-     if (normal_name.empty())  throw pathEmpty("normal_name");
-     if (tumor_name.empty())   throw pathEmpty("tumor_name");
-     if (germline_path.empty()) throw pathEmpty("germline_path");
-     if (panels_of_normals.empty()) throw pathEmpty("panels_of_normals");
+    if (!cosmic_path.empty()) LOG(WARNING) << "cosmic VCF file ignored in GATK4";
+    if (!dbsnp_path.empty())  LOG(WARNING) << "dbSNP VCF file ignored in GATK4";
+    if (normal_name.empty())  throw pathEmpty("normal_name");
+    if (tumor_name.empty())   throw pathEmpty("tumor_name");
+    if (germline_path.empty()) throw pathEmpty("germline_path");
+    if (panels_of_normals.empty()) throw pathEmpty("panels_of_normals");
   }
 
   std::string temp_dir = conf_temp_dir + "/mutect2";
