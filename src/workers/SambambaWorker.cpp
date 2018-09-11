@@ -44,7 +44,6 @@ void SambambaWorker::setup() {
   for (int i = 0; i < input_files_.size(); i++) {
     if (boost::filesystem::extension(input_files_[i]) == ".bam" || boost::filesystem::extension(input_files_[i]) == ""){
       inputBAMs << input_files_[i] << " ";
-      LOG(INFO) << inputBAMs ;
     }
   }
  
@@ -56,7 +55,6 @@ void SambambaWorker::setup() {
         << inputBAMs.str() << " "
         << "--tmpdir=" << get_config<std::string>("temp_dir") << " " << output_file_ << " "
         << "-l 1 " << "-t " << get_config<int>("markdup.nt") << " ";
-    LOG(INFO) << cmd;
     break;
   case MERGE:
     if (input_files_.size() > 1) {
@@ -73,7 +71,6 @@ void SambambaWorker::setup() {
   }
 
   cmd_ = cmd.str();
-  LOG(INFO) << cmd_;
   DLOG(INFO) << cmd_;
 }
 } // namespace fcsgenome
