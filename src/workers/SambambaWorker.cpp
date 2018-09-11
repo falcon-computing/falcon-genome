@@ -46,7 +46,7 @@ void SambambaWorker::setup() {
       inputBAMs << input_files_[i] << " ";
     }
   }
- 
+
   std::stringstream cmd;
   switch (action_) {
   case MARKDUP: 
