@@ -21,21 +21,21 @@ SambambaWorker::SambambaWorker(std::string input_path,
 
 void SambambaWorker::check() {
   input_path_ = check_input(input_path_);
-  get_input_list(input_path_, input_files_, ".*/part-[0-9].*", true);
+  get_input_list(input_path_, input_files_, ".*/part-[0-9]*", true);
 }
 
 void SambambaWorker::setup() {
   // update limit
   struct rlimit file_limit;
-  file_limit.rlim_cur = get_config<int>("sambamba.max_files");
-  file_limit.rlim_max = get_config<int>("sambamba.max_files");
+  file_limit.rlim_cur = get_config<int>("markdup.max_files");
+  file_limit.rlim_max = get_config<int>("markdup.max_files");
 
   if (setrlimit(RLIMIT_NOFILE, &file_limit) != 0) {
     throw internalError("Failed to update limit");
   }
   getrlimit(RLIMIT_NOFILE, &file_limit);
-  if (file_limit.rlim_cur != get_config<int>("sambamba.max_files") ||
-      file_limit.rlim_max != get_config<int>("sambamba.max_files")) {
+  if (file_limit.rlim_cur != get_config<int>("markdup.max_files") ||
+      file_limit.rlim_max != get_config<int>("markdup.max_files")) {
     throw internalError("Failed to update limit");
   }
 
@@ -44,9 +44,10 @@ void SambambaWorker::setup() {
   for (int i = 0; i < input_files_.size(); i++) {
     if (boost::filesystem::extension(input_files_[i]) == ".bam" || boost::filesystem::extension(input_files_[i]) == ""){
       inputBAMs << input_files_[i] << " ";
+      LOG(INFO) << inputBAMs ;
     }
   }
-
+ 
   std::stringstream cmd;
   switch (action_) {
   case MARKDUP: 
@@ -55,6 +56,7 @@ void SambambaWorker::setup() {
         << inputBAMs.str() << " "
         << "--tmpdir=" << get_config<std::string>("temp_dir") << " " << output_file_ << " "
         << "-l 1 " << "-t " << get_config<int>("markdup.nt") << " ";
+    LOG(INFO) << cmd;
     break;
   case MERGE:
     if (input_files_.size() > 1) {
@@ -71,6 +73,7 @@ void SambambaWorker::setup() {
   }
 
   cmd_ = cmd.str();
+  LOG(INFO) << cmd_;
   DLOG(INFO) << cmd_;
 }
 } // namespace fcsgenome
