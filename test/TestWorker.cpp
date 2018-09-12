@@ -80,16 +80,16 @@ TEST_F(TestWorker, SambambaWorkerMerge_FromSingleBAM) {
   fcs::remove_path(temp_dir);
 }
 
-TEST_F(TestWorker, SambambaWorkerMarkDup_FromDirBAM) {
+TEST_F(TestWorker, SambambaWorkerMerge_FromSinglePartBAM) {
   std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
   fcs::create_dir(temp_dir);
-  fcs::create_dir(temp_dir + "/dirBAM/");
+  fcs::create_dir(temp_dir + "/dirBAM");
 
   std::string input  = temp_dir + "/dirBAM/" + "part-0000";
-  std::string output = temp_dir + "/" + "marked.bam";
+  std::string output = temp_dir + "/" + "merge.bam";
   bool flag = true;
 
-  fcs::SambambaWorker worker(input, output, fcs::SambambaWorker::MARKDUP, flag);
+  fcs::SambambaWorker worker(input, output, fcs::SambambaWorker::MERGE, flag);
 
   // first check will thrown fileNotFound
   CHECK_EXCEPTION;
@@ -101,19 +101,50 @@ TEST_F(TestWorker, SambambaWorkerMarkDup_FromDirBAM) {
   fcs::remove_path(temp_dir);
 }
 
+TEST_F(TestWorker, SambambaWorkerMarkDup_FromDirBAM) {
+  std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
+  fcs::create_dir(temp_dir);
+  fcs::create_dir(temp_dir + "/dirBAM/RG1/");
+  touch(temp_dir + "/dirBAM/RG1/" + "part-0000");
+  touch(temp_dir + "/dirBAM/RG1/" + "part-0001");
+  fcs::create_dir(temp_dir + "/dirBAM/RG2");
+  touch(temp_dir + "/dirBAM/RG2/" + "part-0000");
+  touch(temp_dir + "/dirBAM/RG2/" + "part-0001");
+
+  std::string input  = temp_dir + "/dirBAM/";
+  std::string output = temp_dir + "/" + "marked.bam";
+  bool flag = true;
+
+  fcs::SambambaWorker worker(input, output, fcs::SambambaWorker::MARKDUP, flag);
+
+  // first check will thrown fileNotFound
+  CHECK_NOEXCEPTION;
+  // create all files
+  touch(input);
+  touch(output);
+  // no exception should be thrown
+  CHECK_NOEXCEPTION;
+  fcs::remove_path(temp_dir);
+}
+
 TEST_F(TestWorker, SambambaWorkerMerge_FromDirBAM) {
   std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
   fcs::create_dir(temp_dir);
-  fcs::create_dir(temp_dir + "/dirBAM/");
+  fcs::create_dir(temp_dir + "/dirBAM/RG1");
+  touch(temp_dir + "/dirBAM/RG1/" + "part-0000");
+  touch(temp_dir + "/dirBAM/RG1/" + "part-0001");
+  fcs::create_dir(temp_dir + "/dirBAM/RG2");
+  touch(temp_dir + "/dirBAM/RG2/" + "part-0000");
+  touch(temp_dir + "/dirBAM/RG2/" + "part-0001");
 
-  std::string input  = temp_dir + "/dirBAM/" + "part-0000";
+  std::string input  = temp_dir + "/dirBAM/";
   std::string output = temp_dir + "/" + "merge.bam";
   bool flag = true;
 
   fcs::SambambaWorker worker(input, output, fcs::SambambaWorker::MERGE, flag);
 
   // first check will thrown fileNotFound
-  CHECK_EXCEPTION;
+  CHECK_NOEXCEPTION;
   // create all files
   touch(input);
   touch(output);
