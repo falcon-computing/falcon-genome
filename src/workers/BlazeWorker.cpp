@@ -22,7 +22,6 @@ void BlazeWorker::check() {
 void BlazeWorker::setup() {
   std::stringstream cmd;
   cmd << nam_path_ << " " << conf_path_;
-
   cmd_ = cmd.str();
 }
 
