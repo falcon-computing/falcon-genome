@@ -10,6 +10,7 @@
 #include "fcs-genome/common.h"
 #include "fcs-genome/Executor.h"
 #include "fcs-genome/workers/BQSRWorker.h"
+#include "fcs-genome/workers/SambambaWorker.h"
 
 namespace fcs = fcsgenome;
 namespace fs = boost::filesystem;
@@ -24,9 +25,145 @@ void touch(std::string path) {
   f.close();
 }
 
+#define CHECK_EXCEPTION try { \
+  worker.check(); \
+  FAIL() << "Expecting exception to be thrown"; \
+  } \
+  catch (...) { \
+  ; \
+  }
+
+#define CHECK_NOEXCEPTION try { \
+  worker.check(); \
+  } catch (...) { \
+  FAIL() << "Not expecting exception to be thrown"; \
+  }
+
+
+TEST_F(TestWorker, SambambaWorkerMarkDup_FromSingleBAM) {
+  std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
+  fcs::create_dir(temp_dir);
+
+  std::string input  = temp_dir + "/" + "first.bam";
+  std::string output = temp_dir + "/" + "marked.bam";
+  bool flag = true;
+
+  fcs::SambambaWorker worker(input, output, fcs::SambambaWorker::MARKDUP, flag);
+
+  // first check will thrown fileNotFound
+  CHECK_EXCEPTION;
+  // create all files
+  touch(input);
+  touch(output);
+  // no exception should be thrown
+  CHECK_NOEXCEPTION;
+  fcs::remove_path(temp_dir);
+}
+
+TEST_F(TestWorker, SambambaWorkerMerge_FromSingleBAM) {
+  std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
+  fcs::create_dir(temp_dir);
+
+  std::string input  = temp_dir + "/" + "first.bam";
+  std::string output = temp_dir + "/" + "merge.bam";
+  bool flag = true;
+
+  fcs::SambambaWorker worker(input, output, fcs::SambambaWorker::MERGE, flag);
+
+  // first check will thrown fileNotFound
+  CHECK_EXCEPTION;
+  // create all files
+  touch(input);
+  touch(output);
+  // no exception should be thrown
+  CHECK_NOEXCEPTION;
+  fcs::remove_path(temp_dir);
+}
+
+TEST_F(TestWorker, SambambaWorkerMarkDup_FromDirBAM) {
+  std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
+  fcs::create_dir(temp_dir);
+  fcs::create_dir(temp_dir + "/dirBAM/");
+
+  std::string input  = temp_dir + "/dirBAM/" + "part-0000";
+  std::string output = temp_dir + "/" + "marked.bam";
+  bool flag = true;
+
+  fcs::SambambaWorker worker(input, output, fcs::SambambaWorker::MARKDUP, flag);
+
+  // first check will thrown fileNotFound
+  CHECK_EXCEPTION;
+  // create all files
+  touch(input);
+  touch(output);
+  // no exception should be thrown
+  CHECK_NOEXCEPTION;
+  fcs::remove_path(temp_dir);
+}
+
+TEST_F(TestWorker, SambambaWorkerMerge_FromDirBAM) {
+  std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
+  fcs::create_dir(temp_dir);
+  fcs::create_dir(temp_dir + "/dirBAM/");
+
+  std::string input  = temp_dir + "/dirBAM/" + "part-0000";
+  std::string output = temp_dir + "/" + "merge.bam";
+  bool flag = true;
+
+  fcs::SambambaWorker worker(input, output, fcs::SambambaWorker::MERGE, flag);
+
+  // first check will thrown fileNotFound
+  CHECK_EXCEPTION;
+  // create all files
+  touch(input);
+  touch(output);
+  // no exception should be thrown
+  CHECK_NOEXCEPTION;
+  fcs::remove_path(temp_dir);
+}
+
+TEST_F(TestWorker, SambambaWorkerMarkDup_FromDirBAM_withDotBAM) {
+  std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
+  fcs::create_dir(temp_dir);
+  fcs::create_dir(temp_dir + "/dirBAM/");
+
+  std::string input  = temp_dir + "/dirBAM/" + "part-0000.bam";
+  std::string output = temp_dir + "/" + "marked.bam";
+  bool flag = true;
+
+  fcs::SambambaWorker worker(input, output, fcs::SambambaWorker::MARKDUP, flag);
+  // first check will thrown fileNotFound
+  CHECK_EXCEPTION;
+  // create all files
+  touch(input);
+  touch(output);
+  // no exception should be thrown
+  CHECK_NOEXCEPTION;
+  fcs::remove_path(temp_dir);
+}
+
+TEST_F(TestWorker, SambambaWorkerMerge_FromDirBAM_withDotBAM) {
+  std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
+  fcs::create_dir(temp_dir);
+  fcs::create_dir(temp_dir + "/dirBAM/");
+
+  std::string input  = temp_dir + "/dirBAM/" + "part-0000.bam";
+  std::string output = temp_dir + "/" + "merge.bam";
+  bool flag = true;
+
+  fcs::SambambaWorker worker(input, output, fcs::SambambaWorker::MERGE, flag);
+  // first check will thrown fileNotFound
+  CHECK_EXCEPTION;
+  // create all files
+  touch(input);
+  touch(output);
+  // no exception should be thrown
+  CHECK_NOEXCEPTION;
+  fcs::remove_path(temp_dir);
+}
+
 TEST_F(TestWorker, TestBQSRWorker_check) {
-  std::string temp_dir = "/tmp/fcs-genome-test-" +
-    std::to_string((long long)fcs::getTid());
+  std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
   fcs::create_dir(temp_dir);
 
   // common input
@@ -37,23 +174,9 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   std::vector<std::string> known;
   known.push_back(temp_dir + "/" + "known1.vcf");
   bool flag = true;
+  bool flag_gatk4 = true;
 
-  fcs::BQSRWorker worker(ref, known, intv, input, output,
-     std::vector<std::string>(), 0, flag, false);
-
-#define CHECK_EXCEPTION try { \
-    worker.check(); \
-    FAIL() << "Expecting exception to be thrown"; \
-  } \
-  catch (...) { \
-    ; \
-  }
-
-#define CHECK_NOEXCEPTION try { \
-    worker.check(); \
-  } catch (...) { \
-    FAIL() << "Not expecting exception to be thrown"; \
-  }
+  fcs::BQSRWorker worker(ref, known, intv, input, output, std::vector<std::string>(), 0, flag, flag_gatk4);
 
   // first check will thrown fileNotFound
   CHECK_EXCEPTION;
@@ -71,33 +194,30 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
 
   // test index
   boost::this_thread::sleep_for(boost::chrono::seconds(1));
-
+  
   touch(known[0]); // now known will be older than idx
-  CHECK_NOEXCEPTION;
-  // no exception will be thrown since the tool will try
-  // to update file
-
+  CHECK_EXCEPTION;
+  
   // test no index exception
   known.push_back(temp_dir + "/" + "known2.vcf.gz");
-
   {
-  fcs::BQSRWorker worker(ref, known, intv, input, output,
-      std::vector<std::string>(), 0, flag, false);
-
-  touch(known[1]);
-  CHECK_EXCEPTION;
-  touch(known[1] + ".idx");
-  CHECK_EXCEPTION;
-  touch(known[1] + ".tbi");
-  CHECK_NOEXCEPTION;
+     output = temp_dir + "/" + "output2.bam";
+     fcs::BQSRWorker worker(ref, known, intv, input, output, std::vector<std::string>(), 0, flag, flag_gatk4);
+  
+     touch(known[1]);
+     CHECK_EXCEPTION;
+     touch(known[1] + ".idx");
+     CHECK_EXCEPTION;
+     touch(known[1] + ".tbi");
+     CHECK_NOEXCEPTION;
   }
-
+  
   // test wrong known site exception
   known.push_back(temp_dir + "/" + "known3.vcf1");
   {
-  fcs::BQSRWorker worker(ref, known, intv, input, output,
-      std::vector<std::string>(), 0, flag, false);
-  CHECK_EXCEPTION;
+     output = temp_dir + "/" + "output3.bam";
+     fcs::BQSRWorker worker(ref, known, intv, input, output, std::vector<std::string>(), 0, flag, flag_gatk4);
+     CHECK_EXCEPTION;
   }
 
   fcs::remove_path(temp_dir);

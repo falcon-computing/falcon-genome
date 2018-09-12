@@ -58,16 +58,16 @@ TEST_F(TestSampleSheetClass, CheckSampleSheet) {
      EXPECT_STREQ(SAMPLE_ID[count].c_str(), sample_id.c_str());
      std::vector<fcs::SampleDetails> list = pair.second;
      for (int i = 0; i < list.size(); ++i) {
-         std::string fastq1 = list[i].fastqR1;
-         std::string fastq2 = list[i].fastqR2;
-         std::string rg = list[i].ReadGroup;
-         std::string platform = list[i].Platform;
-         std::string library_id= list[i].LibraryID;
-         EXPECT_STREQ(FASTQ_R1[count].c_str(), fastq1.c_str());
-         EXPECT_STREQ(FASTQ_R2[count].c_str(), fastq2.c_str());
-         EXPECT_STREQ(READ_GROUP[count].c_str(), rg.c_str());
-         EXPECT_STREQ(PLATFORM.c_str(), platform.c_str());
-         EXPECT_STREQ(LIB[count].c_str(), library_id.c_str());
+        std::string fastq1 = list[i].fastqR1;
+        std::string fastq2 = list[i].fastqR2;
+        std::string rg = list[i].ReadGroup;
+        std::string platform = list[i].Platform;
+        std::string library_id= list[i].LibraryID;
+        EXPECT_STREQ(FASTQ_R1[count].c_str(), fastq1.c_str());
+        EXPECT_STREQ(FASTQ_R2[count].c_str(), fastq2.c_str());
+        EXPECT_STREQ(READ_GROUP[count].c_str(), rg.c_str());
+        EXPECT_STREQ(PLATFORM.c_str(), platform.c_str());
+        EXPECT_STREQ(LIB[count].c_str(), library_id.c_str());
      }
      count++;
    }
@@ -93,17 +93,17 @@ TEST_F(TestSampleSheetClass, CheckSampleSheetPATH) {
       std::string sample_id = pair.first;
       EXPECT_STREQ(SAMPLE_ID[count].c_str(), sample_id.c_str());
       std::vector<fcs::SampleDetails> list = pair.second;
-      for(int i = 0; i < list.size(); ++i) {
-	        std::string fastq1 = list[i].fastqR1;
-	        std::string fastq2 = list[i].fastqR2;
-	        std::string rg = list[i].ReadGroup;
-	        std::string platform = list[i].Platform;
-	        std::string library_id= list[i].LibraryID;
-	        EXPECT_STREQ((SampleSheetPath + "/" + FASTQ_R1[count]).c_str(), fastq1.c_str());
-	        EXPECT_STREQ((SampleSheetPath + "/" + FASTQ_R2[count]).c_str(), fastq2.c_str());
-	        EXPECT_STREQ(READ_GROUP_FOLDER[count].c_str(), rg.c_str());
-	        EXPECT_STREQ(PLATFORM.c_str(), platform.c_str());
-	        EXPECT_STREQ(LIB_FOLDER[count].c_str(), library_id.c_str());
+      for (int i = 0; i < list.size(); ++i) {
+	 std::string fastq1 = list[i].fastqR1;
+	 std::string fastq2 = list[i].fastqR2;
+	 std::string rg = list[i].ReadGroup;
+	 std::string platform = list[i].Platform;
+	 std::string library_id= list[i].LibraryID;
+	 EXPECT_STREQ((SampleSheetPath + "/" + FASTQ_R1[count]).c_str(), fastq1.c_str());
+	 EXPECT_STREQ((SampleSheetPath + "/" + FASTQ_R2[count]).c_str(), fastq2.c_str());
+	 EXPECT_STREQ(READ_GROUP_FOLDER[count].c_str(), rg.c_str());
+	 EXPECT_STREQ(PLATFORM.c_str(), platform.c_str());
+	 EXPECT_STREQ(LIB_FOLDER[count].c_str(), library_id.c_str());
       }
       count++;
   }

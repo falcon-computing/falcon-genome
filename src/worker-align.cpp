@@ -63,12 +63,12 @@ int align_main(int argc, char** argv,
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
   std::string master_outputdir = output_path;
 
+  // finalize argument parsing
+  po::notify(cmd_vm);
+
   if (sampleList.empty()) {
     output_path = check_output(output_path, flag_f, true);
   }
-
-  // finalize argument parsing
-  po::notify(cmd_vm);
 
   // Sample Sheet must satisfy the following format:
   // #sample_id,fastq1,fastq2,rg,platform_id,library_id
