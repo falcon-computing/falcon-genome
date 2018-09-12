@@ -156,15 +156,16 @@ TEST_F(TestWorker, SambambaWorkerMerge_FromDirBAM) {
 TEST_F(TestWorker, SambambaWorkerMarkDup_FromDirBAM_withDotBAM) {
   std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
   fcs::create_dir(temp_dir);
-  fcs::create_dir(temp_dir + "/dirBAM/");
+  fcs::create_dir(temp_dir + "/dirBAM/RG1");
+  touch(temp_dir + "/dirBAM/RG1/" + "part-0000.bam");
 
-  std::string input  = temp_dir + "/dirBAM/" + "part-0000.bam";
+  std::string input  = temp_dir + "/dirBAM/";
   std::string output = temp_dir + "/" + "marked.bam";
   bool flag = true;
 
   fcs::SambambaWorker worker(input, output, fcs::SambambaWorker::MARKDUP, flag);
   // first check will thrown fileNotFound
-  CHECK_EXCEPTION;
+  CHECK_NOEXCEPTION;
   // create all files
   touch(input);
   touch(output);
