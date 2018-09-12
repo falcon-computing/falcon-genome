@@ -158,8 +158,9 @@ int align_main(int argc, char** argv,
 	  std::string markedBAM;
 	  markedBAM = output_path + "/" + sample_id + "/" + sample_id  + "_marked.bam";
           if (sampleList.empty()) markedBAM = output_path;
+          LOG(INFO) << "I am " << markedBAM;
 	  Executor executor("Mark Duplicates " + sample_id);
-	  Worker_ptr worker(new SambambaWorker(temp_dir + "/" + sample_id, markedBAM, SambambaWorker::MARKDUP, flag_f));
+	  Worker_ptr worker(new SambambaWorker(temp_dir + "/" + sample_id , markedBAM, SambambaWorker::MARKDUP, flag_f));
 	  executor.addTask(worker);
 	  executor.run();
 	} 
@@ -167,7 +168,7 @@ int align_main(int argc, char** argv,
 	  std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
           if (sampleList.empty()) mergeBAM = output_path;
           Executor merger_executor("Merge BAM files " + sample_id);
-	  Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, flag_f));
+	  Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id , mergeBAM, SambambaWorker::MERGE, flag_f));
 	  merger_executor.addTask(merger_worker);
 	  merger_executor.run();
         }

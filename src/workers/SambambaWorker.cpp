@@ -21,21 +21,21 @@ SambambaWorker::SambambaWorker(std::string input_path,
 
 void SambambaWorker::check() {
   input_path_ = check_input(input_path_);
-  get_input_list(input_path_, input_files_, ".*/part-[0-9].*", true);
+  get_input_list(input_path_, input_files_, ".*/part-[0-9,.]*", true);
 }
 
 void SambambaWorker::setup() {
   // update limit
   struct rlimit file_limit;
-  file_limit.rlim_cur = get_config<int>("sambamba.max_files");
-  file_limit.rlim_max = get_config<int>("sambamba.max_files");
+  file_limit.rlim_cur = get_config<int>("markdup.max_files");
+  file_limit.rlim_max = get_config<int>("markdup.max_files");
 
   if (setrlimit(RLIMIT_NOFILE, &file_limit) != 0) {
     throw internalError("Failed to update limit");
   }
   getrlimit(RLIMIT_NOFILE, &file_limit);
-  if (file_limit.rlim_cur != get_config<int>("sambamba.max_files") ||
-      file_limit.rlim_max != get_config<int>("sambamba.max_files")) {
+  if (file_limit.rlim_cur != get_config<int>("markdup.max_files") ||
+      file_limit.rlim_max != get_config<int>("markdup.max_files")) {
     throw internalError("Failed to update limit");
   }
 
@@ -46,7 +46,7 @@ void SambambaWorker::setup() {
       inputBAMs << input_files_[i] << " ";
     }
   }
-
+ 
   std::stringstream cmd;
   switch (action_) {
   case MARKDUP: 

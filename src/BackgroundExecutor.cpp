@@ -21,7 +21,6 @@ BackgroundExecutor::BackgroundExecutor(
 
   create_dir(get_config<std::string>("log_dir"));
   std::string log = get_log_name(job_name);
-  //std::string cmd = worker->getCommand() + " &> "; //+ log;
   std::string cmd = worker->getCommand() + " &> " + log;
 
   // fork and execute cmd using system call

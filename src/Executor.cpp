@@ -138,7 +138,7 @@ Executor::Executor(std::string job_name,
   temp_dir_ = conf_temp_dir + "/executor";
   create_dir(temp_dir_);
 
-  // crate log folder :  
+  // create log folder :  
   log_dir_ = get_config<std::string>("log_dir");
   try {
     create_dir(log_dir_);
