@@ -30,7 +30,7 @@ void touch(std::string path) {
   worker.check(); \
   FAIL() << "Expecting exception to be thrown"; \
   } \
-  catch (...) { \
+  catch (...) {				\
   ; \
   }
 
@@ -70,7 +70,7 @@ TEST_F(TestWorker, Testing_get_input_list) {
   try {
     fcs::get_input_list(input, bam_list, ".*/part-[0-9].*.*", true);
   }
-  catch( ... ){
+  catch ( ... ){
     FAIL() << "Parts BAM with no extension may not be in array or input is incorrect";
   }
   for (auto bam : bam_list) {
@@ -78,7 +78,7 @@ TEST_F(TestWorker, Testing_get_input_list) {
   }
   ASSERT_TRUE(bam_set.count(temp_dir + "/dirBAM/RG1/part-0000"));
   ASSERT_TRUE(bam_set.count(temp_dir + "/dirBAM/RG1/part-0001"));
-  EXPECT_EQ(2,bam_list.size());
+  ASSERT_EQ(2, bam_list.size());
 
   bam_list.clear();
   bam_set.clear();
@@ -93,7 +93,7 @@ TEST_F(TestWorker, Testing_get_input_list) {
   try {
     fcs::get_input_list(input, bam_list, ".*/part-[0-9].*.*", true);
   }
-  catch(...){
+  catch ( ... ){
     FAIL() << "Parts BAM with .bam extension may not be in array or input is incorrect";
   }
   for (auto bam : bam_list) {
@@ -101,7 +101,7 @@ TEST_F(TestWorker, Testing_get_input_list) {
   }
   ASSERT_TRUE(bam_set.count(temp_dir + "/dirBAM/RG1/part-0000.bam"));
   ASSERT_TRUE(bam_set.count(temp_dir + "/dirBAM/RG1/part-0001.bam"));
-  EXPECT_EQ(2,bam_list.size());
+  ASSERT_EQ(2, bam_list.size());
 
   bam_list.clear();
   bam_set.clear();
@@ -113,10 +113,12 @@ TEST_F(TestWorker, Testing_get_input_list) {
   fcs::create_dir(temp_dir + "/dirBAM/RG1/");
   try {
     fcs::get_input_list(input, bam_list, ".*/part-[0-9].*.*", true);
-    EXPECT_EQ(0,bam_list.size());
   }
-  catch (...){
-    ;
+  catch (fcs::fileNotFound &e){
+    EXPECT_EQ(e.what(), "Cannot find input file(s) in '" + input + "'");
+  }
+  catch (...) {
+    FAIL() << "Expected filleNotEmpty()";
   }
   bam_list.clear();
   bam_set.clear();
