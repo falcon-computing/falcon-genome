@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <unordered_set>
 #include <gtest/gtest.h>
 
 #include "fcs-genome/BackgroundExecutor.h"
@@ -62,17 +63,25 @@ TEST_F(TestWorker, Testing_get_input_list) {
   touch(temp_dir + "/dirBAM/RG1/" + "part-0000");
   touch(temp_dir + "/dirBAM/RG1/" + "part-0001");  
 
+  std::unordered_set<std::string> bam_set;
+
   std::vector<std::string> bam_list;
   std::string input  = temp_dir + "/dirBAM/";  
   try {
     fcs::get_input_list(input, bam_list, ".*/part-[0-9].*.*", true);
-    ASSERT_TRUE(std::find(bam_list.begin(), bam_list.end(), temp_dir + "/dirBAM/RG1/part-0001") != bam_list.end());
-    EXPECT_EQ(2,bam_list.size());
   }
-  catch(...){
-    ;
+  catch( ... ){
+    FAIL() << "Parts BAM with no extension may not be in array or input is incorrect";
   }
+  for (auto bam : bam_list) {
+    bam_set.insert(bam);
+  }
+  ASSERT_TRUE(bam_set.count(temp_dir + "/dirBAM/RG1/part-0000"));
+  ASSERT_TRUE(bam_set.count(temp_dir + "/dirBAM/RG1/part-0001"));
+  EXPECT_EQ(2,bam_list.size());
+
   bam_list.clear();
+  bam_set.clear();
   fcs::remove_path(temp_dir);
 
   // Case: Folder with parts BAM with .bam extension:
@@ -83,13 +92,19 @@ TEST_F(TestWorker, Testing_get_input_list) {
   touch(temp_dir + "/dirBAM/RG1/" + "part-0001.bam");
   try {
     fcs::get_input_list(input, bam_list, ".*/part-[0-9].*.*", true);
-    ASSERT_TRUE(std::find(bam_list.begin(), bam_list.end(), temp_dir + "/dirBAM/RG1/part-0000.bam") != bam_list.end());
-    EXPECT_EQ(2,bam_list.size());
   }
   catch(...){
-    ;
+    FAIL() << "Parts BAM with .bam extension may not be in array or input is incorrect";
   }
+  for (auto bam : bam_list) {
+    bam_set.insert(bam);
+  }
+  ASSERT_TRUE(bam_set.count(temp_dir + "/dirBAM/RG1/part-0000.bam"));
+  ASSERT_TRUE(bam_set.count(temp_dir + "/dirBAM/RG1/part-0001.bam"));
+  EXPECT_EQ(2,bam_list.size());
+
   bam_list.clear();
+  bam_set.clear();
   fcs::remove_path(temp_dir);
 
   // Case : Folder is empty:
@@ -100,10 +115,11 @@ TEST_F(TestWorker, Testing_get_input_list) {
     fcs::get_input_list(input, bam_list, ".*/part-[0-9].*.*", true);
     EXPECT_EQ(0,bam_list.size());
   }
-  catch(...){
+  catch (...){
     ;
   }
   bam_list.clear();
+  bam_set.clear();
   fcs::remove_path(temp_dir);
 
 }
