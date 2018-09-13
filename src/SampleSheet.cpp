@@ -149,7 +149,7 @@ void SampleSheet::extractDataFromFolder(std::string fname){
    platform = "Illumina";
    SampleDetails sampleInfo;
 
-   LOG(INFO) << "Generating Samples List:";
+   DLOG(INFO) << "Generating Samples List:";
 
    std::string target = "1.fastq.gz";
    std::string task = "2.fastq.gz";
@@ -180,8 +180,8 @@ void SampleSheet::extractDataFromFolder(std::string fname){
        int index=0;
        char number[3];
        if (data_.find(sampleName) == data_.end()) {
-	        sprintf(number,"%02d",index);
- 	        rg = "RG-"+sampleName+"_"+number;
+	  sprintf(number,"%02d",index);
+ 	  rg = "RG-"+sampleName+"_"+number;
           library_id = "LIB"+sampleName+"_"+number;
           sampleInfo.ReadGroup = rg+number;
           sampleInfo.LibraryID = library_id;
@@ -189,7 +189,7 @@ void SampleSheet::extractDataFromFolder(std::string fname){
           data_.insert(make_pair(sampleName, sampleInfoVect));
        } else {
           index = index + 1;
- 	        sprintf(number,"%02d",index);
+ 	  sprintf(number,"%02d",index);
           rg = "RG-" + sampleName + "_" + number;
           library_id = "LIB" + sampleName+"_" + number;
           sampleInfo.ReadGroup = rg+number;
@@ -197,7 +197,7 @@ void SampleSheet::extractDataFromFolder(std::string fname){
           data_[sampleName].push_back(sampleInfo);
        }
        sampleInfoVect.clear();
-       LOG(INFO) << sampleName << " " << sampleInfo.fastqR1 << " "
+       DLOG(INFO) << sampleName << " " << sampleInfo.fastqR1 << " "
        << sampleInfo.fastqR2 << " " << sampleInfo.ReadGroup << " "
        << sampleInfo.LibraryID;
    }
