@@ -54,6 +54,8 @@ void touch(std::string path) {
   }
 
 TEST_F(TestWorker, Testing_get_input_list) {
+
+  // Case: Folder with parts BAM with no extension:   
   std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
   fcs::create_dir(temp_dir + "/dirBAM/");
   fcs::create_dir(temp_dir + "/dirBAM/RG1/");
@@ -62,27 +64,45 @@ TEST_F(TestWorker, Testing_get_input_list) {
 
   std::vector<std::string> bam_list;
   std::string input  = temp_dir + "/dirBAM/";  
-
-  fcs::get_input_list(input, bam_list, ".*/part-[0-9].*.*", true);
+  try {
+    fcs::get_input_list(input, bam_list, ".*/part-[0-9].*.*", true);
+    ASSERT_TRUE(std::find(bam_list.begin(), bam_list.end(), temp_dir + "/dirBAM/RG1/part-0001") != bam_list.end());
+  }
+  catch(...){
+    ;
+  }
+  bam_list.clear();
   fcs::remove_path(temp_dir);
 
+  // Case: Folder with parts BAM with .bam extension:
   temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
   fcs::create_dir(temp_dir + "/dirBAM/");
   fcs::create_dir(temp_dir + "/dirBAM/RG1/");
   touch(temp_dir + "/dirBAM/RG1/" + "part-0000.bam");
   touch(temp_dir + "/dirBAM/RG1/" + "part-0001.bam");
-  fcs::get_input_list(input, bam_list, ".*/part-[0-9].*.*", true);
+  try {
+    fcs::get_input_list(input, bam_list, ".*/part-[0-9].*.*", true);
+    ASSERT_TRUE(std::find(bam_list.begin(), bam_list.end(), temp_dir + "/dirBAM/RG1/part-0000.bam") != bam_list.end());
+  }
+  catch(...){
+    ;
+  }
+  bam_list.clear();
   fcs::remove_path(temp_dir);
 
+  // Case : Folder is empty:
   temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
   fcs::create_dir(temp_dir + "/dirBAM/");
   fcs::create_dir(temp_dir + "/dirBAM/RG1/");
   try {
     fcs::get_input_list(input, bam_list, ".*/part-[0-9].*.*", true);
+    EXPECT_EQ(0,bam_list.size());
   }
   catch(...){
-    FAIL()<<"Empty";
+    ;
   }
+  bam_list.clear();
+  fcs::remove_path(temp_dir);
 
 }
 
