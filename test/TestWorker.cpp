@@ -67,6 +67,7 @@ TEST_F(TestWorker, Testing_get_input_list) {
   try {
     fcs::get_input_list(input, bam_list, ".*/part-[0-9].*.*", true);
     ASSERT_TRUE(std::find(bam_list.begin(), bam_list.end(), temp_dir + "/dirBAM/RG1/part-0001") != bam_list.end());
+    EXPECT_EQ(2,bam_list.size());
   }
   catch(...){
     ;
@@ -83,6 +84,7 @@ TEST_F(TestWorker, Testing_get_input_list) {
   try {
     fcs::get_input_list(input, bam_list, ".*/part-[0-9].*.*", true);
     ASSERT_TRUE(std::find(bam_list.begin(), bam_list.end(), temp_dir + "/dirBAM/RG1/part-0000.bam") != bam_list.end());
+    EXPECT_EQ(2,bam_list.size());
   }
   catch(...){
     ;
