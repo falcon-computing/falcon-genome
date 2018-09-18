@@ -103,7 +103,7 @@ int align_main(int argc, char** argv,
 
   // start execution
   std::string parts_dir;
-  std::string temp_dir = conf_temp_dir + "align";
+  std::string temp_dir = conf_temp_dir + "/align";
   create_dir(temp_dir);
 
   // check available space in temp dir
@@ -122,7 +122,7 @@ int align_main(int argc, char** argv,
       DLOG(INFO) << "Creating : " + output_path + "/" + sample_id  + ".bam";
       create_dir(output_path + "/" + sample_id);
     } 
-  
+
     // Loop through all the pairs of FASTQ files:
     for (int i = 0; i < list.size(); ++i) {
       fq1_path = list[i].fastqR1;
@@ -138,7 +138,7 @@ int align_main(int argc, char** argv,
 
       DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
-      Executor executor("bwa mem " + sample_id + " ReadGroup" + read_group);
+      Executor executor("bwa mem " + sample_id);
       Worker_ptr worker(new BWAWorker(ref_path,
            fq1_path, fq2_path,
            parts_dir,
