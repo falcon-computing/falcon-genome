@@ -111,30 +111,12 @@ bool is_folder_writable(const char* str);
 
 inline void create_dir(std::string path) {
   if (!boost::filesystem::exists(path)){
-   //boost::filesystem::path p(path);
-   //boost::filesystem::path dir = p.parent_path();
-   //DLOG(INFO) << "Parent dir is : " << dir;
-   //if (dir == ""){
-   //  boost::filesystem::path new_full_path( boost::filesystem::current_path() );
-   //  dir=new_full_path;
-   //} 
-   //if (!is_folder_writable(dir.c_str())) {
-   //   LOG(ERROR) << path << " cannot be created. Parent directory "<< dir << " either has no writting permission or does not exist.";
-   //   throw silentExit();
-   //}
-   //else {
-   //   DLOG(INFO) << "Creating " << path;
-   //   boost::filesystem::create_directories(path);
-   //}
     try {
       boost::filesystem::create_directories(path);
     } catch (std::exception & e) {
       LOG(ERROR) << "cannot create directory " + path;
       throw silentExit();
-      //throw invalidParam("cannot create directory " + path);
     }
-
-
   }
 }
 
@@ -241,7 +223,7 @@ inline std::string get_basename_wo_ext(std::string path) {
   return file_path.stem().string();
 }
 
-Executor* create_executor(std::string job_name, int num_workers = 1);
+Executor* create_executor(std::string job_name, std::string sample_id, int num_workers = 1);
 std::string get_absolute_path(std::string path);
 std::string check_input(std::string path, bool req = true);
 std::string check_output(std::string path, bool &f, bool req_file = false);

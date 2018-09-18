@@ -43,7 +43,7 @@ class Executor
   : public boost::basic_lockable_adapter<boost::mutex>
 {
  public:
-  Executor(std::string job_name,
+  Executor(std::string job_name, std::string sample_id,
       int num_executors = 1); 
   ~Executor();
 
@@ -58,6 +58,7 @@ class Executor
   }
   std::string log() { return log_fname_; }
   std::string job_name() { return job_name_; }
+  std::string sample_name() { return sample_id_; }
 
   void addTask(Worker_ptr worker, bool wait_for_prev = false);
 
@@ -67,6 +68,7 @@ class Executor
 
   int                   num_executors_;
   std::string           job_name_;
+  std::string           sample_id_;
   std::queue<Stage_ptr> job_stages_; 
   std::string           log_dir_;
   std::string           log_fname_;

@@ -28,7 +28,7 @@ int depth_main(int argc, char** argv,
     ("output,o", po::value<std::string>()->required(),"output coverage file")
     ("intervalList,L", po::value<std::string>(), "Interval List BED File")
     ("geneList,g", po::value<std::string>(), "list of genes over which the coverage is calculated")
-    ("sample-name,n", po::value<std::string>(), "sample name")
+    ("sample-tag,t", po::value<std::string>(), "sample tag for log files")
     ("omitBaseOutput,b", "omit output coverage depth at each base (default: false)")
     ("omitIntervals,v", "omit output coverage per-interval statistics (default false)")
     ("omitSampleSummary,s", "omit output summary files for each sample (default false");
@@ -50,7 +50,7 @@ int depth_main(int argc, char** argv,
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::string geneList    = get_argument<std::string>(cmd_vm, "geneList", "g");
-  std::string sample_name = get_argument<std::string>(cmd_vm, "sample_name", "n");
+  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample_tag", "t");
   bool flag_f                = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_baseCoverage     = get_argument<bool>(cmd_vm, "omitBaseOutput", "b");
   bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "omitIntervals", "v");
@@ -94,12 +94,8 @@ int depth_main(int argc, char** argv,
   if (boost::filesystem::is_directory(input_path)) {
     // Merging BAM files if the input is a folder containing PARTS BAM files:
     DLOG(INFO) << input_path << " is a directory.  Proceed to merge all BAM files";
-    std::string MergeTAG = "Merge BAM Files";
-    if (!sample_name.empty()) {
-      MergeTAG = MergeTAG + " " + sample_name;
-    }
     std::string mergeBAM = input_path + "/merge_parts.bam  ";
-    Executor merger_executor(MergeTAG, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
+    Executor merger_executor("Merge BAM Files", sample_tag, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
     Worker_ptr merger_worker(new SambambaWorker(input_path, mergeBAM, SambambaWorker::MERGE, flag_f));
     merger_executor.addTask(merger_worker);
     merger_executor.run();
@@ -108,9 +104,7 @@ int depth_main(int argc, char** argv,
     input_file = input_path;
   }
 
-  std::string DepthTAG="Depth";
-  if (!sample_name.empty()) DepthTAG=DepthTAG + " " + sample_name; 
-  Executor executor(DepthTAG, get_config<int>("gatk.depth.nprocs"));
+  Executor executor("Depth", sample_tag, get_config<int>("gatk.depth.nprocs"));
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
        std::string file_ext = "cov";
        std::string output_file = get_contig_fname(output_dir, contig, file_ext);

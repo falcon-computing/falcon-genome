@@ -103,7 +103,7 @@ int align_main(int argc, char** argv,
 
   // start execution
   std::string parts_dir;
-  std::string temp_dir = conf_temp_dir + "align";
+  std::string temp_dir = conf_temp_dir + "/align";
   create_dir(temp_dir);
 
   // check available space in temp dir
@@ -123,6 +123,10 @@ int align_main(int argc, char** argv,
       create_dir(output_path + "/" + sample_id);
     } 
   
+    // Every sample will have a temporal folder where each pair of FASTQ files will have its own
+    // folder using the Read Group as label.
+    create_dir(temp_dir + "/" + sample_id);
+
     // Loop through all the pairs of FASTQ files:
     for (int i = 0; i < list.size(); ++i) {
       fq1_path = list[i].fastqR1;
@@ -131,14 +135,11 @@ int align_main(int argc, char** argv,
       platform_id = list[i].Platform;
       library_id = list[i].LibraryID;
 
-      // Every sample will have a temporal folder where each pair of FASTQ files will have its own
-      // folder using the Read Group as label.
-      create_dir(temp_dir + "/" + sample_id);
       parts_dir = temp_dir + "/" + sample_id + "/" + read_group;
-
       DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
-      Executor executor("bwa mem " + sample_id + " ReadGroup" + read_group);
+      std::string tag=sample_id + " ReadGroup:" + read_group;
+      Executor executor("bwa mem", tag);
       Worker_ptr worker(new BWAWorker(ref_path,
            fq1_path, fq2_path,
            parts_dir,
@@ -158,7 +159,7 @@ int align_main(int argc, char** argv,
 	  std::string markedBAM;
 	  markedBAM = output_path + "/" + sample_id + "/" + sample_id  + "_marked.bam";
           if (sampleList.empty()) markedBAM = output_path;
-	  Executor executor("Mark Duplicates " + sample_id);
+	  Executor executor("Mark Duplicates", sample_id);
 	  Worker_ptr worker(new SambambaWorker(temp_dir + "/" + sample_id, markedBAM, SambambaWorker::MARKDUP, flag_f));
 	  executor.addTask(worker);
 	  executor.run();
@@ -166,7 +167,7 @@ int align_main(int argc, char** argv,
         else {
 	  std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
           if (sampleList.empty()) mergeBAM = output_path;
-          Executor merger_executor("Merge BAM files " + sample_id);
+          Executor merger_executor("Merge BAM files", sample_id);
 	  Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, flag_f));
 	  merger_executor.addTask(merger_worker);
 	  merger_executor.run();

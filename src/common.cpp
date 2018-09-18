@@ -14,8 +14,8 @@ namespace fcsgenome {
 
 Executor* g_executor = NULL;
 
-Executor* create_executor(std::string job_name, int num_workers) {
-  Executor* executor = new Executor(job_name, num_workers);
+Executor* create_executor(std::string job_name, std::string sample_id, int num_workers) {
+  Executor* executor = new Executor(job_name, sample_id, num_workers);
   g_executor = executor;
 
   return executor;

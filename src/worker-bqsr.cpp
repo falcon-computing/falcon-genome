@@ -132,7 +132,7 @@ int baserecal_main(int argc, char** argv, boost::program_options::options_descri
     ("output,o", po::value<std::string>()->required(), "output BQSR file")
     ("knownSites,K", po::value<std::vector<std::string> >(), "known sites for base recalibration")
     ("gatk4,g", "use gatk4 to perform analysis")
-    ("sample-name,s", po::value<std::string>(), "sample name")
+    ("sample-tag,t", po::value<std::string>(), "sample tag for log files")
     ("intervalList,L", po::value<std::string>(), "interval list file");
 
   // Parse arguments
@@ -148,7 +148,7 @@ int baserecal_main(int argc, char** argv, boost::program_options::options_descri
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::string sample_name   = get_argument<std::string>(cmd_vm, "sample-name", "n");
+  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample-tag", "t");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> known_sites = get_argument<std::vector<std::string>>(cmd_vm, "knownSites", "K");
 
@@ -165,9 +165,7 @@ int baserecal_main(int argc, char** argv, boost::program_options::options_descri
   check_nprocs_config("bqsr");
   check_memory_config("bqsr");
 
-  std::string BQSRtag = "Base Recalibration";
-  if (!sample_name.empty()) BQSRtag = BQSRtag + " " + sample_name;
-  Executor executor(BQSRtag, get_config<int>("gatk.bqsr.nprocs"));
+  Executor executor("Base Recalibration", sample_tag, get_config<int>("gatk.bqsr.nprocs"));
   baserecalAddWorkers(executor, ref_path, known_sites, extra_opts, input_path, output_path, intv_list, flag_f, flag_gatk);
 
   executor.run();
@@ -190,7 +188,7 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
     ("output,o", po::value<std::string>()->required(), "output Folder with Parts BAM files")
     ("merge-bam,m", "merge Parts BAM files")
     ("gatk4,g", "use gatk4 to perform analysis")
-    ("sample-name,n", po::value<std::string>(), "sample name")
+    ("sample-tag,t", po::value<std::string>(), "sample tag for log file")
     ("intervalList,L", po::value<std::string>(), "interval list file");
 
   // Parse arguments
@@ -211,7 +209,7 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   bool merge_bam_flag     = get_argument<bool>(cmd_vm, "merge-bam", "m");
-  std::string sample_name   = get_argument<std::string>(cmd_vm, "sample-name", "n");
+  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample-tag", "t");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
@@ -225,21 +223,15 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
   // the output path will be a directory
   create_dir(output_path);
 
-  std::string PrintTAG = "PrintReads ";
-  if (!sample_name.empty()) PrintTAG = PrintTAG + " " + sample_name;
-  Executor executor(PrintTAG, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
+  Executor executor("PrintReads ", sample_tag, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
   prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f, flag_gatk);
 
   executor.run();
 
   if (merge_bam_flag){
-    std::string MergeTAG = "Merge BAM Files";
-    if (!sample_name.empty()) {
-      MergeTAG = MergeTAG + " " + sample_name;
-    }
     std::string mergeBAM(output_path);
     boost::replace_all(mergeBAM, ".bam", "_merged.bam");
-    Executor merger_executor(MergeTAG, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
+    Executor merger_executor("Merge BAM Files", sample_tag, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
     Worker_ptr merger_worker(new SambambaWorker(output_path, mergeBAM, SambambaWorker::MERGE, flag_f));
     merger_executor.addTask(merger_worker);
     merger_executor.run();
@@ -264,7 +256,7 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
     ("output,o", po::value<std::string>()->required(), "output directory of BAM files")
     ("knownSites,K", po::value<std::vector<std::string> >()->required(), "known sites for base recalibration")
     ("intervalList,L", po::value<std::string>(), "interval list file")
-    ("sample_name,n",  po::value<std::string>(), "sample name")
+    ("sample-tag,t",  po::value<std::string>(), "sample tag for log files")
     ("gatk4,g", "use gatk4 to perform analysis")
     ("merge-bam,m", "merge Parts BAM files");
 
@@ -288,7 +280,7 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
-  std::string sample_name = get_argument<std::string>(cmd_vm, "sample_name", "n");
+  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample-tag", "t");
   bool merge_bam_flag     = get_argument<bool>(cmd_vm, "merge-bam", "m");
 
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
@@ -312,9 +304,7 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
   // the output path will be a directory
   create_dir(output_path);
 
-  std::string BQSRtag = "Base Recalibration";
-  if (!sample_name.empty()) BQSRtag = BQSRtag + " " + sample_name; 
-  Executor executor(BQSRtag, get_config<int>("gatk.bqsr.nprocs"));
+  Executor executor("Base Recalibration", sample_tag, get_config<int>("gatk.bqsr.nprocs"));
   // first, do base recal
   baserecalAddWorkers(executor, ref_path, known_sites, extra_opts, input_path, bqsr_path, intv_list, flag_f, flag_gatk);
   prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f, flag_gatk);
@@ -323,11 +313,9 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
 
   // Merge BAM Files if --merge-bam is set:
   if (merge_bam_flag) {
-    std::string MergeTAG = "Merge BAM Files";
-    if (!sample_name.empty()) MergeTAG = MergeTAG + " " + sample_name;
     std::string mergeBAM(output_path);
     boost::replace_all(mergeBAM, ".bam", "_merged.bam");
-    Executor merger_executor(MergeTAG, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
+    Executor merger_executor("Merge BAM Files ", sample_tag, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
     Worker_ptr merger_worker(new SambambaWorker(output_path, mergeBAM, SambambaWorker::MERGE, flag_f));
     merger_executor.addTask(merger_worker);
     merger_executor.run();

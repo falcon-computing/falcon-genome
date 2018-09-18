@@ -23,6 +23,7 @@ int joint_main(int argc, char** argv,
     ("input-dir,i", po::value<std::string>()->required(), "input dir containing "
                                "[sample_id].gvcf.gz files")
     ("output,o", po::value<std::string>()->required(), "output vcf.gz file(s)")
+    ("sample-tag,t", po::value<std::string>(), "tag for log files")
     ("combine-only,c", "combine GVCFs only and skip genotyping")
     ("skip-combine,g", "(deprecated) perform genotype GVCFs only "
                        "and skip combine GVCFs");
@@ -43,6 +44,7 @@ int joint_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input-dir", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
+  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample-tag", "t");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
@@ -65,7 +67,7 @@ int joint_main(int argc, char** argv,
 
   // run 
   //Executor executor("Joint Genotyping", get_config<int>("gatk.joint.nprocs"));
-  Executor* executor = create_executor("Joint Genotyping", 
+  Executor* executor = create_executor("Joint Genotyping", sample_tag, 
                get_config<int>("gatk.genotype.nprocs"));
 
   if (!flag_skip_combine) { // combine gvcfs

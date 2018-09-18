@@ -39,8 +39,14 @@ void sigint_handler(int s) {
 Stage::Stage(Executor* executor): executor_(executor) {;}
 
 void Stage::add(Worker_ptr worker) {
-  DLOG(INFO) << "Stage::add " << executor_->get_log_name(executor_->job_name(), logs_.size());
-  logs_.push_back(executor_->get_log_name(executor_->job_name(), logs_.size()));
+  std::string tag;
+  if (!(executor_->sample_name()).empty()){
+    tag = executor_->job_name() + "_" + executor_->sample_name();
+  }else{
+    tag = executor_->job_name();
+  }
+  DLOG(INFO) << "Stage::add " << executor_->get_log_name(tag, logs_.size());
+  logs_.push_back(executor_->get_log_name(tag, logs_.size()));
   tasks_.push_back(worker);
 }
 
@@ -111,9 +117,10 @@ void Stage::runTask(int idx) {
   }
 }
 
-Executor::Executor(std::string job_name,
+Executor::Executor(std::string job_name, std::string sample_id,
     int num_executors): 
   job_name_(job_name), 
+  sample_id_(sample_id),
   num_executors_(num_executors),
   job_id_(0)
 {
@@ -148,7 +155,7 @@ Executor::Executor(std::string job_name,
     log_dir_ = "/tmp/log" + username;
     create_dir(log_dir_);
   }
-  log_fname_ = get_log_name(job_name);
+  log_fname_ = get_log_name(job_name_ + " " + sample_id_);
 }
 
 Executor::~Executor() {
@@ -190,15 +197,26 @@ void Executor::addTask(Worker_ptr worker, bool wait_for_prev) {
 void Executor::run() {
   uint64_t start_ts = getTs();
 
-  //log_fname_ = get_log_name(job_name_); 
-  LOG(INFO) << "Start doing " << job_name_;
+  //log_fname_ = get_log_name(job_name_);
+  if (sample_id_.empty()) { 
+    LOG(INFO) << "Start doing " << job_name_ ;
+  }
+  else{
+    LOG(INFO) << "Start doing " << job_name_ << " for " << sample_id_;
+  }
 
   while (!job_stages_.empty()) {
     job_stages_.front()->run();
     job_stages_.pop();
   }
 
-  log_time(job_name_, start_ts);
+  if (sample_id_.empty()) {
+    log_time(job_name_ , start_ts);
+  }
+  else{
+    log_time(job_name_ + " for " + sample_id_ , start_ts);
+  }
+
 }
 
 void Executor::stop() {

@@ -24,7 +24,8 @@ int concat_main(int argc, char** argv,
   opt_desc.add_options() 
     ("input,i", po::value<std::string>()->required(), "folder of input vcf/gvcf files")
     ("output,o", po::value<std::string>()->required(), "output vcf/gvcf file (automatically "
-                                "compressed to .vcf.gz/.gvcf.gz)");
+                                "compressed to .vcf.gz/.gvcf.gz)")
+    ("sample-tag,t",po::value<std::string>(), "sample tag for log file");
 
   // Parse arguments
   po::store(
@@ -39,6 +40,7 @@ int concat_main(int argc, char** argv,
   bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
+  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample-tag", "t");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -51,7 +53,7 @@ int concat_main(int argc, char** argv,
     get_input_list(input_path, input_files, ".*\\.vcf");
   }
 
-  Executor executor("VCF concat");
+  Executor executor("VCF concat", sample_tag);
   { // concat gvcfs
     // TODO: auto detect the input and decide flag_a
     bool flag_a = false;

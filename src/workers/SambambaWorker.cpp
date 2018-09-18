@@ -9,7 +9,7 @@
 namespace fcsgenome{
 
 SambambaWorker::SambambaWorker(std::string input_path,
-			       std::string output_path,  Action action, //std::string action, 
+			       std::string output_path,  Action action, 
     bool &flag_f): Worker(1, get_config<int>("markdup.nt"))
 {
   // check output

@@ -35,6 +35,7 @@ int mutect2_main(int argc, char** argv,
     ("intervalList,L", po::value<std::string>(), "interval list file")
     ("normal_name,a", po::value<std::string>(), "Sample name for Normal Input BAM. Must match the SM tag in the BAM header (gatk4) ")
     ("tumor_name,b", po::value<std::string>(), "Sample name for Tumor Input BAM. Must match the SM tag in the BAM header (gatk4)")
+    ("sample-tag,t", po::value<std::string>(),"sample tag for log file")
     ("gatk4,g", "use gatk4 to perform analysis")
     ("skip-concat,s", "produce a set of VCF files instead of one");
 
@@ -65,6 +66,7 @@ int mutect2_main(int argc, char** argv,
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::string normal_name = get_argument<std::string> (cmd_vm, "normal_name","a");
   std::string tumor_name  = get_argument<std::string> (cmd_vm, "tumor_name","b");
+  std::string sample_tag  = get_argument<std::string> (cmd_vm, "sample-tag","t");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
@@ -107,9 +109,9 @@ int mutect2_main(int argc, char** argv,
         get_config<std::string>("blaze.nam_path"),
         get_config<std::string>("blaze.conf_path")));
 
-  BackgroundExecutor bg_executor("blaze-nam", blaze_worker);
+  BackgroundExecutor bg_executor("blaze-nam", sample_tag, blaze_worker);
 
-  Executor executor("Mutect2", get_config<int>("gatk.mutect2.nprocs"));
+  Executor executor("Mutect2", sample_tag, get_config<int>("gatk.mutect2.nprocs"));
 
   bool flag_mutect2_f = !flag_skip_concat | flag_f;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {

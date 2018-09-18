@@ -22,6 +22,7 @@ int markdup_main(int argc, char** argv,
   opt_desc.add_options() 
     ("input,i", po::value<std::string>()->required(), "input file")
     ("output,o", po::value<std::string>()->required(), "output file");
+    ("sample-tag,t", po::value<std::string>(), "sample tag for log files");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
@@ -35,11 +36,12 @@ int markdup_main(int argc, char** argv,
   bool        flag_f      = get_argument<bool>(cmd_vm, "force", "f");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
+  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample-tag", "t");
 
   // finalize argument parsing 
   po::notify(cmd_vm);
 
-  Executor executor("Mark Duplicates");
+  Executor executor("Mark Duplicates", sample_tag);
   Worker_ptr worker(new SambambaWorker(input_path, output_path, SambambaWorker::MARKDUP, flag_f));
   executor.addTask(worker);
   executor.run();

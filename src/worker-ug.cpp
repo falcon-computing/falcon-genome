@@ -27,7 +27,8 @@ int ug_main(int argc, char** argv,
     ("output,o", po::value<std::string>()->required(), "output vcf file (if --skip-concat is set"
                                 "the output will be a directory of vcf files)")
     ("intervalList,L", po::value<std::string>(), "interval list file")
-    ("skip-concat,s", "produce a set of vcf files instead of one");
+    ("skip-concat,s", "produce a set of vcf files instead of one")
+    ("sample-tag,t", po::value<std::string>(), "sample tag for log file");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
@@ -48,6 +49,7 @@ int ug_main(int argc, char** argv,
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
+  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample-tag", "t");
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
@@ -81,7 +83,7 @@ int ug_main(int argc, char** argv,
     intv_paths = init_contig_intv(ref_path);
   }
 
-  Executor executor("Unified Genotyper", 
+  Executor executor("Unified Genotyper", sample_tag,
                     get_config<int>("gatk.ug.nprocs", "gatk.nprocs"));
 
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
