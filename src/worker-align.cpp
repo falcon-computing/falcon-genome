@@ -122,7 +122,7 @@ int align_main(int argc, char** argv,
       DLOG(INFO) << "Creating : " + output_path + "/" + sample_id  + ".bam";
       create_dir(output_path + "/" + sample_id);
     } 
-  
+
     // Every sample will have a temporal folder where each pair of FASTQ files will have its own
     // folder using the Read Group as label.
     create_dir(temp_dir + "/" + sample_id);
@@ -140,6 +140,7 @@ int align_main(int argc, char** argv,
 
       std::string tag=sample_id + " ReadGroup:" + read_group;
       Executor executor("bwa mem", tag);
+
       Worker_ptr worker(new BWAWorker(ref_path,
            fq1_path, fq2_path,
            parts_dir,
