@@ -57,14 +57,28 @@ void touch(std::string path) {
 TEST_F(TestWorker, Testing_check_vcf_index) {
   std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
   fcs::create_dir(temp_dir);
-  std::string inputVCF1 = temp_dir + "/myVCF.vcf.gz.idx";
-  touch(inputVCF1);  
+  std::string inputVCF   = temp_dir + "/input.vcf.gz";
+  std::string inputIndex = temp_dir + "/input.vcf.gz.tbi";
+  touch(inputVCF);
+  touch(inputIndex);  
   try {
-    fcs::check_vcf_index(inputVCF1);
+    fcs::check_vcf_index(inputVCF);
   }
   catch ( ... ){
-    FAIL() << "Parts BAM with no extension may not be in array or input is incorrect";
+    FAIL() << "VCF index was not checked";
   }  
+
+  std::string inputVCF2   = temp_dir + "/input.vcf";
+  std::string inputIndex2 = temp_dir + "/input.vcf.idx";
+  touch(inputVCF2);
+  touch(inputIndex2);
+  try {
+    fcs::check_vcf_index(inputVCF);
+  }
+  catch ( ... ){
+    FAIL() << "VCF index was not checked";
+  }
+
   fcs::remove_path(temp_dir);
 }
 
