@@ -50,7 +50,7 @@ int depth_main(int argc, char** argv,
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::string geneList    = get_argument<std::string>(cmd_vm, "geneList", "g");
-  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample_tag", "t");
+  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample-tag", "t");
   bool flag_f                = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_baseCoverage     = get_argument<bool>(cmd_vm, "omitBaseOutput", "b");
   bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "omitIntervals", "v");
