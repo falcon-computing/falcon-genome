@@ -54,6 +54,20 @@ void touch(std::string path) {
   FAIL() << "Not expecting exception to be thrown"; \
   }
 
+TEST_F(TestWorker, Testing_check_vcf_index) {
+  std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
+  fcs::create_dir(temp_dir);
+  std::string inputVCF1 = temp_dir + "/myVCF.vcf.gz.idx";
+  touch(inputVCF1);  
+  try {
+    fcs::check_vcf_index(inputVCF1);
+  }
+  catch ( ... ){
+    FAIL() << "Parts BAM with no extension may not be in array or input is incorrect";
+  }  
+  fcs::remove_path(temp_dir);
+}
+
 TEST_F(TestWorker, Testing_get_input_list) {
 
   // Case: Folder with parts BAM with no extension:   

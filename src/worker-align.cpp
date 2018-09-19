@@ -33,7 +33,7 @@ int align_main(int argc, char** argv,
     ("output,o", po::value<std::string>()->required(), "output BAM file (if --align-only is set "
                                 "the output will be a directory of BAM files. if --sample-sheet is set "
                                 " output will be the folder where all outputs of the samples defined in --sample-sheet will be placed)")
-    arg_decl_string("sample_sheet,F", "Sample Sheet or Folder")
+    arg_decl_string("sample_sheet,F", "Sample Sheet or Folder")   
     arg_decl_string_w_def("rg,R", "sample",   "read group id ('ID' in BAM header)")
     arg_decl_string_w_def("sp,S", "sample",   "sample id ('SM' in BAM header)")
     arg_decl_string_w_def("pl,P", "illumina", "platform id ('PL' in BAM header)")
@@ -61,7 +61,6 @@ int align_main(int argc, char** argv,
   std::string library_id  = get_argument<std::string>(cmd_vm, "lb", "L");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
-  std::string master_outputdir = output_path;
 
   // finalize argument parsing
   po::notify(cmd_vm);
