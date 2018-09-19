@@ -6,6 +6,8 @@
 #include <unordered_set>
 #include <gtest/gtest.h>
 
+#include <stdlib.h>
+
 #include "fcs-genome/BackgroundExecutor.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/common.h"
@@ -59,8 +61,8 @@ TEST_F(TestWorker, Testing_check_vcf_index) {
   fcs::create_dir(temp_dir);
   std::string inputVCF   = temp_dir + "/input.vcf.gz";
   std::string inputIndex = temp_dir + "/input.vcf.gz.tbi";
-  touch(inputVCF);
-  touch(inputIndex);  
+  touch(inputIndex);
+  touch(inputVCF);  
   try {
     fcs::check_vcf_index(inputVCF);
   }
@@ -78,7 +80,6 @@ TEST_F(TestWorker, Testing_check_vcf_index) {
   catch ( ... ){
     FAIL() << "VCF index was not checked";
   }
-
   fcs::remove_path(temp_dir);
 }
 
@@ -152,6 +153,28 @@ TEST_F(TestWorker, Testing_get_input_list) {
   bam_set.clear();
   fcs::remove_path(temp_dir);
 
+}
+
+TEST_F(TestWorker, Test_check_output) {
+  bool flag = true;
+  bool flag_f = true;
+  std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
+  fcs::create_dir(temp_dir);
+  std::string input  = temp_dir + "/";
+  std::string outputBAI = temp_dir + "/" + "output.bam.bai";
+  touch(outputBAI);
+
+  std::stringstream command;
+  command << "chmod u-w " << outputBAI;
+  system(command.str().c_str());
+  try {
+    fcs::check_output(outputBAI, flag_f, flag);
+  }
+  catch (fcs::fileNotFound &e){
+    EXPECT_EQ(e.what(), "Cannot write to output path '"+ outputBAI +"'"); 
+  }
+
+  fcs::remove_path(temp_dir);
 }
 
 TEST_F(TestWorker, SambambaWorkerActions) {
