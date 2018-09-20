@@ -21,7 +21,9 @@ BackgroundExecutor::BackgroundExecutor(
 
   create_dir(get_config<std::string>("log_dir"));
   std::string log = get_log_name(job_name);
-  std::string cmd = worker->getCommand() + " &> " + log;
+  std::string cmd = worker->getCommand() + 
+    " 1> /dev/null" + 
+    " 2> " + log;
 
   // fork and execute cmd using system call
   int pid = fork();
@@ -41,7 +43,7 @@ BackgroundExecutor::BackgroundExecutor(
     std::string script_file = temp_dir + "/job-" + job_name + ".sh";
 
     std::stringstream cmd_sh;
-    cmd_sh << "trap 'kill $(jobs -p)' EXIT" << std::endl;
+    cmd_sh << "trap 'kill $(jobs -p) &> /dev/null' EXIT" << std::endl;
     cmd_sh << cmd << std::endl;
 
     // write the script to file
