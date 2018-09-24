@@ -41,7 +41,6 @@ Stage::Stage(Executor* executor): executor_(executor) {;}
 void Stage::add(Worker_ptr worker, std::string job_label) {
   std::string tag = job_label;
   tag = job_label;
-  LOG(INFO) << "Stage::add " << executor_->get_log_name(tag, logs_.size());
   DLOG(INFO) << "Stage::add " << executor_->get_log_name(tag, logs_.size());
   logs_.push_back(executor_->get_log_name(tag, logs_.size()));
   tasks_.push_back(worker);  
@@ -97,7 +96,6 @@ void Stage::run(std::string job_name, std::string sample_id) {
   
   std::ofstream fout(output_logname, std::ios::out|std::ios::app); 
   for (int i = 0; i < logs_.size(); i++) {
-    LOG(INFO) <<  "logs_ " << logs_[i] ; 
     std::ifstream fin(logs_[i], std::ios::in);   
     if (fin) {
       fout << fin.rdbuf();
