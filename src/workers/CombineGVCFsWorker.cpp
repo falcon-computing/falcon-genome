@@ -23,10 +23,7 @@ CombineGVCFsWorker::CombineGVCFsWorker(
 {
   // check output files
   output_path_ = get_absolute_path(output_path);
-  for (int contig = 0; 
-       contig < get_config<int>("gatk.joint.ncontigs"); 
-       contig ++) 
-  {
+  for (int contig = 0;contig < get_config<int>("gatk.joint.ncontigs"); contig ++) {
     check_output(get_contig_fname(output_path_, contig, "gvcf"), flag_f);
   }
 
