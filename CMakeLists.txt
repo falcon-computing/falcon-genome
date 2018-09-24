@@ -24,7 +24,7 @@ endif()
 
 # get version str from git
 execute_process(
-    COMMAND git describe --tags --always
+    COMMAND git describe --tags --abbrev=0
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     OUTPUT_VARIABLE GIT_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE)
