@@ -48,6 +48,7 @@ void VCFConcatWorker::setup() {
   }
 
   cmd_ = cmd.str();
+  LOG(INFO) << cmd_;
   DLOG(INFO) << cmd_;
 }
 
@@ -61,6 +62,7 @@ ZIPWorker::ZIPWorker(
 }
 
 void ZIPWorker::check() {
+  LOG(INFO) << "ZIPWorker check " << input_file_;
   DLOG(INFO) << "ZIPWorker check " << input_file_;
   input_file_ = check_input(input_file_);
 }
@@ -75,6 +77,7 @@ void ZIPWorker::setup() {
       << input_file_;
 
   cmd_ = cmd.str();
+  LOG(INFO) << cmd_;
   DLOG(INFO) << cmd_;
 }
 
@@ -88,23 +91,25 @@ void TabixWorker::setup() {
   cmd << get_config<std::string>("tabix_path") << " -p vcf " 
       << path_;
   cmd_ = cmd.str();
+  LOG(INFO) << cmd_;
   DLOG(INFO) << cmd_;
 }
 
-void VCFSortWorker::check() {
-  path_ = check_input(path_);
-}
+// void VCFSortWorker::check() {
+//   path_ = check_input(path_);
+// }
+// 
+// void VCFSortWorker::setup() {
+//   std::stringstream cmd;
+//   cmd << "("
+//       << "grep -v \"^[^#;]\" " << path_ << " && "
+//       << "grep \"^[^#;]\" " << path_ << " | sort -V"
+//       << ") > " << path_ << ".sort";
+//   cmd << ";";
+//   cmd << "mv " << path_ << ".sort " << path_;
+// 
+//   cmd_ = cmd.str();
+//   DLOG(INFO) << cmd_;
+// }
 
-void VCFSortWorker::setup() {
-  std::stringstream cmd;
-  cmd << "("
-      << "grep -v \"^[^#;]\" " << path_ << " && "
-      << "grep \"^[^#;]\" " << path_ << " | sort -V"
-      << ") > " << path_ << ".sort";
-  cmd << ";";
-  cmd << "mv " << path_ << ".sort " << path_;
-
-  cmd_ = cmd.str();
-  DLOG(INFO) << cmd_;
-}
 } // namespace fcsgenome
