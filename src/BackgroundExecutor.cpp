@@ -11,8 +11,8 @@
 namespace fcsgenome {
 
 BackgroundExecutor::BackgroundExecutor(
-    std::string job_name, std::string sample_id, 
-    Worker_ptr worker): Executor(job_name, sample_id, 1)
+    std::string job_name, std::vector<std::string> stage_levels, std::string sample_id, 
+    Worker_ptr worker): Executor(job_name, stage_levels, sample_id, 1)
 {
   // start worker in the background in constructor
   worker->check();

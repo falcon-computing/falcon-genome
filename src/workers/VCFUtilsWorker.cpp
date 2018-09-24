@@ -8,10 +8,11 @@
 namespace fcsgenome {
 
 VCFConcatWorker::VCFConcatWorker(
-      std::vector<std::string> &input_files,
-      std::string output_path,
-      bool &flag_a,
-      bool &flag_f): Worker(1, 1), input_files_(input_files), flag_a_(flag_a)
+   std::vector<std::string> &input_files,
+   std::string output_path,
+   bool &flag_a,
+   bool &flag_bgzip,
+   bool &flag_f): Worker(1, 1), input_files_(input_files), flag_a_(flag_a), flag_bgzip_(flag_bgzip)
 {
   // check output files
   output_file_ = check_output(output_path, flag_f);
@@ -26,7 +27,15 @@ void VCFConcatWorker::check() {
 void VCFConcatWorker::setup() {
   // create cmd
   std::stringstream cmd;
-  if(flag_a_) {
+  std::string gztag;
+  if (flag_bgzip_){
+    for (int i = 0; i < input_files_.size(); i++) {
+      cmd << get_config<std::string>("bgzip_path") << " " << input_files_[i] << "; "
+          << get_config<std::string>("tabix_path") << " " << input_files_[i] + ".gz ; ";
+    }
+    gztag = ".gz";
+  }
+  if (flag_a_) {
     cmd << get_config<std::string>("bcftools_path") << " concat -a " 
         << "-o " << output_file_ << " ";
   }
@@ -35,7 +44,7 @@ void VCFConcatWorker::setup() {
         << "-o " << output_file_ << " ";
   }
   for (int i = 0; i < input_files_.size(); i++) {
-    cmd << input_files_[i] << " ";
+    cmd << input_files_[i] << gztag << " ";
   }
 
   cmd_ = cmd.str();

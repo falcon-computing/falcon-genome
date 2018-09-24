@@ -1,10 +1,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
+
+#include <bits/stdc++.h> 
 #include <cmath>
 #include <iomanip>
 #include <string>
-
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -25,7 +26,7 @@ int ug_main(int argc, char** argv,
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output vcf file (if --skip-concat is set"
-                                "the output will be a directory of vcf files)")
+                                " the output will be a directory of vcf files)")
     ("intervalList,L", po::value<std::string>(), "interval list file")
     ("skip-concat,s", "produce a set of vcf files instead of one")
     ("sample-tag,t", po::value<std::string>(), "sample tag for log file");
@@ -83,8 +84,20 @@ int ug_main(int argc, char** argv,
     intv_paths = init_contig_intv(ref_path);
   }
 
-  Executor executor("Unified Genotyper", sample_tag,
-                    get_config<int>("gatk.ug.nprocs", "gatk.nprocs"));
+  std::vector<std::string> stage_levels{"Unified Genotyper", "Concatenate VCF", "Compress VCF", "Generate VCF Index"};
+  Executor executor("Unified Genotyper", 
+      stage_levels, 
+      sample_tag, 
+      get_config<int>("gatk.ug.nprocs", "gatk.nprocs")
+  );
+
+  std::string tag;
+  if (!sample_tag.empty()) {
+    tag = "Unified Genotyper " + sample_tag; 
+  }
+  else {
+    tag= "Unified Genotyper";
+  }
 
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
     std::string input_file;
@@ -100,39 +113,65 @@ int ug_main(int argc, char** argv,
     std::string output_file = get_contig_fname(output_dir, contig, "vcf");
 
     Worker_ptr worker(new UGWorker(ref_path,
-          input_file,
-          intv_paths[contig],
-          output_file,
-          extra_opts,
-          flag_f));
+        input_file,
+        intv_paths[contig],
+        output_file,
+        extra_opts,
+        flag_f)
+    );
     output_files[contig] = output_file;
 
-    executor.addTask(worker, contig==0);
+    executor.addTask(worker, "Unified Genotyper", contig==0);
   }
 
   if (!flag_skip_concat) {
     bool flag = true;
     bool flag_a = true;
+    bool flag_bgzip = true;
     { // concat gvcfs
+      if (!sample_tag.empty()) {
+	tag= "Concatenate VCF " + sample_tag;
+      }
+      else {
+	tag= "Concatenate VCF";
+      }
       Worker_ptr worker(new VCFConcatWorker(
-            output_files, temp_gvcf_path,
-            flag_a, flag));
-      executor.addTask(worker, true);
+          output_files, 
+          temp_gvcf_path,
+          flag_a, 
+          flag_bgzip,
+          flag)
+      );
+      executor.addTask(worker, tag, true);
     }
     //{ // sort gvcf
     //  Worker_ptr worker(new VCFSortWorker(temp_gvcf_path));
     //  executor.addTask(worker, true);
     //}
     { // bgzip gvcf
+      if (!sample_tag.empty()) {
+        tag= "Compress VCF " + sample_tag;
+      }
+      else {
+        tag= "Compress VCF";
+      }
       Worker_ptr worker(new ZIPWorker(
-            temp_gvcf_path, output_path+".gz",
-            flag_f));
-      executor.addTask(worker, true);
+          temp_gvcf_path, 
+          output_path+".gz",
+          flag_f)
+      );
+      executor.addTask(worker, tag, true);
     }
     { // tabix gvcf
+      if (!sample_tag.empty()) {
+        tag= "Generate VCF Index " + sample_tag;
+      }
+      else {
+        tag= "Generate VCF Index";
+      }
       Worker_ptr worker(new TabixWorker(
             output_path + ".gz"));
-      executor.addTask(worker, true);
+      executor.addTask(worker, tag,true);
     }
   }
   executor.run();

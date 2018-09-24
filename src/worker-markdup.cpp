@@ -3,6 +3,7 @@
 #include <boost/program_options.hpp>
 #include <sys/resource.h>
 
+#include <bits/stdc++.h> 
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -41,7 +42,9 @@ int markdup_main(int argc, char** argv,
   // finalize argument parsing 
   po::notify(cmd_vm);
 
-  Executor executor("Mark Duplicates", sample_tag);
+  std::vector<std::string> stage_levels{"Mark Duplicates"};
+
+  Executor executor("Mark Duplicates", stage_levels, sample_tag);
   Worker_ptr worker(new SambambaWorker(input_path, output_path, SambambaWorker::MARKDUP, flag_f));
   executor.addTask(worker);
   executor.run();

@@ -9,6 +9,7 @@
 #include "fcs-genome/workers.h"
 #include "fcs-genome/SampleSheet.h"
 
+#include <bits/stdc++.h> 
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -107,6 +108,19 @@ int align_main(int argc, char** argv,
 
   // check available space in temp dir
   namespace fs = boost::filesystem;
+  fs::space_info si = fs::space(temp_dir);
+
+  std::vector<std::string> stage_levels{"BWA mem"};
+  std::string executor_tag;
+  if (!flag_align_only) {
+    executor_tag = "alignment and mark duplicates";
+    stage_levels.push_back("Mark Duplicates");
+  }
+  else{
+    executor_tag = "alignment-only";
+    stage_levels.push_back("Merge BAM");
+  }
+
   // Going through each line in the Sample Sheet:
   for (auto pair : sample_data) {
     std::string sample_id = pair.first;
@@ -122,9 +136,10 @@ int align_main(int argc, char** argv,
 
     // Every sample will have a temporal folder where each pair of FASTQ files will have its own
     // folder using the Read Group as label.
+    DLOG(INFO) << "Creating " << temp_dir + "/" + sample_id;
     create_dir(temp_dir + "/" + sample_id);
 
-    Executor executor("align", sample_id);
+    Executor executor(executor_tag, stage_levels, sample_id);
     // Loop through all the pairs of FASTQ files:
     for (int i = 0; i < list.size(); ++i) {
       fq1_path = list[i].fastqR1;
@@ -134,11 +149,31 @@ int align_main(int argc, char** argv,
       library_id = list[i].LibraryID;
 
       parts_dir = temp_dir + "/" + sample_id + "/" + read_group;
+      
+      // Checking if Temporal Storage fits with input:
+      uintmax_t fastq_size=0;
+      uintmax_t mult=3;
+      if (fs::exists(fq1_path) && fs::exists(fq2_path)){
+        fastq_size=mult*(fs::file_size(fq1_path)+fs::file_size(fq2_path));
+      }
+      else{
+        LOG(ERROR) << "FASTQ Files: " << fq1_path << " and " << fq2_path << " do not exist";
+        throw silentExit();
+      }
+      
+      if (si.available < fastq_size){
+	LOG(ERROR) << "Not enough space in temporary storage: "
+	  << temp_dir << ", "
+	  << "the size of the temporary folder should be at least "
+	  << mult << " times the size of input FASTQ files";
+	throw silentExit();
+      }
+
       DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
-      std::string tag=sample_id + " ReadGroup:" + read_group;
-      //Executor executor("bwa mem", tag);
-
+      //std::string tag=sample_id + " ReadGroup " + read_group;
+      std::string tag=sample_id;
+      LOG(INFO) << "tag : " << tag;
       Worker_ptr worker(new BWAWorker(ref_path,
            fq1_path, fq2_path,
            parts_dir,
@@ -146,33 +181,27 @@ int align_main(int argc, char** argv,
            sample_id, read_group,
            platform_id, library_id, flag_f));
 
-      executor.addTask(worker);
-      //executor.run();
+      executor.addTask(worker, "BWA mem for " + tag, 0);
 
       DLOG(INFO) << "Alignment Completed for " << sample_id;
 
       // Once the sample reach its last pair of FASTQ files, we proceed to merge and mark duplicates (if requested):
       if (i == list.size()-1) {
-	if (!flag_align_only) {
-	  // Marking Duplicates:
-	  std::string markedBAM;
-	  markedBAM = output_path + "/" + sample_id + "/" + sample_id  + "_marked.bam";
+      	if (!flag_align_only) {
+      	  // Marking Duplicates:
+      	  std::string markedBAM;
+      	  markedBAM = output_path + "/" + sample_id + "/" + sample_id  + "_marked.bam";
           if (sampleList.empty()) markedBAM = output_path;
-	  //Executor executor("Mark Duplicates", sample_id);
-	  Worker_ptr worker(new SambambaWorker(temp_dir + "/" + sample_id, markedBAM, SambambaWorker::MARKDUP, flag_f));
-	  executor.addTask(worker);
-	  //executor.run();
-	} 
+      	  Worker_ptr markdup_worker(new SambambaWorker(temp_dir + "/" + sample_id, markedBAM, SambambaWorker::MARKDUP, flag_f));
+      	  executor.addTask(markdup_worker, "Mark Duplicates for " + sample_id, true);
+      	} 
         else {
-	  std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
+      	  std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
           if (sampleList.empty()) mergeBAM = output_path;
-          //Executor merger_executor("Merge BAM files", sample_id);
-	  Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, flag_f));
-	  //merger_executor.addTask(merger_worker);
-	  //merger_executor.run();
-          executor.addTask(merger_worker);
+      	  Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, flag_f));
+          executor.addTask(merger_worker, "Merge BAM for " + sample_id, true);
         }
-
+  
         // Removing temporal data :
         remove_path(temp_dir + "/" + sample_id);
       }

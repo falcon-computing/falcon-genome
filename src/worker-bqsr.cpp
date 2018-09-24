@@ -3,10 +3,10 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
 
+#include <bits/stdc++.h> 
 #include <cmath>
 #include <iomanip>
 #include <string>
-
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -22,6 +22,7 @@ static void baserecalAddWorkers(Executor &executor,
     std::string &input_path,
     std::string &output_path,
     std::string &intv_list,
+    std::string sample_tag,
     bool flag_f, bool flag_gatk)
 {
   std::vector<std::string> intv_paths;
@@ -58,16 +59,21 @@ static void baserecalAddWorkers(Executor &executor,
 
     Worker_ptr worker(new BQSRWorker(ref_path, known_sites,
 	  intv_paths[contig],
-	  input_file, bqsr_paths[contig],
+	  input_file, 
+          bqsr_paths[contig],
 	  extra_opts,
-	  contig, flag_f, flag_gatk));
-    executor.addTask(worker, contig == 0);
+	  contig, 
+          flag_f, 
+          flag_gatk)
+    );
+
+    executor.addTask(worker, "Generate BQSR Reports " + sample_tag, contig == 0);
   }
 
   // gather bqsr for contigs
   Worker_ptr worker(new BQSRGatherWorker(bqsr_paths, output_path, flag_f, flag_gatk));
 
-  executor.addTask(worker, true);
+  executor.addTask(worker, "Gathering BQSR Reports " + sample_tag, true);
 }
 
 static void removePartialBQSR(std::string bqsr_path) {
@@ -86,6 +92,7 @@ static void prAddWorkers(Executor &executor,
   std::string &output_path,
   std::vector<std::string> &extra_opts,
   std::string &intv_list,
+  std::string sample_tag,
   bool flag_f, bool flag_gatk)
 {
   std::vector<std::string> intv_paths;
@@ -113,9 +120,20 @@ static void prAddWorkers(Executor &executor,
         intv_paths[contig], bqsr_path,
         input_file,
         get_contig_fname(output_path, contig),
-    	        extra_opts,
-        contig, flag_f, flag_gatk));
-     executor.addTask(worker, contig == 0);
+    	extra_opts,
+        contig, 
+        flag_f, 
+        flag_gatk)
+     );
+
+     std::string gatk_method;
+     if (flag_gatk) {
+       gatk_method = "ApplyBQSR "+ sample_tag ;
+     }
+     else {
+       gatk_method = "Print Reads " + sample_tag ;
+     }
+     executor.addTask(worker, gatk_method, contig == 0);
   }
 
 }
@@ -165,8 +183,10 @@ int baserecal_main(int argc, char** argv, boost::program_options::options_descri
   check_nprocs_config("bqsr");
   check_memory_config("bqsr");
 
-  Executor executor("Base Recalibration", sample_tag, get_config<int>("gatk.bqsr.nprocs"));
-  baserecalAddWorkers(executor, ref_path, known_sites, extra_opts, input_path, output_path, intv_list, flag_f, flag_gatk);
+  std::vector<std::string> stage_levels{"Generate BQSR Reports", "Gathering BQSR Reports"};
+
+  Executor executor("Base Recalibration", stage_levels, sample_tag, get_config<int>("gatk.bqsr.nprocs"));
+  baserecalAddWorkers(executor, ref_path, known_sites, extra_opts, input_path, output_path, intv_list, sample_tag, flag_f, flag_gatk);
 
   executor.run();
 
@@ -223,22 +243,35 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
   // the output path will be a directory
   create_dir(output_path);
 
-  Executor executor("PrintReads ", sample_tag, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
-  prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f, flag_gatk);
+  std::vector<std::string> stage_levels{"PrintReads"};
+  if (merge_bam_flag) {
+    stage_levels.push_back("Merge BAM");
+  }
 
-  executor.run();
+  Executor executor("PrintReads", stage_levels, sample_tag, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
+  prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, sample_tag, flag_f, flag_gatk);
+
+  //executor.run();
 
   if (merge_bam_flag){
     std::string mergeBAM(output_path);
     boost::replace_all(mergeBAM, ".bam", "_merged.bam");
-    Executor merger_executor("Merge BAM Files", sample_tag, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
+    //Executor merger_executor("Merge BAM Files", sample_tag, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
     Worker_ptr merger_worker(new SambambaWorker(output_path, mergeBAM, SambambaWorker::MERGE, flag_f));
-    merger_executor.addTask(merger_worker);
-    merger_executor.run();
+    //merger_executor.addTask(merger_worker);
+    //merger_executor.run();
 
     // Removing Part BAM files:
+    //remove_path(output_path);
+
+    executor.addTask(merger_worker, "Merge BAM", true); 
+  }
+
+  executor.run(); 
+  if (merge_bam_flag) {
     remove_path(output_path);
   }
+
 
 }
 
@@ -303,28 +336,54 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
 
   // the output path will be a directory
   create_dir(output_path);
+  
+  std::vector<std::string> stage_levels{"Generate BQSR Reports", "Gathering BQSR Reports"};  
+  if (flag_gatk){
+    stage_levels.push_back("ApplyBQSR");
+  }
+  else{
+    stage_levels.push_back("Print Reads");
+  }
+  if (merge_bam_flag) {
+    stage_levels.push_back("Merge BAM");
+  }
 
-  Executor executor("Base Recalibration", sample_tag, get_config<int>("gatk.bqsr.nprocs"));
+  Executor executor("BQSR", stage_levels, sample_tag, get_config<int>("gatk.bqsr.nprocs"));
   // first, do base recal
-  baserecalAddWorkers(executor, ref_path, known_sites, extra_opts, input_path, bqsr_path, intv_list, flag_f, flag_gatk);
-  prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, flag_f, flag_gatk);
+  baserecalAddWorkers(executor, ref_path, known_sites, extra_opts, input_path, bqsr_path, intv_list, sample_tag, flag_f, flag_gatk);
+  prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, sample_tag, flag_f, flag_gatk);
 
-  executor.run();
+  // executor.run();
 
   // Merge BAM Files if --merge-bam is set:
   if (merge_bam_flag) {
     std::string mergeBAM(output_path);
     boost::replace_all(mergeBAM, ".bam", "_merged.bam");
-    Executor merger_executor("Merge BAM Files ", sample_tag, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
+    //Executor merger_executor("Merge BAM Files ", sample_tag, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
     Worker_ptr merger_worker(new SambambaWorker(output_path, mergeBAM, SambambaWorker::MERGE, flag_f));
-    merger_executor.addTask(merger_worker);
-    merger_executor.run();
+    //merger_executor.addTask(merger_worker);
+    //merger_executor.run();
+
+    std::string merge_tag;
+    if (sample_tag.empty()) {
+      merge_tag="Merge BAM";
+    }
+    else {
+      merge_tag="Merge BAM " + sample_tag;
+    } 
+    executor.addTask(merger_worker, merge_tag, true );
 
     // Removing Part BAM files:
+    // remove_path(output_path);
+  }
+
+  executor.run();
+
+  removePartialBQSR(bqsr_path);
+  if (merge_bam_flag) {
     remove_path(output_path);
   }
 
-  removePartialBQSR(bqsr_path);
 
   if (delete_bqsr) {
     remove_path(bqsr_path);

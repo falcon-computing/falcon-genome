@@ -1,10 +1,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
+
+#include <bits/stdc++.h> 
 #include <cmath>
 #include <iomanip>
 #include <string>
-
 
 #include "fcs-genome/BackgroundExecutor.h"
 #include "fcs-genome/common.h"
@@ -95,9 +96,19 @@ int htc_main(int argc, char** argv,
         get_config<std::string>("blaze.nam_path"),
         get_config<std::string>("blaze.conf_path")));
 
-  BackgroundExecutor bg_executor("blaze-nam", sample_tag, blaze_worker);
+  std::vector<std::string> nam_user{"Haplotype Caller"};
+  BackgroundExecutor bg_executor("blaze-nam", nam_user, sample_tag, blaze_worker);
   
-  Executor executor("Haplotype Caller", sample_tag, get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
+  std::vector<std::string> stage_levels{"HTC", "Concatenate VCF", "Compress VCF", "Generate VCF Index"};   
+  Executor executor("Haplotype Caller", stage_levels, sample_tag, get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
+
+  std::string tag;
+  if (!sample_tag.empty()) {
+    tag = "Haplotype Caller " + sample_tag;
+  }
+  else {
+    tag= "Haplotype Caller";
+  }
 
   bool flag_htc_f = !flag_skip_concat || flag_f;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
@@ -119,44 +130,73 @@ int htc_main(int argc, char** argv,
 
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new HTCWorker(ref_path,
-          intv_paths[contig], input_file,
-          output_file,
-          extra_opts,
-          contig,
-          flag_vcf,
-          flag_htc_f,
-          flag_gatk)
+        intv_paths[contig], 
+        input_file,
+        output_file,
+        extra_opts,
+        contig,
+        flag_vcf,
+        flag_htc_f,
+        flag_gatk)
     );
 
     output_files[contig] = output_file;
-
-    executor.addTask(worker);
+    executor.addTask(worker,tag);
   }
 
   if (!flag_skip_concat) {
 
     bool flag = true;
     bool flag_a = false;
+    bool flag_bgzip = false;
+
+    std::string process_tag;
+
     { // concat gvcfs
+      if (!sample_tag.empty()) {
+	process_tag = "Concatenate VCF " + sample_tag;
+      }
+      else {
+	process_tag= "Concatenate VCF";
+      }
       Worker_ptr worker(new VCFConcatWorker(
-            output_files, temp_gvcf_path,
-            flag_a, flag));
-      executor.addTask(worker, true);
+          output_files, 
+          temp_gvcf_path,
+          flag_a, 
+          flag_bgzip,
+          flag)
+      );
+      executor.addTask(worker, process_tag, true);
     }
     //{ // sort gvcf
     //  Worker_ptr worker(new VCFSortWorker(temp_gvcf_path));
     //  executor.addTask(worker, true);
     //}
     { // bgzip gvcf
+      if (!sample_tag.empty()) {
+	process_tag = "Compress VCF " + sample_tag;
+      }
+      else {
+	process_tag= "Compress VCF";
+      }
       Worker_ptr worker(new ZIPWorker(
-            temp_gvcf_path, output_path+".gz",
-            flag_f));
-      executor.addTask(worker, true);
+          temp_gvcf_path, 
+          output_path+".gz",
+          flag_f)
+      );
+      executor.addTask(worker, process_tag, true);
     }
     { // tabix gvcf
+      if (!sample_tag.empty()) {
+        process_tag = "Generate VCF Index " + sample_tag;
+      }
+      else {
+        process_tag= "Generate VCF Index";
+      }
       Worker_ptr worker(new TabixWorker(
-            output_path + ".gz"));
-      executor.addTask(worker, true);
+          output_path + ".gz")
+      );
+      executor.addTask(worker, "Generate VCF Index",true);
     }
   }
   executor.run();

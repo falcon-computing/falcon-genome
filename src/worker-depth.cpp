@@ -1,10 +1,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
+
+#include <bits/stdc++.h> 
 #include <cmath>
 #include <iomanip>
 #include <string>
-
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -90,44 +91,83 @@ int depth_main(int argc, char** argv,
     intv_paths = split_ref_by_nprocs(ref_path);
   }
 
+  std::vector<std::string> stage_levels{"Depth", "Combine Depth"};
   std::string input_file;
   if (boost::filesystem::is_directory(input_path)) {
-    // Merging BAM files if the input is a folder containing PARTS BAM files:
-    DLOG(INFO) << input_path << " is a directory.  Proceed to merge all BAM files";
-    std::string mergeBAM = input_path + "/merge_parts.bam  ";
-    Executor merger_executor("Merge BAM Files", sample_tag, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
-    Worker_ptr merger_worker(new SambambaWorker(input_path, mergeBAM, SambambaWorker::MERGE, flag_f));
-    merger_executor.addTask(merger_worker);
-    merger_executor.run();
+    stage_levels.insert(stage_levels.begin(),"Merge BAM");
   }
   else {
     input_file = input_path;
   }
 
-  Executor executor("Depth", sample_tag, get_config<int>("gatk.depth.nprocs"));
+  Executor executor("Depth", stage_levels, sample_tag, get_config<int>("gatk.depth.nprocs"));
+
+  std::string tag;
+  if (!sample_tag.empty()) {
+    tag = "Merge BAM " + sample_tag;
+  }
+  else {
+    tag= "Merge BAM";
+  }
+
+  if (boost::filesystem::is_directory(input_path)) {
+    std::string mergeBAM = input_path + "/merge_parts.bam  ";
+    Worker_ptr merger_worker(new SambambaWorker(input_path, mergeBAM, SambambaWorker::MERGE, flag_f)); 
+    executor.addTask(merger_worker,tag, true);    
+  }
+
+// std::string input_file;
+// if (boost::filesystem::is_directory(input_path)) {
+//   // Merging BAM files if the input is a folder containing PARTS BAM files:
+//   DLOG(INFO) << input_path << " is a directory.  Proceed to merge all BAM files";
+//   std::string mergeBAM = input_path + "/merge_parts.bam  ";
+//   Executor merger_executor("Merge BAM Files", sample_tag, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
+//   Worker_ptr merger_worker(new SambambaWorker(input_path, mergeBAM, SambambaWorker::MERGE, flag_f));
+//   merger_executor.addTask(merger_worker);
+//   merger_executor.run();
+// }
+// else {
+//   input_file = input_path;
+// }
+
+  if (!sample_tag.empty()) {
+    tag= "Depth " + sample_tag;
+  }
+  else {
+    tag= "Depth";
+  }
+
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
-       std::string file_ext = "cov";
-       std::string output_file = get_contig_fname(output_dir, contig, file_ext);
-       Worker_ptr worker(new DepthWorker(ref_path,
-              intv_paths[contig],
-              input_file,
-              output_file,
-              geneList_paths[contig],
-              extra_opts,
-              contig,
-              flag_f,
-              flag_baseCoverage,
-              flag_intervalCoverage,
-              flag_sampleSummary));
-       output_files[contig] = output_file;
-       executor.addTask(worker);
+     std::string file_ext = "cov";
+     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
+     Worker_ptr worker(new DepthWorker(ref_path,
+         intv_paths[contig],
+         input_file,
+         output_file,
+         geneList_paths[contig],
+         extra_opts,
+         contig,
+         flag_f,
+         flag_baseCoverage,
+         flag_intervalCoverage,
+         flag_sampleSummary)
+     );
+     output_files[contig] = output_file;     
+     executor.addTask(worker, tag, contig==0);
   }
 
   bool flag = true;
 
-  Worker_ptr worker(new DepthCombineWorker(output_files, output_path,
+  if (!sample_tag.empty()) {
+    tag= "Combine Depth " + sample_tag;
+  }
+  else {
+    tag= "Combine Depth";
+  }
+  Worker_ptr combine_worker(new DepthCombineWorker(output_files, output_path,
         flag_baseCoverage, flag_intervalCoverage, flag_sampleSummary, flag_genes, flag));
-  executor.addTask(worker, true);
+  executor.addTask(combine_worker, "Combine Depth",true);
+
   executor.run();
 
   return 0;

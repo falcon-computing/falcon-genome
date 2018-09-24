@@ -3,6 +3,8 @@
 #include <boost/program_options.hpp>
 #include <string>
 
+#include <bits/stdc++.h> 
+
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
@@ -65,96 +67,119 @@ int joint_main(int argc, char** argv,
     create_dir(parts_dir);
   }
 
-  // run 
-  //Executor executor("Joint Genotyping", get_config<int>("gatk.joint.nprocs"));
-  Executor* executor = create_executor("Joint Genotyping", sample_tag, 
-               get_config<int>("gatk.genotype.nprocs"));
+  std::vector<std::string> stage_levels{"Combine GVCF"};
+  Executor* executor = create_executor("Joint Genotyping", stage_levels, sample_tag, get_config<int>("gatk.genotype.nprocs"));
+
+  if (!flag_skip_combine) {
+    stage_levels.push_back("Generate VCF Index");
+  }
+
+  if (!flag_combine_only) {
+    stage_levels.push_back("Genotype GVCF");
+    stage_levels.push_back("Compress VCF");
+    stage_levels.push_back("Generate VCF Index");
+    stage_levels.push_back("Concatenate VCF");
+    stage_levels.push_back("Compress VCF");
+    stage_levels.push_back("Generate VCF Index");
+  }
 
   if (!flag_skip_combine) { // combine gvcfs
     Worker_ptr worker(new CombineGVCFsWorker(
-          ref_path, input_path,
-          parts_dir, flag_f));
+        ref_path, 
+        input_path,
+        parts_dir, 
+        flag_f)
+    );
 
-    executor->addTask(worker);
+    executor->addTask(worker,"Combine GVCF");
 
     // tabix gvcf from combine gvcf output
-    for (int contig = 0; 
-         contig < get_config<int>("gatk.joint.ncontigs"); 
-         contig++) 
+    for (int contig = 0; contig < get_config<int>("gatk.joint.ncontigs"); contig++) 
     { 
       Worker_ptr worker(new TabixWorker(
-            get_contig_fname(parts_dir, contig, "gvcf.gz")));
-      executor->addTask(worker, contig == 0);
+          get_contig_fname(parts_dir, contig, "gvcf.gz"))
+      );
+      executor->addTask(worker,"Generate VCF Index", contig == 0);
     }
-  }
+  } // flag_skip_combine checked
+
   if (!flag_combine_only) {
     std::vector<std::string> vcf_parts(get_config<int>("gatk.joint.ncontigs"));
     
-        // call gatk genotype gvcfs on each combined gvcf partitions
-    for (int contig = 0; 
-         contig < get_config<int>("gatk.joint.ncontigs"); 
-         contig++) 
+    // call gatk genotype gvcfs on each combined gvcf partitions
+    for (int contig = 0; contig < get_config<int>("gatk.joint.ncontigs"); contig++) 
     {
       std::string suffix = "gvcf.gz";
       if (flag_skip_combine) {
         suffix = "gvcf";
       }
+
       Worker_ptr worker(new GenotypeGVCFsWorker(ref_path,
-            get_contig_fname(parts_dir, contig, suffix),
-            get_contig_fname(parts_dir, contig, "vcf"),
-            extra_opts,
-            flag_f));
-      executor->addTask(worker, contig == 0);
+          get_contig_fname(parts_dir, contig, suffix),
+          get_contig_fname(parts_dir, contig, "vcf"),
+          extra_opts,
+          flag_f)
+      );
+
+      executor->addTask(worker, "Genotype GVCF", contig == 0);
       vcf_parts[contig] = get_contig_fname(parts_dir, contig, "vcf");
     }
-    for (int contig = 0;
-         contig < get_config<int>("gatk.joint.ncontigs");
-	 contig++)
+
+    for (int contig = 0; contig < get_config<int>("gatk.joint.ncontigs"); contig++)
     {
       Worker_ptr worker(new ZIPWorker(
-            vcf_parts[contig], vcf_parts[contig]+".gz", flag_f));
-      executor->addTask(worker, contig == 0);
+          vcf_parts[contig], 
+          vcf_parts[contig] + ".gz", 
+          flag_f)
+      );
+      executor->addTask(worker, "Compress VCF", contig == 0);
     }
 
-    for (int contig = 0;
-          contig < get_config<int>("gatk.joint.ncontigs");
-	  contig++)
+    for (int contig = 0; contig < get_config<int>("gatk.joint.ncontigs"); contig++)
     {
       Worker_ptr worker(new TabixWorker(
-      vcf_parts[contig]+".gz"));
-      executor->addTask(worker, contig == 0);
+          vcf_parts[contig]+".gz")
+      );
+      executor->addTask(worker, "Generate VCF Index",contig == 0);
     }
 
     {
 
     for (auto& vcf_part : vcf_parts)
       vcf_part += ".gz";
-
     }
       
-
     // start concat the vcfs
     bool flag = true;
     bool flag_a = true;
+    bool flag_bgzip = false;
     std::string temp_vcf_path = parts_dir + "/" + get_basename(output_path);
     { // concat vcfs
       Worker_ptr worker(new VCFConcatWorker(
-            vcf_parts, temp_vcf_path,
-            flag_a, flag));
-      executor->addTask(worker, true);
+          vcf_parts, 
+          temp_vcf_path,
+          flag_a, 
+          flag_bgzip,
+          flag)
+      );
+      executor->addTask(worker, "Concatenate VCF",true);
     }
     { // bgzip vcf
       Worker_ptr worker(new ZIPWorker(
-            temp_vcf_path, output_path + ".gz",
-            flag_f));
-      executor->addTask(worker, true);
+          temp_vcf_path, 
+          output_path + ".gz",
+          flag_f)
+      );
+      executor->addTask(worker, "Compress VCF",true);
     }
     { // tabix vcf
       Worker_ptr worker(new TabixWorker(
-            output_path + ".gz"));
-      executor->addTask(worker, true);
+          output_path + ".gz")
+      );
+      executor->addTask(worker, "Generate VCF Index",true);
     }
-  }
+  } // flag_combine_only
+
   executor->run();
 
   return 0;

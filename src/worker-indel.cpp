@@ -2,10 +2,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
+
+#include <bits/stdc++.h> 
 #include <cmath>
 #include <iomanip>
 #include <string>
-
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -25,7 +26,7 @@ int ir_main(int argc, char** argv,
   opt_desc.add_options()
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
-    ("output,o", po::value<std::string>()->required(), "output diretory of BAM files")
+    ("output,o", po::value<std::string>()->required(), "output directory of BAM files")
     ("intervalList,L", po::value<std::string>(), "interval list file")
     ("sample-tag,t",po::value<std::string>(), "sample tag for log files")
     ("merge-bam,m", "merge Parts BAM files")
@@ -66,11 +67,27 @@ int ir_main(int argc, char** argv,
   output_path = check_output(output_path, flag_f);
   create_dir(output_path);
 
-  Executor executor("Indel Realignment", sample_tag, get_config<int>("gatk.indel.nprocs", "gatk.nprocs"));
+  std::vector<std::string> stage_levels{"RTC", "Indel Realignment"};
+  if (merge_bam_flag) {
+    stage_levels.push_back("Merge BAM");
+  }
+
+  std::string tag;
+  if (!sample_tag.empty()) {
+    tag = "RTC " + sample_tag;  
+  }
+  else {
+    tag= "RTC";
+  }
+
+  Executor executor("Indel Realignment", stage_levels, sample_tag, get_config<int>("gatk.indel.nprocs", "gatk.nprocs"));
   { // realign target creator
-    Worker_ptr worker(new RTCWorker(ref_path, known_indels,
-          input_path, target_path));
-    executor.addTask(worker, true);
+    Worker_ptr worker(new RTCWorker(ref_path, 
+        known_indels,
+        input_path, 
+        target_path)
+    );
+    executor.addTask(worker, tag, true);
   }
 
   std::vector<std::string> intv_paths;
@@ -92,27 +109,42 @@ int ir_main(int argc, char** argv,
     else {
       input_file = input_path;
     }
-    Worker_ptr worker(new IndelWorker(ref_path, known_indels,
-          intv_paths[contig],
-          input_file, target_path,
-          get_contig_fname(output_path, contig),
-          extra_opts,
-          flag_f));
-    executor.addTask(worker, contig==0);
+    Worker_ptr worker(new IndelWorker(ref_path, 
+        known_indels,
+        intv_paths[contig],
+        input_file, 
+        target_path,
+        get_contig_fname(output_path, contig),
+        extra_opts,
+        flag_f)
+    );
+    executor.addTask(worker, "Indel Realignment", contig==0);
   }
-  executor.run();
+  //executor.run();
 
   if (merge_bam_flag){
     std::string mergeBAM(output_path);
     boost::replace_all(mergeBAM, ".bam", "_merged.bam");
-    Executor merger_executor("Merge BAM Files", sample_tag, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
+    //Executor merger_executor("Merge BAM Files", sample_tag, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
     Worker_ptr merger_worker(new SambambaWorker(output_path, mergeBAM, SambambaWorker::MERGE, flag_f));
-    merger_executor.addTask(merger_worker);
-    merger_executor.run();
+    //merger_executor.addTask(merger_worker);
+    //merger_executor.run();
 
     // Removing Part BAM files:
-    remove_path(output_path);
+    //remove_path(output_path);
+
+    if (!sample_tag.empty()) {
+      tag= "Merge BAM " + sample_tag;
+    }
+    else {
+      tag= "Merge BAM";
+    }
+    executor.addTask(merger_worker, tag, true);
+   
   }
+
+  executor.run();
+  
   // delete all partial contig bqsr
   remove_path(target_path);
 

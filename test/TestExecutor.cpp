@@ -1,4 +1,6 @@
 #include <boost/filesystem.hpp>
+
+#include<bits/stdc++.h> 
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -58,7 +60,9 @@ TEST_F(TestExecutor, TestBackgroundExecutor) {
     fcs::Worker_ptr worker(new RemoveWorker(
         fname.str(), &check_done, &setup_done));
   
-    fcs::BackgroundExecutor e("remove", "UnitTest", worker);
+    std::vector<std::string> stage_levels{"sleep"};
+    //fcs::BackgroundExecutor e("remove", stage_levels, "UnitTest", worker);
+    fcs::BackgroundExecutor e("remove", stage_levels, "UnitTest", worker);
 
     ASSERT_TRUE(check_done);
     ASSERT_TRUE(setup_done);
@@ -72,7 +76,9 @@ TEST_F(TestExecutor, TestBackgroundExecutor) {
   fcs::Worker_ptr worker(new SleepWorker(
         fname.str()));
 
-  fcs::BackgroundExecutor* e = new fcs::BackgroundExecutor("sleep", "UnitTest",  worker);
+  std::vector<std::string> stage_levels{"sleep"};
+  //fcs::BackgroundExecutor* e = new fcs::BackgroundExecutor("sleep", stage_levels, "UnitTest",  worker);
+  fcs::BackgroundExecutor* e = new fcs::BackgroundExecutor("sleep", stage_levels, "UnitTest",  worker);
 
   // check if file is after a while
   boost::this_thread::sleep_for(boost::chrono::milliseconds(1));

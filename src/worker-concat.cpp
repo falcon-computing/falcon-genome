@@ -1,10 +1,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
+
+#include <bits/stdc++.h> 
 #include <cmath>
 #include <iomanip>
 #include <string>
-
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -53,14 +54,20 @@ int concat_main(int argc, char** argv,
     get_input_list(input_path, input_files, ".*\\.vcf");
   }
 
-  Executor executor("VCF concat", sample_tag);
+  std::vector<std::string> stage_levels{"VCF concatenate", "Compress VCF", "Generate VCF Index"};
+  Executor executor("VCF concatenate", stage_levels,  sample_tag);
   { // concat gvcfs
     // TODO: auto detect the input and decide flag_a
     bool flag_a = false;
+    bool flag_bgzip = false;
     Worker_ptr worker(new VCFConcatWorker(
-          input_files, output_path,
-          flag_a, flag_f));
-    executor.addTask(worker);
+        input_files, 
+        output_path,
+        flag_a,
+        flag_bgzip, 
+        flag_f)
+    );
+    executor.addTask(worker, "Concatenate VCF");
   }
   //{ // sort gvcf
   //  Worker_ptr worker(new VCFSortWorker(output_path));
@@ -68,14 +75,17 @@ int concat_main(int argc, char** argv,
   //}
   { // bgzip gvcf
     Worker_ptr worker(new ZIPWorker(
-          output_path, output_path+".gz",
-          flag_f));
-    executor.addTask(worker, true);
+        output_path, 
+        output_path+".gz",
+        flag_f)
+    );
+    executor.addTask(worker, "Compress VCF",true);
   }
   { // tabix gvcf
     Worker_ptr worker(new TabixWorker(
-          output_path + ".gz"));
-    executor.addTask(worker, true);
+        output_path + ".gz")
+    );
+    executor.addTask(worker, "Generate VCF Index",true);
   }
   executor.run();
 

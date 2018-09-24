@@ -195,6 +195,7 @@ int init_config(boost::program_options::options_description conf_opt) {
   // check tool files
   check_input(get_config<std::string>("bwa_path"), false);
   check_input(get_config<std::string>("sambamba_path"), false);
+  check_input(get_config<std::string>("samtools_path"), false);
   check_input(get_config<std::string>("bcftools_path"), false);
   check_input(get_config<std::string>("bgzip_path"), false);
   check_input(get_config<std::string>("tabix_path"), false);
@@ -273,6 +274,7 @@ int init(char** argv, int argc) {
     arg_decl_string_w_def("mpi_path",        "/usr/lib64/openmpi",                  "path to mpi installation")
     arg_decl_string_w_def("bwa_path",        conf_root_dir+"/tools/bin/bwa-flow",    "path to bwa binary")
     arg_decl_string_w_def("sambamba_path",   conf_root_dir+"/tools/bin/sambamba",   "path to sambamba")
+    arg_decl_string_w_def("samtools_path",   conf_root_dir+"/tools/bin/samtools",   "path to samtools")
     arg_decl_string_w_def("bcftools_path",   conf_root_dir+"/tools/bin/bcftools",   "path to bcftools")
     arg_decl_string_w_def("bgzip_path",      conf_root_dir+"/tools/bin/bgzip",      "path to bgzip")
     arg_decl_string_w_def("tabix_path",      conf_root_dir+"/tools/bin/tabix",      "path to tabix")

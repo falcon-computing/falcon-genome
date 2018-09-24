@@ -223,7 +223,7 @@ inline std::string get_basename_wo_ext(std::string path) {
   return file_path.stem().string();
 }
 
-Executor* create_executor(std::string job_name, std::string sample_id, int num_workers = 1);
+Executor* create_executor(std::string job_name, std::vector<std::string> stage_levels, std::string sample_id, int num_workers = 1);
 std::string get_absolute_path(std::string path);
 std::string check_input(std::string path, bool req = true);
 std::string check_output(std::string path, bool &f, bool req_file = false);

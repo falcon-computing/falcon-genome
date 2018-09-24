@@ -35,7 +35,7 @@ int mutect2_main(int argc, char** argv,
     ("intervalList,L", po::value<std::string>(), "interval list file")
     ("normal_name,a", po::value<std::string>(), "Sample name for Normal Input BAM. Must match the SM tag in the BAM header (gatk4) ")
     ("tumor_name,b", po::value<std::string>(), "Sample name for Tumor Input BAM. Must match the SM tag in the BAM header (gatk4)")
-    ("sample-tag,t", po::value<std::string>(),"sample tag for log file")
+    ("sample-tag,T", po::value<std::string>(),"sample tag for log file")
     ("gatk4,g", "use gatk4 to perform analysis")
     ("skip-concat,s", "produce a set of VCF files instead of one");
 
@@ -66,7 +66,7 @@ int mutect2_main(int argc, char** argv,
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::string normal_name = get_argument<std::string> (cmd_vm, "normal_name","a");
   std::string tumor_name  = get_argument<std::string> (cmd_vm, "tumor_name","b");
-  std::string sample_tag  = get_argument<std::string> (cmd_vm, "sample-tag","t");
+  std::string sample_tag  = get_argument<std::string> (cmd_vm, "sample-tag","T");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
@@ -109,9 +109,20 @@ int mutect2_main(int argc, char** argv,
         get_config<std::string>("blaze.nam_path"),
         get_config<std::string>("blaze.conf_path")));
 
-  BackgroundExecutor bg_executor("blaze-nam", sample_tag, blaze_worker);
+  std::vector<std::string> nam_user{"Mutect2"};
+  BackgroundExecutor bg_executor("blaze-nam", nam_user, sample_tag, blaze_worker);
 
-  Executor executor("Mutect2", sample_tag, get_config<int>("gatk.mutect2.nprocs"));
+  std::vector<std::string> stage_levels{"Generate Mutect2 VCF", "Concatenate Mutect2 VCF", "Compress Mutect2 VCF", "Generate Mutect2 VCF Index"};
+
+  Executor executor("Mutect2", stage_levels, sample_tag, get_config<int>("gatk.mutect2.nprocs"));
+
+  std::string tag;
+  if (!sample_tag.empty()) {
+    tag = "Generate Mutect2 VCF " + sample_tag;
+  }
+  else {
+    tag= "Generate Mutect2 VCF";
+  }
 
   bool flag_mutect2_f = !flag_skip_concat | flag_f;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
@@ -132,45 +143,73 @@ int mutect2_main(int argc, char** argv,
     }
     std::string file_ext = "vcf";
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
-    Worker_ptr worker(new Mutect2Worker(ref_path,
-          intv_paths[contig], normal_file, tumor_file,
-          output_file,
-          extra_opts,
-          dbsnp_path,
-          cosmic_path,
-          germline_path,
-          panels_of_normals,
-          normal_name,
-          tumor_name,
-          contig,
-          flag_mutect2_f,
-          flag_gatk));
+    Worker_ptr mutect2_worker(new Mutect2Worker(ref_path,
+        intv_paths[contig], 
+        normal_file, 
+        tumor_file,
+        output_file,
+        extra_opts,
+        dbsnp_path,
+        cosmic_path,
+        germline_path,
+        panels_of_normals,
+        normal_name,
+        tumor_name,
+        contig,
+        flag_mutect2_f,
+        flag_gatk)
+    );
     output_files[contig] = output_file;
 
-    executor.addTask(worker);
+    executor.addTask(mutect2_worker, tag, contig == 0);
   }
 
   if (!flag_skip_concat) {
-
     bool flag = true;
     bool flag_a = false;
+    bool flag_bgzip = false;
     { // concat gvcfs
+      if (!sample_tag.empty()) {
+	tag = "Concatenate Mutect2 VCF " + sample_tag;
+      }
+      else {
+	tag= "Concatenate Mutect2 VCF";
+      }
       Worker_ptr worker(new VCFConcatWorker(
-            output_files, temp_gvcf_path,
-            flag_a, flag));
-      executor.addTask(worker, true);
+          output_files, 
+          temp_gvcf_path,
+          flag_a, 
+          flag_bgzip,
+          flag)
+      );
+      executor.addTask(worker, tag, true);
     }
 
     { // bgzip gvcf
+      if (!sample_tag.empty()) {
+        tag = "Compress Mutect2 VCF " + sample_tag;
+      }
+      else {
+        tag= "Compress Mutect2 VCF";
+      }
       Worker_ptr worker(new ZIPWorker(
-        temp_gvcf_path, output_path+".gz",
-        flag_f));
-      executor.addTask(worker, true);
+          temp_gvcf_path, 
+          output_path + ".gz",
+          flag_f)
+      );
+      executor.addTask(worker, tag, true);
     }
     { // tabix gvcf
+      if (!sample_tag.empty()) {
+	tag = "Generate Mutect2 VCF Index " + sample_tag;
+      }
+      else {
+        tag= "Generate Mutect2 VCF Index";
+      }
       Worker_ptr worker(new TabixWorker(
-        output_path + ".gz"));
-      executor.addTask(worker, true);
+          output_path + ".gz")
+      );
+      executor.addTask(worker, tag, true);
     }
   }
   executor.run();

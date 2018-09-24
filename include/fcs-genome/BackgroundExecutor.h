@@ -11,7 +11,7 @@ namespace fcsgenome {
 
 class BackgroundExecutor : public Executor {
  public:
-  BackgroundExecutor(std::string job_name, std::string sample_id, Worker_ptr worker);
+  BackgroundExecutor(std::string job_name, std::vector<std::string> stage_levels, std::string sample_id, Worker_ptr worker);
   ~BackgroundExecutor();
  
  private:
