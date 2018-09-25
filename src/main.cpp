@@ -16,7 +16,7 @@
     << std::endl;
 
 int print_help() {
-  std::cout << "Falcon Genome Analysis Toolkit " << VERSION << std::endl;
+  std::cout << "Falcon Genome Analysis Toolkit " << RELEASE_VERSION << std::endl;
   std::cout << "Usage: fcs-genome [command] <options>" << std::endl;
   std::cout << std::endl;
   std::cout << "Commands: " << std::endl;
@@ -157,6 +157,9 @@ int main(int argc, char** argv) {
     }
     else if (cmd == "depth") {
       depth_main(argc-1, &argv[1], opt_desc);
+    }
+    else if (cmd == "--version") {
+      std::cout << VERSION << std::endl;
     }
     else {
       print_help();
