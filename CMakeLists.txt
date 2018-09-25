@@ -49,28 +49,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVERSION=\\\"${BIN_VERSION}\\\"")
 
 # prepare release_version
 if(RELEASE_VERSION)
+    message(STATUS "release_version: ${RELEASE_VERSION}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRELEASE_VERSION=\\\"${RELEASE_VERSION}\\\"")
 else()
-    execute_process(
-    COMMAND git describe --tags --abbrev=0
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE RELEASE_VERSION
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    message(STATUS "no release_version added")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRELEASE_VERSION=\\\"\\\"")
 endif()
-
-if(DEPLOYMENT_DST)
-    if(DEPLOYMENT_DST MATCHES "hwc")
-        set(RELEASE_VERSION "${RELEASE_VERSION} on Huawei Cloud")
-    elseif(DEPLOYMENT_DST MATCHES "aws")
-        set(RELEASE_VERSION "${RELEASE_VERSION} on AWS Cloud")
-    else()
-        set(RELEASE_VERSION "${RELEASE_VERSION} local")
-    endif()
-else()
-    set(RELEASE_VERSION "${RELEASE_VERSION} local")
-endif()
-
-message(STATUS "release_version: ${RELEASE_VERSION}")
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRELEASE_VERSION=\\\"${RELEASE_VERSION}\\\"")
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     message(STATUS "Install prefix is set to ~/.falcon-genome/fcs-genome/${BIN_VERSION}")
