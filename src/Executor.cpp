@@ -290,7 +290,7 @@ int Executor::execute(Worker_ptr worker, std::string log) {
         script_file;
     }
     else {
-      cmd = worker->getCommand() + " 2> " + log;
+      cmd = worker->getCommand() + " &> " + log;
       DLOG(INFO) << cmd;
     }
 
