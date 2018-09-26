@@ -16,6 +16,7 @@
 namespace fcsgenome {
 
 boost::mutex mutex_sig;
+int itr = 0;
 
 // put signal handler here because it will be the worker thread 
 // that catches the signal
@@ -43,24 +44,19 @@ void Stage::add(Worker_ptr worker) {
   tasks_.push_back(worker);
 }
 
+typedef boost::packaged_task<void> task_t;
+std::vector<boost::unique_future<void> > pending_tasks_;		
+
 void Stage::run() {
   uint64_t start_ts = getTs();
 
-  typedef boost::packaged_task<void> task_t;
-  std::vector<boost::unique_future<void> > pending_tasks_;
-
-  // post all tasks
+  //Post_task()
   for (int i = 0; i < tasks_.size(); i++) {
     tasks_[i]->check();
-
-    boost::shared_ptr<task_t> task = boost::make_shared<task_t>(
-        boost::bind(&Stage::runTask, this, i));
-
-    boost::unique_future<void> fut = task->get_future();
-    pending_tasks_.push_back(std::move(fut));
-
-    executor_->post(boost::bind(&task_t::operator(), task)); 
+    
+    postTask(i);
   }
+
   // wait for tasks to finish
   boost::wait_for_all(pending_tasks_.begin(), pending_tasks_.end()); 
 
@@ -98,13 +94,28 @@ void Stage::run() {
              << getTs() - start_ts << " seconds";
 }
 
+void Stage::postTask(int idx) {
+  boost::lock_guard<Stage> guard(*this);
+  boost::shared_ptr<task_t> task = boost::make_shared<task_t>(
+         boost::bind(&Stage::runTask, this, idx));
+
+  boost::unique_future<void> fut = task->get_future();
+  pending_tasks_.push_back(std::move(fut));
+
+  executor_->post(boost::bind(&task_t::operator(), task));
+}
+
 void Stage::runTask(int idx) {
-  int ret = executor_->execute(tasks_[idx], logs_[idx]);
+  int ret = executor_->execute(tasks_[idx], logs_[idx]); 
   if (ret) {
     DLOG(ERROR) << "Task " << idx << " in stage"
                 << " failed with error code " << ret;
     boost::lock_guard<Stage> guard(*this);
     status_[idx] = ret;
+    if (itr < 2) {
+      itr++;
+      Stage::run();
+    }
   }
 }
 
