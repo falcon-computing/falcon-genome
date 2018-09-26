@@ -50,7 +50,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVERSION=\\\"${BIN_VERSION}\\\"")
 # prepare release_version
 if(RELEASE_VERSION)
     message(STATUS "release_version: ${RELEASE_VERSION}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRELEASE_VERSION=\\\"${RELEASE_VERSION}\\\"")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRELEASE_VERSION=\\\"\"${RELEASE_VERSION}\"\\\"")
 else()
     message(STATUS "no release_version added")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRELEASE_VERSION=\\\"\\\"")
