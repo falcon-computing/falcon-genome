@@ -22,6 +22,7 @@ BackgroundExecutor::BackgroundExecutor( std::string job_name, Worker_ptr worker)
   worker->setup();
 
   create_dir(get_config<std::string>("log_dir"));
+
   std::string tag;
 // if (sample_id.empty()){
 //   tag = job_name;
@@ -50,7 +51,7 @@ BackgroundExecutor::BackgroundExecutor( std::string job_name, Worker_ptr worker)
     std::string script_file = temp_dir + "/job-" + job_name + ".sh";
 
     std::stringstream cmd_sh;
-    cmd_sh << "trap 'kill $(jobs -p)' EXIT" << std::endl;
+    cmd_sh << "trap 'kill $(jobs -p) &> /dev/null' EXIT" << std::endl;
     cmd_sh << cmd << std::endl;
 
     // write the script to file
