@@ -12,7 +12,7 @@ VCFConcatWorker::VCFConcatWorker(
    std::string output_path,
    bool &flag_a,
    bool &flag_bgzip,
-   bool &flag_f): Worker(1, 1), input_files_(input_files), flag_a_(flag_a), flag_bgzip_(flag_bgzip)
+   bool &flag_f): Worker(1, 1, std::vector<std::string>(), "Concatenate VCF"), input_files_(input_files), flag_a_(flag_a), flag_bgzip_(flag_bgzip)
 {
   // check output files
   output_file_ = check_output(output_path, flag_f);
@@ -52,9 +52,9 @@ void VCFConcatWorker::setup() {
 }
 
 ZIPWorker::ZIPWorker(
-      std::string input_path,
-      std::string output_path,
-      bool &flag_f): Worker(1, 1)
+  std::string input_path,
+  std::string output_path,
+  bool &flag_f): Worker(1, 1, std::vector<std::string>(), "Compress VCF")
 {
   input_file_  = input_path;
   output_file_ = check_output(output_path, flag_f);

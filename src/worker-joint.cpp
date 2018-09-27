@@ -25,7 +25,7 @@ int joint_main(int argc, char** argv,
     ("input-dir,i", po::value<std::string>()->required(), "input dir containing "
                                "[sample_id].gvcf.gz files")
     ("output,o", po::value<std::string>()->required(), "output vcf.gz file(s)")
-    ("sample-tag,t", po::value<std::string>(), "tag for log files")
+    ("sample-id,t", po::value<std::string>(), "sample id for log files")
     ("combine-only,c", "combine GVCFs only and skip genotyping")
     ("skip-combine,g", "(deprecated) perform genotype GVCFs only "
                        "and skip combine GVCFs");
@@ -45,7 +45,7 @@ int joint_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input-dir", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample-tag", "t");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id", "t");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
@@ -66,65 +66,31 @@ int joint_main(int argc, char** argv,
     create_dir(parts_dir);
   }
 
-  std::vector<std::string> stage_levels;
-  if (!flag_skip_combine) {
-    stage_levels.push_back("Joint Combine Input GVCF");
-    stage_levels.push_back("Joint Generate Parts VCF Index");
-  }
-
-  if (!flag_combine_only) {
-    stage_levels.push_back("Joint Genotype GVCF");
-    stage_levels.push_back("Joint Compress VCF");
-    stage_levels.push_back("Joint Generate compressed VCF Index");
-    stage_levels.push_back("Joint Concatenate compressed VCF");
-    stage_levels.push_back("Joint Compress VCF");
-    stage_levels.push_back("Joint Generate VCF Index");
-  }
-
-  Executor executor("Joint Genotyping", stage_levels, sample_tag, get_config<int>("gatk.genotype.nprocs"));
+  Executor executor("Joint Genotyping", get_config<int>("gatk.genotype.nprocs"));
 
   std::string tag;
   // combine gvcfs
   if (!flag_skip_combine) {
 
-    if (!sample_tag.empty()){
-      tag = "Joint Combine Input VCF " + sample_tag;
-    }
-    else {
-      tag = "Joint Combine Input VCF";
-    }    
     Worker_ptr worker(new CombineGVCFsWorker(
         ref_path, 
         input_path,
         parts_dir, 
         flag_f)
     );
-    executor.addTask(worker, tag, true);
- 
-    if (!sample_tag.empty()){
-      tag = "Joint Generate Parts VCF Index " + sample_tag;
-    }
-    else {
-      tag = "Joint Generate Parts VCF Index";
-    }
+    executor.addTask(worker, sample_id, true);
  
     // tabix gvcf from combine gvcf output
     for (int contig = 0; contig < get_config<int>("gatk.joint.ncontigs"); contig++) { 
        Worker_ptr worker(new TabixWorker(get_contig_fname(parts_dir, contig, "gvcf.gz")));
-       executor.addTask(worker, tag, contig == 0);
+       executor.addTask(worker, sample_id, contig == 0);
+       //executor.addTask(worker, tag, contig == 0);
     }
   } // flag_skip_combine checked
 
   if (!flag_combine_only) {
 
     std::vector<std::string> vcf_parts(get_config<int>("gatk.joint.ncontigs"));
-  
-    if (!sample_tag.empty()){
-      tag = "Joint Genotype VCF " + sample_tag;
-    }
-    else {
-      tag = "Joint Genotype VCF";
-    }
   
     // call gatk genotype gvcfs on each combined gvcf partitions
     for (int contig = 0; contig < get_config<int>("gatk.joint.ncontigs"); contig++) {
@@ -137,41 +103,29 @@ int joint_main(int argc, char** argv,
           get_contig_fname(parts_dir, contig, suffix),
           get_contig_fname(parts_dir, contig, "vcf"),
           extra_opts,
-          flag_f)
+	  flag_f)
       );
   
-      executor.addTask(worker, tag, contig == 0);
+      //executor.addTask(worker, tag, contig == 0);
+      executor.addTask(worker, sample_id, contig == 0);
       vcf_parts[contig] = get_contig_fname(parts_dir, contig, "vcf");
     }
 
     for (int contig = 0; contig < get_config<int>("gatk.joint.ncontigs"); contig++){
-      if (!sample_tag.empty()){
-	tag = "Joint Compress VCF " + sample_tag;
-      }
-      else {
- 	tag = "Joint Compress VCF";
-      }
 
       Worker_ptr worker(new ZIPWorker(
           vcf_parts[contig], 
           vcf_parts[contig] + ".gz", 
           flag_f)
       );
-      executor.addTask(worker, tag, contig == 0);
-    }
-
-    if (!sample_tag.empty()){
-      tag = "Joint Generate VCF Index " + sample_tag;
-    }
-    else {
-      tag = "Joint Generate VCF Index";
+      executor.addTask(worker, sample_id, contig == 0);
     }
 
     for (int contig = 0; contig < get_config<int>("gatk.joint.ncontigs"); contig++) {
       Worker_ptr worker(new TabixWorker(
-         vcf_parts[contig] + ".gz")
+	  vcf_parts[contig] + ".gz")
       );
-      executor.addTask(worker, tag, contig == 0);
+      executor.addTask(worker, sample_id, contig == 0);
     }
 
     {
@@ -186,12 +140,6 @@ int joint_main(int argc, char** argv,
     std::string temp_vcf_path = parts_dir + "/" + get_basename(output_path);
     // concat vcfs
     { 
-      if (!sample_tag.empty()){
- 	tag = "Joint Concatenate VCF " + sample_tag;
-      }
-      else {
- 	tag = "Joint Concatenate VCF";
-      }
       Worker_ptr worker(new VCFConcatWorker(
          vcf_parts, 
          temp_vcf_path,
@@ -199,35 +147,23 @@ int joint_main(int argc, char** argv,
          flag_bgzip,
          flag)
       );
-      executor.addTask(worker, tag, true);
+      executor.addTask(worker, sample_id, true);
     }
     // bgzip vcf
     { 
-      if (!sample_tag.empty()){
-        tag = "Joint Compress VCF " + sample_tag;
-      }
-      else {
-        tag = "Joint Compress VCF";
-      }
       Worker_ptr worker(new ZIPWorker(
          temp_vcf_path, 
          output_path + ".gz",
          flag_f)
       );
-      executor.addTask(worker, tag, true);
+      executor.addTask(worker, sample_id, true);
     }
     // tabix vcf
     { 
-      if (!sample_tag.empty()){
-        tag = "Joint Generate VCF Index " + sample_tag;
-      }
-      else {
-        tag = "Joint Generate VCF Index";
-      }
       Worker_ptr worker(new TabixWorker(
-         output_path + ".gz")
+	output_path + ".gz")
       );
-      executor.addTask(worker, tag, true);
+      executor.addTask(worker, sample_id, true);
     }
   } // flag_combine_only
 

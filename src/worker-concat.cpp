@@ -26,7 +26,7 @@ int concat_main(int argc, char** argv,
     ("input,i", po::value<std::string>()->required(), "folder of input vcf/gvcf files")
     ("output,o", po::value<std::string>()->required(), "output vcf/gvcf file (automatically "
                                 "compressed to .vcf.gz/.gvcf.gz)")
-    ("sample-tag,t",po::value<std::string>(), "sample tag for log file");
+    ("sample-id,t",po::value<std::string>(), "sample id for log file");
 
   // Parse arguments
   po::store(
@@ -41,7 +41,7 @@ int concat_main(int argc, char** argv,
   bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample-tag", "t");
+  std::string sample_id  = get_argument<std::string>(cmd_vm, "sample-id", "t");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -54,8 +54,7 @@ int concat_main(int argc, char** argv,
     get_input_list(input_path, input_files, ".*\\.vcf");
   }
 
-  std::vector<std::string> stage_levels{"VCF concatenate", "Compress VCF", "Generate VCF Index"};
-  Executor executor("VCF concatenate", stage_levels,  sample_tag);
+  Executor executor("VCF concatenate");
   { // concat gvcfs
     // TODO: auto detect the input and decide flag_a
     bool flag_a = false;
@@ -67,7 +66,7 @@ int concat_main(int argc, char** argv,
         flag_bgzip, 
         flag_f)
     );
-    executor.addTask(worker, "Concatenate VCF");
+    executor.addTask(worker, sample_id);
   }
   //{ // sort gvcf
   //  Worker_ptr worker(new VCFSortWorker(output_path));
@@ -79,13 +78,13 @@ int concat_main(int argc, char** argv,
         output_path+".gz",
         flag_f)
     );
-    executor.addTask(worker, "Compress VCF",true);
+    executor.addTask(worker, sample_id, true);
   }
   { // tabix gvcf
     Worker_ptr worker(new TabixWorker(
         output_path + ".gz")
     );
-    executor.addTask(worker, "Generate VCF Index",true);
+    executor.addTask(worker, sample_id, true);
   }
   executor.run();
 

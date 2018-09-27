@@ -51,14 +51,11 @@ int ir_main(int argc, char** argv,
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string target_path = input_path + ".intervals";
-  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample-tag", "t");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id", "t");
   bool merge_bam_flag     = get_argument<bool>(cmd_vm, "merge-bam", "m");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
-  std::vector<std::string> known_indels = get_argument<
-    std::vector<std::string> >(cmd_vm, "known", "K", std::vector<std::string>());
-
-  std::vector<std::string> extra_opts =
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
+  std::vector<std::string> known_indels = get_argument<std::vector<std::string> >(cmd_vm, "known", "K", std::vector<std::string>());
+  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -67,27 +64,14 @@ int ir_main(int argc, char** argv,
   output_path = check_output(output_path, flag_f);
   create_dir(output_path);
 
-  std::vector<std::string> stage_levels{"RTC", "Indel Realignment"};
-  if (merge_bam_flag) {
-    stage_levels.push_back("Merge BAM");
-  }
-
-  std::string tag;
-  if (!sample_tag.empty()) {
-    tag = "RTC " + sample_tag;  
-  }
-  else {
-    tag= "RTC";
-  }
-
-  Executor executor("Indel Realignment", stage_levels, sample_tag, get_config<int>("gatk.indel.nprocs", "gatk.nprocs"));
+  Executor executor("Indel Realignment", get_config<int>("gatk.indel.nprocs", "gatk.nprocs"));
   { // realign target creator
     Worker_ptr worker(new RTCWorker(ref_path, 
         known_indels,
         input_path, 
         target_path)
     );
-    executor.addTask(worker, tag, true);
+    executor.addTask(worker, sample_id, true);
   }
 
   std::vector<std::string> intv_paths;
@@ -118,29 +102,14 @@ int ir_main(int argc, char** argv,
         extra_opts,
         flag_f)
     );
-    executor.addTask(worker, "Indel Realignment", contig==0);
+    executor.addTask(worker, sample_id, contig==0);
   }
-  //executor.run();
 
   if (merge_bam_flag){
     std::string mergeBAM(output_path);
     boost::replace_all(mergeBAM, ".bam", "_merged.bam");
-    //Executor merger_executor("Merge BAM Files", sample_tag, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
     Worker_ptr merger_worker(new SambambaWorker(output_path, mergeBAM, SambambaWorker::MERGE, flag_f));
-    //merger_executor.addTask(merger_worker);
-    //merger_executor.run();
-
-    // Removing Part BAM files:
-    //remove_path(output_path);
-
-    if (!sample_tag.empty()) {
-      tag= "Merge BAM " + sample_tag;
-    }
-    else {
-      tag= "Merge BAM";
-    }
-    executor.addTask(merger_worker, tag, true);
-   
+    executor.addTask(merger_worker, sample_id, true);   
   }
 
   executor.run();

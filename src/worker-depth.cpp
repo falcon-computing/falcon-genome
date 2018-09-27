@@ -29,7 +29,7 @@ int depth_main(int argc, char** argv,
     ("output,o", po::value<std::string>()->required(),"output coverage file")
     ("intervalList,L", po::value<std::string>(), "Interval List BED File")
     ("geneList,g", po::value<std::string>(), "list of genes over which the coverage is calculated")
-    ("sample-tag,t", po::value<std::string>(), "sample tag for log files")
+    ("sample-id,t", po::value<std::string>(), "sample tag for log files")
     ("omitBaseOutput,b", "omit output coverage depth at each base (default: false)")
     ("omitIntervals,v", "omit output coverage per-interval statistics (default false)")
     ("omitSampleSummary,s", "omit output summary files for each sample (default false");
@@ -51,7 +51,7 @@ int depth_main(int argc, char** argv,
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::string geneList    = get_argument<std::string>(cmd_vm, "geneList", "g");
-  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample-tag", "t");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id", "t");
   bool flag_f                = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_baseCoverage     = get_argument<bool>(cmd_vm, "omitBaseOutput", "b");
   bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "omitIntervals", "v");
@@ -60,7 +60,7 @@ int depth_main(int argc, char** argv,
 
   bool flag_genes;
   if (!intv_list.empty() && 
-      !geneList.empty())
+    !geneList.empty())
   {
     flag_genes = true;
   } else {
@@ -100,41 +100,12 @@ int depth_main(int argc, char** argv,
     input_file = input_path;
   }
 
-  Executor executor("Depth", stage_levels, sample_tag, get_config<int>("gatk.depth.nprocs"));
-
-  std::string tag;
-  if (!sample_tag.empty()) {
-    tag = "Merge BAM " + sample_tag;
-  }
-  else {
-    tag= "Merge BAM";
-  }
+  Executor executor("Depth", get_config<int>("gatk.depth.nprocs"));
 
   if (boost::filesystem::is_directory(input_path)) {
     std::string mergeBAM = input_path + "/merge_parts.bam  ";
     Worker_ptr merger_worker(new SambambaWorker(input_path, mergeBAM, SambambaWorker::MERGE, flag_f)); 
-    executor.addTask(merger_worker,tag, true);    
-  }
-
-// std::string input_file;
-// if (boost::filesystem::is_directory(input_path)) {
-//   // Merging BAM files if the input is a folder containing PARTS BAM files:
-//   DLOG(INFO) << input_path << " is a directory.  Proceed to merge all BAM files";
-//   std::string mergeBAM = input_path + "/merge_parts.bam  ";
-//   Executor merger_executor("Merge BAM Files", sample_tag, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
-//   Worker_ptr merger_worker(new SambambaWorker(input_path, mergeBAM, SambambaWorker::MERGE, flag_f));
-//   merger_executor.addTask(merger_worker);
-//   merger_executor.run();
-// }
-// else {
-//   input_file = input_path;
-// }
-
-  if (!sample_tag.empty()) {
-    tag= "Depth " + sample_tag;
-  }
-  else {
-    tag= "Depth";
+    executor.addTask(merger_worker, sample_id, true);    
   }
 
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
@@ -150,23 +121,23 @@ int depth_main(int argc, char** argv,
          flag_f,
          flag_baseCoverage,
          flag_intervalCoverage,
-         flag_sampleSummary)
+	 flag_sampleSummary)
      );
-     output_files[contig] = output_file;     
-     executor.addTask(worker, tag, contig==0);
+     output_files[contig] = output_file;    
+     executor.addTask(worker, sample_id, contig==0);
   }
 
   bool flag = true;
 
-  if (!sample_tag.empty()) {
-    tag= "Combine Depth " + sample_tag;
-  }
-  else {
-    tag= "Combine Depth";
-  }
-  Worker_ptr combine_worker(new DepthCombineWorker(output_files, output_path,
-        flag_baseCoverage, flag_intervalCoverage, flag_sampleSummary, flag_genes, flag));
-  executor.addTask(combine_worker, "Combine Depth",true);
+  Worker_ptr combine_worker(new DepthCombineWorker(output_files, 
+     output_path,
+     flag_baseCoverage, 
+     flag_intervalCoverage, 
+     flag_sampleSummary, 
+     flag_genes, 
+     flag)
+  );
+  executor.addTask(combine_worker, sample_id, true);  
 
   executor.run();
 

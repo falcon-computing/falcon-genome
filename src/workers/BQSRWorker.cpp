@@ -17,9 +17,7 @@ BQSRWorker::BQSRWorker(std::string ref_path,
       int  contig,
       bool &flag_f,
       bool flag_gatk):
-  Worker(1,
-         get_config<int>("gatk.bqsr.nct", "gatk.nct"),
-         extra_opts),
+  Worker(1, get_config<int>("gatk.bqsr.nct", "gatk.nct"), extra_opts, "Base Recalibration"),
   ref_path_(ref_path),
   intv_path_(intv_path),
   input_path_(input_path),
@@ -98,7 +96,7 @@ void BQSRWorker::setup() {
 }
 
 BQSRGatherWorker::BQSRGatherWorker(std::vector<std::string> &input_files,
-    std::string output_file, bool &flag_f, bool flag_gatk): Worker(1, 1),
+  std::string output_file, bool &flag_f, bool flag_gatk): Worker(1, 1, std::vector<std::string>(),"Gathering BQSR Reports"),
   input_files_(input_files),flag_gatk_(flag_gatk)
 {
   output_file_ = check_output(output_file, flag_f);
@@ -146,7 +144,7 @@ PRWorker::PRWorker(std::string ref_path,
       std::vector<std::string> extra_opts,
       int  contig,
       bool &flag_f, bool flag_gatk):
-  Worker(1, get_config<int>("gatk.pr.nct", "gatk.nct"), extra_opts),
+  Worker(1, get_config<int>("gatk.pr.nct", "gatk.nct"), extra_opts, "PrintReads"),
   ref_path_(ref_path),
   intv_path_(intv_path),
   bqsr_path_(bqsr_path),

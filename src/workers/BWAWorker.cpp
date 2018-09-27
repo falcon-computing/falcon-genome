@@ -22,7 +22,7 @@ BWAWorker::BWAWorker(std::string ref_path,
   Worker(get_config<bool>("bwa.scaleout_mode") || 
          get_config<bool>("latency_mode") 
          ? conf_host_list.size() : 1, 
-         1, extra_opts),
+         1, extra_opts, "bwa mem"),
   ref_path_(ref_path),
   fq1_path_(fq1_path),
   fq2_path_(fq2_path),
@@ -47,50 +47,6 @@ void BWAWorker::check() {
   ref_path_ = check_input(ref_path_);
   fq1_path_ = check_input(fq1_path_);
   fq2_path_ = check_input(fq2_path_);
-
-//  // check temporary storage
-//  auto p = boost::filesystem::path(output_path_);
-//  std::string temp_dir = p.parent_path().string();
-//  LOG(INFO) << "temp dir: " << temp_dir ;
-// 
-//  struct statvfs diskData;
-//  statvfs(temp_dir.c_str(), &diskData);
-//  double available = (diskData.f_bavail * diskData.f_frsize); // /(1024*1024*1024);
-// 
-//  LOG(INFO) << "The available space in " << temp_dir << " is " << available;
-// 
-//  namespace fs = boost::filesystem;
-//  double size_fastq = 0;
-// 
-//  std::string ext = fs::extension(fq1_path_);
-//  int mult = 1;
-//  if (ext == ".gz" ) {
-//    mult = 3;
-//    size_fastq += 3*fs::file_size(fq1_path_);
-//    size_fastq += 3*fs::file_size(fq2_path_);
-//  }
-//  else {
-//    size_fastq += fs::file_size(fq1_path_);
-//    size_fastq += fs::file_size(fq2_path_);
-//  }
-//  //size_fastq=size_fastq/(1024*1024*1024);
-//
-//  LOG(INFO) << "The size of the input data is " << size_fastq;
-//  LOG(INFO) << "The available : " << available;
-// 
-//  //fs::path m(temp_dir);
-//  //fs::path m(output_path_);
-//  fs::space_info s = fs::space(p);
-//  //LOG(INFO) << "I have that much: " << s.available << '\n';
-// 
-//  if (available < size_fastq) {
-//   //LOG(ERROR) << "Not enough space in temporary storage: "
-//   //  << temp_dir << ", "
-//   //  << "the size of the temporary folder should be at least " 
-//   //  << mult << " times the size of input FASTQ files";
-//   //throw silentExit();
-//    ;
-//  }
 }
 
 void BWAWorker::setup() {

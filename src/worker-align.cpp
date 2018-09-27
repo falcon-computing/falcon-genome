@@ -88,7 +88,7 @@ int align_main(int argc, char** argv,
       sample_info.LibraryID = library_id;
       sample_info_vect.push_back(sample_info);
       sample_data.insert(make_pair(sample_id, sample_info_vect));
-	}
+    }
   }
   else {
     if (!fq1_path.empty() || !fq2_path.empty()) {
@@ -110,15 +110,12 @@ int align_main(int argc, char** argv,
   namespace fs = boost::filesystem;
   fs::space_info si = fs::space(temp_dir);
 
-  std::vector<std::string> stage_levels{"BWA mem"};
   std::string executor_tag;
   if (!flag_align_only) {
     executor_tag = "alignment and mark duplicates";
-    stage_levels.push_back("Mark Duplicates");
   }
   else{
     executor_tag = "alignment-only";
-    stage_levels.push_back("Merge BAM");
   }
 
   // Going through each line in the Sample Sheet:
@@ -139,7 +136,9 @@ int align_main(int argc, char** argv,
     DLOG(INFO) << "Creating " << temp_dir + "/" + sample_id;
     create_dir(temp_dir + "/" + sample_id);
 
-    Executor executor(executor_tag, stage_levels, sample_id);
+    //Executor executor(executor_tag, stage_levels, sample_id);
+    Executor executor(executor_tag);
+
     // Loop through all the pairs of FASTQ files:
     for (int i = 0; i < list.size(); ++i) {
       fq1_path = list[i].fastqR1;
@@ -173,15 +172,18 @@ int align_main(int argc, char** argv,
 
       //std::string tag=sample_id + " ReadGroup " + read_group;
       std::string tag=sample_id;
-      LOG(INFO) << "tag : " << tag;
       Worker_ptr worker(new BWAWorker(ref_path,
            fq1_path, fq2_path,
            parts_dir,
            extra_opts,
-           sample_id, read_group,
-           platform_id, library_id, flag_f));
+           sample_id, 
+           read_group,
+	   platform_id, 
+           library_id, 
+	   flag_f)
+      );
 
-      executor.addTask(worker, "BWA mem for " + tag, 0);
+      executor.addTask(worker, sample_id, 0);
 
       DLOG(INFO) << "Alignment Completed for " << sample_id;
 
@@ -193,13 +195,13 @@ int align_main(int argc, char** argv,
       	  markedBAM = output_path + "/" + sample_id + "/" + sample_id  + "_marked.bam";
           if (sampleList.empty()) markedBAM = output_path;
       	  Worker_ptr markdup_worker(new SambambaWorker(temp_dir + "/" + sample_id, markedBAM, SambambaWorker::MARKDUP, flag_f));
-      	  executor.addTask(markdup_worker, "Mark Duplicates for " + sample_id, true);
+          executor.addTask(markdup_worker, sample_id, true);
       	} 
         else {
       	  std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
           if (sampleList.empty()) mergeBAM = output_path;
       	  Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, flag_f));
-          executor.addTask(merger_worker, "Merge BAM for " + sample_id, true);
+          executor.addTask(merger_worker, sample_id, true);
         }
   
         // Removing temporal data :

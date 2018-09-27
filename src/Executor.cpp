@@ -43,10 +43,12 @@ void Stage::add(Worker_ptr worker, std::string job_label) {
   tag = job_label;
   DLOG(INFO) << "Stage::add " << executor_->get_log_name(tag, logs_.size());
   logs_.push_back(executor_->get_log_name(tag, logs_.size()));
+  std::string test_name = job_label;
+  tasks_labels_.push_back(test_name);
   tasks_.push_back(worker);  
 }
 
-void Stage::run(std::string job_name, std::string sample_id) {
+void Stage::run(std::string sample_id) {
   uint64_t start_ts = getTs();
 
   typedef boost::packaged_task<void> task_t;
@@ -56,16 +58,10 @@ void Stage::run(std::string job_name, std::string sample_id) {
   boost::replace_all(job_logname, ".log.0", ".log");
   std::ofstream outlog(job_logname, std::ios::out|std::ios::app);
 
-  if (!sample_id.empty()) {
-    outlog << "Start doing " << job_name << " for " << sample_id << std::endl;
-    LOG(INFO) << "Start doing " << job_name << " for " << sample_id;
-  }
-  else{
-    outlog << "Start doing " << job_name  << std::endl;
-    LOG(INFO) << "Start doing " << job_name;
-  }
-
   // post all tasks
+  LOG(INFO) << "Start doing " << tasks_labels_[0];
+  outlog << "Start doing " << tasks_labels_[0] << std::endl;
+
   for (int i = 0; i < tasks_.size(); i++) {
     tasks_[i]->check();
 
@@ -75,19 +71,14 @@ void Stage::run(std::string job_name, std::string sample_id) {
     boost::unique_future<void> fut = task->get_future();
     pending_tasks_.push_back(std::move(fut));
 
-    executor_->post(boost::bind(&task_t::operator(), task)); 
+    executor_->post(boost::bind(&task_t::operator(), task));      
   }
 
   // wait for tasks to finish
   boost::wait_for_all(pending_tasks_.begin(), pending_tasks_.end()); 
 
-  outlog << job_name << " finishes in "  << getTs() - start_ts << " seconds" << std::endl;
-  if (sample_id.empty()) {
-    log_time(job_name , start_ts);
-  }
-  else{
-    log_time(job_name + " " + sample_id , start_ts);
-  }
+  log_time(tasks_labels_[tasks_.size()-1] , start_ts);
+  outlog << tasks_labels_[tasks_.size()-1] << " finishes in "  << getTs() - start_ts << " seconds" << std::endl;
 
   outlog.close();
 
@@ -135,11 +126,8 @@ void Stage::runTask(int idx) {
   }
 }
 
-Executor::Executor(std::string job_name, std::vector<std::string> stage_levels,  std::string sample_id,
-    int num_executors): 
-  job_name_(job_name), 
-  stage_levels_(stage_levels),
-  sample_id_(sample_id),
+Executor::Executor(std::string job_name, int num_executors):
+  job_name_(job_name),
   num_executors_(num_executors),
   job_id_(0)
 {
@@ -211,22 +199,21 @@ Executor::~Executor() {
   executors_.join_all();
 }
 
-void Executor::addTask(Worker_ptr worker, std::string job_label, bool wait_for_prev) {
+//void Executor::addTask(Worker_ptr worker, std::string job_label, bool wait_for_prev) {
+void Executor::addTask(Worker_ptr worker, std::string sample_id,  bool wait_for_prev) {
   if (job_stages_.empty() || wait_for_prev) {
     Stage_ptr stage(new Stage(this));
     job_stages_.push(stage);
   }
-  job_stages_.back()->add(worker, job_label);
+  job_stages_.back()->add(worker, worker->getTaskName() + " " + sample_id);
 }
 
 void Executor::run() {
   uint64_t start_ts = getTs();
 
-  int count=0;
-  while (!job_stages_.empty()) {
-    job_stages_.front()->run(stage_levels_[count], sample_id_);
+  while (!job_stages_.empty()) {    
+    job_stages_.front()->run(sample_id_);
     job_stages_.pop();
-    count++;
   }
 }
 

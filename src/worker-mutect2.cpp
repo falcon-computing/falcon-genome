@@ -35,13 +35,12 @@ int mutect2_main(int argc, char** argv,
     ("intervalList,L", po::value<std::string>(), "interval list file")
     ("normal_name,a", po::value<std::string>(), "Sample name for Normal Input BAM. Must match the SM tag in the BAM header (gatk4) ")
     ("tumor_name,b", po::value<std::string>(), "Sample name for Tumor Input BAM. Must match the SM tag in the BAM header (gatk4)")
-    ("sample-tag,T", po::value<std::string>(),"sample tag for log file")
+    ("sample-id,T", po::value<std::string>(),"sample id for log file")
     ("gatk4,g", "use gatk4 to perform analysis")
     ("skip-concat,s", "produce a set of VCF files instead of one");
 
   // Parse arguments
-  po::store(po::parse_command_line(argc, argv, opt_desc),
-      cmd_vm);
+  po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
 
   if (cmd_vm.count("help")) {
     throw helpRequest();
@@ -66,7 +65,7 @@ int mutect2_main(int argc, char** argv,
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::string normal_name = get_argument<std::string> (cmd_vm, "normal_name","a");
   std::string tumor_name  = get_argument<std::string> (cmd_vm, "tumor_name","b");
-  std::string sample_tag  = get_argument<std::string> (cmd_vm, "sample-tag","T");
+  std::string sample_id   = get_argument<std::string> (cmd_vm, "sample-id","T");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
@@ -109,20 +108,17 @@ int mutect2_main(int argc, char** argv,
         get_config<std::string>("blaze.nam_path"),
         get_config<std::string>("blaze.conf_path")));
 
-  std::vector<std::string> nam_user{"Mutect2"};
-  BackgroundExecutor bg_executor("blaze-nam", nam_user, sample_tag, blaze_worker);
-
-  std::vector<std::string> stage_levels{"Generate Mutect2 VCF", "Concatenate Mutect2 VCF", "Compress Mutect2 VCF", "Generate Mutect2 VCF Index"};
-
-  Executor executor("Mutect2", stage_levels, sample_tag, get_config<int>("gatk.mutect2.nprocs"));
-
   std::string tag;
-  if (!sample_tag.empty()) {
-    tag = "Generate Mutect2 VCF " + sample_tag;
+  if (!sample_id.empty()) {
+    tag    = "blaze-nam-" + sample_id;
   }
   else {
-    tag= "Generate Mutect2 VCF";
+    tag = "blaze-nam";
   }
+
+  BackgroundExecutor bg_executor(tag,  blaze_worker);
+
+  Executor executor("Mutect2", get_config<int>("gatk.mutect2.nprocs"));
 
   bool flag_mutect2_f = !flag_skip_concat | flag_f;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
@@ -157,11 +153,11 @@ int mutect2_main(int argc, char** argv,
         tumor_name,
         contig,
         flag_mutect2_f,
-        flag_gatk)
+	flag_gatk)
     );
     output_files[contig] = output_file;
 
-    executor.addTask(mutect2_worker, tag, contig == 0);
+    executor.addTask(mutect2_worker, sample_id, contig == 0);
   }
 
   if (!flag_skip_concat) {
@@ -169,12 +165,6 @@ int mutect2_main(int argc, char** argv,
     bool flag_a = false;
     bool flag_bgzip = false;
     { // concat gvcfs
-      if (!sample_tag.empty()) {
-	tag = "Concatenate Mutect2 VCF " + sample_tag;
-      }
-      else {
-	tag= "Concatenate Mutect2 VCF";
-      }
       Worker_ptr worker(new VCFConcatWorker(
           output_files, 
           temp_gvcf_path,
@@ -182,34 +172,22 @@ int mutect2_main(int argc, char** argv,
           flag_bgzip,
           flag)
       );
-      executor.addTask(worker, tag, true);
+      executor.addTask(worker, sample_id, true);
     }
 
     { // bgzip gvcf
-      if (!sample_tag.empty()) {
-        tag = "Compress Mutect2 VCF " + sample_tag;
-      }
-      else {
-        tag= "Compress Mutect2 VCF";
-      }
       Worker_ptr worker(new ZIPWorker(
           temp_gvcf_path, 
           output_path + ".gz",
           flag_f)
       );
-      executor.addTask(worker, tag, true);
+      executor.addTask(worker, sample_id, true);
     }
     { // tabix gvcf
-      if (!sample_tag.empty()) {
-	tag = "Generate Mutect2 VCF Index " + sample_tag;
-      }
-      else {
-        tag= "Generate Mutect2 VCF Index";
-      }
       Worker_ptr worker(new TabixWorker(
-          output_path + ".gz")
+	  output_path + ".gz")
       );
-      executor.addTask(worker, tag, true);
+      executor.addTask(worker, sample_id, true);
     }
   }
   executor.run();

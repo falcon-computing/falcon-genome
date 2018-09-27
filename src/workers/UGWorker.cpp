@@ -13,7 +13,7 @@ UGWorker::UGWorker(std::string ref_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
       bool &flag_f):
-  Worker(1, get_config<int>("gatk.ug.nt"),extra_opts),
+  Worker(1, get_config<int>("gatk.ug.nt"),extra_opts, "UnifiedGenotyper"),
   ref_path_(ref_path),
   input_path_(input_path),
   intv_path_(intv_path)

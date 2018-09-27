@@ -32,7 +32,7 @@ int htc_main(int argc, char** argv,
     ("produce-vcf,v", "produce VCF files from HaplotypeCaller instead of GVCF")
     // TODO: skip-concat should be deprecated
     ("intervalList,L", po::value<std::string>(), "interval list file")
-    ("sample-tag,t", po::value<std::string>(), "sample tag for log files")
+    ("sample-id,t", po::value<std::string>(), "sample id for log files")
     ("skip-concat,s", "(deprecated) produce a set of GVCF/VCF files instead of one")
     ("gatk4,g", "use gatk4 to perform analysis");
 
@@ -56,7 +56,7 @@ int htc_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::string sample_tag = get_argument<std::string>(cmd_vm, "sample-tag", "t");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id", "t");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts =
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
@@ -96,19 +96,16 @@ int htc_main(int argc, char** argv,
         get_config<std::string>("blaze.nam_path"),
         get_config<std::string>("blaze.conf_path")));
 
-  std::vector<std::string> nam_user{"Haplotype Caller"};
-  BackgroundExecutor bg_executor("blaze-nam", nam_user, sample_tag, blaze_worker);
-  
-  std::vector<std::string> stage_levels{"HTC", "Concatenate VCF", "Compress VCF", "Generate VCF Index"};   
-  Executor executor("Haplotype Caller", stage_levels, sample_tag, get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
-
   std::string tag;
-  if (!sample_tag.empty()) {
-    tag = "Haplotype Caller " + sample_tag;
+  if (!sample_id.empty()) {
+    tag = "blaze-nam-" + sample_id;
   }
   else {
-    tag= "Haplotype Caller";
+    tag = "blaze-nam";
   }
+
+  BackgroundExecutor bg_executor(tag, blaze_worker);  
+  Executor executor("Haplotype Caller", get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
 
   bool flag_htc_f = !flag_skip_concat || flag_f;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
@@ -137,11 +134,11 @@ int htc_main(int argc, char** argv,
         contig,
         flag_vcf,
         flag_htc_f,
-        flag_gatk)
+	flag_gatk)
     );
 
     output_files[contig] = output_file;
-    executor.addTask(worker,tag);
+    executor.addTask(worker,sample_id);
   }
 
   if (!flag_skip_concat) {
@@ -153,12 +150,6 @@ int htc_main(int argc, char** argv,
     std::string process_tag;
 
     { // concat gvcfs
-      if (!sample_tag.empty()) {
-	process_tag = "Concatenate VCF " + sample_tag;
-      }
-      else {
-	process_tag= "Concatenate VCF";
-      }
       Worker_ptr worker(new VCFConcatWorker(
           output_files, 
           temp_gvcf_path,
@@ -166,37 +157,21 @@ int htc_main(int argc, char** argv,
           flag_bgzip,
           flag)
       );
-      executor.addTask(worker, process_tag, true);
+      executor.addTask(worker, sample_id, true);
     }
-    //{ // sort gvcf
-    //  Worker_ptr worker(new VCFSortWorker(temp_gvcf_path));
-    //  executor.addTask(worker, true);
-    //}
     { // bgzip gvcf
-      if (!sample_tag.empty()) {
-	process_tag = "Compress VCF " + sample_tag;
-      }
-      else {
-	process_tag= "Compress VCF";
-      }
       Worker_ptr worker(new ZIPWorker(
           temp_gvcf_path, 
           output_path+".gz",
           flag_f)
       );
-      executor.addTask(worker, process_tag, true);
+      executor.addTask(worker, sample_id, true);
     }
     { // tabix gvcf
-      if (!sample_tag.empty()) {
-        process_tag = "Generate VCF Index " + sample_tag;
-      }
-      else {
-        process_tag= "Generate VCF Index";
-      }
       Worker_ptr worker(new TabixWorker(
-          output_path + ".gz")
+          output_path + ".gz") 
       );
-      executor.addTask(worker, "Generate VCF Index",true);
+      executor.addTask(worker, sample_id, true);
     }
   }
   executor.run();

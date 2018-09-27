@@ -10,9 +10,11 @@
 
 namespace fcsgenome {
 
-BackgroundExecutor::BackgroundExecutor(
-    std::string job_name, std::vector<std::string> stage_levels, std::string sample_id, 
-    Worker_ptr worker): Executor(job_name, stage_levels, sample_id, 1)
+  //BackgroundExecutor::BackgroundExecutor(
+  //std::string job_name, std::vector<std::string> stage_levels, std::string sample_id, 
+  //Worker_ptr worker): Executor(job_name, stage_levels, sample_id, 1)
+
+BackgroundExecutor::BackgroundExecutor( std::string job_name, Worker_ptr worker): Executor(job_name, 1)
 {
   // start worker in the background in constructor
   worker->check();
@@ -21,12 +23,12 @@ BackgroundExecutor::BackgroundExecutor(
 
   create_dir(get_config<std::string>("log_dir"));
   std::string tag;
-  if (sample_id.empty()){
-    tag = job_name;
-  }
-  else{
-    tag = job_name + "_" + sample_id;
-  }
+// if (sample_id.empty()){
+//   tag = job_name;
+// }
+// else{
+//   tag = job_name + "_" + sample_id;
+// }
   std::string log = get_log_name(tag);
   std::string cmd = worker->getCommand() + " &> " + log;
 

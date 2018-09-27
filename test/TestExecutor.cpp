@@ -59,10 +59,8 @@ TEST_F(TestExecutor, TestBackgroundExecutor) {
   { // check if command is executed
     fcs::Worker_ptr worker(new RemoveWorker(
         fname.str(), &check_done, &setup_done));
-  
-    std::vector<std::string> stage_levels{"sleep"};
-    //fcs::BackgroundExecutor e("remove", stage_levels, "UnitTest", worker);
-    fcs::BackgroundExecutor e("remove", stage_levels, "UnitTest", worker);
+
+    fcs::BackgroundExecutor e("remove", worker);
 
     ASSERT_TRUE(check_done);
     ASSERT_TRUE(setup_done);
@@ -76,9 +74,7 @@ TEST_F(TestExecutor, TestBackgroundExecutor) {
   fcs::Worker_ptr worker(new SleepWorker(
         fname.str()));
 
-  std::vector<std::string> stage_levels{"sleep"};
-  //fcs::BackgroundExecutor* e = new fcs::BackgroundExecutor("sleep", stage_levels, "UnitTest",  worker);
-  fcs::BackgroundExecutor* e = new fcs::BackgroundExecutor("sleep", stage_levels, "UnitTest",  worker);
+  fcs::BackgroundExecutor* e = new fcs::BackgroundExecutor("sleep",  worker);
 
   // check if file is after a while
   boost::this_thread::sleep_for(boost::chrono::milliseconds(1));

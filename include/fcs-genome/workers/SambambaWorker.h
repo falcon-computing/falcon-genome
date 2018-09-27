@@ -12,16 +12,18 @@ class SambambaWorker : public Worker {
     MERGE
   } Action;
   SambambaWorker(std::string input_path,
-		 std::string output_path, Action action, //std::string action,
-      bool &flag_f);
+      std::string output_path, 
+      Action action, 
+      bool &flag_f
+  );
 
+  //  std::string getAction();
   void check();
   void setup();
  private:
   std::string input_path_;
   std::vector<std::string> input_files_;
   std::string output_file_;
-  //std::string action_;
   Action action_;
 };
 

@@ -29,11 +29,10 @@ int ug_main(int argc, char** argv,
                                 " the output will be a directory of vcf files)")
     ("intervalList,L", po::value<std::string>(), "interval list file")
     ("skip-concat,s", "produce a set of vcf files instead of one")
-    ("sample-tag,t", po::value<std::string>(), "sample tag for log file");
+    ("sample-id,t", po::value<std::string>(), "sample id for log file");
 
   // Parse arguments
-  po::store(po::parse_command_line(argc, argv, opt_desc),
-      cmd_vm);
+  po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
 
   if (cmd_vm.count("help")) { 
     throw helpRequest();
@@ -50,7 +49,7 @@ int ug_main(int argc, char** argv,
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
-  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample-tag", "t");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id", "t");
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
@@ -84,20 +83,7 @@ int ug_main(int argc, char** argv,
     intv_paths = init_contig_intv(ref_path);
   }
 
-  std::vector<std::string> stage_levels{"Unified Genotyper", "Concatenate VCF", "Compress VCF", "Generate VCF Index"};
-  Executor executor("Unified Genotyper", 
-      stage_levels, 
-      sample_tag, 
-      get_config<int>("gatk.ug.nprocs", "gatk.nprocs")
-  );
-
-  std::string tag;
-  if (!sample_tag.empty()) {
-    tag = "Unified Genotyper " + sample_tag; 
-  }
-  else {
-    tag= "Unified Genotyper";
-  }
+  Executor executor("Unified Genotyper",get_config<int>("gatk.ug.nprocs", "gatk.nprocs"));
 
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
     std::string input_file;
@@ -120,8 +106,7 @@ int ug_main(int argc, char** argv,
         flag_f)
     );
     output_files[contig] = output_file;
-
-    executor.addTask(worker, "Unified Genotyper", contig==0);
+    executor.addTask(worker, sample_id, contig==0);
   }
 
   if (!flag_skip_concat) {
@@ -129,12 +114,6 @@ int ug_main(int argc, char** argv,
     bool flag_a = true;
     bool flag_bgzip = true;
     { // concat gvcfs
-      if (!sample_tag.empty()) {
-	tag= "Concatenate VCF " + sample_tag;
-      }
-      else {
-	tag= "Concatenate VCF";
-      }
       Worker_ptr worker(new VCFConcatWorker(
           output_files, 
           temp_gvcf_path,
@@ -142,36 +121,25 @@ int ug_main(int argc, char** argv,
           flag_bgzip,
           flag)
       );
-      executor.addTask(worker, tag, true);
+      executor.addTask(worker, sample_id, true);
     }
     //{ // sort gvcf
     //  Worker_ptr worker(new VCFSortWorker(temp_gvcf_path));
     //  executor.addTask(worker, true);
     //}
     { // bgzip gvcf
-      if (!sample_tag.empty()) {
-        tag= "Compress VCF " + sample_tag;
-      }
-      else {
-        tag= "Compress VCF";
-      }
       Worker_ptr worker(new ZIPWorker(
           temp_gvcf_path, 
           output_path+".gz",
           flag_f)
       );
-      executor.addTask(worker, tag, true);
+      executor.addTask(worker, sample_id, true);
     }
     { // tabix gvcf
-      if (!sample_tag.empty()) {
-        tag= "Generate VCF Index " + sample_tag;
-      }
-      else {
-        tag= "Generate VCF Index";
-      }
       Worker_ptr worker(new TabixWorker(
-            output_path + ".gz"));
-      executor.addTask(worker, tag,true);
+	  output_path + ".gz")
+      );
+      executor.addTask(worker, sample_id, true);
     }
   }
   executor.run();

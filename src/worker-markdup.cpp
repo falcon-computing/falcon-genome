@@ -37,16 +37,16 @@ int markdup_main(int argc, char** argv,
   bool        flag_f      = get_argument<bool>(cmd_vm, "force", "f");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample-tag", "t");
+  std::string sample_id  = get_argument<std::string>(cmd_vm, "sample-id", "t");
 
   // finalize argument parsing 
   po::notify(cmd_vm);
 
-  std::vector<std::string> stage_levels{"Mark Duplicates"};
-
-  Executor executor("Mark Duplicates", stage_levels, sample_tag);
+  //std::vector<std::string> stage_levels{"Mark Duplicates"};
+  //Executor executor("Mark Duplicates", stage_levels, sample_tag);
+  Executor executor("Mark Duplicates");
   Worker_ptr worker(new SambambaWorker(input_path, output_path, SambambaWorker::MARKDUP, flag_f));
-  executor.addTask(worker);
+  executor.addTask(worker, sample_id);
   executor.run();
 
   return 0;

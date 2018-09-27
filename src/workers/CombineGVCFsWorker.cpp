@@ -17,7 +17,7 @@ CombineGVCFsWorker::CombineGVCFsWorker(
 		bool &flag_f): 
   Worker(
       get_config<bool>("latency_mode") ?  conf_host_list.size() : 1,
-      get_config<int>("gatk.joint.ncontigs")),
+      get_config<int>("gatk.joint.ncontigs"), std::vector<std::string>(), "Combine GVCF"),
 	ref_path_(ref_path),
 	input_path_(input_path)
 {
