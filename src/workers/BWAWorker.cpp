@@ -2,10 +2,14 @@
 #include <boost/filesystem.hpp>
 #include <string>
 #include <sys/statvfs.h>
+#include <bits/stdc++.h> 
+#include <unistd.h>
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/workers/BWAWorker.h"
+
+namespace fs = boost::filesystem;
 
 namespace fcsgenome {
 
@@ -47,6 +51,24 @@ void BWAWorker::check() {
   ref_path_ = check_input(ref_path_);
   fq1_path_ = check_input(fq1_path_);
   fq2_path_ = check_input(fq2_path_);
+
+  // Checking if Temporal Storage fits with input:                                                                                                                   
+  uintmax_t fastq_size=0;
+  uintmax_t mult=3;
+  if (fs::exists(fq1_path_) && fs::exists(fq2_path_)){
+    fastq_size=mult*(fs::file_size(fq1_path_)+fs::file_size(fq2_path_));
+  }
+  else{
+    LOG(ERROR) << "FASTQ Files: " << fq1_path_ << " and " << fq2_path_ << " do not exist";
+    throw silentExit();
+  }
+
+  if (si.available < fastq_size){
+    LOG(ERROR) << "Not enough space in temporary storage. "
+	       << "The size of the temporary folder should be at least "
+	       << mult << " times the size of input FASTQ files";
+    throw silentExit();
+  }
 }
 
 void BWAWorker::setup() {

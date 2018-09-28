@@ -28,7 +28,7 @@ int ir_main(int argc, char** argv,
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output directory of BAM files")
     ("intervalList,L", po::value<std::string>(), "interval list file")
-    ("sample-tag,t",po::value<std::string>(), "sample tag for log files")
+    ("sample-id",po::value<std::string>(), "sample tag for log files")
     ("merge-bam,m", "merge Parts BAM files")
     ("known,K", po::value<std::vector<std::string> >(),
      "known indels for realignment");
@@ -51,7 +51,7 @@ int ir_main(int argc, char** argv,
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string target_path = input_path + ".intervals";
-  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id", "t");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id");
   bool merge_bam_flag     = get_argument<bool>(cmd_vm, "merge-bam", "m");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> known_indels = get_argument<std::vector<std::string> >(cmd_vm, "known", "K", std::vector<std::string>());

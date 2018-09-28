@@ -38,7 +38,8 @@ void sigint_handler(int s) {
 
 Stage::Stage(Executor* executor): executor_(executor) {;}
 
-void Stage::add(Worker_ptr worker, std::string job_label) {
+//void Stage::add(Worker_ptr worker, std::string job_label) {
+void Stage::add(Worker_ptr worker) {
   std::string tag = job_label;
   tag = job_label;
   DLOG(INFO) << "Stage::add " << executor_->get_log_name(tag, logs_.size());
@@ -48,7 +49,8 @@ void Stage::add(Worker_ptr worker, std::string job_label) {
   tasks_.push_back(worker);  
 }
 
-void Stage::run(std::string sample_id) {
+//void Stage::run(std::string sample_id) {
+void Stage::run() {
   uint64_t start_ts = getTs();
 
   typedef boost::packaged_task<void> task_t;
@@ -162,12 +164,14 @@ Executor::Executor(std::string job_name, int num_executors):
     log_dir_ = "/tmp/log" + username;
     create_dir(log_dir_);
   }
-  if (!sample_id_.empty()){
-    log_fname_ = get_log_name(job_name_ + " " + sample_id_);
-  }
-  else{
-    log_fname_ = get_log_name(job_name_);
-  }
+  //if (!sample_id_.empty()){
+  //  log_fname_ = get_log_name(job_name_ + " " + sample_id_);
+  //}
+  //else{
+  // log_fname_ = get_log_name(job_name_);
+  //}
+  log_fname_ = get_log_name(job_name_);
+
 
 }
 
@@ -205,14 +209,16 @@ void Executor::addTask(Worker_ptr worker, std::string sample_id,  bool wait_for_
     Stage_ptr stage(new Stage(this));
     job_stages_.push(stage);
   }
-  job_stages_.back()->add(worker, worker->getTaskName() + " " + sample_id);
+  //job_stages_.back()->add(worker, worker->getTaskName() + " " + sample_id);
+  job_stages_.back()->add(worker, worker->getTaskName());
 }
 
 void Executor::run() {
   uint64_t start_ts = getTs();
 
   while (!job_stages_.empty()) {    
-    job_stages_.front()->run(sample_id_);
+    //job_stages_.front()->run(sample_id_);
+    job_stages_.front()->run();
     job_stages_.pop();
   }
 }

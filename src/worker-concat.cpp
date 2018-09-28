@@ -26,7 +26,7 @@ int concat_main(int argc, char** argv,
     ("input,i", po::value<std::string>()->required(), "folder of input vcf/gvcf files")
     ("output,o", po::value<std::string>()->required(), "output vcf/gvcf file (automatically "
                                 "compressed to .vcf.gz/.gvcf.gz)")
-    ("sample-id,t",po::value<std::string>(), "sample id for log file");
+    ("sample-id",po::value<std::string>(), "sample id for log file");
 
   // Parse arguments
   po::store(
@@ -41,7 +41,7 @@ int concat_main(int argc, char** argv,
   bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::string sample_id  = get_argument<std::string>(cmd_vm, "sample-id", "t");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id");
 
   // finalize argument parsing
   po::notify(cmd_vm);

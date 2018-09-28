@@ -25,7 +25,7 @@ int joint_main(int argc, char** argv,
     ("input-dir,i", po::value<std::string>()->required(), "input dir containing "
                                "[sample_id].gvcf.gz files")
     ("output,o", po::value<std::string>()->required(), "output vcf.gz file(s)")
-    ("sample-id,t", po::value<std::string>(), "sample id for log files")
+    ("sample-id", po::value<std::string>(), "sample id for log files")
     ("combine-only,c", "combine GVCFs only and skip genotyping")
     ("skip-combine,g", "(deprecated) perform genotype GVCFs only "
                        "and skip combine GVCFs");
@@ -45,7 +45,7 @@ int joint_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input-dir", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id", "t");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing

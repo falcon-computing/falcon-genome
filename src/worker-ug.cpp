@@ -29,7 +29,7 @@ int ug_main(int argc, char** argv,
                                 " the output will be a directory of vcf files)")
     ("intervalList,L", po::value<std::string>(), "interval list file")
     ("skip-concat,s", "produce a set of vcf files instead of one")
-    ("sample-id,t", po::value<std::string>(), "sample id for log file");
+    ("sample-id", po::value<std::string>(), "sample id for log file");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -49,7 +49,7 @@ int ug_main(int argc, char** argv,
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
-  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id", "t");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id");
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 

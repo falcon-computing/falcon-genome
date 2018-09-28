@@ -35,7 +35,7 @@ int mutect2_main(int argc, char** argv,
     ("intervalList,L", po::value<std::string>(), "interval list file")
     ("normal_name,a", po::value<std::string>(), "Sample name for Normal Input BAM. Must match the SM tag in the BAM header (gatk4) ")
     ("tumor_name,b", po::value<std::string>(), "Sample name for Tumor Input BAM. Must match the SM tag in the BAM header (gatk4)")
-    ("sample-id,T", po::value<std::string>(),"sample id for log file")
+    ("sample-id", po::value<std::string>(),"sample id for log file")
     ("gatk4,g", "use gatk4 to perform analysis")
     ("skip-concat,s", "produce a set of VCF files instead of one");
 
@@ -65,7 +65,7 @@ int mutect2_main(int argc, char** argv,
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::string normal_name = get_argument<std::string> (cmd_vm, "normal_name","a");
   std::string tumor_name  = get_argument<std::string> (cmd_vm, "tumor_name","b");
-  std::string sample_id   = get_argument<std::string> (cmd_vm, "sample-id","T");
+  std::string sample_id   = get_argument<std::string> (cmd_vm, "sample-id");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing

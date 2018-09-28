@@ -29,7 +29,7 @@ int depth_main(int argc, char** argv,
     ("output,o", po::value<std::string>()->required(),"output coverage file")
     ("intervalList,L", po::value<std::string>(), "Interval List BED File")
     ("geneList,g", po::value<std::string>(), "list of genes over which the coverage is calculated")
-    ("sample-id,t", po::value<std::string>(), "sample tag for log files")
+    ("sample-id", po::value<std::string>(), "sample tag for log files")
     ("omitBaseOutput,b", "omit output coverage depth at each base (default: false)")
     ("omitIntervals,v", "omit output coverage per-interval statistics (default false)")
     ("omitSampleSummary,s", "omit output summary files for each sample (default false");
@@ -51,7 +51,7 @@ int depth_main(int argc, char** argv,
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::string geneList    = get_argument<std::string>(cmd_vm, "geneList", "g");
-  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id", "t");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id");
   bool flag_f                = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_baseCoverage     = get_argument<bool>(cmd_vm, "omitBaseOutput", "b");
   bool flag_intervalCoverage = get_argument<bool>(cmd_vm, "omitIntervals", "v");
@@ -59,11 +59,10 @@ int depth_main(int argc, char** argv,
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   bool flag_genes;
-  if (!intv_list.empty() && 
-    !geneList.empty())
-  {
+  if (!intv_list.empty() && !geneList.empty()){
     flag_genes = true;
-  } else {
+  } 
+  else {
     flag_genes = false;
   }
 

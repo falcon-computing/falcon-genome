@@ -173,6 +173,25 @@ inline T get_argument(
 
 template <class T>
 inline T get_argument(
+     boost::program_options::variables_map &vm,
+     const char* arg1
+) {
+  if (!vm.count(arg1)) {
+    return T();
+    //throw invalidParam(concat_args(arg1, arg2));                                                                                                                       
+  }
+  else {
+    T val = vm[arg1].as<T>();
+    if (check_empty(val)) {
+      throw pathEmpty(arg1);
+    }
+    return val;
+  }
+ }
+
+
+template <class T>
+inline T get_argument(
     boost::program_options::variables_map &vm,
     const char* arg1, const char* arg2,
     T def_val
@@ -223,7 +242,7 @@ inline std::string get_basename_wo_ext(std::string path) {
   return file_path.stem().string();
 }
 
-Executor* create_executor(std::string job_name, std::vector<std::string> stage_levels, std::string sample_id, int num_workers = 1);
+Executor* create_executor(std::string job_name, std::vector<std::string> stage_levels, int num_workers = 1);
 std::string get_absolute_path(std::string path);
 std::string check_input(std::string path, bool req = true);
 std::string check_output(std::string path, bool &f, bool req_file = false);
