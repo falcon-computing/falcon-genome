@@ -5,7 +5,6 @@
 #include <iomanip>
 #include <string>
 
-
 #include "fcs-genome/BackgroundExecutor.h"
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"

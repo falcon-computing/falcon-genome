@@ -27,7 +27,7 @@ DepthCombineWorker::DepthCombineWorker(
      bool &flag_intervalCoverage,
      bool &flag_sampleSummary,
      bool &flag_genes,
-     bool &flag_f): Worker(1, 1),
+     bool &flag_f): Worker(1, 1, std::vector<std::string>(), "Combining Depth Output"),
      input_files_(input_files),
      flag_baseCoverage_(flag_baseCoverage),
      flag_intervalCoverage_(flag_intervalCoverage),

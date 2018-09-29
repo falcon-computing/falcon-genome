@@ -22,7 +22,6 @@ int sambamba_main(int argc, char** argv,
     ("input,i", po::value<std::string>()->required(), "input file")
     ("output,o", po::value<std::string>()->required(), "output file");
     ("action,a", po::value<std::string>()->required(), "sambamba operation");
-    //("action,a", po::value<SambambaWorker::Action>()->required(), "sambamba operation");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
@@ -37,7 +36,6 @@ int sambamba_main(int argc, char** argv,
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string action      = get_argument<std::string>(cmd_vm, "action", "a");
-  //SambambaWorker::Action action = get_argument<SambambaWorker::Action>(cmd_vm, "action", "a"); 
 
   // finalize argument parsing 
   po::notify(cmd_vm);
