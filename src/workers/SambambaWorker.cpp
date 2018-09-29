@@ -13,7 +13,7 @@ static inline std::string get_task_name(SambambaWorker::Action action) {
     case SambambaWorker::MARKDUP:
       return "Mark Duplicates";
     case SambambaWorker::MERGE :
-      return "Merge";
+      return "Merge BAM";
     default:
       return "";
   }

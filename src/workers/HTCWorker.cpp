@@ -17,7 +17,7 @@ HTCWorker::HTCWorker(std::string ref_path,
       bool flag_vcf,
       bool &flag_f,
       bool flag_gatk):
-  Worker(1, get_config<int>("gatk.htc.nct", "gatk.nct"), extra_opts, "HaploTypeCaller"),
+  Worker(1, get_config<int>("gatk.htc.nct", "gatk.nct"), extra_opts, "HTC"),
   produce_vcf_(flag_vcf),
   flag_gatk_(flag_gatk),
   ref_path_(ref_path),

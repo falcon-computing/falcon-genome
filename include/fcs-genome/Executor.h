@@ -27,9 +27,7 @@ class Stage
  public:
   Stage(Executor* executor);
 
-  //void add(Worker_ptr worker, std::string job_label);
-  void add(Worker_ptr worker);
-  //void run(std::string sample_id);
+  void add(Worker_ptr worker, std::string sample_id);
   void run();  
 
  private:
@@ -60,7 +58,6 @@ class Executor
   }
   std::string log() { return log_fname_; }
   std::string job_name() { return job_name_; }
-  //std::string sample_name() { return sample_id_; }
 
   void addTask(Worker_ptr worker, std::string sample_id, bool wait_for_prev = false);
 
@@ -70,14 +67,12 @@ class Executor
 
   int                   num_executors_;
   std::string           job_name_;
-  // std::string           sample_id_;
   std::queue<Stage_ptr> job_stages_; 
   std::string           log_dir_;
   std::string           log_fname_;
   std::string           temp_dir_;
 
   boost::atomic<int>               job_id_;
-  //std::map<boost::thread::id, int> thread_table_;
   std::map<boost::thread::id, int> pid_table_;
 
  private:

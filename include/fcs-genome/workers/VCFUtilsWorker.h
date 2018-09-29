@@ -38,9 +38,12 @@ class ZIPWorker : public Worker {
 };
 
 class TabixWorker : public Worker {
+
+
  public:
-  TabixWorker(std::string path):
-  Worker(1, 1, std::vector<std::string>(), "Generating VCF index"), path_(path) {}
+  TabixWorker(std::string path);
+  // TabixWorker(std::string path):
+  // Worker(1, 1, std::vector<std::string>(), "Generating VCF index"), path_(path) {}
 
   void check();
   void setup();

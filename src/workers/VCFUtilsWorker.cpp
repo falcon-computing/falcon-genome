@@ -78,6 +78,13 @@ void ZIPWorker::setup() {
   DLOG(INFO) << cmd_;
 }
 
+TabixWorker::TabixWorker(
+  std::string path
+ ): Worker(1, 1, std::vector<std::string>(), "Generating VCF Index")
+{
+  path_  = path;
+}
+
 void TabixWorker::check() {
   path_ = check_input(path_);
 }

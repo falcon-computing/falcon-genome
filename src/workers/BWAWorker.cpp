@@ -53,6 +53,9 @@ void BWAWorker::check() {
   fq2_path_ = check_input(fq2_path_);
 
   // Checking if Temporal Storage fits with input:                                                                                                                   
+  auto p = boost::filesystem::path(conf_temp_dir);
+  std::string temp_dir = p.parent_path().string();
+
   uintmax_t fastq_size=0;
   uintmax_t mult=3;
   if (fs::exists(fq1_path_) && fs::exists(fq2_path_)){
@@ -63,6 +66,7 @@ void BWAWorker::check() {
     throw silentExit();
   }
 
+  fs::space_info si = fs::space(temp_dir);
   if (si.available < fastq_size){
     LOG(ERROR) << "Not enough space in temporary storage. "
 	       << "The size of the temporary folder should be at least "

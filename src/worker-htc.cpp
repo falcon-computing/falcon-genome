@@ -2,7 +2,6 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
 
-#include <bits/stdc++.h> 
 #include <cmath>
 #include <iomanip>
 #include <string>

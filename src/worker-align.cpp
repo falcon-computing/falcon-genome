@@ -140,25 +140,6 @@ int align_main(int argc, char** argv,
 
       parts_dir = temp_dir + "/" + sample_id + "/" + read_group;
       
-//     // Checking if Temporal Storage fits with input:
-//     uintmax_t fastq_size=0;
-//     uintmax_t mult=3;
-//     if (fs::exists(fq1_path) && fs::exists(fq2_path)){
-//       fastq_size=mult*(fs::file_size(fq1_path)+fs::file_size(fq2_path));
-//     }
-//     else{
-//       LOG(ERROR) << "FASTQ Files: " << fq1_path << " and " << fq2_path << " do not exist";
-//       throw silentExit();
-//     }
-//     
-//     if (si.available < fastq_size){
-//	LOG(ERROR) << "Not enough space in temporary storage: "
-//	  << temp_dir << ", "
-//	  << "the size of the temporary folder should be at least "
-//	  << mult << " times the size of input FASTQ files";
-//	throw silentExit();
-//     }
-
       DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
       //std::string tag=sample_id + " ReadGroup " + read_group;
