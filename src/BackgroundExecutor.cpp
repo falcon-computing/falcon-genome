@@ -20,10 +20,9 @@ BackgroundExecutor::BackgroundExecutor( std::string job_name, Worker_ptr worker)
   create_dir(get_config<std::string>("log_dir"));
 
   std::string tag = worker->getTaskName();
-  //LOG(INFO) << "Background Executor tag " << tag;
 
-  std::string log = get_log_name(tag);
-  std::string cmd = worker->getCommand() + " &> " + log;
+  std::string log = get_log_name(job_name);
+  std::string cmd = worker->getCommand() + " 1> /dev/null" + " 2> " + log;
   LOG(INFO) << "BackgroundExecutor cmd : " << cmd;
 
   // fork and execute cmd using system call

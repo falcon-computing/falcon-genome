@@ -9,7 +9,6 @@
 #include "fcs-genome/workers.h"
 #include "fcs-genome/SampleSheet.h"
 
-#include <bits/stdc++.h> 
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -108,8 +107,6 @@ int align_main(int argc, char** argv,
 
   // check available space in temp dir
   namespace fs = boost::filesystem;
-  fs::space_info si = fs::space(temp_dir);
-
   Executor executor("align");
 
   // Going through each line in the Sample Sheet:

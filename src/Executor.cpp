@@ -39,10 +39,9 @@ void sigint_handler(int s) {
 Stage::Stage(Executor* executor): executor_(executor) {;}
 
 void Stage::add(Worker_ptr worker, std::string sample_id) {
-  std::string tag = worker->getTaskName() + " " + sample_id;
-  DLOG(INFO) << "Stage::add " << executor_->get_log_name(tag, logs_.size());
-  logs_.push_back(executor_->get_log_name(tag, logs_.size()));
-  tasks_labels_.push_back(tag);
+  tasks_labels_ = worker->getTaskName() + " " + sample_id;
+  DLOG(INFO) << "Stage::add " << executor_->get_log_name(tasks_labels_, logs_.size());
+  logs_.push_back(executor_->get_log_name(tasks_labels_, logs_.size()));
   tasks_.push_back(worker);  
 }
 
@@ -58,8 +57,8 @@ void Stage::run() {
   std::ofstream outlog(job_logname, std::ios::out|std::ios::app);
 
   // post all tasks
-  LOG(INFO) << "Start doing " << tasks_labels_[0];
-  outlog << "Start doing " << tasks_labels_[0] << std::endl;
+  LOG(INFO) << "Start doing " << tasks_labels_;
+  outlog << "Start doing " << tasks_labels_ << std::endl;
 
   for (int i = 0; i < tasks_.size(); i++) {
     tasks_[i]->check();
@@ -75,9 +74,8 @@ void Stage::run() {
 
   // wait for tasks to finish
   boost::wait_for_all(pending_tasks_.begin(), pending_tasks_.end()); 
-
-  log_time(tasks_labels_[tasks_.size()-1] , start_ts);
-  outlog << tasks_labels_[tasks_.size()-1] << " finishes in "  << getTs() - start_ts << " seconds" << std::endl;
+  log_time(tasks_labels_ , start_ts);
+  outlog << tasks_labels_ << " finishes in "  << getTs() - start_ts << " seconds" << std::endl;
 
   outlog.close();
 

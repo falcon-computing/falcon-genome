@@ -36,7 +36,7 @@ class Stage
   Executor*                executor_;
   std::vector<Worker_ptr>  tasks_;
   std::vector<std::string> logs_;
-  std::vector<std::string> tasks_labels_;
+  std::string              tasks_labels_;
   std::map<int, int>       status_;
 };
 
