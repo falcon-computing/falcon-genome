@@ -21,7 +21,7 @@ BackgroundExecutor::BackgroundExecutor( std::string job_name, Worker_ptr worker)
 
   std::string log = get_log_name(job_name);
   std::string cmd = worker->getCommand() + " 1> /dev/null" + " 2> " + log;
-  LOG(INFO) << "BackgroundExecutor cmd : " << cmd;
+  DLOG(INFO) << "BackgroundExecutor cmd : " << cmd;
 
   // fork and execute cmd using system call
   int pid = fork();
