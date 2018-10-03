@@ -91,9 +91,6 @@ int depth_main(int argc, char** argv,
 
   std::string input_file;
   if (boost::filesystem::is_directory(input_path)) {
-    stage_levels.insert(stage_levels.begin(),"Merge BAM");
-  }
-  else {
     input_file = input_path;
   }
 
