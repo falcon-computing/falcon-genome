@@ -89,7 +89,6 @@ int depth_main(int argc, char** argv,
     intv_paths = split_ref_by_nprocs(ref_path);
   }
 
-  std::vector<std::string> stage_levels{"Depth", "Combine Depth"};
   std::string input_file;
   if (boost::filesystem::is_directory(input_path)) {
     stage_levels.insert(stage_levels.begin(),"Merge BAM");
