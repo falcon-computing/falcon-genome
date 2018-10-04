@@ -2,10 +2,10 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
+
 #include <cmath>
 #include <iomanip>
 #include <string>
-
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -13,26 +13,6 @@
 #include "fcs-genome/workers.h"
 
 namespace fcsgenome {
-
-// static void mergebamWorker(Executor &merge_executor,
-//   std::string &output_path,
-//   std::string &mergeBAM_path, bool flag_f)
-// {
-//   output_path = check_input(output_path);
-//   std::stringstream partsBAM;
-//   int check_parts = 1;  // For more than 1 part BAM file
-//   std::string inputPartsBAM;
-//   for (int n = 0; n < get_config<int>("gatk.ncontigs"); n++) {
-//        if (boost::filesystem::is_directory(output_path)) {
-//            inputPartsBAM = get_contig_fname(output_path, n);
-//        };
-//        partsBAM << inputPartsBAM << " ";
-//   }
-//   DLOG(INFO) << "Input Part BAM files: " << partsBAM.str() << "\n";
-//   DLOG(INFO) << "Output Merged BAM file: " << mergeBAM_path << "\n";
-//   Worker_ptr merger_worker(new MergeBamWorker(partsBAM.str(), mergeBAM_path, check_parts, flag_f));
-//   merge_executor.addTask(merger_worker);
-// }
 
 int ir_main(int argc, char** argv,
     boost::program_options::options_description &opt_desc)
@@ -45,9 +25,9 @@ int ir_main(int argc, char** argv,
   opt_desc.add_options()
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
-    ("output,o", po::value<std::string>()->required(), "output diretory of BAM files")
+    ("output,o", po::value<std::string>()->required(), "output directory of BAM files")
     ("intervalList,L", po::value<std::string>(), "interval list file")
-    ("sample-name,n",po::value<std::string>(), "sample name")
+    ("sample-id",po::value<std::string>(), "sample tag for log files")
     ("merge-bam,m", "merge Parts BAM files")
     ("known,K", po::value<std::vector<std::string> >(),
      "known indels for realignment");
@@ -70,14 +50,11 @@ int ir_main(int argc, char** argv,
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string target_path = input_path + ".intervals";
-  std::string sample_name = get_argument<std::string>(cmd_vm, "sample-name", "n");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id");
   bool merge_bam_flag     = get_argument<bool>(cmd_vm, "merge-bam", "m");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
-  std::vector<std::string> known_indels = get_argument<
-    std::vector<std::string> >(cmd_vm, "known", "K", std::vector<std::string>());
-
-  std::vector<std::string> extra_opts =
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
+  std::vector<std::string> known_indels = get_argument<std::vector<std::string> >(cmd_vm, "known", "K", std::vector<std::string>());
+  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -86,13 +63,14 @@ int ir_main(int argc, char** argv,
   output_path = check_output(output_path, flag_f);
   create_dir(output_path);
 
-  std::string INDELtag="Indel Realignment";
-  if (!sample_name.empty()) INDELtag=INDELtag + " " + sample_name;
-  Executor executor(INDELtag, get_config<int>("gatk.indel.nprocs", "gatk.nprocs"));
+  Executor executor("Indel Realignment", get_config<int>("gatk.indel.nprocs", "gatk.nprocs"));
   { // realign target creator
-    Worker_ptr worker(new RTCWorker(ref_path, known_indels,
-          input_path, target_path));
-    executor.addTask(worker, true);
+    Worker_ptr worker(new RTCWorker(ref_path, 
+        known_indels,
+        input_path, 
+        target_path)
+    );
+    executor.addTask(worker, sample_id, true);
   }
 
   std::vector<std::string> intv_paths;
@@ -114,29 +92,27 @@ int ir_main(int argc, char** argv,
     else {
       input_file = input_path;
     }
-    Worker_ptr worker(new IndelWorker(ref_path, known_indels,
-          intv_paths[contig],
-          input_file, target_path,
-          get_contig_fname(output_path, contig),
-          extra_opts,
-          flag_f));
-    executor.addTask(worker, contig==0);
+    Worker_ptr worker(new IndelWorker(ref_path, 
+        known_indels,
+        intv_paths[contig],
+        input_file, 
+        target_path,
+        get_contig_fname(output_path, contig),
+        extra_opts,
+        flag_f)
+    );
+    executor.addTask(worker, sample_id, contig==0);
   }
-  executor.run();
 
   if (merge_bam_flag){
-    std::string MergeTAG = "Merge BAM Files";
-    if (!sample_name.empty()) MergeTAG = MergeTAG + " " + sample_name;
     std::string mergeBAM(output_path);
     boost::replace_all(mergeBAM, ".bam", "_merged.bam");
-    Executor merger_executor(MergeTAG, get_config<int>("gatk.pr.nprocs", "gatk.nprocs"));
     Worker_ptr merger_worker(new SambambaWorker(output_path, mergeBAM, SambambaWorker::MERGE, flag_f));
-    merger_executor.addTask(merger_worker);
-    merger_executor.run();
-
-    // Removing Part BAM files:
-    remove_path(output_path);
+    executor.addTask(merger_worker, sample_id, true);   
   }
+
+  executor.run();
+  
   // delete all partial contig bqsr
   remove_path(target_path);
 

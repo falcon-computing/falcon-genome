@@ -1,10 +1,10 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
+
 #include <cmath>
 #include <iomanip>
 #include <string>
-
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -24,7 +24,8 @@ int concat_main(int argc, char** argv,
   opt_desc.add_options() 
     ("input,i", po::value<std::string>()->required(), "folder of input vcf/gvcf files")
     ("output,o", po::value<std::string>()->required(), "output vcf/gvcf file (automatically "
-                                "compressed to .vcf.gz/.gvcf.gz)");
+                                "compressed to .vcf.gz/.gvcf.gz)")
+    ("sample-id",po::value<std::string>(), "sample id for log file");
 
   // Parse arguments
   po::store(
@@ -39,6 +40,7 @@ int concat_main(int argc, char** argv,
   bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -51,14 +53,19 @@ int concat_main(int argc, char** argv,
     get_input_list(input_path, input_files, ".*\\.vcf");
   }
 
-  Executor executor("VCF concat");
+  Executor executor("VCF concatenate");
   { // concat gvcfs
     // TODO: auto detect the input and decide flag_a
     bool flag_a = false;
+    bool flag_bgzip = false;
     Worker_ptr worker(new VCFConcatWorker(
-          input_files, output_path,
-          flag_a, flag_f));
-    executor.addTask(worker);
+        input_files, 
+        output_path,
+        flag_a,
+        flag_bgzip, 
+        flag_f)
+    );
+    executor.addTask(worker, sample_id);
   }
   //{ // sort gvcf
   //  Worker_ptr worker(new VCFSortWorker(output_path));
@@ -66,14 +73,17 @@ int concat_main(int argc, char** argv,
   //}
   { // bgzip gvcf
     Worker_ptr worker(new ZIPWorker(
-          output_path, output_path+".gz",
-          flag_f));
-    executor.addTask(worker, true);
+        output_path, 
+        output_path+".gz",
+        flag_f)
+    );
+    executor.addTask(worker, sample_id, true);
   }
   { // tabix gvcf
     Worker_ptr worker(new TabixWorker(
-          output_path + ".gz"));
-    executor.addTask(worker, true);
+        output_path + ".gz")
+    );
+    executor.addTask(worker, sample_id, true);
   }
   executor.run();
 

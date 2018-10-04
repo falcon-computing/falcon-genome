@@ -38,19 +38,28 @@ void sigint_handler(int s) {
 
 Stage::Stage(Executor* executor): executor_(executor) {;}
 
-void Stage::add(Worker_ptr worker) {
-  DLOG(INFO) << "Stage::add " << executor_->get_log_name(executor_->job_name(), logs_.size());
-  logs_.push_back(executor_->get_log_name(executor_->job_name(), logs_.size()));
-  tasks_.push_back(worker);
+void Stage::add(Worker_ptr worker, std::string sample_id) {
+  tasks_labels_ = worker->getTaskName() + " " + sample_id;
+  DLOG(INFO) << "Stage::add " << executor_->get_log_name(tasks_labels_, logs_.size());
+  logs_.push_back(executor_->get_log_name(tasks_labels_, logs_.size()));
+  tasks_.push_back(worker);  
 }
 
+//void Stage::run(std::string sample_id) {
 void Stage::run() {
   uint64_t start_ts = getTs();
 
   typedef boost::packaged_task<void> task_t;
   std::vector<boost::unique_future<void> > pending_tasks_;
 
+  std::string job_logname=logs_[0];
+  boost::replace_all(job_logname, ".log.0", ".log");
+  std::ofstream outlog(job_logname, std::ios::out|std::ios::app);
+
   // post all tasks
+  LOG(INFO) << "Start doing " << tasks_labels_;
+  outlog << "Start doing " << tasks_labels_ << std::endl;
+
   for (int i = 0; i < tasks_.size(); i++) {
     tasks_[i]->check();
 
@@ -60,13 +69,19 @@ void Stage::run() {
     boost::unique_future<void> fut = task->get_future();
     pending_tasks_.push_back(std::move(fut));
 
-    executor_->post(boost::bind(&task_t::operator(), task)); 
+    executor_->post(boost::bind(&task_t::operator(), task));      
   }
+
   // wait for tasks to finish
   boost::wait_for_all(pending_tasks_.begin(), pending_tasks_.end()); 
+  log_time(tasks_labels_ , start_ts);
+  outlog << tasks_labels_ << " finishes in "  << getTs() - start_ts << " seconds" << std::endl;
+
+  outlog.close();
 
   // concat all logs
   std::string output_logname=executor_->log();
+  
   std::ofstream fout(output_logname, std::ios::out|std::ios::app); 
   for (int i = 0; i < logs_.size(); i++) {
     std::ifstream fin(logs_[i], std::ios::in);   
@@ -82,10 +97,8 @@ void Stage::run() {
   if (!status_.empty()) {
     fcsgenome::LogUtils logUtils;
     std::string match = logUtils.findError(logs_);
-    LOG(ERROR) << executor_->job_name() 
-               << " failed, please check log: "
-               << executor_->log() 
-               << " for details.";
+    LOG(ERROR) << executor_->job_name() << " failed, please check log: " 
+               << executor_->log()  << " for details.";
     if (!match.empty()) {
       LOG(INFO) << "Potential errors:";
       std::cout << match;
@@ -97,8 +110,7 @@ void Stage::run() {
     // remove task log
     remove_path(logs_[i]);
   }
-  DLOG(INFO) << "Stage finishes in "
-             << getTs() - start_ts << " seconds";
+  DLOG(INFO) << "Stage finishes in " << getTs() - start_ts << " seconds";
 }
 
 void Stage::runTask(int idx) {
@@ -111,9 +123,8 @@ void Stage::runTask(int idx) {
   }
 }
 
-Executor::Executor(std::string job_name,
-    int num_executors): 
-  job_name_(job_name), 
+Executor::Executor(std::string job_name, int num_executors):
+  job_name_(job_name),
   num_executors_(num_executors),
   job_id_(0)
 {
@@ -148,7 +159,7 @@ Executor::Executor(std::string job_name,
     log_dir_ = "/tmp/log" + username;
     create_dir(log_dir_);
   }
-  log_fname_ = get_log_name(job_name);
+  log_fname_ = get_log_name(job_name_);
 }
 
 Executor::~Executor() {
@@ -179,26 +190,21 @@ Executor::~Executor() {
   executors_.join_all();
 }
 
-void Executor::addTask(Worker_ptr worker, bool wait_for_prev) {
+//void Executor::addTask(Worker_ptr worker, std::string job_label, bool wait_for_prev) {
+void Executor::addTask(Worker_ptr worker, std::string sample_id,  bool wait_for_prev) {
   if (job_stages_.empty() || wait_for_prev) {
     Stage_ptr stage(new Stage(this));
     job_stages_.push(stage);
   }
-  job_stages_.back()->add(worker);
+  job_stages_.back()->add(worker, sample_id);
 }
 
 void Executor::run() {
   uint64_t start_ts = getTs();
-
-  //log_fname_ = get_log_name(job_name_); 
-  LOG(INFO) << "Start doing " << job_name_;
-
-  while (!job_stages_.empty()) {
+  while (!job_stages_.empty()) {    
     job_stages_.front()->run();
     job_stages_.pop();
   }
-
-  log_time(job_name_, start_ts);
 }
 
 void Executor::stop() {

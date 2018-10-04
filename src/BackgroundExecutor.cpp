@@ -10,9 +10,7 @@
 
 namespace fcsgenome {
 
-BackgroundExecutor::BackgroundExecutor(
-    std::string job_name, 
-    Worker_ptr worker): Executor(job_name, 1)
+BackgroundExecutor::BackgroundExecutor( std::string job_name, Worker_ptr worker): Executor(job_name, 1)
 {
   // start worker in the background in constructor
   worker->check();
@@ -20,10 +18,10 @@ BackgroundExecutor::BackgroundExecutor(
   worker->setup();
 
   create_dir(get_config<std::string>("log_dir"));
+
   std::string log = get_log_name(job_name);
-  std::string cmd = worker->getCommand() + 
-    " 1> /dev/null" + 
-    " 2> " + log;
+  std::string cmd = worker->getCommand() + " 1> /dev/null" + " 2> " + log;
+  DLOG(INFO) << "BackgroundExecutor cmd : " << cmd;
 
   // fork and execute cmd using system call
   int pid = fork();

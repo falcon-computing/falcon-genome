@@ -8,9 +8,21 @@
 
 namespace fcsgenome{
 
+static inline std::string get_task_name(SambambaWorker::Action action) {
+  switch (action) {
+    case SambambaWorker::MARKDUP:
+      return "Mark Duplicates";
+    case SambambaWorker::MERGE :
+      return "Merge BAM";
+    default:
+      return "";
+  }
+}
+
 SambambaWorker::SambambaWorker(std::string input_path,
-			       std::string output_path,  Action action, //std::string action, 
-    bool &flag_f): Worker(1, get_config<int>("markdup.nt"))
+       std::string output_path,  
+       Action action, 
+       bool &flag_f): Worker(1, get_config<int>("markdup.nt"), std::vector<std::string>(), get_task_name(action))
 {
   // check output
   output_file_ = check_output(output_path, flag_f, true);
@@ -63,7 +75,8 @@ void SambambaWorker::setup() {
           << "-l 1 " << "-t " << get_config<int>("mergebam.nt") << " ";    
     }
     else { 
-      cmd << "mv " << inputBAMs.str() <<  " " <<  output_file_;
+      cmd << "mv " << inputBAMs.str() <<  " " <<  output_file_ << "; " 
+          <<  get_config<std::string>("samtools_path") << " index " << output_file_ ;
     }
     break;
   default:

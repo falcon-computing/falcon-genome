@@ -111,30 +111,12 @@ bool is_folder_writable(const char* str);
 
 inline void create_dir(std::string path) {
   if (!boost::filesystem::exists(path)){
-   //boost::filesystem::path p(path);
-   //boost::filesystem::path dir = p.parent_path();
-   //DLOG(INFO) << "Parent dir is : " << dir;
-   //if (dir == ""){
-   //  boost::filesystem::path new_full_path( boost::filesystem::current_path() );
-   //  dir=new_full_path;
-   //} 
-   //if (!is_folder_writable(dir.c_str())) {
-   //   LOG(ERROR) << path << " cannot be created. Parent directory "<< dir << " either has no writting permission or does not exist.";
-   //   throw silentExit();
-   //}
-   //else {
-   //   DLOG(INFO) << "Creating " << path;
-   //   boost::filesystem::create_directories(path);
-   //}
     try {
       boost::filesystem::create_directories(path);
     } catch (std::exception & e) {
       LOG(ERROR) << "cannot create directory " + path;
       throw silentExit();
-      //throw invalidParam("cannot create directory " + path);
     }
-
-
   }
 }
 
@@ -188,6 +170,25 @@ inline T get_argument(
     return val;
   }
 }
+
+template <class T>
+inline T get_argument(
+     boost::program_options::variables_map &vm,
+     const char* arg1
+) {
+  if (!vm.count(arg1)) {
+    return T();
+    //throw invalidParam(concat_args(arg1, arg2));                                                                                                                       
+  }
+  else {
+    T val = vm[arg1].as<T>();
+    if (check_empty(val)) {
+      throw pathEmpty(arg1);
+    }
+    return val;
+  }
+ }
+
 
 template <class T>
 inline T get_argument(

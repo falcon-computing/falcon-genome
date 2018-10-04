@@ -9,7 +9,7 @@
 namespace fcsgenome{
 
 MergeBamWorker::MergeBamWorker(std::string inputPartsBAM, std::string outputBAM, int check_parts,
-    bool &flag_f): Worker(1, get_config<int>("mergebam.nt"))
+  bool &flag_f): Worker(1, get_config<int>("mergebam.nt"), std::vector<std::string>(), "Merge BAM")
 {
   // check output
   output_file_   = check_output(outputBAM, flag_f, true);

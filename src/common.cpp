@@ -14,8 +14,8 @@ namespace fcsgenome {
 
 Executor* g_executor = NULL;
 
-Executor* create_executor(std::string job_name, int num_workers) {
-  Executor* executor = new Executor(job_name, num_workers);
+Executor* create_executor(std::string job_name,  int num_workers) {
+  Executor* executor = new Executor(job_name, num_workers);  
   g_executor = executor;
 
   return executor;
@@ -179,8 +179,8 @@ unsigned int l_distance(const std::string& s1, const std::string& s2)
   for (unsigned int i = 0; i < len1; i++) {
     col[0] = i+1;
     for (unsigned int j = 0; j < len2; j++)
-                        // note that std::min({arg1, arg2, arg3}) works only in C++11,
-                        // for C++98 use std::min(std::min(arg1, arg2), arg3)
+      // note that std::min({arg1, arg2, arg3}) works only in C++11,
+      // for C++98 use std::min(std::min(arg1, arg2), arg3)
       col[j+1] = std::min({ prevCol[1 + j] + 1, col[j] + 1, prevCol[j] + (s1[i]==s2[j] ? 0 : 1) });
     col.swap(prevCol);
   }

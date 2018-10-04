@@ -12,6 +12,7 @@ class VCFConcatWorker : public Worker {
       std::vector<std::string> &input_files,
       std::string output_path,
       bool &flag_a,
+      bool &flag_bgzip,
       bool &flag_f);
 
   void check();
@@ -20,6 +21,7 @@ class VCFConcatWorker : public Worker {
   std::vector<std::string> input_files_;
   std::string output_file_; 
   bool flag_a_;
+  bool flag_bgzip_;
 };
 
 class ZIPWorker : public Worker {
@@ -36,9 +38,12 @@ class ZIPWorker : public Worker {
 };
 
 class TabixWorker : public Worker {
+
+
  public:
-  TabixWorker(std::string path):
-    Worker(1, 1), path_(path) {}
+  TabixWorker(std::string path);
+  // TabixWorker(std::string path):
+  // Worker(1, 1, std::vector<std::string>(), "Generating VCF index"), path_(path) {}
 
   void check();
   void setup();

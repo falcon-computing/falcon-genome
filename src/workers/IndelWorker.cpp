@@ -11,7 +11,7 @@ RTCWorker::RTCWorker(std::string ref_path,
       std::vector<std::string> &known_indels,
       std::string input_path,
       std::string output_path):
-  Worker(1, get_config<int>("gatk.rtc.nt")),
+  Worker(1, get_config<int>("gatk.rtc.nt"), std::vector<std::string>(), "Indel Realign Target Creator"),
   ref_path_(ref_path),
   known_indels_(known_indels),
   input_path_(input_path)
@@ -68,7 +68,7 @@ IndelWorker::IndelWorker(std::string ref_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
       bool &flag_f): 
-  Worker(1, 1, extra_opts),
+  Worker(1, 1, extra_opts, "Indel Realignment"),
   ref_path_(ref_path),
   known_indels_(known_indels),
   intv_path_(intv_path),

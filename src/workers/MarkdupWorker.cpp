@@ -9,7 +9,7 @@ namespace fcsgenome{
 
 MarkdupWorker::MarkdupWorker(std::string input_path,
     std::string output_path,
-    bool &flag_f): Worker(1, get_config<int>("markdup.nt"))
+    bool &flag_f): Worker(1, get_config<int>("markdup.nt"), std::vector<std::string>(),"Mark Duplicates")
 {
   // check output
   output_file_ = check_output(output_path, flag_f, true);

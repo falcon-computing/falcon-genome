@@ -12,7 +12,7 @@ GenotypeGVCFsWorker::GenotypeGVCFsWorker(
     std::string input_path,
     std::string output_path,
     std::vector<std::string> extra_opts,
-    bool &flag_f): Worker(1, 1, extra_opts),
+    bool &flag_f): Worker(1, 1, extra_opts, "GenotypeGVCF"),
   ref_path_(ref_path),
   input_path_(input_path)
 {
