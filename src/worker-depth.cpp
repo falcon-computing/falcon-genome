@@ -93,7 +93,7 @@ int depth_main(int argc, char** argv,
   input_file = input_path;
 
   Executor executor("Depth", get_config<int>("gatk.depth.nprocs"));
-
+  
   if (boost::filesystem::is_directory(input_path)) {
     std::string mergeBAM = input_path + "/merge_parts.bam  ";
     Worker_ptr merger_worker(new SambambaWorker(input_path, mergeBAM, SambambaWorker::MERGE, flag_f)); 

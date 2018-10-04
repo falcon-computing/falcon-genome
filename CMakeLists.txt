@@ -47,6 +47,15 @@ endif()
 message(STATUS "version: ${BIN_VERSION}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVERSION=\\\"${BIN_VERSION}\\\"")
 
+# prepare release_version
+if(RELEASE_VERSION)
+    message(STATUS "release_version: ${RELEASE_VERSION}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRELEASE_VERSION=\\\"\"${RELEASE_VERSION}\"\\\"")
+else()
+    message(STATUS "no release_version added")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRELEASE_VERSION=\\\"\\\"")
+endif()
+
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     message(STATUS "Install prefix is set to ~/.falcon-genome/fcs-genome/${BIN_VERSION}")
     set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.falcon-genome/fcs-genome/${BIN_VERSION}")
