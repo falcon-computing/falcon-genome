@@ -27,10 +27,13 @@ class Worker {
  public:
   Worker(int num_proc = 1,
          int num_t = 1,
-         std::vector<std::string> extra_opts = std::vector<std::string>()):
-    num_process_(num_proc),
-    num_thread_(num_t),
-    extra_opts_()
+         std::vector<std::string> extra_opts = std::vector<std::string>(),
+         std::string task_name = ""
+  ):
+         num_process_(num_proc),
+         num_thread_(num_t),
+         extra_opts_(),
+         task_name_(task_name)
   {  
     for (int i = 0; i < extra_opts.size(); i++) {
       std::vector<std::string> type_and_value;
@@ -59,6 +62,7 @@ class Worker {
   virtual void teardown() {}
 
   std::string getCommand() { return cmd_; }
+  std::string getTaskName() { return task_name_;}
 
  protected:
   std::string cmd_;
@@ -67,6 +71,10 @@ class Worker {
 
   int num_process_;   // num_processes per task
   int num_thread_;    // num_thread per task process
+
+ private:
+  std::string task_name_;
+
 };
 
 typedef boost::shared_ptr<Worker> Worker_ptr;

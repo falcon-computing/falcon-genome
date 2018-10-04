@@ -1,10 +1,10 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
+
 #include <cmath>
 #include <iomanip>
 #include <string>
-
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -25,13 +25,13 @@ int ug_main(int argc, char** argv,
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output vcf file (if --skip-concat is set"
-                                "the output will be a directory of vcf files)")
+                                " the output will be a directory of vcf files)")
     ("intervalList,L", po::value<std::string>(), "interval list file")
-    ("skip-concat,s", "produce a set of vcf files instead of one");
+    ("skip-concat,s", "produce a set of vcf files instead of one")
+    ("sample-id", po::value<std::string>(), "sample id for log file");
 
   // Parse arguments
-  po::store(po::parse_command_line(argc, argv, opt_desc),
-      cmd_vm);
+  po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
 
   if (cmd_vm.count("help")) { 
     throw helpRequest();
@@ -48,6 +48,7 @@ int ug_main(int argc, char** argv,
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id");
   std::vector<std::string> extra_opts = 
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
@@ -81,8 +82,7 @@ int ug_main(int argc, char** argv,
     intv_paths = init_contig_intv(ref_path);
   }
 
-  Executor executor("Unified Genotyper", 
-                    get_config<int>("gatk.ug.nprocs", "gatk.nprocs"));
+  Executor executor("Unified Genotyper",get_config<int>("gatk.ug.nprocs", "gatk.nprocs"));
 
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
     std::string input_file;
@@ -98,24 +98,29 @@ int ug_main(int argc, char** argv,
     std::string output_file = get_contig_fname(output_dir, contig, "vcf");
 
     Worker_ptr worker(new UGWorker(ref_path,
-          input_file,
-          intv_paths[contig],
-          output_file,
-          extra_opts,
-          flag_f));
+        input_file,
+        intv_paths[contig],
+        output_file,
+        extra_opts,
+        flag_f)
+    );
     output_files[contig] = output_file;
-
-    executor.addTask(worker, contig==0);
+    executor.addTask(worker, sample_id, contig==0);
   }
 
   if (!flag_skip_concat) {
     bool flag = true;
     bool flag_a = true;
+    bool flag_bgzip = true;
     { // concat gvcfs
       Worker_ptr worker(new VCFConcatWorker(
-            output_files, temp_gvcf_path,
-            flag_a, flag));
-      executor.addTask(worker, true);
+          output_files, 
+          temp_gvcf_path,
+          flag_a, 
+          flag_bgzip,
+          flag)
+      );
+      executor.addTask(worker, sample_id, true);
     }
     //{ // sort gvcf
     //  Worker_ptr worker(new VCFSortWorker(temp_gvcf_path));
@@ -123,14 +128,17 @@ int ug_main(int argc, char** argv,
     //}
     { // bgzip gvcf
       Worker_ptr worker(new ZIPWorker(
-            temp_gvcf_path, output_path+".gz",
-            flag_f));
-      executor.addTask(worker, true);
+          temp_gvcf_path, 
+          output_path+".gz",
+          flag_f)
+      );
+      executor.addTask(worker, sample_id, true);
     }
     { // tabix gvcf
       Worker_ptr worker(new TabixWorker(
-            output_path + ".gz"));
-      executor.addTask(worker, true);
+	  output_path + ".gz")
+      );
+      executor.addTask(worker, sample_id, true);
     }
   }
   executor.run();

@@ -3,6 +3,7 @@
 #include <boost/program_options.hpp>
 #include <sys/resource.h>
 
+#include <bits/stdc++.h> 
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
@@ -22,6 +23,7 @@ int markdup_main(int argc, char** argv,
   opt_desc.add_options() 
     ("input,i", po::value<std::string>()->required(), "input file")
     ("output,o", po::value<std::string>()->required(), "output file");
+    ("sample-id,t", po::value<std::string>(), "sample id for log files");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc),
@@ -35,13 +37,14 @@ int markdup_main(int argc, char** argv,
   bool        flag_f      = get_argument<bool>(cmd_vm, "force", "f");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
+  std::string sample_id  = get_argument<std::string>(cmd_vm, "sample-id", "t");
 
   // finalize argument parsing 
   po::notify(cmd_vm);
 
   Executor executor("Mark Duplicates");
   Worker_ptr worker(new SambambaWorker(input_path, output_path, SambambaWorker::MARKDUP, flag_f));
-  executor.addTask(worker);
+  executor.addTask(worker, sample_id);
   executor.run();
 
   return 0;

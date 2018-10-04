@@ -27,8 +27,8 @@ class Stage
  public:
   Stage(Executor* executor);
 
-  void add(Worker_ptr worker);
-  void run();
+  void add(Worker_ptr worker, std::string sample_id);
+  void run();  
 
  private:
   void runTask(int idx);
@@ -36,6 +36,7 @@ class Stage
   Executor*                executor_;
   std::vector<Worker_ptr>  tasks_;
   std::vector<std::string> logs_;
+  std::string              tasks_labels_;
   std::map<int, int>       status_;
 };
 
@@ -43,8 +44,7 @@ class Executor
   : public boost::basic_lockable_adapter<boost::mutex>
 {
  public:
-  Executor(std::string job_name,
-      int num_executors = 1); 
+  Executor(std::string job_name, int num_executors = 1);
   ~Executor();
 
   virtual int execute(Worker_ptr worker, std::string log);
@@ -59,7 +59,7 @@ class Executor
   std::string log() { return log_fname_; }
   std::string job_name() { return job_name_; }
 
-  void addTask(Worker_ptr worker, bool wait_for_prev = false);
+  void addTask(Worker_ptr worker, std::string sample_id, bool wait_for_prev = false);
 
   std::string get_log_name(std::string fname, int a = -1);
 
@@ -73,7 +73,6 @@ class Executor
   std::string           temp_dir_;
 
   boost::atomic<int>               job_id_;
-  //std::map<boost::thread::id, int> thread_table_;
   std::map<boost::thread::id, int> pid_table_;
 
  private:

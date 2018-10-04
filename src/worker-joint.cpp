@@ -23,13 +23,13 @@ int joint_main(int argc, char** argv,
     ("input-dir,i", po::value<std::string>()->required(), "input dir containing "
                                "[sample_id].gvcf.gz files")
     ("output,o", po::value<std::string>()->required(), "output vcf.gz file(s)")
+    ("sample-id", po::value<std::string>(), "sample id for log files")
     ("combine-only,c", "combine GVCFs only and skip genotyping")
     ("skip-combine,g", "(deprecated) perform genotype GVCFs only "
                        "and skip combine GVCFs");
 
   // Parse arguments
-  po::store(po::parse_command_line(argc, argv, opt_desc),
-      cmd_vm);
+  po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
 
   if (cmd_vm.count("help")) { 
     throw helpRequest();
@@ -43,6 +43,7 @@ int joint_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input-dir", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
@@ -63,97 +64,108 @@ int joint_main(int argc, char** argv,
     create_dir(parts_dir);
   }
 
-  // run 
-  //Executor executor("Joint Genotyping", get_config<int>("gatk.joint.nprocs"));
-  Executor* executor = create_executor("Joint Genotyping", 
-               get_config<int>("gatk.genotype.nprocs"));
+  Executor executor("Joint Genotyping", get_config<int>("gatk.genotype.nprocs"));
 
-  if (!flag_skip_combine) { // combine gvcfs
+  std::string tag;
+  // combine gvcfs
+  if (!flag_skip_combine) {
+
     Worker_ptr worker(new CombineGVCFsWorker(
-          ref_path, input_path,
-          parts_dir, flag_f));
-
-    executor->addTask(worker);
-
+        ref_path, 
+        input_path,
+        parts_dir, 
+        flag_f)
+    );
+    executor.addTask(worker, sample_id, true);
+ 
     // tabix gvcf from combine gvcf output
-    for (int contig = 0; 
-         contig < get_config<int>("gatk.joint.ncontigs"); 
-         contig++) 
-    { 
-      Worker_ptr worker(new TabixWorker(
-            get_contig_fname(parts_dir, contig, "gvcf.gz")));
-      executor->addTask(worker, contig == 0);
+    for (int contig = 0; contig < get_config<int>("gatk.joint.ncontigs"); contig++) { 
+       Worker_ptr worker(new TabixWorker(get_contig_fname(parts_dir, contig, "gvcf.gz")));
+       executor.addTask(worker, sample_id, contig == 0);
+       //executor.addTask(worker, tag, contig == 0);
     }
-  }
+  } // flag_skip_combine checked
+
   if (!flag_combine_only) {
+
     std::vector<std::string> vcf_parts(get_config<int>("gatk.joint.ncontigs"));
-    
-        // call gatk genotype gvcfs on each combined gvcf partitions
-    for (int contig = 0; 
-         contig < get_config<int>("gatk.joint.ncontigs"); 
-         contig++) 
-    {
+  
+    // call gatk genotype gvcfs on each combined gvcf partitions
+    for (int contig = 0; contig < get_config<int>("gatk.joint.ncontigs"); contig++) {
       std::string suffix = "gvcf.gz";
       if (flag_skip_combine) {
         suffix = "gvcf";
       }
+  
       Worker_ptr worker(new GenotypeGVCFsWorker(ref_path,
-            get_contig_fname(parts_dir, contig, suffix),
-            get_contig_fname(parts_dir, contig, "vcf"),
-            extra_opts,
-            flag_f));
-      executor->addTask(worker, contig == 0);
+          get_contig_fname(parts_dir, contig, suffix),
+          get_contig_fname(parts_dir, contig, "vcf"),
+          extra_opts,
+	  flag_f)
+      );
+  
+      //executor.addTask(worker, tag, contig == 0);
+      executor.addTask(worker, sample_id, contig == 0);
       vcf_parts[contig] = get_contig_fname(parts_dir, contig, "vcf");
     }
-    for (int contig = 0;
-         contig < get_config<int>("gatk.joint.ncontigs");
-	 contig++)
-    {
+
+    for (int contig = 0; contig < get_config<int>("gatk.joint.ncontigs"); contig++){
+
       Worker_ptr worker(new ZIPWorker(
-            vcf_parts[contig], vcf_parts[contig]+".gz", flag_f));
-      executor->addTask(worker, contig == 0);
+          vcf_parts[contig], 
+          vcf_parts[contig] + ".gz", 
+          flag_f)
+      );
+      executor.addTask(worker, sample_id, contig == 0);
     }
 
-    for (int contig = 0;
-          contig < get_config<int>("gatk.joint.ncontigs");
-	  contig++)
-    {
+    for (int contig = 0; contig < get_config<int>("gatk.joint.ncontigs"); contig++) {
       Worker_ptr worker(new TabixWorker(
-      vcf_parts[contig]+".gz"));
-      executor->addTask(worker, contig == 0);
+	  vcf_parts[contig] + ".gz")
+      );
+      executor.addTask(worker, sample_id, contig == 0);
     }
 
     {
-
-    for (auto& vcf_part : vcf_parts)
-      vcf_part += ".gz";
-
+      for (auto& vcf_part : vcf_parts)
+        vcf_part += ".gz";
     }
-      
-
+     
     // start concat the vcfs
     bool flag = true;
     bool flag_a = true;
+    bool flag_bgzip = false;
     std::string temp_vcf_path = parts_dir + "/" + get_basename(output_path);
-    { // concat vcfs
+    // concat vcfs
+    { 
       Worker_ptr worker(new VCFConcatWorker(
-            vcf_parts, temp_vcf_path,
-            flag_a, flag));
-      executor->addTask(worker, true);
+         vcf_parts, 
+         temp_vcf_path,
+         flag_a, 
+         flag_bgzip,
+         flag)
+      );
+      executor.addTask(worker, sample_id, true);
     }
-    { // bgzip vcf
+    // bgzip vcf
+    { 
       Worker_ptr worker(new ZIPWorker(
-            temp_vcf_path, output_path + ".gz",
-            flag_f));
-      executor->addTask(worker, true);
+         temp_vcf_path, 
+         output_path + ".gz",
+         flag_f)
+      );
+      executor.addTask(worker, sample_id, true);
     }
-    { // tabix vcf
+    // tabix vcf
+    { 
       Worker_ptr worker(new TabixWorker(
-            output_path + ".gz"));
-      executor->addTask(worker, true);
+	output_path + ".gz")
+      );
+      executor.addTask(worker, sample_id, true);
     }
-  }
-  executor->run();
+  } // flag_combine_only
+
+  executor.run();
 
   return 0;
 }

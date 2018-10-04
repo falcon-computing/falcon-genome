@@ -1,10 +1,10 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
+
 #include <cmath>
 #include <iomanip>
 #include <string>
-
 
 #include "fcs-genome/BackgroundExecutor.h"
 #include "fcs-genome/common.h"
@@ -31,7 +31,7 @@ int htc_main(int argc, char** argv,
     ("produce-vcf,v", "produce VCF files from HaplotypeCaller instead of GVCF")
     // TODO: skip-concat should be deprecated
     ("intervalList,L", po::value<std::string>(), "interval list file")
-    ("sample-name,n", po::value<std::string>(), "sample name")
+    ("sample-id", po::value<std::string>(), "sample id for log files")
     ("skip-concat,s", "(deprecated) produce a set of GVCF/VCF files instead of one")
     ("gatk4,g", "use gatk4 to perform analysis");
 
@@ -55,7 +55,7 @@ int htc_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::string sample_name = get_argument<std::string>(cmd_vm, "sample-name", "n");
+  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts =
           get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
@@ -90,20 +90,21 @@ int htc_main(int argc, char** argv,
     intv_paths = init_contig_intv(ref_path);
   }
 
-  std::string BLAZEtag = "blaze-nam";
-  if (!sample_name.empty()) BLAZEtag = BLAZEtag + " " + sample_name;
-
-  std::string HTCtag = "Haplotype Caller";
-  if (!sample_name.empty())  HTCtag = HTCtag + " " + sample_name;
-
   // start an executor for NAM
   Worker_ptr blaze_worker(new BlazeWorker(
         get_config<std::string>("blaze.nam_path"),
         get_config<std::string>("blaze.conf_path")));
 
-  BackgroundExecutor bg_executor(BLAZEtag, blaze_worker);
+  std::string tag;
+  if (!sample_id.empty()) {
+    tag = "blaze-nam-" + sample_id;
+  }
+  else {
+    tag = "blaze-nam";
+  }
 
-  Executor executor(HTCtag, get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
+  BackgroundExecutor bg_executor(tag, blaze_worker);  
+  Executor executor("Haplotype Caller", get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
 
   bool flag_htc_f = !flag_skip_concat || flag_f;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
@@ -125,44 +126,51 @@ int htc_main(int argc, char** argv,
 
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new HTCWorker(ref_path,
-          intv_paths[contig], input_file,
-          output_file,
-          extra_opts,
-          contig,
-          flag_vcf,
-          flag_htc_f,
-          flag_gatk)
+        intv_paths[contig], 
+        input_file,
+        output_file,
+        extra_opts,
+        contig,
+        flag_vcf,
+        flag_htc_f,
+	flag_gatk)
     );
 
     output_files[contig] = output_file;
-
-    executor.addTask(worker);
+    executor.addTask(worker,sample_id);
   }
 
   if (!flag_skip_concat) {
 
     bool flag = true;
     bool flag_a = false;
+    bool flag_bgzip = false;
+
+    std::string process_tag;
+
     { // concat gvcfs
       Worker_ptr worker(new VCFConcatWorker(
-            output_files, temp_gvcf_path,
-            flag_a, flag));
-      executor.addTask(worker, true);
+          output_files, 
+          temp_gvcf_path,
+          flag_a, 
+          flag_bgzip,
+          flag)
+      );
+      executor.addTask(worker, sample_id, true);
     }
-    //{ // sort gvcf
-    //  Worker_ptr worker(new VCFSortWorker(temp_gvcf_path));
-    //  executor.addTask(worker, true);
-    //}
     { // bgzip gvcf
       Worker_ptr worker(new ZIPWorker(
-            temp_gvcf_path, output_path+".gz",
-            flag_f));
-      executor.addTask(worker, true);
+          temp_gvcf_path, 
+          output_path+".gz",
+          flag_f)
+      );
+      executor.addTask(worker, sample_id, true);
     }
     { // tabix gvcf
       Worker_ptr worker(new TabixWorker(
-            output_path + ".gz"));
-      executor.addTask(worker, true);
+          output_path + ".gz") 
+      );
+      executor.addTask(worker, sample_id, true);
     }
   }
   executor.run();

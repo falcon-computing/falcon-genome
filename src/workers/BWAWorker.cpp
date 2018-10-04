@@ -1,10 +1,15 @@
+
 #include <boost/filesystem.hpp>
 #include <string>
 #include <sys/statvfs.h>
+#include <bits/stdc++.h> 
+#include <unistd.h>
 
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/workers/BWAWorker.h"
+
+namespace fs = boost::filesystem;
 
 namespace fcsgenome {
 
@@ -21,7 +26,7 @@ BWAWorker::BWAWorker(std::string ref_path,
   Worker(get_config<bool>("bwa.scaleout_mode") || 
          get_config<bool>("latency_mode") 
          ? conf_host_list.size() : 1, 
-         1, extra_opts),
+         1, extra_opts, "bwa mem"),
   ref_path_(ref_path),
   fq1_path_(fq1_path),
   fq2_path_(fq2_path),
@@ -47,37 +52,25 @@ void BWAWorker::check() {
   fq1_path_ = check_input(fq1_path_);
   fq2_path_ = check_input(fq2_path_);
 
-  // check temporary storage
-  auto p = boost::filesystem::path(output_path_);
+  // Checking if Temporal Storage fits with input:                                                                                                                   
+  auto p = boost::filesystem::path(conf_temp_dir);
   std::string temp_dir = p.parent_path().string();
 
-  struct statvfs diskData;
-  statvfs(temp_dir.c_str(), &diskData);
-  uint64_t available = (diskData.f_bavail * diskData.f_frsize);
-
-  DLOG(INFO) << "The available space in " << temp_dir << " is " << available;
-
-  namespace fs = boost::filesystem;
-  size_t size_fastq = 0;
-
-  std::string ext = fs::extension(fq1_path_);
-  int mult = 1;
-  if (ext == ".gz" ) {
-    mult = 3;
-    size_fastq += 3*fs::file_size(fq1_path_);
-    size_fastq += 3*fs::file_size(fq2_path_);
+  uintmax_t fastq_size=0;
+  uintmax_t mult=3;
+  if (fs::exists(fq1_path_) && fs::exists(fq2_path_)){
+    fastq_size=mult*(fs::file_size(fq1_path_)+fs::file_size(fq2_path_));
   }
-  else {
-    size_fastq += fs::file_size(fq1_path_);
-    size_fastq += fs::file_size(fq2_path_);
+  else{
+    LOG(ERROR) << "FASTQ Files: " << fq1_path_ << " and " << fq2_path_ << " do not exist";
+    throw silentExit();
   }
-  DLOG(INFO) << "The size of the input data is " << size_fastq;
 
-  if (available < size_fastq) {
-    LOG(ERROR) << "Not enough space in temporary storage: "
-      << temp_dir << ", "
-      << "the size of the temporary folder should be at least " 
-      << mult << " times the size of input FASTQ files";
+  fs::space_info si = fs::space(temp_dir);
+  if (si.available < fastq_size){
+    LOG(ERROR) << "Not enough space in temporary storage. "
+	       << "The size of the temporary folder should be at least "
+	       << mult << " times the size of input FASTQ files";
     throw silentExit();
   }
 }
