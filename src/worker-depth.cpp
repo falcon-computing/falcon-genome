@@ -90,9 +90,8 @@ int depth_main(int argc, char** argv,
   }
 
   std::string input_file;
-  if (boost::filesystem::is_directory(input_path)) {
-    input_file = input_path;
-  }
+  input_file = input_path;
+
 
   Executor executor("Depth", get_config<int>("gatk.depth.nprocs"));
 
