@@ -1,4 +1,4 @@
-// Falcon-genome-build v1.0
+// Falcon-genome-build v1.1
 pipeline {
 agent {label 'merlin'}
     stages {
