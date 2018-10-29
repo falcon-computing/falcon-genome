@@ -1,4 +1,4 @@
-[![Build Status](http://us-1.falcon-computing.com:8080/job/Falcon-Build-Falcon-genome/badge/icon?style=plastic)](http://us-1.falcon-computing.com:8080/job/Falcon-Build-Falcon-genome/)
+[![Build Status](http://us-1.falcon-computing.com:8080/job/Falcon-Build-Falcon-genome/badge/icon?style=plastic)](https://github.com/falcon-computing/falcon-genome)
 # Falcon Genome CLI
 This project is the command line interface for the Falcon Accelerated Genomics Pipelines.
 
