@@ -1,7 +1,7 @@
 ### Jenkins Build-Status
-### AWS
+AWS
 [![Build Status](http://us-1.falcon-computing.com:8080/buildStatus/icon?job=Falcon-Build-Falcon-genome)](http://us-1.falcon-computing.com:8080/job/Falcon-Build-Falcon-genome/) 
-### Local 
+Local 
 [![Build Status](http://us-1.falcon-computing.com:8080/buildStatus/icon?job=Falcon-Build-Falcon-Genome-Internal)](http://us-1.falcon-computing.com:8080/job/Falcon-Build-Falcon-Genome-Internal/)
 #
 # Falcon Genome CLI
