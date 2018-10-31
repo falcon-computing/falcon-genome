@@ -8,6 +8,7 @@ agent {label 'merlin'}
 //                    git branch: 'release', url: 'git@github.com:falcon-computing/falcon-genome.git'
                     sh "rm -rf release"
                     sh "mkdir release"
+                    script { 
                     dir("release"){
                         sh "rsync -av --exclude=.* /curr/limark/test/genome-release/build/aws/ /curr/limark/falcon2/"
                         sh "rsync -av --exclude=.* /curr/limark/test/genome-release/build/common/ /curr/limark/falcon2/"
@@ -15,9 +16,13 @@ agent {label 'merlin'}
                         sh "module load sdx/17.4; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=Internal on aws -DDEPLOYMENT_DST=aws -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon2/bin .."
                         sh "make -j 8"
                         sh "make install"
+                        link = sh(returnStdout: true, script: 'cd /curr/limark/falcon2/bin; link=s3://fcs-cicd-test/release/aws/falcon-genome/fcs-genome; echo $link; echo $link > latest')
+                        sh "cd /curr/limark/falcon2/bin; aws s3 cp fcs-genome s3://fcs-cicd-test/release/aws/falcon-genome/fcs-genome"
+                        sh "aws s3 cp latest s3://fcs-cicd-test/release/aws/falcon-genome/latest"
                         }
-                    }
-                }    
+                     }
+                  }
+               }    
             }
         }
     post {
