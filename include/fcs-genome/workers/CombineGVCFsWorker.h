@@ -11,7 +11,10 @@ class CombineGVCFsWorker : public Worker {
   CombineGVCFsWorker(std::string ref_path,
       std::string input_path,
       std::string output_path,
-      bool &flag_f);
+      std::string database_name,
+      //std::string intervals,
+      bool &flag_f, 
+      bool flag_gatk);
 
   void check();
   void setup();
@@ -26,6 +29,9 @@ class CombineGVCFsWorker : public Worker {
   std::string input_path_;
   std::vector<std::string> input_files_;
   std::string output_path_;
+  std::string database_name_;
+  //std::string intervals_;
+  bool flag_gatk_;
 
   std::string temp_dir_;
   std::string vid_json_;
