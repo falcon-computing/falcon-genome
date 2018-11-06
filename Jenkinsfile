@@ -29,8 +29,8 @@ agent {label 'merlin'}
         stage ("unit-test") {
                when { branch "devops-*" }     
             steps {
-                 dir("test") {
-                    sh "./run-mutect2.sh"
+                 dir("ws-falcon-genome") {
+                    sh "./test/run-mutect2.sh"
                 }    
             }
         }    
