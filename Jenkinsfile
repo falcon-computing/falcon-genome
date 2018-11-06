@@ -27,7 +27,7 @@ agent {label 'merlin'}
                }    
             }
         stage ("unit-test") {
-               when { branch "devops-/*" }     
+               when { branch "devops-*" }     
             steps {
                  dir("test") {
                     sh "./run-mutect2.sh"
