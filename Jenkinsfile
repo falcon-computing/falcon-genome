@@ -26,7 +26,20 @@ agent {label 'merlin'}
                   }
                }    
             }
-        }
+        stage ("unit-test") {
+            when {
+                expression {
+                    // use !(expr) to negate something, || for or, && for and
+                    return branch_name =~ /devops-.*/
+                }
+            }     
+            steps {
+                 dir("ws-falcon-genome/test") {
+                    sh "./run-mutect2.sh"
+                }    
+            }
+        }    
+    }
     post {
             always {
 
