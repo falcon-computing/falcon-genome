@@ -5,6 +5,7 @@ agent {label 'merlin'}
         stage ("build-aws-falcon-genome") {
             steps {
                  dir("ws-falcon-genome") {
+                     checkout scm
 //                    git branch: 'release', url: 'git@github.com:falcon-computing/falcon-genome.git'
                     sh "rm -rf release"
                     sh "mkdir release"
