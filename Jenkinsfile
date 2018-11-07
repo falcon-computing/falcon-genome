@@ -30,7 +30,7 @@ agent {label 'merlin'}
                when { branch "devops-*" }     
             steps {
                  dir("ws-falcon-genome") {
-                    sh "./test/run-mutect2.sh"
+                    sh "make test"
                 }    
             }
         }    
