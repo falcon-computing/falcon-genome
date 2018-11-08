@@ -12,9 +12,11 @@ GenotypeGVCFsWorker::GenotypeGVCFsWorker(
     std::string input_path,
     std::string output_path,
     std::vector<std::string> extra_opts,
-    bool &flag_f): Worker(1, 1, extra_opts, "GenotypeGVCF"),
+    bool &flag_f,
+    bool flag_gatk): Worker(1, 1, extra_opts, "GenotypeGVCF"),
   ref_path_(ref_path),
-  input_path_(input_path)
+  input_path_(input_path),
+  flag_gatk_(flag_gatk)
 {
   output_path_ = check_output(output_path, flag_f);
 }
@@ -28,15 +30,25 @@ void GenotypeGVCFsWorker::setup() {
   // create cmd
   std::stringstream cmd;
   cmd << get_config<std::string>("java_path") << " "
-      << "-Xmx" << get_config<int>("gatk.genotype.memory") << "g "
-      << "-jar " << get_config<std::string>("gatk_path") << " "
-      << "-T GenotypeGVCFs "
-      << "-R " << ref_path_ << " "
-      << "--variant " << input_path_ << " "
-      // secret option to fix index fopen issue
-      << "--disable_auto_index_creation_and_locking_when_reading_rods "
-      << "-o " << output_path_ << " ";
-  
+      << "-Xmx" << get_config<int>("gatk.genotype.memory") << "g ";
+
+  if (flag_gatk_ || get_config<bool>("use_gatk4")) {
+    cmd << "-jar " << get_config<std::string>("gatk4_path") << " "
+        << " GenotypeGVCFs "
+        << " -R " << ref_path_ << " " 
+        << " -V gendb://" << input_path_ << " -G StandardAnnotation " 
+        << " -O " << output_path_ ; 
+  }
+  else{
+    cmd << "-jar " << get_config<std::string>("gatk_path") << " "
+        << "-T GenotypeGVCFs "
+        << "-R " << ref_path_ << " "
+        << "--variant " << input_path_ << " "
+        // secret option to fix index fopen issue
+        << "--disable_auto_index_creation_and_locking_when_reading_rods "
+        << "-o " << output_path_ << " ";
+  }  
+
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
     cmd << it->first << " ";
     for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
@@ -50,5 +62,7 @@ void GenotypeGVCFsWorker::setup() {
   }
 
   cmd_ = cmd.str();
+  DLOG(INFO) << cmd_;
+
 }
 } // namespace fcsgenome
