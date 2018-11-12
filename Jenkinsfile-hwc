@@ -22,9 +22,9 @@ agent {label 'merlin'}
                         sh "make install"
 //                        link = sh(returnStdout: true, script: 'cd /curr/limark/falcon-hwc/bin; link=s3://fcs-cicd-test/release/hwc/falcon-genome/fcs-genome; echo $link; echo $link > latest')
                         sh "cd ~/falcon-hwc/bin; echo s3://fcs-cicd-test/release/hwc/falcon-genome/fcs-genome-$version > latest"
-                        sh "cd ~/limark/falcon-hwc/bin; aws s3 cp fcs-genome s3://fcs-cicd-test/release/hwc/falcon-genome/fcs-genome-$version"
-                        sh "cd ~/limark/falcon-hwc/bin; aws s3 cp latest s3://fcs-cicd-test/release/hwc/falcon-genome/latest"
-                        sh "cd ~/limark/falcon-hwc/bin; rm -f latest"
+                        sh "cd ~/falcon-hwc/bin; aws s3 cp fcs-genome s3://fcs-cicd-test/release/hwc/falcon-genome/fcs-genome-$version"
+                        sh "cd ~/falcon-hwc/bin; aws s3 cp latest s3://fcs-cicd-test/release/hwc/falcon-genome/latest"
+                        sh "cd ~/falcon-hwc/bin; rm -f latest"
                         }
                      }
                   }
