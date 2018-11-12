@@ -25,7 +25,7 @@ agent {label 'merlin'}
                         sh "cd /curr/limark/falcon2/bin; aws s3 cp fcs-genome s3://fcs-cicd-test/release/aws/falcon-genome/fcs-genome-$version"
                         sh "cd /curr/limark/falcon2/bin; aws s3 cp latest s3://fcs-cicd-test/release/aws/falcon-genome/latest"
                         sh "cd /curr/limark/falcon2/bin; rm -f latest"
-                            sh "cp /curr/limark/Code-latest/genome-release/get_latest.sh ."
+                            sh "cp ~/artifacts/get_latest.sh ."
 //                            pwd = sh(returnStdout: true, script: 'pwd; echo $pwd') 
                             sh './get_latest.sh aws/falcon-genome'
                             sh "ls -ltrh"
