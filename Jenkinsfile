@@ -41,7 +41,7 @@ agent {label 'merlin'}
                         script {
                            sh "cd ~/;tar zcf falcon-genome-Internal-aws.tgz falcon2/"
 //                            sh "tar zcf falcon-genome-aws.tgz  /curr/limark/falcon2/"
-                            link = sh(returnStdout: true, script: 'link=s3://fcs-cicd-test/release/aws/falcon-genome-Internal-aws.tgz; echo $link; echo $link > latest')
+                            link = sh(returnStdout: true, script: 'cd ~/; link=s3://fcs-cicd-test/release/aws/falcon-genome-Internal-aws.tgz; echo $link; echo $link > latest')
                             sh 'cd ~/;aws s3 cp falcon-genome-Internal-aws.tgz s3://fcs-cicd-test/release/aws/falcon-genome-Internal-aws.tgz'
 //                            sh "aws s3 cp falcon-genome-${Release_Version}.tgz $link"
                             sh "cd ~/;aws s3 cp latest s3://fcs-cicd-test/release/aws/latest"
