@@ -14,14 +14,16 @@ agent {label 'merlin'}
                         sh "rsync -av --exclude=.* /curr/limark/test/genome-release/build/aws/ /curr/limark/falcon2/"
                         sh "rsync -av --exclude=.* /curr/limark/test/genome-release/build/common/ /curr/limark/falcon2/"
                         sh "source /curr/software/util/modules-tcl/init/bash"
-                        sh "module load sdx/17.4; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=v1.2.1-111-g561a333 -DDEPLOYMENT_DST=aws -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon2/bin .."
-//                        sh "make -j 8"
-//                        sh "make install"
-//                        sh "cd ~/falcon2/bin; mv fcs-genome fcs-genome-$version" 
-//                        link = sh(returnStdout: true, script: 'cd /curr/limark/falcon2/bin; link=s3://fcs-cicd-test/release/aws/falcon-genome/fcs-genome; echo $link; echo $link > latest')
-//                        sh "cd /curr/limark/falcon2/bin; aws s3 cp fcs-genome-$version s3://fcs-cicd-test/release/aws/falcon-genome/fcs-genome-$version"
- //                       sh "cd /curr/limark/falcon2/bin; aws s3 cp latest s3://fcs-cicd-test/release/aws/falcon-genome/latest"
- //                       sh "cd /curr/limark/falcon2/bin; rm -f latest"
+                        version = sh(returnStdout: false, script: 'git describe --tag')
+                        ver = sh (returnStdout: false, script: 'echo $version|sed -e \'s/\r//g')
+                        sh "echo $ver"
+                        sh "module load sdx/17.4; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=$ver -DDEPLOYMENT_DST=aws -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon2/bin .."
+                        sh "make -j 8"
+                        sh "make install"
+                        link = sh(returnStdout: true, script: 'cd /curr/limark/falcon2/bin; link=s3://fcs-cicd-test/release/aws/falcon-genome/fcs-genome; echo $link; echo $link > latest')
+                        sh "cd /curr/limark/falcon2/bin; aws s3 cp fcs-genome-$ver s3://fcs-cicd-test/release/aws/falcon-genome/fcs-genome-$ver"
+                        sh "cd /curr/limark/falcon2/bin; aws s3 cp latest s3://fcs-cicd-test/release/aws/falcon-genome/latest"
+                        sh "cd /curr/limark/falcon2/bin; rm -f latest"
                         }
                      }
                   }
