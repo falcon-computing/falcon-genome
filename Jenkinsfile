@@ -14,7 +14,7 @@ agent {label 'merlin'}
                         sh "rsync -av --exclude=.* /curr/limark/test/genome-release/build/aws/ /curr/limark/falcon2/"
                         sh "rsync -av --exclude=.* /curr/limark/test/genome-release/build/common/ /curr/limark/falcon2/"
                         sh "source /curr/software/util/modules-tcl/init/bash"
-                        version = sh(returnStdout: true, script: git describe --tag)
+                        version = sh(returnStdout: true, script: 'date')
                         sh "echo $version"
                         sh "module load sdx/17.4; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=$version -DDEPLOYMENT_DST=aws -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon2/bin .."
 //                        sh "make -j 8"
