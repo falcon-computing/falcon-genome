@@ -20,8 +20,8 @@ agent {label 'merlin'}
                         sh "make -j 8"
                         sh "make install"
                         sh "cd ~/falcon2/bin; mv fcs-genome fcs-genome-$version" 
-                        link = sh(returnStdout: true, script: 'cd /curr/limark/falcon2/bin; link=s3://fcs-cicd-test/release/aws/falcon-genome/fcs-genome-$version; echo $link; echo $link > latest')
-                        sh "cd /curr/limark/falcon2/bin; aws s3 cp fcs-genome-$version s3://fcs-cicd-test/release/aws/falcon-genome/fcs-genome"
+                        link = sh(returnStdout: true, script: 'cd /curr/limark/falcon2/bin; link=s3://fcs-cicd-test/release/aws/falcon-genome/*fcs-genome; echo $link; echo $link > latest')
+                        sh "cd /curr/limark/falcon2/bin; aws s3 cp fcs-genome-$version s3://fcs-cicd-test/release/aws/falcon-genome/*fcs-genome"
                         sh "cd /curr/limark/falcon2/bin; aws s3 cp latest s3://fcs-cicd-test/release/aws/falcon-genome/latest"
                         sh "cd /curr/limark/falcon2/bin; rm -f latest"
                         }
