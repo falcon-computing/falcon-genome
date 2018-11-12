@@ -14,9 +14,9 @@ agent {label 'merlin'}
                         sh "rsync -av --exclude=.* /curr/limark/test/genome-release/build/aws/ /curr/limark/falcon2/"
                         sh "rsync -av --exclude=.* /curr/limark/test/genome-release/build/common/ /curr/limark/falcon2/"
                         sh "source /curr/software/util/modules-tcl/init/bash"
-                        version = sh(returnStdout: true, script: 'git describe --tag')
+                        version = sh(returnStdout: true, script: '\git describe --tag\')
                         sh "echo $version"
-                        sh "module load sdx/17.4; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=v1.2.1-94-g614364b -DDEPLOYMENT_DST=aws -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon2/bin .."
+                        sh "module load sdx/17.4; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=$version -DDEPLOYMENT_DST=aws -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon2/bin .."
 //                        sh "make -j 8"
 //                        sh "make install"
 //                        link = sh(returnStdout: true, script: 'cd /curr/limark/falcon2/bin; link=s3://fcs-cicd-test/release/aws/falcon-genome/fcs-genome; echo $link; echo $link > latest')
