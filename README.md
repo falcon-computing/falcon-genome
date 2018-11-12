@@ -1,7 +1,7 @@
 ### Jenkins Build-Status
-[!AWS [Build Status](http://us-1.falcon-computing.com:8080/buildStatus/icon?job=Falcon-Build-Falcon-genome)](http://us-1.falcon-computing.com:8080/job/Falcon-Build-Falcon-genome/)
-[!Local[Build Status](http://us-1.falcon-computing.com:8080/buildStatus/icon?job=Falcon-Build-Falcon-Genome-Internal)](http://us-1.falcon-computing.com:8080/view/Internal/job/Falcon-Build-Falcon-Genome-Internal/)
-[!HWC[Build Status](http://us-1.falcon-computing.com:8080/buildStatus/icon?job=HWC-Falcon-Genome)](http://us-1.falcon-computing.com:8080/view/HWC/job/HWC-Falcon-Genome/)
+AWS [![Build Status](http://us-1.falcon-computing.com:8080/buildStatus/icon?job=Falcon-Build-Falcon-genome)](http://us-1.falcon-computing.com:8080/job/Falcon-Build-Falcon-genome/)
+HWC [![Build Status](http://us-1.falcon-computing.com:8080/buildStatus/icon?job=HWC-Falcon-Genome)](http://us-1.falcon-computing.com:8080/view/HWC/job/HWC-Falcon-Genome/)
+Local [![Build Status](http://us-1.falcon-computing.com:8080/buildStatus/icon?job=Falcon-Build-Falcon-Genome-Internal)](http://us-1.falcon-computing.com:8080/job/Falcon-Build-Falcon-Genome-Internal/)
 # Falcon Genome CLI
 This project is the command line interface for the Falcon Accelerated Genomics Pipelines.
 
