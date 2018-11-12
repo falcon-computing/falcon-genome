@@ -12,8 +12,8 @@ agent {label 'merlin'}
                     sh "mkdir release"
                     script { 
                     dir("release"){
-                        sh "rsync -av --exclude=.* /curr/limark/test/genome-release/build/aws/ /curr/limark/falcon2/"
-                        sh "rsync -av --exclude=.* /curr/limark/test/genome-release/build/common/ /curr/limark/falcon2/"
+                        sh "rsync -av --exclude=.* /curr/limark/Code-latest/genome-release/build/aws/ /curr/limark/falcon2/"
+                        sh "rsync -av --exclude=.* /curr/limark/Code-latest/genome-release/build/common/ /curr/limark/falcon2/"
                         sh "source /curr/software/util/modules-tcl/init/bash"
                         version= sh(returnStdout: true, script: 'git describe --tag').trim()
                         sh "echo $version"
