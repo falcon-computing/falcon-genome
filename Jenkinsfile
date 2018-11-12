@@ -47,6 +47,7 @@ agent {label 'merlin'}
 //                            sh "aws s3 cp falcon-genome-${Release_Version}.tgz $link"
                             sh "cd ~/;aws s3 cp latest s3://fcs-cicd-test/release/aws/latest"
                             sh "rm -f latest"
+                            }
                         }
                     }
                 }
