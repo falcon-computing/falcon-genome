@@ -16,7 +16,7 @@ agent {label 'merlin'}
                         sh "source /curr/software/util/modules-tcl/init/bash"
                         version = sh(returnStdout: true, script: 'git describe --tag')
                         sh "echo $version"
-                        sh "module load sdx/17.4; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=$version -DDEPLOYMENT_DST=aws -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon2/bin .."
+                        sh "module load sdx/17.4; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=v1.2.1-111-g561a333 -DDEPLOYMENT_DST=aws -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon2/bin .."
 //                        sh "make -j 8"
 //                        sh "make install"
 //                        sh "cd ~/falcon2/bin; mv fcs-genome fcs-genome-$version" 
