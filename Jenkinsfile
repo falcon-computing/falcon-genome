@@ -17,11 +17,11 @@ agent {label 'merlin'}
                         version = sh(returnStdout: true, script: 'git describe --tag')
                         sh "echo $version"
                         sh "module load sdx/17.4; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=Internal on aws -DDEPLOYMENT_DST=aws -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon2/bin .."
-//                        sh "make -j 8"
-//                        sh "make install"
-//                        link = sh(returnStdout: true, script: 'cd /curr/limark/falcon2/bin; link=s3://fcs-cicd-test/release/aws/falcon-genome/fcs-genome; echo $link; echo $link > latest')
-//                        sh "cd /curr/limark/falcon2/bin; aws s3 cp fcs-genome s3://fcs-cicd-test/release/aws/falcon-genome/fcs-genome"
-//                        sh "cd /curr/limark/falcon2/bin; aws s3 cp latest s3://fcs-cicd-test/release/aws/falcon-genome/latest"
+                        sh "make -j 8"
+                        sh "make install"
+                        link = sh(returnStdout: true, script: 'cd /curr/limark/falcon2/bin; link=s3://fcs-cicd-test/release/aws/falcon-genome/fcs-genome-$version; echo $link; echo $link > latest')
+                        sh "cd /curr/limark/falcon2/bin; aws s3 cp fcs-genome s3://fcs-cicd-test/release/aws/falcon-genome/fcs-genome"
+                        sh "cd /curr/limark/falcon2/bin; aws s3 cp latest s3://fcs-cicd-test/release/aws/falcon-genome/latest"
 //                        sh "cd /curr/limark/falcon2/bin; rm -f latest"
                         }
                      }
