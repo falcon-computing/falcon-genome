@@ -1,7 +1,7 @@
 pipeline {
 agent {label 'merlin'}
     stages {
-        stage ("build-aws-falcon-genome") {
+        stage ("build-local-falcon-genome") {
             steps {
                  dir("ws-falcon-genome") {
                     checkout scm
