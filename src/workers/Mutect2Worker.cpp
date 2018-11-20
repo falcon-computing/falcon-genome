@@ -88,7 +88,7 @@ void Mutect2Worker::setup() {
   }
   else{
       cmd << "-I:normal " << normal_path_ << " "
-          << "-I:tumor " << tumor_path_   << " ";
+          << "-I:tumor "  << tumor_path_  << " ";
 
       if (!extra_opts_.count("--variant_index_type")) {
          cmd << "--variant_index_type LINEAR ";

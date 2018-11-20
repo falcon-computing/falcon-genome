@@ -10,8 +10,10 @@
 #include "workers/GenotypeGVCFsWorker.h"
 #include "workers/HTCWorker.h"
 #include "workers/Mutect2Worker.h"
+#include "workers/Mutect2FilterWorker.h"
 #include "workers/IndelWorker.h"
 #include "workers/SambambaWorker.h"
+#include "workers/VariantsFilterWorker.h"
 #include "workers/VCFUtilsWorker.h"
 #include "workers/UGWorker.h"
 
