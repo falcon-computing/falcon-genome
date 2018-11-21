@@ -49,14 +49,20 @@ void VariantsFilterWorker::setup() {
       cmd << "-jar " << get_config<std::string>("gatk_path") << " -T VariantFiltration ";
   }
 
-  cmd << "-V " << input_path_ << " "
+  cmd << "-R " << ref_path_ << " " 
+      << "-V " << input_path_ << " "
       << "-L " << intv_path_  << " "
       << " -isr INTERSECTION ";
  
   if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
-    cmd << "-O " << output_path_  << " ";
-   } else {
-    cmd << "-o " << output_path_ << " ";
+    cmd << " -O " << output_path_   << " " 
+        << " --filter-expression  " << "\"" << filter_par_ << "\" "
+        << " --filter-name  " << "\"" << filter_name_ << "\" ";
+  } 
+  else {
+    cmd << "-o " << output_path_ << " "
+        << " --filterExpression  " <<  "\"" << filter_par_  << "\" " 
+	<< " --filterName  " << "\"" << filter_name_ << "\"  ";        
   }
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
@@ -74,7 +80,7 @@ void VariantsFilterWorker::setup() {
   cmd << "1> /dev/null";
   cmd_ = cmd.str();
 
-  DLOG(INFO) << cmd_;
+  LOG(INFO) << cmd_;
 }
 
 } // namespace fcsgenome
