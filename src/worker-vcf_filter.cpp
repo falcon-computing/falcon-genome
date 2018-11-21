@@ -49,8 +49,8 @@ int variant_filtration_main(int argc, char** argv,
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
-  std::string filter_name   = get_argument<std::string>(cmd_vm, "filter_name");
-  std::string filtering_par  = get_argument<std::string>(cmd_vm, "filteringExpression");
+  std::string filter_name = get_argument<std::string>(cmd_vm, "filter_name");
+  std::string filter_par  = get_argument<std::string>(cmd_vm, "filteringExpression");
   std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
@@ -61,18 +61,12 @@ int variant_filtration_main(int argc, char** argv,
   std::string temp_dir = conf_temp_dir + "/vcf_filtered";
 
   std::string output_dir;
-  //if (flag_skip_concat) {
-  // output_dir = check_output(output_path, flag_f);
-    //}
-    //else {
-    output_dir = temp_dir;
-    //}
-  std::string temp_gvcf_path = output_dir + "/" + get_basename(output_path);
+  output_dir = temp_dir;
 
+  std::string temp_gvcf_path = output_dir + "/" + get_basename(output_path);
   create_dir(output_dir);
 
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
-
   std::vector<std::string> intv_paths;
   if (!intv_list.empty()) {
     intv_paths = split_by_nprocs(intv_list, "bed");
@@ -105,7 +99,7 @@ int variant_filtration_main(int argc, char** argv,
         output_file,
         extra_opts,
         contig,
-	filtering_par,
+	filter_par,
 	filter_name,
         flag_f,
 	flag_gatk)
@@ -115,41 +109,38 @@ int variant_filtration_main(int argc, char** argv,
     executor.addTask(worker,sample_id);
   }
 
-  //if (!flag_skip_concat) {
+  bool flag = true;
+  bool flag_a = false;
+  bool flag_bgzip = false;
 
-    bool flag = true;
-    bool flag_a = false;
-    bool flag_bgzip = false;
+  std::string process_tag;
 
-    std::string process_tag;
+  { // concat gvcfs
+    Worker_ptr worker(new VCFConcatWorker(
+        output_files, 
+        temp_gvcf_path,
+        flag_a, 
+        flag_bgzip,
+        flag)
+    );
+    executor.addTask(worker, sample_id, true);
+  }
+  { // bgzip gvcf
+    Worker_ptr worker(new ZIPWorker(
+        temp_gvcf_path, 
+        output_path+".gz",
+        flag_f)
+    );
+    executor.addTask(worker, sample_id, true);
+  }
+  { // tabix gvcf
+    Worker_ptr worker(new TabixWorker(
+        output_path + ".gz") 
+    );
+    executor.addTask(worker, sample_id, true);
+  }
 
-    { // concat gvcfs
-      Worker_ptr worker(new VCFConcatWorker(
-          output_files, 
-          temp_gvcf_path,
-          flag_a, 
-          flag_bgzip,
-          flag)
-      );
-      executor.addTask(worker, sample_id, true);
-    }
-    { // bgzip gvcf
-      Worker_ptr worker(new ZIPWorker(
-          temp_gvcf_path, 
-          output_path+".gz",
-          flag_f)
-      );
-      executor.addTask(worker, sample_id, true);
-    }
-    { // tabix gvcf
-      Worker_ptr worker(new TabixWorker(
-          output_path + ".gz") 
-      );
-      executor.addTask(worker, sample_id, true);
-    }
-    //}
   executor.run();
-
   return 0;
 }
 } // namespace fcsgenome

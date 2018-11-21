@@ -14,17 +14,16 @@ VariantsFilterWorker::VariantsFilterWorker(std::string ref_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
       int  contig,
-      std::string filtering_par,
+      std::string filter_par,
       std::string filter_name,
       bool &flag_f,
       bool flag_gatk):
   Worker(1, get_config<int>("gatk.htc.nct", "gatk.nct"), extra_opts, "VariantsFilter"),
-  produce_vcf_(flag_vcf),
   flag_gatk_(flag_gatk),
   ref_path_(ref_path),
   intv_path_(intv_path),
   input_path_(input_path),
-  filtering_par_(filtering_par),
+  filter_par_(filter_par),
   filter_name_(filter_name)
 {
   // check input/output files
