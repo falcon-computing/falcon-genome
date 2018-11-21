@@ -13,7 +13,6 @@
 #include "workers/Mutect2FilterWorker.h"
 #include "workers/IndelWorker.h"
 #include "workers/SambambaWorker.h"
-#include "workers/VariantsFilterWorker.h"
 #include "workers/VCFUtilsWorker.h"
 #include "workers/UGWorker.h"
 
