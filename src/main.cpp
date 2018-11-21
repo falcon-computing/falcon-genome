@@ -68,7 +68,6 @@ namespace fcsgenome {
   int hist_main(int argc, char** argv, po::options_description &opt_desc);
   int mutect2_main(int argc, char** argv, po::options_description &opt_desc);
   int depth_main(int argc, char** argv, po::options_description &opt_desc);
-  int variant_filtration_main(int argc, char** argv, po::options_description &opt_desc);
 }
 
 int main(int argc, char** argv) {
@@ -158,9 +157,6 @@ int main(int argc, char** argv) {
     }
     else if (cmd == "depth") {
       depth_main(argc-1, &argv[1], opt_desc);
-    }
-    else if (cmd == "variants-filtration") {
-      variant_filtration_main(argc-1, &argv[1], opt_desc);
     }
     else if (cmd == "--version") {
       std::cout << VERSION << std::endl;
