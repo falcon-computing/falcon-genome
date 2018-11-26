@@ -80,7 +80,7 @@ void VariantsFilterWorker::setup() {
   cmd << "1> /dev/null";
   cmd_ = cmd.str();
 
-  LOG(INFO) << cmd_;
+  DLOG(INFO) << cmd_;
 }
 
 } // namespace fcsgenome
