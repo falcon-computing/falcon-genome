@@ -11,16 +11,31 @@
 namespace fcsgenome {
 
 CombineGVCFsWorker::CombineGVCFsWorker(
-		std::string ref_path,
-		std::string input_path,
-		std::string output_path,
-		bool &flag_f): 
+  std::string ref_path,
+  std::string input_path,
+  std::string output_path,
+  std::string database_name,
+  //std::string intervals,
+  bool &flag_f,
+  bool flag_gatk): 
   Worker(
       get_config<bool>("latency_mode") ?  conf_host_list.size() : 1,
       get_config<int>("gatk.joint.ncontigs"), std::vector<std::string>(), "Combine GVCF"),
 	ref_path_(ref_path),
-	input_path_(input_path)
+        input_path_(input_path),
+        database_name_(database_name),
+        //intervals_(intervals),
+        flag_gatk_(flag_gatk)
 {
+  // check database name if gatk4 is used:
+  if (flag_gatk_ || get_config<bool>("use_gatk4")){
+    //if (database_name_.empty() && intervals_.empty()) {
+    if (database_name_.empty()) {
+      LOG(ERROR) << "Database Name and Intervals must both be defined";     
+      throw silentExit();
+    }
+  } 
+
   // check output files
   output_path_ = get_absolute_path(output_path);
   for (int contig = 0;contig < get_config<int>("gatk.joint.ncontigs"); contig ++) {
@@ -240,9 +255,6 @@ void CombineGVCFsWorker::check() {
   ref_path_ = check_input(ref_path_);
   input_path_ = check_input(input_path_);
 
-  // 1. generate vid.json
-  genVid();
-
   // get a vector of input files
   get_input_list(input_path_, input_files_, ".*\\.gvcf.gz");
 
@@ -252,36 +264,59 @@ void CombineGVCFsWorker::check() {
     check_input(idx_fname);
   }
 
-  // 2. generate callset.json
-  genCallSet();
-  
-  // 3. generate loader.json
-  genLoader();
-
-  // 4. generate host list
-  genHostlist();
+  if (!flag_gatk_ || !get_config<bool>("use_gatk4")) {
+    // 1. generate vid.json
+    genVid();
+    
+    // 2. generate callset.json
+    genCallSet();
+    
+    // 3. generate loader.json
+    genLoader();
+    
+    // 4. generate host list
+    genHostlist();
+  } 
 }
  
 void CombineGVCFsWorker::setup() {
-  // create output dir
-  create_dir(output_path_);
 
   // create cmd
   std::stringstream cmd;
-  cmd << get_config<std::string>("mpi_path") << "/bin/mpirun " 
-      << "--prefix " << get_config<std::string>("mpi_path") << " "
-      << "--bind-to none "
-      << "--mca pml ob1 " // same issue as in workers/BWAWorker.cpp
-      << "--allow-run-as-root "
-      << "-np " << get_config<int>("gatk.joint.ncontigs") << " ";
-  if (!conf_host_list.empty()) {
-    cmd << "--hostfile " << host_list_ << " ";
+  if (flag_gatk_ || get_config<bool>("use_gatk4")) {
+    cmd << get_config<std::string>("java_path") << " "
+	<< "-Xmx" << 64 << "g ";
+
+    cmd << "-jar " << get_config<std::string>("gatk4_path") << " GenomicsDBImport ";
+    for (auto file : input_files_) {
+       cmd << " -V " << file; 
+    }
+    cmd << " --genomicsdb-workspace-path " << database_name_ << " " ;
+    for (int i=1; i<23; i++){
+      cmd << " --intervals " << i << " ";    
+    }
+    cmd << " --intervals  X --intervals Y ";
+    // Not working well according to GATK forum:
+    //<< " --reader-threads " << get_config<int>("gatk.joint.ncontigs") << " "
+    //<< " --max-num-intervals-to-import-in-parallel " << get_config<int>("gatk.joint.ncontigs") << " ";
   }
-
-  cmd << get_config<std::string>("genomicsdb_path") << " "
-      << loader_json_;
-
+  else{
+    // create output dir
+    create_dir(output_path_);
+    cmd << get_config<std::string>("mpi_path") << "/bin/mpirun " 
+        << "--prefix " << get_config<std::string>("mpi_path") << " "
+        << "--bind-to none "
+        << "--mca pml ob1 " // same issue as in workers/BWAWorker.cpp
+        << "--allow-run-as-root "
+        << "-np " << get_config<int>("gatk.joint.ncontigs") << " ";
+    if (!conf_host_list.empty()) {
+      cmd << "--hostfile " << host_list_ << " ";
+    }
+    
+    cmd << get_config<std::string>("genomicsdb_path") << " " << loader_json_;
+  }
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_;
 }
+
 } // namespace fcsgenome

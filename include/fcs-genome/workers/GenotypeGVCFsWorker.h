@@ -12,7 +12,8 @@ class GenotypeGVCFsWorker : public Worker {
       std::string input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
-      bool &flag_f);
+      bool &flag_f,
+      bool flag_gatk);
 
   void check();
   void setup();
@@ -21,6 +22,7 @@ class GenotypeGVCFsWorker : public Worker {
   std::string ref_path_;
   std::string input_path_;
   std::string output_path_;
+  bool flag_gatk_;
 };
 } // namespace fcsgenome
 #endif
