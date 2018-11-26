@@ -34,6 +34,8 @@ int mutect2_main(int argc, char** argv,
     ("intervalList,L", po::value<std::string>(), "interval list file")
     ("normal_name,a", po::value<std::string>(), "Sample name for Normal Input BAM. Must match the SM tag in the BAM header (gatk4) ")
     ("tumor_name,b", po::value<std::string>(), "Sample name for Tumor Input BAM. Must match the SM tag in the BAM header (gatk4)")
+    ("contamination_table", po::value<std::string>(), "tumor contamination table (gatk4)")
+    ("filtered_vcf",po::value<std::string>()->required(), "filtered vcf (gatk4)")
     ("sample-id", po::value<std::string>(),"sample id for log file")
     ("gatk4,g", "use gatk4 to perform analysis")
     ("skip-concat,s", "produce a set of VCF files instead of one");
@@ -61,11 +63,14 @@ int mutect2_main(int argc, char** argv,
   std::vector<std::string> cosmic_path = get_argument<std::vector<std::string> >(cmd_vm, "cosmic","c", std::vector<std::string>());
   std::string germline_path = get_argument<std::string> (cmd_vm, "germline","m");
   std::string panels_of_normals = get_argument<std::string> (cmd_vm, "panels_of_normals","p");
-  std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
-  std::string normal_name = get_argument<std::string> (cmd_vm, "normal_name","a");
-  std::string tumor_name  = get_argument<std::string> (cmd_vm, "tumor_name","b");
-  std::string sample_id   = get_argument<std::string> (cmd_vm, "sample-id");
+  std::string intv_list    = get_argument<std::string>(cmd_vm, "intervalList", "L");
+  std::string normal_name  = get_argument<std::string> (cmd_vm, "normal_name","a");
+  std::string tumor_name   = get_argument<std::string> (cmd_vm, "tumor_name","b");
+  std::string tumor_table  = get_argument<std::string> (cmd_vm, "contamination_table");
+  std::string filtered_vcf = get_argument<std::string>(cmd_vm, "filtered_vcf");
+  std::string sample_id    = get_argument<std::string> (cmd_vm, "sample-id");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
+  std::vector<std::string> filtering_extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "filtering-extra-options");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -77,6 +82,7 @@ int mutect2_main(int argc, char** argv,
     if (tumor_name.empty())   throw pathEmpty("tumor_name");
     if (germline_path.empty()) throw pathEmpty("germline_path");
     if (panels_of_normals.empty()) throw pathEmpty("panels_of_normals");
+    if (filtered_vcf.empty()) throw pathEmpty("filtered_vcf");
   }
 
   std::string temp_dir = conf_temp_dir + "/mutect2";
@@ -93,7 +99,12 @@ int mutect2_main(int argc, char** argv,
 
   create_dir(output_dir);
 
+  std::string filtered_dir = check_output(filtered_vcf, flag_f);
+  create_dir(filtered_dir);
+
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
+  std::vector<std::string> filtered_files(get_config<int>("gatk.ncontigs"));
+
   std::vector<std::string> intv_paths;
   if (!intv_list.empty()) {
     intv_paths = split_by_nprocs(intv_list, "bed");
@@ -104,12 +115,12 @@ int mutect2_main(int argc, char** argv,
 
   // start an executor for NAM
   Worker_ptr blaze_worker(new BlazeWorker(
-        get_config<std::string>("blaze.nam_path"),
-        get_config<std::string>("blaze.conf_path")));
+      get_config<std::string>("blaze.nam_path"),
+      get_config<std::string>("blaze.conf_path")));
 
   std::string tag;
   if (!sample_id.empty()) {
-    tag    = "blaze-nam-" + sample_id;
+    tag = "blaze-nam-" + sample_id;
   }
   else {
     tag = "blaze-nam";
@@ -155,17 +166,46 @@ int mutect2_main(int argc, char** argv,
 	flag_gatk)
     );
     output_files[contig] = output_file;
-
     executor.addTask(mutect2_worker, sample_id, contig == 0);
+  }
+
+  if (flag_gatk || get_config<bool>("use_gatk4") ) {
+    std::string filtered_ext = "vcf";
+    for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
+       std::string filtered_file = get_contig_fname(filtered_dir, contig, filtered_ext);
+       Worker_ptr mutect2Filter_worker(new Mutect2FilterWorker(
+	  intv_paths[contig],
+	  output_files[contig],
+	  tumor_table,
+	  filtered_file,
+	  filtering_extra_opts,
+          flag_f,
+	  flag_gatk)
+	);
+        filtered_files[contig] = filtered_file;
+        executor.addTask(mutect2Filter_worker, sample_id, contig == 0);
+    }
+  }
+ 
+  std::vector<std::string> target;
+  std::string final_vcf;
+  if (flag_gatk || get_config<bool>("use_gatk4")) {
+    target = filtered_files;
+    final_vcf = filtered_vcf;
+  } 
+  else{
+    target = output_files;
+    final_vcf = output_path;
   }
 
   if (!flag_skip_concat) {
     bool flag = true;
     bool flag_a = false;
     bool flag_bgzip = false;
+
     { // concat gvcfs
       Worker_ptr worker(new VCFConcatWorker(
-          output_files, 
+          target, 
           temp_gvcf_path,
           flag_a, 
           flag_bgzip,
@@ -177,19 +217,24 @@ int mutect2_main(int argc, char** argv,
     { // bgzip gvcf
       Worker_ptr worker(new ZIPWorker(
           temp_gvcf_path, 
-          output_path + ".gz",
+          final_vcf + ".gz",
           flag_f)
       );
       executor.addTask(worker, sample_id, true);
     }
     { // tabix gvcf
       Worker_ptr worker(new TabixWorker(
-	  output_path + ".gz")
+	  final_vcf + ".gz")
       );
       executor.addTask(worker, sample_id, true);
     }
   }
+
   executor.run();
+
+  // Removing temporal data :                                                                                                                                 
+  remove_path(output_dir + "/");
+  remove_path(filtered_dir + "/");
 
   return 0;
 }
