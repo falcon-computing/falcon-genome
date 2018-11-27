@@ -35,7 +35,7 @@ int mutect2_main(int argc, char** argv,
     ("normal_name,a", po::value<std::string>(), "Sample name for Normal Input BAM. Must match the SM tag in the BAM header (gatk4) ")
     ("tumor_name,b", po::value<std::string>(), "Sample name for Tumor Input BAM. Must match the SM tag in the BAM header (gatk4)")
     ("contamination_table", po::value<std::string>(), "tumor contamination table (gatk4)")
-    ("filtered_vcf",po::value<std::string>()->required(), "filtered vcf (gatk4)")
+    ("filtered_vcf",po::value<std::string>(), "filtered vcf (gatk4)")
     ("sample-id", po::value<std::string>(),"sample id for log file")
     ("gatk4,g", "use gatk4 to perform analysis")
     ("filtering-extra-options", po::value<std::vector<std::string> >(), "extra options for the filtering command");
