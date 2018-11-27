@@ -235,7 +235,9 @@ int mutect2_main(int argc, char** argv,
 
   // Removing temporal data :                                                                                                                                 
   remove_path(output_dir + "/");
-  remove_path(filtered_dir + "/");
+  if (flag_gatk || get_config<bool>("use_gatk4")) {
+     remove_path(filtered_dir + "/");
+  }
 
   return 0;
 }
