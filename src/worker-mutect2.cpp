@@ -38,6 +38,7 @@ int mutect2_main(int argc, char** argv,
     ("filtered_vcf",po::value<std::string>()->required(), "filtered vcf (gatk4)")
     ("sample-id", po::value<std::string>(),"sample id for log file")
     ("gatk4,g", "use gatk4 to perform analysis")
+    ("filtering-extra-options", po::value<std::vector<std::string> >(), "extra options for the filtering command");
     ("skip-concat,s", "produce a set of VCF files instead of one");
 
   // Parse arguments
