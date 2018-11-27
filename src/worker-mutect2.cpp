@@ -102,7 +102,6 @@ int mutect2_main(int argc, char** argv,
   std::string temp_gvcf_path = output_dir + "/" + get_basename(output_path);
 
   create_dir(output_dir);
-
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
   std::vector<std::string> filtered_files(get_config<int>("gatk.ncontigs"));
 
