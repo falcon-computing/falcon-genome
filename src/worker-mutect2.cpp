@@ -76,6 +76,7 @@ int mutect2_main(int argc, char** argv,
   // finalize argument parsing
   po::notify(cmd_vm);
 
+  std::string filtered_dir;
   if (flag_gatk || get_config<bool>("use_gatk4") ) {
     if (!cosmic_path.empty()) LOG(WARNING) << "cosmic VCF file ignored in GATK4";
     if (!dbsnp_path.empty())  LOG(WARNING) << "dbSNP VCF file ignored in GATK4";
@@ -84,6 +85,8 @@ int mutect2_main(int argc, char** argv,
     if (germline_path.empty()) throw pathEmpty("germline_path");
     if (panels_of_normals.empty()) throw pathEmpty("panels_of_normals");
     if (filtered_vcf.empty()) throw pathEmpty("filtered_vcf");
+    filtered_dir = check_output(filtered_vcf, flag_f);
+    create_dir(filtered_dir);
   }
 
   std::string temp_dir = conf_temp_dir + "/mutect2";
@@ -99,9 +102,6 @@ int mutect2_main(int argc, char** argv,
   std::string temp_gvcf_path = output_dir + "/" + get_basename(output_path);
 
   create_dir(output_dir);
-
-  std::string filtered_dir = check_output(filtered_vcf, flag_f);
-  create_dir(filtered_dir);
 
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
   std::vector<std::string> filtered_files(get_config<int>("gatk.ncontigs"));
