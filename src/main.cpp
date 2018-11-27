@@ -29,13 +29,13 @@ int print_help() {
   print_cmd_col("baserecal", "equivalent to GATK BaseRecalibrator");
   print_cmd_col("printreads", "equivalent to GATK PrintReads");
   print_cmd_col("htc", "variant calling with GATK HaplotypeCaller");
-  print_cmd_col("mutect2", "(Experimental) somatic variant calling with GATK Mutect2");
+  //  print_cmd_col("mutect2", "(Experimental) somatic variant calling with GATK Mutect2");
   print_cmd_col("indel", "indel realignment with GATK IndelRealigner");
   print_cmd_col("joint", "joint variant calling with GATK GenotypeGVCFs");
   print_cmd_col("ug", "variant calling with GATK UnifiedGenotyper");
   print_cmd_col("gatk", "call GATK routines");
   print_cmd_col("depth", "Depth of Coverage");
-  print_cmd_col("vcf_filter", "Variant Filtration");
+  //print_cmd_col("vcf_filter", "Variant Filtration");
 
   return 0;
 }
@@ -69,7 +69,7 @@ namespace fcsgenome {
   int hist_main(int argc, char** argv, po::options_description &opt_desc);
   //int mutect2_main(int argc, char** argv, po::options_description &opt_desc);
   int depth_main(int argc, char** argv, po::options_description &opt_desc);
-  int variant_filtration_main(int argc, char** argv, po::options_description &opt_desc);
+  //int variant_filtration_main(int argc, char** argv, po::options_description &opt_desc);
 }
 
 int main(int argc, char** argv) {
@@ -160,9 +160,9 @@ int main(int argc, char** argv) {
     else if (cmd == "depth") {
       depth_main(argc-1, &argv[1], opt_desc);
     }
-    else if (cmd == "vcf_filter") {
-      variant_filtration_main(argc-1, &argv[1], opt_desc);
-    }
+    //else if (cmd == "vcf_filter") {
+    //  variant_filtration_main(argc-1, &argv[1], opt_desc);
+    //}
     else if (cmd == "--version") {
       std::cout << VERSION << std::endl;
     }
