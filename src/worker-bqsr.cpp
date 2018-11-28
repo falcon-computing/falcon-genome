@@ -174,8 +174,7 @@ int baserecal_main(int argc, char** argv, boost::program_options::options_descri
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
   std::vector<std::string> known_sites = get_argument<std::vector<std::string>>(cmd_vm, "knownSites", "K");
 
-  std::vector<std::string> extra_opts =
-          get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
+  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
   // finalize argument parsing
   po::notify(cmd_vm);
@@ -278,6 +277,7 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
     ("knownSites,K", po::value<std::vector<std::string> >()->required(), "known sites for base recalibration")
     ("intervalList,L", po::value<std::string>(), "interval list file")
     ("sample-id",  po::value<std::string>(), "sample id for log files")
+    ("extra-options-pr", po::value<std::vector<std::string> >(), "extra options for Printreads (ApplyBQSR)")
     ("gatk4,g", "use gatk4 to perform analysis")
     ("merge-bam,m", "merge Parts BAM files");
 
@@ -304,7 +304,8 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
   std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id");
   bool merge_bam_flag     = get_argument<bool>(cmd_vm, "merge-bam", "m");
 
-  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
+  std::vector<std::string> extra_opts_baserecal = get_argument<std::vector<std::string>>(cmd_vm, "extra-options","O");
+  std::vector<std::string> extra_opts_pr = get_argument<std::vector<std::string>>(cmd_vm, "extra-options-pr");
 
   std::string temp_dir = conf_temp_dir + "/bqsr";
   create_dir(temp_dir);
@@ -327,8 +328,8 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
   
   Executor executor("BQSR", get_config<int>("gatk.bqsr.nprocs"));
   // first, do base recal
-  baserecalAddWorkers(executor, ref_path, known_sites, extra_opts, input_path, bqsr_path, intv_list, sample_id, flag_f, flag_gatk);
-  prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts, intv_list, sample_id, flag_f, flag_gatk);
+  baserecalAddWorkers(executor, ref_path, known_sites, extra_opts_baserecal, input_path, bqsr_path, intv_list, sample_id, flag_f, flag_gatk);
+  prAddWorkers(executor, ref_path, input_path, bqsr_path, output_path, extra_opts_pr, intv_list, sample_id, flag_f, flag_gatk);
 
   // Merge BAM Files if --merge-bam is set:
   if (merge_bam_flag) {
