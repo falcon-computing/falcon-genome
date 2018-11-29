@@ -24,7 +24,7 @@ int joint_main(int argc, char** argv,
                                "[sample_id].gvcf.gz files")
     ("output,o", po::value<std::string>()->required(), "output vcf.gz file(s)")
     ("sample-id", po::value<std::string>(), "sample id for log files")
-    ("database_name", po::value<std::string>(), "database name (gatk4 only)")
+    ("database_name", po::value<std::string>()->required(), "database name (gatk4 only)")
     //("intervals,L", po::value<std::string>(), "one or more genomic intervals over which to operate")
     ("combine-only,c", "combine GVCFs only and skip genotyping")
     ("skip-combine,g", "(deprecated) perform genotype GVCFs only and skip combine GVCFs")
@@ -50,6 +50,10 @@ int joint_main(int argc, char** argv,
   std::string database_name  = get_argument<std::string>(cmd_vm, "database_name");
   //std::string intervals   = get_argument<std::string>(cmd_vm, "intervals","L");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
+
+  if (flag_gatk || get_config<bool>("use_gatk4") ) {
+    if (!database_name.empty()) throw pathEmpty("database name not defined. Required in GATK4");
+  }
 
   // finalize argument parsing
   po::notify(cmd_vm);
