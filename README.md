@@ -5,6 +5,7 @@ Local [![Build Status](http://us-1.falcon-computing.com:8080/buildStatus/icon?jo
 # Falcon Genome CLI
 This project is the command line interface for the Falcon Accelerated Genomics Pipelines.
 
+TEST
 ### Build
 1. Build and install
    ```
