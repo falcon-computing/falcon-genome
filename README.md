@@ -4,7 +4,7 @@ HWC [![Build Status](http://us-1.falcon-computing.com:8080/buildStatus/icon?job=
 Local [![Build Status](http://us-1.falcon-computing.com:8080/buildStatus/icon?job=Falcon-Build-Falcon-Genome-Internal)](http://us-1.falcon-computing.com:8080/job/Falcon-Build-Falcon-Genome-Internal/)
 # Falcon Genome CLI
 This project is the command line interface for the Falcon Accelerated Genomics Pipelines.
-TEST
+TEST ...
 ### Build
 1. Build and install
    ```
