@@ -51,6 +51,11 @@ int joint_main(int argc, char** argv,
   //std::string intervals   = get_argument<std::string>(cmd_vm, "intervals","L");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
+  if (flag_gatk || get_config<bool>("use_gatk4") ) {
+     if (database_name.empty()) throw pathEmpty("database_name");
+  }
+
+
   // finalize argument parsing
   po::notify(cmd_vm);
   
