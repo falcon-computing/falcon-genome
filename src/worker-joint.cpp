@@ -55,7 +55,6 @@ int joint_main(int argc, char** argv,
     if (database_name.empty()) throw pathEmpty("database_name");
   }
 
-
   // finalize argument parsing
   po::notify(cmd_vm);
   
