@@ -36,8 +36,7 @@ int htc_main(int argc, char** argv,
     ("gatk4,g", "use gatk4 to perform analysis");
 
   // Parse arguments
-  po::store(po::parse_command_line(argc, argv, opt_desc),
-      cmd_vm);
+  po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
 
   if (cmd_vm.count("help")) {
     throw helpRequest();

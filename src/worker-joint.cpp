@@ -25,9 +25,8 @@ int joint_main(int argc, char** argv,
     ("output,o", po::value<std::string>()->required(), "output vcf.gz file(s)")
     ("sample-id", po::value<std::string>(), "sample id for log files")
     ("database_name", po::value<std::string>(), "database name (gatk4 only)")
-    //("intervals,L", po::value<std::string>(), "one or more genomic intervals over which to operate")
     ("combine-only,c", "combine GVCFs only and skip genotyping")
-    ("skip-combine,g", "(deprecated) perform genotype GVCFs only and skip combine GVCFs")
+    ("skip-combine", "(deprecated) perform genotype GVCFs only and skip combine GVCFs")
     ("gatk4,g", "use gatk4 to perform analysis");
 
   // Parse arguments
@@ -40,23 +39,24 @@ int joint_main(int argc, char** argv,
   // Check if required arguments are presented
   bool flag_f            = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_combine_only = get_argument<bool>(cmd_vm, "combine-only", "c");
-  bool flag_skip_combine = get_argument<bool>(cmd_vm, "skip-combine", "g");
-  bool flag_gatk         = get_argument<bool>(cmd_vm, "gatk4", "g");
+  bool flag_skip_combine = get_argument<bool>(cmd_vm, "skip-combine");
+  bool flag_gatk         = get_argument<bool>(cmd_vm, "gatk4","g");
 
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string input_path  = get_argument<std::string>(cmd_vm, "input-dir", "i");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id");
   std::string database_name  = get_argument<std::string>(cmd_vm, "database_name");
-  //std::string intervals   = get_argument<std::string>(cmd_vm, "intervals","L");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
+  // finalize argument parsing                                                            
+  po::notify(cmd_vm);
+
+  LOG(INFO) << "I am database " << database_name;
+  LOG(INFO) << "I am GATK4 " << flag_gatk;
   if (flag_gatk || get_config<bool>("use_gatk4") ) {
     if (database_name.empty()) throw pathEmpty("database_name");
   }
-
-  // finalize argument parsing
-  po::notify(cmd_vm);
   
   // create temp dir
   std::string parts_dir;
@@ -98,6 +98,7 @@ int joint_main(int argc, char** argv,
     executor.addTask(worker2, sample_id, true);   
   }
   else {
+    LOG(INFO) << "I am here";
 
     // combine gvcfs
     if (!flag_skip_combine) {
