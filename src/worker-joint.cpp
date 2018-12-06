@@ -24,7 +24,7 @@ int joint_main(int argc, char** argv,
                                "[sample_id].gvcf.gz files")
     ("output,o", po::value<std::string>()->required(), "output vcf.gz file(s)")
     ("sample-id", po::value<std::string>(), "sample id for log files")
-    ("database_name", po::value<std::string>(), "database name (gatk4 only)")
+    ("database_name", po::value<std::string>()->implicit_value(""), "database name (gatk4 only)")
     ("combine-only,c", "combine GVCFs only and skip genotyping")
     ("skip-combine", "(deprecated) perform genotype GVCFs only and skip combine GVCFs")
     ("gatk4,g", "use gatk4 to perform analysis");
@@ -55,7 +55,7 @@ int joint_main(int argc, char** argv,
   LOG(INFO) << "I am database " << database_name;
   LOG(INFO) << "I am GATK4 " << flag_gatk;
   if (flag_gatk || get_config<bool>("use_gatk4") ) {
-    if (database_name.empty()) throw pathEmpty("database_name");
+    if (cmd_vm.count("database_name")==0) throw pathEmpty("database_name");
   }
   
   // create temp dir
