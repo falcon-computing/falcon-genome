@@ -49,7 +49,10 @@ int joint_main(int argc, char** argv,
   std::string database_name  = get_argument<std::string>(cmd_vm, "database_name");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
 
-  // finalize argument parsing                                                            
+  if (flag_gatk || get_config<bool>("use_gatk4") ) {
+    if (database_name.empty()) throw pathEmpty("database_name");
+  }
+
   po::notify(cmd_vm);
 
   LOG(INFO) << "I am database " << database_name;

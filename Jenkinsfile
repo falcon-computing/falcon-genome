@@ -11,13 +11,14 @@ agent {label 'merlin'}
                     sh "mkdir release"
                     script { 
                     dir("release"){
-                        sh "rsync -av --exclude=.* /curr/limark/Code-latest/genome-release/build/aws/ /curr/limark/falcon2/"
-                        sh "rsync -av --exclude=.* /curr/limark/Code-latest/genome-release/build/common/ /curr/limark/falcon2/"
+//                        sh "rsync -av --exclude=.* /curr/limark/Code-latest/genome-release/build/aws/ /curr/limark/falcon2/"
+//                        sh "rsync -av --exclude=.* /curr/limark/Code-latest/genome-release/build/common/ /curr/limark/falcon2/"
                         sh "source /curr/software/util/modules-tcl/init/bash"
                         version= sh(returnStdout: true, script: 'git describe --tag').trim()
                         sh "echo $version"
                         sh "module load sdx/17.4; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=$version -DDEPLOYMENT_DST=aws -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon2/bin .."
                         sh "make -j 8"
+                        sh "make test"
                         sh "make install"
 //                        link = sh(returnStdout: true, script: 'cd /curr/limark/falcon2/bin; link=s3://fcs-cicd-test/release/aws/falcon-genome/fcs-genome; echo $link; echo $link > latest')
                         sh "cd ~/falcon2/bin; echo s3://fcs-cicd-test/release/aws/falcon-genome/fcs-genome-$version-aws > latest"
