@@ -24,7 +24,7 @@ int joint_main(int argc, char** argv,
                                "[sample_id].gvcf.gz files")
     ("output,o", po::value<std::string>()->required(), "output vcf.gz file(s)")
     ("sample-id", po::value<std::string>(), "sample id for log files")
-    ("database_name", po::value<std::string>(), "database name (gatk4 only)")
+    ("database_name", po::value<std::string>()->implicit_value(""), "database name (gatk4 only)")
     //("intervals,L", po::value<std::string>(), "one or more genomic intervals over which to operate")
     ("combine-only,c", "combine GVCFs only and skip genotyping")
     ("skip-combine,g", "(deprecated) perform genotype GVCFs only and skip combine GVCFs")
