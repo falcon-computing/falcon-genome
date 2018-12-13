@@ -1,20 +1,16 @@
-//update1.0.14
 pipeline {
 agent {label 'merlin'}
     stages {
         stage ("build-aws-falcon-genome") {
             steps {
                  dir("ws-falcon-genome") {
-                     checkout scm
-//                    git branch: 'release', url: 'git@github.com:falcon-computing/falcon-genome.git'
+                    checkout scm
                     sh "rm -rf release"
                     sh "mkdir release"
                     script { 
                     dir("release"){
-                        sh "rsync -av --exclude=.* /curr/limark/Code-latest/genome-release/build/aws/ /curr/limark/falcon2/"
-                        sh "rsync -av --exclude=.* /curr/limark/Code-latest/genome-release/build/common/ /curr/limark/falcon2/"
                         sh "source /curr/software/util/modules-tcl/init/bash"
-                        sh "module load sdx/17.4; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=Internal on aws -DDEPLOYMENT_DST=aws -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon2/bin .."
+                        sh "module load sdx/17.4; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=aws -DDEPLOYMENT_DST=aws -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon2/bin .."
                         sh "make -j 8"
                         sh "make install"
                         sh "make test"
@@ -23,6 +19,40 @@ agent {label 'merlin'}
                   }
                }    
             }
+        stage ("build-hwc-falcon-genome") {
+              steps {
+                     dir("ws-falcon-genome") {                      
+                        sh "rm -rf release"
+                        sh "mkdir release"
+                        script { 
+                        dir("release"){
+                            sh "source /curr/software/util/modules-tcl/init/bash"
+                            sh "module load sdx/17.4; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=hwc -DDEPLOYMENT_DST=hwc -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon-hwc/bin .."
+                            sh "make -j 8"
+                            sh "make install"
+                            sh "make test"
+                            }
+                         }
+                      }
+                   }    
+                }
+                stage ("build-local-falcon-genome") {
+                  steps {
+                    dir("ws-falcon-genome") {                      
+                      sh "rm -rf release"
+                      sh "mkdir release"
+                      script { 
+                        dir("release"){
+                          sh "source /curr/software/util/modules-tcl/init/bash"
+                          sh "module load xrt; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=Internal -DDEPLOYMENT_DST=Internal -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon-local/bin .."
+                          sh "make -j 8"
+                          sh "make install"
+                          sh "make test"
+                        }
+                      }
+                    }
+                  }    
+                }  
          }
      post {
             always {
@@ -34,5 +64,4 @@ agent {label 'merlin'}
 
         }
     }
-     
-  }
+}
