@@ -1,0 +1,31 @@
+pipeline {
+agent {label 'merlin'}
+    stages {
+        stage ("build-Intel-pac-falcon-genome") {
+            steps {
+                 dir("ws-Intel-falcon-genome") {
+                    checkout scm
+                    sh "rm -rf release"
+                    sh "mkdir release"
+                    script { 
+                    dir("release"){
+                        sh "source /curr/software/util/modules-tcl/init/bash"
+                        version= sh(returnStdout: true, script: 'git describe --tag').trim()
+                        sh "echo $version"
+                        sh "module load aocl/17.1.1-pac; cmake3 -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=$version -DDEPLOYMENT_DST=local -DCMAKE_INSTALL_PREFIX=/curr/limark/intel-build/bin .."
+                        sh "make -j 8"
+                        sh "make test"
+                        sh "make install"
+                        link = sh(returnStdout: true, script: 'cd ~/intel-build/bin; link=s3://fcs-cicd-test/release/intel/falcon-genome/fcs-genome; echo $link; echo $link > latest')
+                        sh "cd ~/intel-build/bin; echo s3://fcs-cicd-test/release/intel/falcon-genome/fcs-genome-$version-local > latest"
+                        sh "cd ~/intel-build/bin; aws s3 cp fcs-genome s3://fcs-cicd-test/release/intel/falcon-genome/fcs-genome-$version-local"
+                        sh "cd ~/intel-build/bin; aws s3 cp latest s3://fcs-cicd-test/release/intel/falcon-genome/latest"
+                        sh "cd ~/intel-build/bin; rm -f latest"                           
+                      
+                        }
+                    }
+                }
+            }
+        }
+    }    
+}
