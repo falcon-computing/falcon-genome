@@ -9,7 +9,8 @@ class SambambaWorker : public Worker {
  public:
   typedef enum {
     MARKDUP,
-    MERGE
+    MERGE,
+    SORT
   } Action;
   SambambaWorker(std::string input_path,
       std::string output_path, 

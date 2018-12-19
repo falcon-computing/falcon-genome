@@ -14,6 +14,8 @@ static inline std::string get_task_name(SambambaWorker::Action action) {
       return "Mark Duplicates";
     case SambambaWorker::MERGE :
       return "Merge BAM";
+    case SambambaWorker::SORT :
+      return "Sort BAM by Coordinates";
     default:
       return "";
   }
@@ -33,7 +35,7 @@ SambambaWorker::SambambaWorker(std::string input_path,
 
 void SambambaWorker::check() {
   input_path_ = check_input(input_path_);
-  get_input_list(input_path_, input_files_, ".*/part-[0-9].*.*", true);
+  get_input_list(input_path_, input_files_, ".*/*-[0-9].*.*", true);
 }
 
 void SambambaWorker::setup() {
@@ -52,10 +54,11 @@ void SambambaWorker::setup() {
   }
 
   // create cmd:  
+  LOG(INFO) << input_path_ << "\n";
   std::stringstream inputBAMs;
   for (int i = 0; i < input_files_.size(); i++) {
     if (boost::filesystem::extension(input_files_[i]) == ".bam" || boost::filesystem::extension(input_files_[i]) == ""){
-      inputBAMs << input_files_[i] << " ";
+     inputBAMs << input_files_[i] << " ";
     }
   }
 
@@ -79,11 +82,23 @@ void SambambaWorker::setup() {
           <<  get_config<std::string>("samtools_path") << " index " << output_file_ ;
     }
     break;
+  case SORT:
+    if (input_files_.size() > 1) {
+      cmd << get_config<std::string>("sambamba_path") << " sort " 
+          << inputBAMs.str() <<    " -o " << output_file_ << " " 
+          << "-l 1 " << "-t " << get_config<int>("mergebam.nt") << " ";
+    }
+    else {
+      cmd << "mv " << inputBAMs.str() <<  " " <<  output_file_ << "; "
+          <<  get_config<std::string>("samtools_path") << " index " << output_file_ ;
+    }
+    break;
+
   default:
     throw internalError("Invalid action");
   }
 
   cmd_ = cmd.str();
-  DLOG(INFO) << cmd_;
+  LOG(INFO) << cmd_;
 }
 } // namespace fcsgenome

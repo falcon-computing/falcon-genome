@@ -22,6 +22,7 @@ BWAWorker::BWAWorker(std::string ref_path,
       std::string read_group,
       std::string platform_id,
       std::string library_id,
+      bool flag_align_only,
       bool &flag_f):
   Worker(get_config<bool>("bwa.scaleout_mode") || 
          get_config<bool>("latency_mode") 
@@ -33,7 +34,8 @@ BWAWorker::BWAWorker(std::string ref_path,
   sample_id_(sample_id),
   read_group_(read_group),
   platform_id_(platform_id),
-  library_id_(library_id)
+  library_id_(library_id),
+  flag_align_only_(flag_align_only)
 {
   output_path_ = check_output(output_path, flag_f);
 
@@ -126,6 +128,10 @@ void BWAWorker::setup() {
       << "--v=" << get_config<int>("bwa.verbose") << " "
       << "--output_dir=\"" << output_path_ << "\" "
       << "--max_batch_records=" << get_config<int>("bwa.num_batches_per_part") << " ";
+
+  if (!flag_align_only_) {
+    cmd << " --enable_markdup "; 
+  }
 
   if (get_config<int>("bwa.nt") > 0) {
     cmd << "--t=" << get_config<int>("bwa.nt") << " ";
