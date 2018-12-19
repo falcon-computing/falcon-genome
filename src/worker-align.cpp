@@ -139,6 +139,8 @@ int align_main(int argc, char** argv,
       
       DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
+      //std::string tag=sample_id + " ReadGroup " + read_group;
+      //std::string tag=sample_id;
       Worker_ptr worker(new BWAWorker(ref_path,
            fq1_path, fq2_path,
            parts_dir,
@@ -147,7 +149,6 @@ int align_main(int argc, char** argv,
            read_group,
 	   platform_id, 
            library_id, 
-	   flag_align_only,
 	   flag_f)
       );
 
@@ -155,25 +156,23 @@ int align_main(int argc, char** argv,
 
       DLOG(INFO) << "Alignment Completed for " << sample_id;
 
-      // Once the sample reach its last pair of FASTQ files, we proceed to merge (if requested):
+      // Once the sample reach its last pair of FASTQ files, we proceed to merge and mark duplicates (if requested):
       if (i == list.size()-1) {
-	std::string mergeBAM;
       	if (!flag_align_only) {
       	  // Marking Duplicates:
-      	  //std::string markedBAM;
-      	  //markedBAM = output_path + "/" + sample_id + "/" + sample_id  + "_marked.bam";
-          //if (sampleList.empty()) markedBAM = output_path;
-      	  //Worker_ptr markdup_worker(new SambambaWorker(temp_dir + "/" + sample_id, markedBAM, SambambaWorker::MARKDUP, flag_f));
-          //executor.addTask(markdup_worker, sample_id, true);
-	  mergeBAM = output_path + "/" + sample_id + "/" + sample_id + "_marked.bam";
+      	  std::string markedBAM;
+      	  markedBAM = output_path + "/" + sample_id + "/" + sample_id  + "_marked.bam";
+          if (sampleList.empty()) markedBAM = output_path;
+      	  Worker_ptr markdup_worker(new SambambaWorker(temp_dir + "/" + sample_id, markedBAM, SambambaWorker::MARKDUP, flag_f));
+          executor.addTask(markdup_worker, sample_id, true);
       	} 
         else {
-      	  mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
+      	  std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
+          if (sampleList.empty()) mergeBAM = output_path;
+      	  Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, flag_f));
+          executor.addTask(merger_worker, sample_id, true);
         }
-        if (sampleList.empty()) mergeBAM = output_path;
-	Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, flag_f));
-	executor.addTask(merger_worker, sample_id, true);
-     
+  
         // Removing temporal data :
         remove_path(temp_dir + "/" + sample_id);
       }
