@@ -127,14 +127,15 @@ void BWAWorker::setup() {
       << "--output_flag=1 "
       << "--v=" << get_config<int>("bwa.verbose") << " "
       << "--output_dir=\"" << output_path_ << "\" "
-      << "--max_batch_records=" << get_config<int>("bwa.num_batches_per_part") << " ";
+      << "--max_batch_records=" << get_config<int>("bwa.num_batches_per_part") << " "
+      << "--num_buckets=" << get_config<int>("bwa.num_buckets") << " ";
 
   if (!flag_align_only_) {
     cmd << " --enable_markdup "; 
   }
 
   if (get_config<int>("bwa.nt") > 0) {
-    cmd << "--t=" << get_config<int>("bwa.nt") << " ";
+    cmd << "--t=" << get_config<int>("bwa.nt") << "  ";
   }
 
   if (get_config<bool>("bwa.use_sort")) {
@@ -168,5 +169,7 @@ void BWAWorker::setup() {
       << fq2_path_;
 
   cmd_ = cmd.str();
+  LOG(INFO) << cmd_;
+
 }
 } // namespace fcsgenome
