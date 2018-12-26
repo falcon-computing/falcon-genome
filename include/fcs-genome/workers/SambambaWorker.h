@@ -15,6 +15,7 @@ class SambambaWorker : public Worker {
   SambambaWorker(std::string input_path,
       std::string output_path, 
       Action action, 
+      bool flag_merge_bam,
       bool &flag_f
   );
 
@@ -25,6 +26,7 @@ class SambambaWorker : public Worker {
   std::string input_path_;
   std::vector<std::string> input_files_;
   std::string output_file_;
+  bool flag_merge_bam_;
   Action action_;
 };
 

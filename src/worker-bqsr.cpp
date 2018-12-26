@@ -250,7 +250,7 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
   if (merge_bam_flag){
     std::string mergeBAM(output_path);
     boost::replace_all(mergeBAM, ".bam", "_merged.bam");
-    Worker_ptr merger_worker(new SambambaWorker(output_path, mergeBAM, SambambaWorker::MERGE, flag_f));
+    Worker_ptr merger_worker(new SambambaWorker(output_path, mergeBAM, SambambaWorker::MERGE, true, flag_f));
     executor.addTask(merger_worker, sample_id, true);
   }
 
@@ -335,7 +335,7 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
   if (merge_bam_flag) {
     std::string mergeBAM(output_path);
     boost::replace_all(mergeBAM, ".bam", "_merged.bam");
-    Worker_ptr merger_worker(new SambambaWorker(output_path, mergeBAM, SambambaWorker::MERGE, flag_f));
+    Worker_ptr merger_worker(new SambambaWorker(output_path, mergeBAM, SambambaWorker::MERGE, true, flag_f));
     executor.addTask(merger_worker, sample_id, true);
   }
 

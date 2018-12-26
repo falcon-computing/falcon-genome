@@ -38,8 +38,8 @@ int align_main(int argc, char** argv,
     arg_decl_string_w_def("sp,S", "sample",   "sample id ('SM' in BAM header)")
     arg_decl_string_w_def("pl,P", "illumina", "platform id ('PL' in BAM header)")
     arg_decl_string_w_def("lb,L", "sample",   "library id ('LB' in BAM header)")
-    ("align-only,l", "skip mark duplicates");
-    ("merge-bam,m", "generate single BAM file");
+    ("align-only,l", "skip mark duplicates")
+    ("no-merge,m", "skip merging BAM files. Default: Merge is performed");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -51,7 +51,7 @@ int align_main(int argc, char** argv,
   // Check if required arguments are presented
   bool flag_f          = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_align_only = get_argument<bool>(cmd_vm, "align-only", "l");
-  bool flag_merge_bam = get_argument<bool>(cmd_vm, "merge_bam", "m");
+  bool flag_merge_bam  = get_argument<bool>(cmd_vm, "no-merge", "m");
 
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string sampleList  = get_argument<std::string>(cmd_vm, "sample_sheet", "F");
@@ -157,7 +157,7 @@ int align_main(int argc, char** argv,
 
       DLOG(INFO) << "Alignment Completed for " << sample_id;
 
-      // Note: BWA-FLOW already performed the Mark Duplicates.
+      // Note: bwa-flow already performed the Mark Duplicates.
       // Once the sample reach its last pair of FASTQ files, we proceed to merge (if requested):
       if (i == list.size()-1) {
 	std::string outputBAM;
@@ -165,8 +165,6 @@ int align_main(int argc, char** argv,
       	  outputBAM = output_path + "/" + sample_id + "/" + sample_id  + "_marked.bam";
           // For no sample sheet, output BAM filename is set by user:          
           if (sampleList.empty()) outputBAM = output_path;
-      	  //Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, markedBAM, SambambaWorker::MERGE, flag_f));
-          //executor.addTask(merger_worker, sample_id, true);
       	} 
         else {
           // No Mark Duplicates
@@ -174,21 +172,11 @@ int align_main(int argc, char** argv,
         }
         
         if (sampleList.empty()) outputBAM = output_path;
-        LOG(INFO) << temp_dir + "/" + sample_id;
+        Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, outputBAM, SambambaWorker::MERGE, flag_merge_bam, flag_f));
+        executor.addTask(merger_worker, sample_id, true);
+	remove_path(temp_dir + "/" + sample_id);
 
-        //if (flag_merge_bam) {
-	  Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, outputBAM, SambambaWorker::MERGE, flag_f));
-	  executor.addTask(merger_worker, sample_id, true);
-          // Removing temporal data :                                                                                                                                                              
-	  remove_path(temp_dir + "/" + sample_id);
-	  //}
-	  //else {
-          
-	  //}     
-
-        // Removing temporal data :
-        // remove_path(temp_dir + "/" + sample_id);
-      }
+      } // end of i == list.size()-1 
 
     }; // for (int i = 0; i < list.size(); ++i)  ends
  

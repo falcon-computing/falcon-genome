@@ -199,7 +199,7 @@ TEST_F(TestWorker, SambambaWorkerActions) {
 
   for (int i=0; i<2;i++) {
     for (int j=0; j<2;j++) {
-     fcs::SambambaWorker worker(dirs[i], output, myAction[j], flag);
+     fcs::SambambaWorker worker(dirs[i], output, myAction[j], true, flag);
      // Check Setup:
      CHECK_SETUP_NOEXCEPTION;
     }

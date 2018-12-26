@@ -22,6 +22,7 @@ static inline std::string get_task_name(SambambaWorker::Action action) {
 SambambaWorker::SambambaWorker(std::string input_path,
        std::string output_path,  
        Action action, 
+       bool flag_merge_bam,
        bool &flag_f): Worker(1, get_config<int>("markdup.nt"), std::vector<std::string>(), get_task_name(action))
 {
   // check output
@@ -29,6 +30,10 @@ SambambaWorker::SambambaWorker(std::string input_path,
   std::string bai_file = check_output(output_path + ".bai", flag_f, true);
   input_path_ = input_path;
   action_ = action;
+  flag_merge_bam_ = flag_merge_bam;
+
+  LOG(INFO) << output_file_;
+
 }
 
 void SambambaWorker::check() {
@@ -52,7 +57,6 @@ void SambambaWorker::setup() {
   }
 
   // create cmd:  
-  LOG(INFO) << input_path_ << "\n";
 
   // Fot the new bwa-flow, parts BAM need to be sorted:
   std::stringstream cmd;
@@ -66,7 +70,7 @@ void SambambaWorker::setup() {
     }
   }
 
-  //std::stringstream cmd;
+  std::stringstream cmd2;
   switch (action_) {
   case MARKDUP: 
     cmd << get_config<std::string>("sambamba_path") << " markdup "
@@ -77,13 +81,18 @@ void SambambaWorker::setup() {
     break;
   case MERGE:
     if (input_files_.size() > 1) {
-      cmd << get_config<std::string>("sambamba_path") << " merge "  << output_file_ << " "
-          << inputBAMs.str() <<    " "
-          << "-l 1 " << "-t " << get_config<int>("mergebam.nt") << " ";    
+      if (!flag_merge_bam_){
+        cmd << get_config<std::string>("sambamba_path") << " merge "  << output_file_ << " "
+            << inputBAMs.str() <<    " "
+            << "-l 1 " << "-t " << get_config<int>("mergebam.nt") << " ";
+      }
+      else {
+        cmd << "mv " << input_path_ << " " << output_file_;
+      }
     }
     else { 
       cmd << "mv " << inputBAMs.str() <<  " " <<  output_file_ << "; " 
-          <<  get_config<std::string>("samtools_path") << " index " << output_file_ ;
+          << get_config<std::string>("samtools_path") << " index " << output_file_ ;
     }
     break;
   default:
@@ -91,6 +100,6 @@ void SambambaWorker::setup() {
   }
 
   cmd_ = cmd.str();
-  LOG(INFO) << cmd_;
+  DLOG(INFO) << cmd_;
 }
 } // namespace fcsgenome
