@@ -26,9 +26,9 @@ int ug_main(int argc, char** argv,
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output vcf file (if --skip-concat is set"
                                 " the output will be a directory of vcf files)")
-    ("intervalList,L", po::value<std::string>(), "interval list file")
+    ("intervalList,L", po::value<std::string>()->implicit_value(""), "interval list file")
     ("skip-concat,s", "produce a set of vcf files instead of one")
-    ("sample-id", po::value<std::string>(), "sample id for log file");
+    ("sample-id", po::value<std::string>()->implicit_value(""), "sample id for log file");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -54,6 +54,14 @@ int ug_main(int argc, char** argv,
 
   // finalize argument parsing
   po::notify(cmd_vm);
+
+  if (cmd_vm.count("sample-id") && sample_id.empty()) {
+    throw pathEmpty("sample-id");
+  }
+
+  if (cmd_vm.count("intervalList") || cmd_vm.count("L")) {
+    if (intv_list.empty()) throw pathEmpty("intervalList");
+  }
 
   // the output path will be a directory
   std::string temp_dir = conf_temp_dir + "/ug";

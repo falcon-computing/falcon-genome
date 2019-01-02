@@ -27,9 +27,10 @@ int variant_filtration_main(int argc, char** argv,
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("input,i", po::value<std::string>()->required(), "input VCF filename")
     ("output,o", po::value<std::string>()->required(), "output Filtered VCF filename")
-    ("interval,L", po::value<std::string>(), "interval list file")
-    ("filteringExpression", po::value<std::string>(), "parameters used to filter variants")
-    ("filter_name", po::value<std::string>(), "filter name for log files")
+    ("intervalList,L", po::value<std::string>()->implicit_value(""), "interval list file")
+    ("filteringExpression", po::value<std::string>()->implicit_value(""), "parameters used to filter variants")
+    ("filter_name", po::value<std::string>()->implicit_value(""), "filter name for log files")
+    ("sample-id", po::value<std::string>()->implicit_value(""), "sample tag for log files")
     ("gatk4,g", "use gatk4 to perform analysis");
 
   // Parse arguments
@@ -57,6 +58,22 @@ int variant_filtration_main(int argc, char** argv,
 
   // finalize argument parsing
   po::notify(cmd_vm);
+
+  if (cmd_vm.count("filter_name") && filter_name.empty()) {
+    throw pathEmpty("filter_name");
+  }
+
+  if (cmd_vm.count("filteringExpression") && filter_par.empty()) {
+    throw pathEmpty("filteringExpression");
+  }
+
+  if (cmd_vm.count("sample-id") && sample_id.empty()) {
+    throw pathEmpty("sample-id");
+  }
+  
+  if (cmd_vm.count("intervalList") || cmd_vm.count("L")) {
+    if (intv_list.empty()) throw pathEmpty("intervalList");
+  }
 
   std::string temp_dir = conf_temp_dir + "/vcf_filtered";
 

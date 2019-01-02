@@ -26,9 +26,9 @@ int depth_main(int argc, char** argv,
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("input,i", po::value<std::string>()->required(),"input BAM file")
     ("output,o", po::value<std::string>()->required(),"output coverage file")
-    ("intervalList,L", po::value<std::string>(), "Interval List BED File")
-    ("geneList,g", po::value<std::string>(), "list of genes over which the coverage is calculated")
-    ("sample-id", po::value<std::string>(), "sample tag for log files")
+    ("intervalList,L", po::value<std::string>()->implicit_value(""), "Interval List BED File")
+    ("geneList,g", po::value<std::string>()->implicit_value(""), "list of genes over which the coverage is calculated")
+    ("sample-id", po::value<std::string>()->implicit_value(""), "sample tag for log files")
     ("omitBaseOutput,b", "omit output coverage depth at each base (default: false)")
     ("omitIntervals,v", "omit output coverage per-interval statistics (default false)")
     ("omitSampleSummary,s", "omit output summary files for each sample (default false");
@@ -67,6 +67,18 @@ int depth_main(int argc, char** argv,
 
   // finalize argument parsing
   po::notify(cmd_vm);
+
+  if (cmd_vm.count("sample-id") && sample_id.empty()) {
+    throw pathEmpty("sample-id");
+  }
+
+  if (cmd_vm.count("intervalList") || cmd_vm.count("L")) {
+    if (intv_list.empty()) throw pathEmpty("intervalList");
+  }
+
+  if (cmd_vm.count("geneList") || cmd_vm.count("g")) {
+    if (intv_list.empty()) throw pathEmpty("geneList");
+  }
 
   std::string temp_dir = conf_temp_dir + "/depth";
   create_dir(temp_dir);

@@ -30,8 +30,8 @@ int htc_main(int argc, char** argv,
                                 "the output will be a directory of gvcf files)")
     ("produce-vcf,v", "produce VCF files from HaplotypeCaller instead of GVCF")
     // TODO: skip-concat should be deprecated
-    ("intervalList,L", po::value<std::string>(), "interval list file")
-    ("sample-id", po::value<std::string>(), "sample id for log files")
+    ("intervalList,L", po::value<std::string>()->implicit_value(""), "interval list file")
+    ("sample-id", po::value<std::string>()->implicit_value(""), "sample id for log files")
     ("skip-concat,s", "(deprecated) produce a set of GVCF/VCF files instead of one")
     ("gatk4,g", "use gatk4 to perform analysis");
 
@@ -62,6 +62,14 @@ int htc_main(int argc, char** argv,
 
   // finalize argument parsing
   po::notify(cmd_vm);
+
+  if (cmd_vm.count("sample-id") && sample_id.empty()) {
+    throw pathEmpty("sample-id");
+  }
+
+  if (cmd_vm.count("intervalList") || cmd_vm.count("L")) { 
+    if (intv_list.empty()) throw pathEmpty("intervalList");
+  }
 
   std::string temp_dir = conf_temp_dir + "/htc";
 
