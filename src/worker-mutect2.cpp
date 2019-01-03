@@ -29,14 +29,14 @@ int mutect2_main(int argc, char** argv,
     ("output,o", po::value<std::string>()->required(), "output VCF file")
     ("dbsnp,d", po::value<std::vector<std::string> >(), "list of dbsnp files for Mutect2 (gatk3)")
     ("cosmic,c", po::value<std::vector<std::string> >(), "list of cosmic files for Mutect2 (gatk3)")
-    ("germline,m", po::value<std::string>(), "VCF file containing annotate variant alleles by specifying a population germline resource (gatk4)")
-    ("panels_of_normals,p", po::value<std::string>(), "Panels of normals VCF file")
-    ("intervalList,L", po::value<std::string>(), "interval list file")
-    ("normal_name,a", po::value<std::string>(), "Sample name for Normal Input BAM. Must match the SM tag in the BAM header (gatk4) ")
-    ("tumor_name,b", po::value<std::string>(), "Sample name for Tumor Input BAM. Must match the SM tag in the BAM header (gatk4)")
-    ("contamination_table", po::value<std::string>(), "tumor contamination table (gatk4)")
-    ("filtered_vcf",po::value<std::string>(), "filtered vcf (gatk4)")
-    ("sample-id", po::value<std::string>(),"sample id for log file")
+    ("germline,m", po::value<std::string>()->implicit_value(""), "VCF file containing annotate variant alleles by specifying a population germline resource (gatk4)")
+    ("panels_of_normals,p", po::value<std::string>()->implicit_value(""), "Panels of normals VCF file")
+    ("intervalList,L", po::value<std::string>()->implicit_value(""), "interval list file")
+    ("normal_name,a", po::value<std::string>()->implicit_value(""), "Sample name for Normal Input BAM. Must match the SM tag in the BAM header (gatk4) ")
+    ("tumor_name,b", po::value<std::string>()->implicit_value(""), "Sample name for Tumor Input BAM. Must match the SM tag in the BAM header (gatk4)")
+    ("contamination_table", po::value<std::string>()->implicit_value(""), "tumor contamination table (gatk4)")
+    ("filtered_vcf",po::value<std::string>()->implicit_value(""), "filtered vcf (gatk4)")
+    ("sample-id", po::value<std::string>()->implicit_value(""),"sample id for log file")
     ("gatk4,g", "use gatk4 to perform analysis")
     ("filtering-extra-options", po::value<std::vector<std::string> >(), "extra options for the filtering command")
     ("skip-concat,s", "produce a set of VCF files instead of one");
@@ -75,6 +75,38 @@ int mutect2_main(int argc, char** argv,
 
   // finalize argument parsing
   po::notify(cmd_vm);
+
+  if (cmd_vm.count("germline") || cmd_vm.count("m")) {
+    if (germline_path.empty()) throw pathEmpty("germline");
+  }
+
+  if (cmd_vm.count("panels_of_normals") || cmd_vm.count("p")) {
+    if (panels_of_normals.empty()) throw pathEmpty("panels_of_normals");
+  }
+
+  if (cmd_vm.count("normal_name") || cmd_vm.count("a")) {
+    if (normal_name.empty()) throw pathEmpty("normal_name");
+  }
+
+  if (cmd_vm.count("tumor_name") || cmd_vm.count("b")) {
+    if (tumor_name.empty()) throw pathEmpty("tumor_name");
+  }
+
+  if (cmd_vm.count("contamination_table")) {
+    if (tumor_table.empty()) throw pathEmpty("tumor_table");
+  }
+
+  if (cmd_vm.count("filtered_vcf")) {
+    if (filtered_vcf.empty()) throw pathEmpty("filtered_vcf");
+  }
+
+  if (cmd_vm.count("sample-id") && sample_id.empty()) {
+    throw pathEmpty("sample-id");
+  }
+
+  if (cmd_vm.count("intervalList") || cmd_vm.count("L")) {
+    if (intv_list.empty()) throw pathEmpty("intervalList");
+  }
 
   std::string filtered_dir;
   if (flag_gatk || get_config<bool>("use_gatk4") ) {

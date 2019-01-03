@@ -26,8 +26,8 @@ int ir_main(int argc, char** argv,
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output directory of BAM files")
-    ("intervalList,L", po::value<std::string>(), "interval list file")
-    ("sample-id",po::value<std::string>(), "sample tag for log files")
+    ("intervalList,L", po::value<std::string>()->implicit_value(""), "interval list file")
+    ("sample-id",po::value<std::string>()->implicit_value(""), "sample tag for log files")
     ("merge-bam,m", "merge Parts BAM files")
     ("known,K", po::value<std::vector<std::string> >(),
      "known indels for realignment");
@@ -58,6 +58,14 @@ int ir_main(int argc, char** argv,
 
   // finalize argument parsing
   po::notify(cmd_vm);
+
+  if (cmd_vm.count("sample-id") && sample_id.empty()) {
+    throw pathEmpty("sample-id");
+  }
+
+  if (cmd_vm.count("intervalList") || cmd_vm.count("L")) {
+    if (intv_list.empty()) throw pathEmpty("intervalList");
+  }
 
   // the output path will be a directory
   output_path = check_output(output_path, flag_f);

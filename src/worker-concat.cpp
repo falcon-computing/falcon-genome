@@ -25,7 +25,7 @@ int concat_main(int argc, char** argv,
     ("input,i", po::value<std::string>()->required(), "folder of input vcf/gvcf files")
     ("output,o", po::value<std::string>()->required(), "output vcf/gvcf file (automatically "
                                 "compressed to .vcf.gz/.gvcf.gz)")
-    ("sample-id",po::value<std::string>(), "sample id for log file");
+    ("sample-id",po::value<std::string>()->implicit_value(""), "sample id for log file");
 
   // Parse arguments
   po::store(
@@ -45,6 +45,10 @@ int concat_main(int argc, char** argv,
   // finalize argument parsing
   po::notify(cmd_vm);
 
+  if (cmd_vm.count("sample-id") && sample_id.empty()) {
+    throw pathEmpty("sample-id");
+  }
+  
   std::vector<std::string> input_files;
   try {
     get_input_list(input_path, input_files, ".*\\.gvcf");

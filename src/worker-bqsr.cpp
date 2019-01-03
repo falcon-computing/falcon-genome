@@ -154,8 +154,8 @@ int baserecal_main(int argc, char** argv, boost::program_options::options_descri
     ("output,o", po::value<std::string>()->required(), "output BQSR file")
     ("knownSites,K", po::value<std::vector<std::string> >(), "known sites for base recalibration")
     ("gatk4,g", "use gatk4 to perform analysis")
-    ("sample-id", po::value<std::string>(), "sample tag for log files")
-    ("intervalList,L", po::value<std::string>(), "interval list file");
+    ("sample-id", po::value<std::string>()->implicit_value(""), "sample tag for log files")
+    ("intervalList,L", po::value<std::string>()->implicit_value(""), "interval list file");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -178,6 +178,14 @@ int baserecal_main(int argc, char** argv, boost::program_options::options_descri
 
   // finalize argument parsing
   po::notify(cmd_vm);
+
+  if (cmd_vm.count("sample-id") && sample_id.empty()) {
+    throw pathEmpty("sample-id");
+  }
+
+  if (cmd_vm.count("intervalList") || cmd_vm.count("L")) {
+    if (intv_list.empty()) throw pathEmpty("intervalList");
+  }
 
   std::string temp_dir = conf_temp_dir + "/bqsr";
   create_dir(temp_dir);
@@ -209,8 +217,8 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
     ("output,o", po::value<std::string>()->required(), "output Folder with Parts BAM files")
     ("merge-bam,m", "merge Parts BAM files")
     ("gatk4,g", "use gatk4 to perform analysis")
-    ("sample-id,t", po::value<std::string>(), "sample tag for log file")
-    ("intervalList,L", po::value<std::string>(), "interval list file");
+    ("sample-id,t", po::value<std::string>()->implicit_value(""), "sample tag for log file")
+    ("intervalList,L", po::value<std::string>()->implicit_value(""), "interval list file");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -236,6 +244,14 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
 
   // finalize argument parsing
   po::notify(cmd_vm);
+
+  if (cmd_vm.count("sample-id") && sample_id.empty()) {
+    throw pathEmpty("sample-id");
+  }
+
+  if (cmd_vm.count("intervalList") || cmd_vm.count("L")) {
+    if (intv_list.empty()) throw pathEmpty("intervalList");
+  }
 
   // check configurations
   check_nprocs_config("pr");
@@ -275,8 +291,8 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
     ("input,i", po::value<std::string>()->required(), "input BAM file or dir")
     ("output,o", po::value<std::string>()->required(), "output directory of BAM files")
     ("knownSites,K", po::value<std::vector<std::string> >()->required(), "known sites for base recalibration")
-    ("intervalList,L", po::value<std::string>(), "interval list file")
-    ("sample-id",  po::value<std::string>(), "sample id for log files")
+    ("intervalList,L", po::value<std::string>()->implicit_value(""), "interval list file")
+    ("sample-id",  po::value<std::string>()->implicit_value(""), "sample id for log files")
     ("extra-options-pr", po::value<std::vector<std::string> >(), "extra options for Printreads (ApplyBQSR)")
     ("gatk4,g", "use gatk4 to perform analysis")
     ("merge-bam,m", "merge Parts BAM files");
@@ -306,6 +322,14 @@ int bqsr_main(int argc, char** argv, boost::program_options::options_description
 
   std::vector<std::string> extra_opts_baserecal = get_argument<std::vector<std::string>>(cmd_vm, "extra-options","O");
   std::vector<std::string> extra_opts_pr = get_argument<std::vector<std::string>>(cmd_vm, "extra-options-pr");
+
+  if (cmd_vm.count("sample-id") && sample_id.empty()) {
+    throw pathEmpty("sample-id");
+  }
+
+  if (cmd_vm.count("intervalList") || cmd_vm.count("L")) {
+    if (intv_list.empty()) throw pathEmpty("intervalList");
+  }
 
   std::string temp_dir = conf_temp_dir + "/bqsr";
   create_dir(temp_dir);

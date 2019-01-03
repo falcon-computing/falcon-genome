@@ -23,7 +23,7 @@ int joint_main(int argc, char** argv,
     ("input-dir,i", po::value<std::string>()->required(), "input dir containing "
                                "[sample_id].gvcf.gz files")
     ("output,o", po::value<std::string>()->required(), "output vcf.gz file(s)")
-    ("sample-id", po::value<std::string>(), "sample id for log files")
+    ("sample-id", po::value<std::string>()->implicit_value(""), "sample id for log files")
     ("database_name", po::value<std::string>()->implicit_value(""), "database name (gatk4 only)")
     //("intervals,L", po::value<std::string>(), "one or more genomic intervals over which to operate")
     ("combine-only,c", "combine GVCFs only and skip genotyping")
@@ -50,6 +50,10 @@ int joint_main(int argc, char** argv,
   std::string database_name  = get_argument<std::string>(cmd_vm, "database_name");
   //std::string intervals   = get_argument<std::string>(cmd_vm, "intervals","L");
   std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
+
+  if (cmd_vm.count("sample-id") && sample_id.empty()) {
+    throw pathEmpty("sample-id");
+  }
 
   if (flag_gatk || get_config<bool>("use_gatk4") ) {
     if (database_name.empty()) throw pathEmpty("database_name");
