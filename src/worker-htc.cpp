@@ -111,6 +111,13 @@ int htc_main(int argc, char** argv,
     tag = "blaze-nam";
   }
 
+  std::string input_file2;
+  if (boost::filesystem::is_directory(input_path)) {
+    input_file2 = get_contig_fname(input_path, 0);
+    LOG(INFO) << input_file2 << "\n";     
+  }
+  exit(0);
+
   BackgroundExecutor bg_executor(tag, blaze_worker);  
   Executor executor("Haplotype Caller", get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
 
