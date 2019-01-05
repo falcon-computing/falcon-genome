@@ -227,11 +227,25 @@ inline std::string get_contig_fname(
   int n_digits = (int)log10((double)get_config<int>("gatk.ncontigs"))+1;
   std::stringstream ss;
   ss << base_path << "/" << prefix
-     //<< std::setw(n_digits) << std::setfill('0') << contig
-     << std::setw(6) << std::setfill('0') << contig
+     << std::setw(n_digits) << std::setfill('0') << contig
      << "." << ext;
   return ss.str();
 }
+
+inline std::string get_contig_fname2(
+    std::string base_path,
+    int contig,
+    int range,
+    std::string ext = "bam",
+    std::string prefix = "part-")
+ {
+   int n_digits = (int)log10((double)range)+1;
+   std::stringstream ss;
+   ss << base_path << "/" << prefix
+     << std::setw(n_digits) << std::setfill('0') << contig
+     << "." << ext;
+  return ss.str();
+ }
 
 inline std::string get_basename(std::string path) {
   boost::filesystem::wpath file_path(path);
