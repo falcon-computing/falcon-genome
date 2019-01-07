@@ -1,4 +1,3 @@
-
 #include <boost/filesystem.hpp>
 #include <string>
 #include <sys/statvfs.h>
@@ -16,12 +15,15 @@ namespace fcsgenome {
 BWAWorker::BWAWorker(std::string ref_path,
       std::string fq1_path,
       std::string fq2_path,
+      std::string partdir_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
       std::string sample_id,
       std::string read_group,
       std::string platform_id,
       std::string library_id,
+      bool flag_align_only,
+      bool flag_disable_bucketsort,
       bool &flag_f):
   Worker(get_config<bool>("bwa.scaleout_mode") || 
          get_config<bool>("latency_mode") 
@@ -30,12 +32,15 @@ BWAWorker::BWAWorker(std::string ref_path,
   ref_path_(ref_path),
   fq1_path_(fq1_path),
   fq2_path_(fq2_path),
+  output_path_(output_path),
   sample_id_(sample_id),
   read_group_(read_group),
   platform_id_(platform_id),
-  library_id_(library_id)
+  library_id_(library_id),
+  flag_align_only_(flag_align_only),
+  flag_disable_bucketsort_(flag_disable_bucketsort)
 {
-  output_path_ = check_output(output_path, flag_f);
+  partdir_path_ = check_output(partdir_path, flag_f);
 
   if (sample_id.empty() ||
       read_group.empty() || 
@@ -123,16 +128,22 @@ void BWAWorker::setup() {
       << "--logtostderr "
       << "--offload "
       << "--output_flag=1 "
+      << "--chunk_size=2000 "
       << "--v=" << get_config<int>("bwa.verbose") << " "
-      << "--output_dir=\"" << output_path_ << "\" "
-      << "--max_batch_records=" << get_config<int>("bwa.num_batches_per_part") << " ";
+      << "--temp_dir=\"" << partdir_path_ << "\" "
+      << "--output=\"" << output_path_ << "\" " ;
+
+  if (!flag_disable_bucketsort_) {
+      cmd << "--enable_bucketsort " 
+          << "--num_buckets=\"" << get_config<int>("bwa.num_buckets") << "\" " ;
+  }
 
   if (get_config<int>("bwa.nt") > 0) {
     cmd << "--t=" << get_config<int>("bwa.nt") << " ";
   }
 
-  if (get_config<bool>("bwa.use_sort")) {
-    cmd << "--sort ";
+  if (flag_align_only_) {
+    cmd << "--disable_markdup=true ";
   }
 
   if (get_config<bool>("bwa.enforce_order")) {
@@ -162,5 +173,7 @@ void BWAWorker::setup() {
       << fq2_path_;
 
   cmd_ = cmd.str();
+  LOG(INFO) << cmd_ << "\n";
+
 }
 } // namespace fcsgenome

@@ -290,6 +290,7 @@ int init(char** argv, int argc) {
     arg_decl_int_w_def("bwa.verbose",              0,     "verbose level of bwa output")
     arg_decl_int_w_def("bwa.nt",                   -1,    "number of threads for bwa-mem")
     arg_decl_int_w_def("bwa.num_batches_per_part", 40,    "max num records in each BAM file")
+    arg_decl_int_w_def("bwa.num_buckets", 1024,    "number of BAM bucket")
     arg_decl_bool_w_def("bwa.use_fpga",            true,  "option to enable FPGA for bwa-mem")
     arg_decl_bool_w_def("bwa.use_sort",            true,  "enable sorting in bwa-mem")
     arg_decl_bool_w_def("bwa.enforce_order",       false,  "enforce strict sorting ordering")

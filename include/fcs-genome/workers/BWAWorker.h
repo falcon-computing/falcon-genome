@@ -11,12 +11,15 @@ class BWAWorker : public Worker {
   BWAWorker(std::string ref_path,
       std::string fq1_path,
       std::string fq2_path,
+      std::string partdir_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
       std::string sample_id,
       std::string read_group,
       std::string platform_id,
       std::string library_id,
+      bool flag_align_only,
+      bool flag_disable_bucketsort,
       bool &flag_f);
 
   void check();
@@ -26,12 +29,16 @@ class BWAWorker : public Worker {
   std::string ref_path_;
   std::string fq1_path_;
   std::string fq2_path_;
+  std::string partdir_path_;
   std::string output_path_;
 
   std::string sample_id_;
   std::string read_group_;
   std::string platform_id_;
   std::string library_id_;
+
+  bool flag_align_only_;
+  bool flag_disable_bucketsort_;
 };
 
 } // namespace fcsgenome
