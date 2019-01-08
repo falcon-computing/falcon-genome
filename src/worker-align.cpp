@@ -178,8 +178,6 @@ int align_main(int argc, char** argv,
         Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, flag_f));
         executor.addTask(merger_worker, sample_id, true); 
 
-        // Removing temporal data :
-        //remove_path(temp_dir + "/" + sample_id);
       } // i == list.size()-1 completed
 
     }; // for (int i = 0; i < list.size(); ++i)  ends
