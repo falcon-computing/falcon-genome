@@ -19,7 +19,6 @@ class BWAWorker : public Worker {
       std::string platform_id,
       std::string library_id,
       bool flag_align_only,
-      bool flag_disable_bucketsort,
       bool &flag_f);
 
   void check();
@@ -38,7 +37,6 @@ class BWAWorker : public Worker {
   std::string library_id_;
 
   bool flag_align_only_;
-  bool flag_disable_bucketsort_;
 };
 
 } // namespace fcsgenome

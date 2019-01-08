@@ -38,8 +38,7 @@ int align_main(int argc, char** argv,
     arg_decl_string_w_def("sp,S", "sample",   "sample id ('SM' in BAM header)")
     arg_decl_string_w_def("pl,P", "illumina", "platform id ('PL' in BAM header)")
     arg_decl_string_w_def("lb,L", "sample",   "library id ('LB' in BAM header)")
-    ("align-only,l", "skip mark duplicates")
-    ("disable_bucketsort", "disable bucket sort. Default: Enable");
+    ("align-only,l", "skip mark duplicates");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -51,7 +50,6 @@ int align_main(int argc, char** argv,
   // Check if required arguments are presented
   bool flag_f          = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_align_only = get_argument<bool>(cmd_vm, "align-only", "l");
-  bool flag_disable_bucketsort = get_argument<bool>(cmd_vm, "disable_bucketsort");
 
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string sampleList  = get_argument<std::string>(cmd_vm, "sample_sheet", "F");
@@ -70,11 +68,10 @@ int align_main(int argc, char** argv,
   // For a single sample: Check if Output Directory exists. If not, create:
   boost::filesystem::path p(output_path);
   boost::filesystem::path dir = p.parent_path();
-
-  if (!boost::filesystem::is_directory(dir) && !dir.string().empty()) {
+  if (boost::filesystem::is_directory(dir)==false && !dir.string().empty()) {
     boost::filesystem::create_directory(dir);   
   }
-  
+
   if (sampleList.empty()) {
     output_path = check_output(output_path, flag_f, true);
   }
@@ -163,7 +160,6 @@ int align_main(int argc, char** argv,
 	   platform_id, 
            library_id, 
 	   flag_align_only,
-	   flag_disable_bucketsort,
 	   flag_f)
       );
 
