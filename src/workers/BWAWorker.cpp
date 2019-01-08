@@ -130,11 +130,6 @@ void BWAWorker::setup() {
       << "--v=" << get_config<int>("bwa.verbose") << " "
       << "--temp_dir=\"" << partdir_path_ << "\" "
       << "--output=\"" << output_path_ << "\" " ;
-    //<< "--num_buckets=\"" << get_config<int>("bwa.num_buckets") << "\" " ;
-
-  //if (!flag_disable_bucketsort_) {
-  //    cmd  << "--disable_bucketsort=false ";
-  //}
 
   if (get_config<int>("bwa.nt") > 0) {
     cmd << "--t=" << get_config<int>("bwa.nt") << " ";
