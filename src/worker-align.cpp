@@ -64,7 +64,14 @@ int align_main(int argc, char** argv,
 
   // finalize argument parsing
   po::notify(cmd_vm);
-  
+
+  // For a single sample: Check if Output Directory exists. If not, create:
+  boost::filesystem::path p(output_path);
+  boost::filesystem::path dir = p.parent_path();
+  if (boost::filesystem::is_directory(dir)==false && !dir.string().empty()) {
+    boost::filesystem::create_directory(dir);   
+  }
+
   if (sampleList.empty()) {
     output_path = check_output(output_path, flag_f, true);
   }
@@ -102,6 +109,7 @@ int align_main(int argc, char** argv,
 
   // start execution
   std::string parts_dir;
+  std::string temp_bam;
   std::string temp_dir = conf_temp_dir + "/align";
   create_dir(temp_dir);
 
@@ -136,6 +144,7 @@ int align_main(int argc, char** argv,
       library_id = list[i].LibraryID;
 
       parts_dir = temp_dir + "/" + sample_id + "/" + read_group;
+      temp_bam = temp_dir + "/" + sample_id  + "/output_" + read_group + ".bam";
       
       DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
@@ -144,11 +153,13 @@ int align_main(int argc, char** argv,
       Worker_ptr worker(new BWAWorker(ref_path,
            fq1_path, fq2_path,
            parts_dir,
+	   temp_bam,
            extra_opts,
            sample_id, 
            read_group,
 	   platform_id, 
            library_id, 
+	   flag_align_only,
 	   flag_f)
       );
 
@@ -158,24 +169,16 @@ int align_main(int argc, char** argv,
 
       // Once the sample reach its last pair of FASTQ files, we proceed to merge and mark duplicates (if requested):
       if (i == list.size()-1) {
-      	if (!flag_align_only) {
-      	  // Marking Duplicates:
-      	  std::string markedBAM;
-      	  markedBAM = output_path + "/" + sample_id + "/" + sample_id  + "_marked.bam";
-          if (sampleList.empty()) markedBAM = output_path;
-      	  Worker_ptr markdup_worker(new SambambaWorker(temp_dir + "/" + sample_id, markedBAM, SambambaWorker::MARKDUP, flag_f));
-          executor.addTask(markdup_worker, sample_id, true);
-      	} 
-        else {
-      	  std::string mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
-          if (sampleList.empty()) mergeBAM = output_path;
-      	  Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, flag_f));
-          executor.addTask(merger_worker, sample_id, true);
-        }
-  
-        // Removing temporal data :
-        remove_path(temp_dir + "/" + sample_id);
-      }
+        std::string mergeBAM;
+        if (sampleList.empty()) {
+	  mergeBAM = output_path;
+	} else{
+	  mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
+        }        ;
+        Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, flag_f));
+        executor.addTask(merger_worker, sample_id, true); 
+
+      } // i == list.size()-1 completed
 
     }; // for (int i = 0; i < list.size(); ++i)  ends
  
