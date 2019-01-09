@@ -24,10 +24,10 @@ Minimap2Worker::Minimap2Worker(std::string ref_path,
       std::string library_id,
       bool flag_align_only,
       bool &flag_f):
-  Worker(get_config<bool>("bwa.scaleout_mode") || 
+  Worker(get_config<bool>("minimap.scaleout_mode") || 
          get_config<bool>("latency_mode") 
          ? conf_host_list.size() : 1, 
-         1, extra_opts, "bwa mem"),
+         1, extra_opts, "minimap-flow"),
   ref_path_(ref_path),
   fq1_path_(fq1_path),
   fq2_path_(fq2_path),
@@ -118,37 +118,33 @@ void Minimap2Worker::setup() {
   else {
     cmd << "LD_LIBRARY_PATH=" << conf_root_dir << "/lib:$LD_LIBRARY_PATH ";
   }
-  cmd << get_config<std::string>("bwa_path") << " mem "
+  cmd << get_config<std::string>("minimap_path") << " "
       << "-R \"@RG\\tID:" << read_group_ << 
-                 "\\tSM:" << sample_id_ << 
-                 "\\tPL:" << platform_id_ << 
-                 "\\tLB:" << library_id_ << "\" "
-      << "--logtostderr "
-      << "--offload "
-      << "--output_flag=1 "
-      << "--chunk_size=2000 "
-      << "--v=" << get_config<int>("bwa.verbose") << " "
+             "\\tSM:" << sample_id_ << 
+             "\\tPL:" << platform_id_ << 
+             "\\tL:" << library_id_ << "\" "
       << "--temp_dir=\"" << partdir_path_ << "\" "
       << "--output=\"" << output_path_ << "\" " ;
 
-  if (get_config<int>("bwa.nt") > 0) {
-    cmd << "--t=" << get_config<int>("bwa.nt") << " ";
+  if (get_config<int>("minimap.nt") > 0) {
+    cmd << "--t=" << get_config<int>("minimap.nt") << " ";
   }
 
   if (flag_align_only_) {
     cmd << "--disable_markdup=true ";
   }
 
-  if (get_config<bool>("bwa.enforce_order")) {
+  if (get_config<bool>("minimap.enforce_order")) {
     cmd << "--inorder_output ";
   }
 
-  if (get_config<bool>("bwa.use_fpga") &&
-      !get_config<std::string>("bwa.fpga.bit_path").empty())
+  if (get_config<bool>("minimap.use_fpga") &&
+      !get_config<std::string>("minimap.fpga.bit_path").empty())
   {
     cmd << "--use_fpga "
-        << "--fpga_path=" << get_config<std::string>("bwa.fpga.bit_path") << " ";
+        << "--fpga_path=" << get_config<std::string>("minimap.fpga.bit_path") << " ";
   }
+
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
     cmd << it->first << " ";
     for( auto vec_iter = it->second.begin(); vec_iter != it->second.end(); vec_iter++) {
@@ -166,7 +162,6 @@ void Minimap2Worker::setup() {
       << fq2_path_ << ";";
 
   //cmd <<  get_config<std::string>("samtools_path") << " index " << output_path_ << ";";
-
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_ << "\n";
 
