@@ -27,6 +27,7 @@ int print_help() {
   print_cmd_col("bqsr", "base recalibration with GATK BaseRecalibrator");
   print_cmd_col("    ", "and GATK PrintReads");
   print_cmd_col("baserecal", "equivalent to GATK BaseRecalibrator");
+  print_cmd_col("germline", "accelerated pipeline for DNA sample (align + htc)");
   print_cmd_col("printreads", "equivalent to GATK PrintReads");
   print_cmd_col("htc", "variant calling with GATK HaplotypeCaller");
   print_cmd_col("mutect2", "(Experimental) somatic variant calling with GATK Mutect2");
@@ -58,6 +59,7 @@ namespace fcsgenome {
   int align_main(int argc, char** argv, po::options_description &opt_desc);
   int bqsr_main(int argc, char** argv, po::options_description &opt_desc);
   int baserecal_main(int argc, char** argv, po::options_description &opt_desc);
+  int germline_main(int argc, char** argv, po::options_description &opt_desc);
   int concat_main(int argc, char** argv, po::options_description &opt_desc);
   int htc_main(int argc, char** argv, po::options_description &opt_desc);
   int ir_main(int argc, char** argv, po::options_description &opt_desc);
@@ -162,6 +164,9 @@ int main(int argc, char** argv) {
     }
     else if (cmd == "vcf_filter") {
       variant_filtration_main(argc-1, &argv[1], opt_desc);
+    }
+    else if (cmd == "germline") {
+      germline_main(argc-1, &argv[1], opt_desc);
     }
     else if (cmd == "--version") {
       std::cout << VERSION << std::endl;

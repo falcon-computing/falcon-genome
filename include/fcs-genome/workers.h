@@ -9,6 +9,7 @@
 #include "workers/DepthCombineWorker.h"
 #include "workers/GenotypeGVCFsWorker.h"
 #include "workers/HTCWorker.h"
+#include "workers/Minimap2Worker.h"
 #include "workers/Mutect2Worker.h"
 #include "workers/Mutect2FilterWorker.h"
 #include "workers/IndelWorker.h"
