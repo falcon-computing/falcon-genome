@@ -20,9 +20,9 @@ agent {label 'merlin'}
                         sh "make test"
                         sh "make install"
                         sh "cd ~/falcon2/bin; echo s3://fcs-cicd-test/release/falcon-genome/fcs-genome-$version > latest"
-                        sh "cd /curr/limark/falcon2/bin; aws s3 cp fcs-genome s3://fcs-cicd-test/release/falcon-genome/fcs-genome-$version"
-                        sh "cd /curr/limark/falcon2/bin; aws s3 cp latest s3://fcs-cicd-test/release/falcon-genome/latest"
-                        sh "cd /curr/limark/falcon2/bin; rm -f latest"
+                        sh "cd /curr/limark/falcon-local/bin; aws s3 cp fcs-genome s3://fcs-cicd-test/release/falcon-genome/fcs-genome-$version"
+                        sh "cd /curr/limark/falcon-local/bin; aws s3 cp latest s3://fcs-cicd-test/release/falcon-genome/latest"
+                        sh "cd /curr/limark/falcon-local/bin; rm -f latest"
                         }
                      }
                   }
