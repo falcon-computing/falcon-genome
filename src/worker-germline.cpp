@@ -49,7 +49,8 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     ("produce-vcf,v", "produce VCF files from HaplotypeCaller instead of GVCF")
     ("intervalList,L", po::value<std::string>()->implicit_value(""), "interval list file")
     ("skip-concat,s", "(deprecated) produce a set of GVCF/VCF files instead of one")
-    ("gatk4,g", "use gatk4 to perform analysis");
+    ("gatk4,g", "use gatk4 to perform analysis")
+    ("htc-extra-options", po::value<std::vector<std::string> >(), "extra options for HaplotypeCaller");  
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -75,6 +76,9 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   std::string platform_id = get_argument<std::string>(cmd_vm, "pl", "P");
   std::string library_id  = get_argument<std::string>(cmd_vm, "lb", "L");
   
+  // Extra Options for Aligner:
+  std::vector<std::string> extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "extra-options", "O");
+
   // check configurations for HaplotypeCaller:
   check_nprocs_config("htc");
   check_memory_config("htc");
@@ -87,8 +91,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   std::string output_vcf_path = get_argument<std::string>(cmd_vm, "output-vcf");
   std::string intv_list       = get_argument<std::string>(cmd_vm, "intervalList", "L");
 
-  // Extra Options:
-  std::vector<std::string> map_extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "map-extra-options");
+  // Extra Options for HaplotypeCaller:
   std::vector<std::string> htc_extra_opts = get_argument<std::vector<std::string>>(cmd_vm, "htc-extra-options");
 
   // finalize argument parsing
@@ -187,7 +190,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
            fq1_path, fq2_path,
            parts_dir,
 	   temp_bam,
-           map_extra_opts,
+           extra_opts,
            sample_id, 
            read_group,
 	   platform_id, 
