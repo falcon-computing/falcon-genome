@@ -189,7 +189,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     // If sample sheet is defined, then output_path is the parent dir and for each sample in the sample sheet, 
     // a folder is created in the parent dir. 
     if (!sampleList.empty()) {
-      LOG(INFO) << "Creating : " + output_bam_path + "/" + sample_id;
+      DLOG(INFO) << "Creating : " + output_bam_path + "/" + sample_id;
       create_dir(output_bam_path + "/" + sample_id);
     } 
 
