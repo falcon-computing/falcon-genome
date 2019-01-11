@@ -21,7 +21,7 @@ static inline std::string get_task_name(SambambaWorker::Action action) {
 
 SambambaWorker::SambambaWorker(std::string input_path,
        std::string output_path,  
-       Action action, 
+       Action action,
        std::string common,
        bool &flag_f): Worker(1, get_config<int>("markdup.nt"), std::vector<std::string>(), get_task_name(action))
 {
