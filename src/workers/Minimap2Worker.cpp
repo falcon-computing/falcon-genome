@@ -81,43 +81,7 @@ void Minimap2Worker::check() {
 void Minimap2Worker::setup() {
   // create cmd
   std::stringstream cmd;
-  if (get_config<bool>("bwa.scaleout_mode") ||
-      get_config<bool>("latency_mode")) {
-    // NOTE: Needs to make sure necessary LD_LIBRARY_PATH
-    // is set in user's bash mode
-    cmd << get_config<std::string>("mpi_path") << "/bin/mpirun " 
-        << "--prefix " << get_config<std::string>("mpi_path") << " "
-        << "--bind-to none ";
-    if (check_config("bwa.mpi_if")) {
-      cmd << "--mca oob_tcp_if_include " << get_config<std::string>("bwa.mpi_if") << " "
-          << "--mca btl_tcp_if_include " << get_config<std::string>("bwa.mpi_if") << " ";
-    }
-        /* 
-         * This '--mca' option is used to get rid of the problem of
-         * hfi_wait_for_device which causes a 15 sec delay.
-         * This problem could be related to boxes with Intel OmniPath HFI.
-         * Source: 
-         * http://users.open-mpi.narkive.com/7efFnJXR/ompi-users-device-failed-to-appear-connection-timed-out
-         */
-    cmd << "--mca pml ob1 "
-        << "--allow-run-as-root "
-        << "-np " << conf_host_list.size() << " ";
-
-    // set host list
-    cmd << "--host ";
-    for (int i = 0; i < conf_host_list.size(); i++) {
-      cmd << conf_host_list[i];
-      if (i < conf_host_list.size() - 1) {
-        cmd << ",";
-      }
-      else {
-        cmd << " ";
-      }
-    }
-  }
-  else {
-    cmd << "LD_LIBRARY_PATH=" << conf_root_dir << "/lib:$LD_LIBRARY_PATH ";
-  }
+  cmd << "LD_LIBRARY_PATH=" << conf_root_dir << "/lib:$LD_LIBRARY_PATH ";
   cmd << get_config<std::string>("minimap_path") << " "
       << "-R \"@RG\\tID:" << read_group_ << 
              "\\tSM:" << sample_id_ << 
@@ -159,7 +123,6 @@ void Minimap2Worker::setup() {
       << fq1_path_ << " "
       << fq2_path_ << ";";
 
-  //cmd <<  get_config<std::string>("samtools_path") << " index " << output_path_ << ";";
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_ << "\n";
 
