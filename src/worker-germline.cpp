@@ -247,8 +247,8 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 
     }; // for (int i = 0; i < list.size(); ++i)  ends
 
-     // Proceed to compute VCF file:
-     // ============================
+    // Proceed to compute VCF file:
+    // ============================
   
     std::string output_dir = temp_dir_htc + "/" + sample_id;
     std::string temp_gvcf_path = output_dir + "/" + get_basename(output_vcf_path);
