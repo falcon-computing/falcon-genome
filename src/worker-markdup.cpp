@@ -47,7 +47,7 @@ int markdup_main(int argc, char** argv,
   }
 
   Executor executor("Mark Duplicates");
-  Worker_ptr worker(new SambambaWorker(input_path, output_path, SambambaWorker::MARKDUP, flag_f));
+  Worker_ptr worker(new SambambaWorker(input_path, output_path, SambambaWorker::MARKDUP, ".*/part-[0-9].*.*", flag_f));
   executor.addTask(worker, sample_id);
   executor.run();
 

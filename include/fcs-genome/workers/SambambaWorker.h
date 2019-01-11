@@ -14,6 +14,7 @@ class SambambaWorker : public Worker {
   SambambaWorker(std::string input_path,
       std::string output_path, 
       Action action, 
+      std::string common,
       bool &flag_f
   );
 
