@@ -108,7 +108,7 @@ int depth_main(int argc, char** argv,
   
   if (boost::filesystem::is_directory(input_path)) {
     std::string mergeBAM = input_path + "/merge_parts.bam  ";
-    Worker_ptr merger_worker(new SambambaWorker(input_path, mergeBAM, SambambaWorker::MERGE, flag_f)); 
+    Worker_ptr merger_worker(new SambambaWorker(input_path, mergeBAM, SambambaWorker::MERGE, ".*/part-[0-9].*.*", flag_f)); 
     executor.addTask(merger_worker, sample_id, true);    
   }
 

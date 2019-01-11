@@ -22,6 +22,7 @@ static inline std::string get_task_name(SambambaWorker::Action action) {
 SambambaWorker::SambambaWorker(std::string input_path,
        std::string output_path,  
        Action action, 
+       std::string common,
        bool &flag_f): Worker(1, get_config<int>("markdup.nt"), std::vector<std::string>(), get_task_name(action))
 {
   // check output
@@ -29,12 +30,14 @@ SambambaWorker::SambambaWorker(std::string input_path,
   std::string bai_file = check_output(output_path + ".bai", flag_f, true);
   input_path_ = input_path;
   action_ = action;
+  common_ = common;
 }
 
 void SambambaWorker::check() {
   input_path_ = check_input(input_path_);
   //get_input_list(input_path_, input_files_, ".*/part-[0-9].*.*", true);
-  get_input_list(input_path_, input_files_, ".*/output_*.*", true);
+  //get_input_list(input_path_, input_files_, ".*/output_*.*", true);
+  get_input_list(input_path_, input_files_, common_, true);
 }
 
 void SambambaWorker::setup() {
@@ -85,6 +88,6 @@ void SambambaWorker::setup() {
   }
 
   cmd_ = cmd.str();
-  DLOG(INFO) << cmd_;
+  LOG(INFO) << cmd_;
 }
 } // namespace fcsgenome

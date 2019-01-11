@@ -175,7 +175,7 @@ int align_main(int argc, char** argv,
 	} else{
 	  mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
         }        ;
-        Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, flag_f));
+        Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, ".*/output_*.*", flag_f));
         executor.addTask(merger_worker, sample_id, true); 
 
       } // i == list.size()-1 completed
