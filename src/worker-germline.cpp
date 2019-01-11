@@ -306,9 +306,11 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
      std::string output_vcf;
      if (!sampleList.empty()) {
        output_vcf = output_vcf_path + "/" + sample_id + "/" + sample_id + ".vcf";
+     }
+     else {
+       output_vcf = output_vcf_path;
      } 
-     
-     std::string process_tag;
+     DLOG(INFO) << output_vcf << "\n";     
      
      { // concat gvcfs
        Worker_ptr worker(new VCFConcatWorker(

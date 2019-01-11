@@ -35,8 +35,6 @@ SambambaWorker::SambambaWorker(std::string input_path,
 
 void SambambaWorker::check() {
   input_path_ = check_input(input_path_);
-  //get_input_list(input_path_, input_files_, ".*/part-[0-9].*.*", true);
-  //get_input_list(input_path_, input_files_, ".*/output_*.*", true);
   get_input_list(input_path_, input_files_, common_, true);
 }
 
@@ -88,6 +86,6 @@ void SambambaWorker::setup() {
   }
 
   cmd_ = cmd.str();
-  LOG(INFO) << cmd_;
+  DLOG(INFO) << cmd_;
 }
 } // namespace fcsgenome
