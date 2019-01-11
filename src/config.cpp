@@ -304,8 +304,8 @@ int init(char** argv, int argc) {
 
     arg_decl_int_w_def("minimap.nt",                   -1,    "number of threads for minimap-flow")
     arg_decl_bool_w_def("minimap.enforce_order",       false,  "enforce strict sorting ordering")    
-    arg_decl_string_w_def("minimap.fpga.bit_path",     conf_root_dir+"/fpga/sw.xclbin", "path to FPGA bitstream for bwa")
-    arg_decl_string_w_def("minimap.fpga.pac_path",     "",    "(deprecated) path to PAC reference used by FPGA for bwa")
+    //arg_decl_string_w_def("minimap.fpga.bit_path",     conf_root_dir+"/fpga/sw.xclbin", "path to FPGA bitstream for minimap2")
+    //arg_decl_string_w_def("minimap.fpga.pac_path",     "",    "(deprecated) path to PAC reference used by FPGA for minimap2")
 
     arg_decl_int_w_def("markdup.max_files",    4096, "max opened files in markdup")
     arg_decl_int_w_def("markdup.nt",           (16 > cpu_num ? cpu_num : 16),   "thread num in markdup")

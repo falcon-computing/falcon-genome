@@ -44,12 +44,9 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     ("align-only,l", "skip mark duplicates")
 
     // HaplotypeCaller Options:
-    ("output-vcf", po::value<std::string>()->required(), "output GVCF/VCF file (if --skip-concat is set"
-     "the output will be a directory of gvcf files)")
+    ("output-vcf", po::value<std::string>()->implicit_value(""), "output GVCF/VCF file")
     ("produce-vcf,v", "produce VCF files from HaplotypeCaller instead of GVCF")
     ("intervalList,L", po::value<std::string>()->implicit_value(""), "interval list file")
-    ("skip-concat,s", "(deprecated) produce a set of GVCF/VCF files instead of one")
-    ("gatk4,g", "use gatk4 to perform analysis")
     ("htc-extra-options", po::value<std::vector<std::string> >(), "extra options for HaplotypeCaller");  
 
   // Parse arguments
@@ -84,9 +81,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   check_memory_config("htc");
 
   // HaplotypeCaller Arguments:
-  bool flag_skip_concat   = get_argument<bool>(cmd_vm, "skip-concat", "s");
   bool flag_vcf           = get_argument<bool>(cmd_vm, "produce-vcf", "v");
-  bool flag_gatk          = get_argument<bool>(cmd_vm, "gatk4", "g");
 
   std::string output_vcf_path = get_argument<std::string>(cmd_vm, "output-vcf");
   std::string intv_list       = get_argument<std::string>(cmd_vm, "intervalList", "L");
@@ -97,15 +92,43 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   // finalize argument parsing
   po::notify(cmd_vm);
 
-  // For a single sample: Check if Output Directory exists. If not, create:
-  boost::filesystem::path p(output_bam_path);
-  boost::filesystem::path dir = p.parent_path();
-  if (boost::filesystem::is_directory(dir)==false && !dir.string().empty()) {
-    boost::filesystem::create_directory(dir);   
+  // Check if Reference File (FASTA) has its index MMI:
+  std::string ref_map, ref_htc;
+  boost::filesystem::path p0(ref_path);
+  boost::filesystem::path refdir = p0.parent_path();
+  if (boost::filesystem::exists(p0)){ 
+    if (boost::filesystem::exists(refdir.string() + "/" + p0.stem().string() + ".mmi") ) {
+      ref_map=refdir.string() + "/" + p0.stem().string() + ".mmi";
+      DLOG(INFO) << "Reference Index found: " << ref_map << "\n";
+    }
+    else {
+      ref_map=p0.string();
+    };
+    ref_htc=p0.string();
+    DLOG(INFO) << "Reference FASTA found: " << ref_htc << "\n";
+  }
+
+  // For a single sample: Check if Output BAM Directory exists. If not, create:
+  boost::filesystem::path p1(output_bam_path);
+  boost::filesystem::path bamdir = p1.parent_path();
+  if (boost::filesystem::is_directory(bamdir)==false && !bamdir.string().empty()) {
+    boost::filesystem::create_directory(bamdir);   
+  }
+
+  // For a single sample: Check if Output VCF Directory exists. If not, create:
+  boost::filesystem::path p2(output_vcf_path);
+  boost::filesystem::path vcfdir = p2.parent_path();
+  if (boost::filesystem::is_directory(vcfdir)==false && !vcfdir.string().empty()) {
+    boost::filesystem::create_directory(vcfdir);
   }
 
   if (sampleList.empty()) {
     output_bam_path = check_output(output_bam_path, flag_f, true);
+  }
+
+  if (sampleList.empty() && output_vcf_path.empty()) {
+    LOG(ERROR) << "Processing a single sample. VCF filename must be defined (--output-vcf)";
+    throw invalidParam("");
   }
 
   // Sample Sheet must satisfy the following format:
@@ -142,13 +165,20 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   // start execution
   std::string parts_dir;
   std::string temp_bam;
-  std::string temp_dir = conf_temp_dir + "/align";
-  create_dir(temp_dir);
+  std::string temp_dir_map = conf_temp_dir + "/align";
+  create_dir(temp_dir_map);
+
+  std::string temp_dir_htc = conf_temp_dir + "/htc";
+  create_dir(temp_dir_htc);
+  
+  std::string output_dir = temp_dir_htc;
+  std::string temp_gvcf_path = output_dir + "/" + get_basename(output_vcf_path);
+  create_dir(output_dir);
 
   // check available space in temp dir
   namespace fs = boost::filesystem;
   //Executor executor("germline");
-  Executor executor("Accelerated Pipeline:Align(Minimap)-HaplotypeCaller", get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
+  Executor executor("Falcon Fast Germline", get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
 
   // Going through each line in the Sample Sheet:
   for (auto pair : sample_data) {
@@ -165,8 +195,8 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 
     // Every sample will have a temporal folder where each pair of FASTQ files will have its own
     // folder using the Read Group as label.
-    DLOG(INFO) << "Creating " << temp_dir + "/" + sample_id;
-    create_dir(temp_dir + "/" + sample_id);
+    DLOG(INFO) << "Creating " << temp_dir_map + "/" + sample_id;
+    create_dir(temp_dir_map + "/" + sample_id);
 
     // Define mergeBAM:
     std::string mergeBAM;
@@ -179,27 +209,25 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
       platform_id = list[i].Platform;
       library_id = list[i].LibraryID;
 
-      parts_dir = temp_dir + "/" + sample_id + "/" + read_group ;
-      // Temporal solution: 
-      boost::filesystem::create_directories(parts_dir);
-      temp_bam = temp_dir + "/" + sample_id  + "/output_" + read_group + ".bam";
+      parts_dir = temp_dir_map + "/" + sample_id + "/" + read_group ;
+      temp_bam = temp_dir_map + "/" + sample_id  + "/output_" + read_group + ".bam";
       
       DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
-      Worker_ptr worker(new Minimap2Worker(ref_path,
-           fq1_path, fq2_path,
-           parts_dir,
-	   temp_bam,
-           extra_opts,
-           sample_id, 
-           read_group,
-	   platform_id, 
-           library_id, 
-	   flag_align_only,
-	   flag_f)
+      Worker_ptr map_worker(new Minimap2Worker(ref_map,
+        fq1_path, fq2_path,
+        parts_dir,
+	temp_bam,
+        extra_opts,
+        sample_id, 
+        read_group,
+	platform_id, 
+        library_id, 
+	flag_align_only,
+	flag_f)
       );
 
-      executor.addTask(worker, sample_id, 0);
+      executor.addTask(map_worker, sample_id, 0);
 
       DLOG(INFO) << "Alignment Completed for " << sample_id;
 
@@ -211,112 +239,95 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
           // Sample Sheet : 
 	  mergeBAM = output_bam_path + "/" + sample_id + "/" + sample_id + ".bam";
         };
-        LOG(INFO) << mergeBAM << "\n";
-        Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, flag_f));
+        DLOG(INFO) << mergeBAM << "\n";
+        Worker_ptr merger_worker(new SambambaWorker(temp_dir_map + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, flag_f));
         executor.addTask(merger_worker, sample_id, true); 
       } // i == list.size()-1 completed
 
     }; // for (int i = 0; i < list.size(); ++i)  ends
 
-     // Proceed to compute VCF file:
-     std::string output_dir;
-     if (flag_skip_concat) {
-       output_dir = check_output(output_vcf_path, flag_f);
+    // Proceed to compute VCF file:
+    // ============================
+
+    DLOG(INFO) << " VCF dir : " << output_dir << "\n";
+    DLOG(INFO) << " VCF file: " << temp_gvcf_path << "\n";
+ 
+    std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
+    std::vector<std::string> intv_paths;
+    if (!intv_list.empty()) {
+      intv_paths = split_by_nprocs(intv_list, "bed");
+    }
+    else {
+      intv_paths = init_contig_intv(ref_path);
+    }
+    
+    // start an executor for NAM
+    Worker_ptr blaze_worker(new BlazeWorker(get_config<std::string>("blaze.nam_path"),get_config<std::string>("blaze.conf_path")));
+   
+    std::string tag;
+    if (!sample_id.empty()) {
+      tag = "blaze-nam-" + sample_id;
+    }
+    else {
+      tag = "blaze-nam";
+    }
+   
+    BackgroundExecutor bg_executor(tag, blaze_worker);
+    for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
+      std::string file_ext = "vcf";
+      if (!flag_vcf) {
+    	  file_ext = "g." + file_ext;
+      }
+   
+      std::string output_file = get_contig_fname(output_dir, contig, file_ext);
+      Worker_ptr htc_worker(new HTCWorker(ref_htc,
+    	   intv_paths[contig],
+    	   mergeBAM,
+    	   output_file,
+    	   htc_extra_opts,
+    	   contig,
+    	   flag_vcf,
+    	   flag_f,
+    	   flag_f)
+      );
+      output_files[contig] = output_file;
+      executor.addTask(htc_worker,sample_id,contig==0);
+    }
+
+    bool flag = true;
+    bool flag_a = false;
+    bool flag_bgzip = false;
+
+    if (!sampleList.empty()) {
+      output_vcf_path = output_vcf_path + "/" + sample_id + "/" + sample_id + ".vcf";
+    } 
+    
+    std::string process_tag;
+    
+    { // concat gvcfs
+      Worker_ptr worker(new VCFConcatWorker(
+        output_files,
+        temp_gvcf_path,
+        flag_a,
+        flag_bgzip,
+        flag)
+      );
+      executor.addTask(worker, sample_id, true);
+    }
+    { // bgzip gvcf
+      Worker_ptr worker(new ZIPWorker(
+        temp_gvcf_path,
+        output_vcf_path+".gz",
+        flag_f)
+      );
+      executor.addTask(worker, sample_id, true);
+    }
+    { // tabix gvcf
+      Worker_ptr worker(new TabixWorker(
+        output_vcf_path + ".gz")
+      );
+      executor.addTask(worker, sample_id, true);
      }
-     else {
-       output_dir = temp_dir;
-     }
-     std::string temp_gvcf_path = output_dir + "/" + get_basename(output_vcf_path);
-     create_dir(output_dir);
-  
-     std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
-  
-     std::vector<std::string> intv_paths;
-     if (!intv_list.empty()) {
-       intv_paths = split_by_nprocs(intv_list, "bed");
-     }
-     else {
-       intv_paths = init_contig_intv(ref_path);
-     }
-  
-     // start an executor for NAM
-     Worker_ptr blaze_worker(new BlazeWorker(get_config<std::string>("blaze.nam_path"),get_config<std::string>("blaze.conf_path")));
-  
-     std::string tag;
-     if (!sample_id.empty()) {
-       tag = "blaze-nam-" + sample_id;
-     }
-     else {
-       tag = "blaze-nam";
-     }
-  
-     BackgroundExecutor bg_executor(tag, blaze_worker);
-     //Executor executor("Haplotype Caller", get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
-  
-     bool flag_htc_f = !flag_skip_concat || flag_f;
-     for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
-       std::string input_file;
-       if (boost::filesystem::is_directory(mergeBAM)) {
-  	input_file = get_contig_fname(mergeBAM, contig);
-       }
-       else {
-  	input_file = mergeBAM;
-       }
-  
-       std::string file_ext = "vcf";
-       if (!flag_vcf) {
-  	file_ext = "g." + file_ext;
-       }
-  
-       std::string output_file = get_contig_fname(output_dir, contig, file_ext);
-       Worker_ptr worker(new HTCWorker(ref_path,
-  	   intv_paths[contig],
-  	   mergeBAM,
-  	   output_vcf_path,
-  	   htc_extra_opts,
-  	   contig,
-  	   flag_vcf,
-  	   flag_htc_f,
-  	   flag_gatk)
-       );
-       output_files[contig] = output_file;
-       executor.addTask(worker,sample_id,true);
-     }
-     
-     if (!flag_skip_concat) {
-  
-       bool flag = true;
-       bool flag_a = false;
-       bool flag_bgzip = false;
-  
-       std::string process_tag;
-  
-       { // concat gvcfs
-  	Worker_ptr worker(new VCFConcatWorker(
-  	     output_files,
-  	     temp_gvcf_path,
-  	     flag_a,
-  	     flag_bgzip,
-  	     flag)
-  	);
-  	executor.addTask(worker, sample_id, true);
-       }
-       { // bgzip gvcf
-  	Worker_ptr worker(new ZIPWorker(
-  	     temp_gvcf_path,
-  	     output_vcf_path+".gz",
-  	     flag_f)
-         );
-  	executor.addTask(worker, sample_id, true);
-       }
-       { // tabix gvcf
-  	Worker_ptr worker(new TabixWorker(
-  	     output_vcf_path + ".gz")
-  	);
-  	executor.addTask(worker, sample_id, true);
-       }
-     }
-  
      executor.run();
   }; //for (auto pair : SampleData)
 

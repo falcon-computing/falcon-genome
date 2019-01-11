@@ -122,7 +122,7 @@ void Minimap2Worker::setup() {
       << "-R \"@RG\\tID:" << read_group_ << 
              "\\tSM:" << sample_id_ << 
              "\\tPL:" << platform_id_ << 
-             "\\tL:" << library_id_ << "\" "
+             "\\tLB:" << library_id_ << "\" "
       << "--temp_dir=\"" << partdir_path_ << "\" "
       << "--output=\"" << output_path_ << "\" " ;
 
@@ -138,12 +138,10 @@ void Minimap2Worker::setup() {
     cmd << "--inorder_output ";
   }
 
-  if (get_config<bool>("minimap.use_fpga") &&
-      !get_config<std::string>("minimap.fpga.bit_path").empty())
-  {
-    cmd << "--use_fpga "
-        << "--fpga_path=" << get_config<std::string>("minimap.fpga.bit_path") << " ";
-  }
+  //if (get_config<bool>("minimap.use_fpga") && !get_config<std::string>("minimap.fpga.bit_path").empty()) {
+  //  cmd << "--use_fpga "
+  //      << "--fpga_path=" << get_config<std::string>("minimap.fpga.bit_path") << " ";
+  //}
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
     cmd << it->first << " ";
