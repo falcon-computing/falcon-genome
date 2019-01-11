@@ -25,6 +25,7 @@ class SambambaWorker : public Worker {
   std::vector<std::string> input_files_;
   std::string output_file_;
   Action action_;
+  std::string common_;
 };
 
 } // namespace fcsgenome
