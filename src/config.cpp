@@ -28,6 +28,7 @@ std::set<std::string> config_list{
     "log_dir",
     "ref_genome"
     "bwa_path",
+    "minimap_path",
     "sambamba_path",
     "bcftools_path",
     "bgzip_path",
@@ -194,6 +195,7 @@ int init_config(boost::program_options::options_description conf_opt) {
 
   // check tool files
   check_input(get_config<std::string>("bwa_path"), false);
+  check_input(get_config<std::string>("minimap_path"), false);
   check_input(get_config<std::string>("sambamba_path"), false);
   check_input(get_config<std::string>("samtools_path"), false);
   check_input(get_config<std::string>("bcftools_path"), false);
@@ -273,6 +275,7 @@ int init(char** argv, int argc) {
     arg_decl_string_w_def("java_path",       "java -d64", "java binary")
     arg_decl_string_w_def("mpi_path",        "/usr/lib64/openmpi",                  "path to mpi installation")
     arg_decl_string_w_def("bwa_path",        conf_root_dir+"/tools/bin/bwa-flow",    "path to bwa binary")
+    arg_decl_string_w_def("minimap_path",        conf_root_dir+"/tools/bin/minimap-flow",    "path to minimap binary")
     arg_decl_string_w_def("sambamba_path",   conf_root_dir+"/tools/bin/sambamba",   "path to sambamba")
     arg_decl_string_w_def("samtools_path",   conf_root_dir+"/tools/bin/samtools",   "path to samtools")
     arg_decl_string_w_def("bcftools_path",   conf_root_dir+"/tools/bin/bcftools",   "path to bcftools")
@@ -298,6 +301,11 @@ int init(char** argv, int argc) {
     arg_decl_string_w_def("bwa.fpga.pac_path",     "",    "(deprecated) path to PAC reference used by FPGA for bwa")
     arg_decl_string("bwa.mpi_if", "network interface to use mpi connection")
     arg_decl_bool("bwa.scaleout_mode", "enable scale-out mode for bwa")
+
+    arg_decl_int_w_def("minimap.nt",                   -1,    "number of threads for minimap-flow")
+    arg_decl_bool_w_def("minimap.enforce_order",       false,  "enforce strict sorting ordering")    
+    //arg_decl_string_w_def("minimap.fpga.bit_path",     conf_root_dir+"/fpga/sw.xclbin", "path to FPGA bitstream for minimap2")
+    //arg_decl_string_w_def("minimap.fpga.pac_path",     "",    "(deprecated) path to PAC reference used by FPGA for minimap2")
 
     arg_decl_int_w_def("markdup.max_files",    4096, "max opened files in markdup")
     arg_decl_int_w_def("markdup.nt",           (16 > cpu_num ? cpu_num : 16),   "thread num in markdup")
