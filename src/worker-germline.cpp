@@ -217,9 +217,10 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
         temp_bam = output_bam_path;
       } 
       else {
-        temp_bam = boost::replace_all(output_bam_path, ".bam", "_") + read_group + ".bam";
+	std::string temp_str = output_bam_path;
+	boost::replace_all(temp_str, ".bam", "_");
+        temp_bam = temp_str + read_group + ".bam";
       }
-
 
       DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
