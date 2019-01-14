@@ -144,7 +144,6 @@ int align_main(int argc, char** argv,
       library_id = list[i].LibraryID;
 
       parts_dir = temp_dir + "/" + sample_id + "/" + read_group;
-      //temp_bam = temp_dir + "/" + sample_id  + "/output_" + read_group + ".bam";
 
       if (!sampleList.empty()) {
         temp_bam = output_path + "/" + sample_id  + "/" + sample_id + "_" + read_group + ".bam";
@@ -156,8 +155,6 @@ int align_main(int argc, char** argv,
       
       DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
-      //std::string tag=sample_id + " ReadGroup " + read_group;
-      //std::string tag=sample_id;
       Worker_ptr worker(new BWAWorker(ref_path,
            fq1_path, fq2_path,
            parts_dir,
