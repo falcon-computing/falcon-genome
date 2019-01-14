@@ -14,6 +14,8 @@ static inline std::string get_task_name(SambambaWorker::Action action) {
       return "Mark Duplicates";
     case SambambaWorker::MERGE :
       return "Merge BAM";
+    case SambambaWorker::INDEX :
+      return "Index BAM";
     default:
       return "";
   }
@@ -71,16 +73,12 @@ void SambambaWorker::setup() {
         << "-l 1 " << "-t " << get_config<int>("markdup.nt") << " ";
     break;
   case MERGE:
-    if (input_files_.size() > 1) {
-      cmd << get_config<std::string>("sambamba_path") << " merge "  << output_file_ << " "
-          << inputBAMs.str() <<    " "
-          << "-l 1 " << "-t " << get_config<int>("mergebam.nt") << " ";    
-    }
-    else { 
-      //cmd << "mv " << inputBAMs.str() <<  " " <<  output_file_ << "; " 
-      //    <<  get_config<std::string>("samtools_path") << " index " << output_file_ ;
-      cmd << get_config<std::string>("sambamba_path") << " index " << output_file_ << " --threads " << get_config<int>("mergebam.nt") << " ";
-    }
+    cmd << get_config<std::string>("sambamba_path") << " merge "  << output_file_ << " "
+        << inputBAMs.str() <<    " "
+        << "-l 1 " << "-t " << get_config<int>("mergebam.nt") << " ";    
+    break;
+  case INDEX:
+    cmd << get_config<std::string>("sambamba_path") << " index " << output_file_ << " -t " << get_config<int>("mergebam.nt") << " ";
     break;
   default:
     throw internalError("Invalid action");

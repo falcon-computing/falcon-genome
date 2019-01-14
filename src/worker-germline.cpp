@@ -171,10 +171,6 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   std::string temp_dir_htc = conf_temp_dir + "/htc";
   create_dir(temp_dir_htc);
   
-  //std::string output_dir = temp_dir_htc;
-  //std::string temp_gvcf_path = output_dir + "/" + get_basename(output_vcf_path);
-  //create_dir(output_dir);
-
   // check available space in temp dir
   namespace fs = boost::filesystem;
   //Executor executor("germline");
@@ -212,14 +208,12 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 
       parts_dir = temp_dir_map + "/" + sample_id + "/" + read_group ;
 
-      // temp_bam = temp_dir_map + "/" + sample_id  + "/output_" + read_group + ".bam";
-      if (i == list.size()-1) {
-        temp_bam = output_bam_path;
+      if (!sampleList.empty()) {
+        temp_bam = output_bam_path + "/" + sample_id  + "/" + sample_id + "_" + read_group + ".bam";
+        if (list.size()==1) temp_bam = output_bam_path + "/" + sample_id  + "/" + sample_id + ".bam"; 
       } 
       else {
-	std::string temp_str = output_bam_path;
-	boost::replace_all(temp_str, ".bam", "_");
-        temp_bam = temp_str + read_group + ".bam";
+        temp_bam = output_bam_path;
       }
 
       DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
@@ -243,14 +237,21 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 
       // Once the sample reach its last pair of FASTQ files, we proceed to merge and mark duplicates (if requested):
       if (i == list.size()-1) {
-        //if (sampleList.empty()) {
+        if (sampleList.empty()) {
 	  mergeBAM = output_bam_path;
-	  //} else{
-          // Sample Sheet : 
-	  //mergeBAM = output_bam_path + "/" + sample_id + "/" + sample_id + ".bam";
-	  //};
-        DLOG(INFO) << mergeBAM << "\n";
-        Worker_ptr merger_worker(new SambambaWorker(temp_dir_map + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, ".*/"+ sample_id + "*.*", flag_f));
+	  } else{
+            // Sample Sheet : 
+            temp_bam = output_bam_path + "/" + sample_id + "/";
+	    mergeBAM = output_bam_path + "/" + sample_id + "/" + sample_id + ".bam";
+	};
+
+	SambambaWorker::Action ActionTag;
+        if (list.size()<2) {
+          ActionTag = SambambaWorker::INDEX;
+        } else {
+          ActionTag = SambambaWorker::MERGE;
+        }
+        Worker_ptr merger_worker(new SambambaWorker(temp_bam, mergeBAM, ActionTag, ".*/" + sample_id + "*.*", flag_f));
         executor.addTask(merger_worker, sample_id, true); 
       } // i == list.size()-1 completed
 
