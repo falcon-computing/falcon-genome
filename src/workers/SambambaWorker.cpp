@@ -77,8 +77,9 @@ void SambambaWorker::setup() {
           << "-l 1 " << "-t " << get_config<int>("mergebam.nt") << " ";    
     }
     else { 
-      cmd << "mv " << inputBAMs.str() <<  " " <<  output_file_ << "; " 
-          <<  get_config<std::string>("samtools_path") << " index " << output_file_ ;
+      //cmd << "mv " << inputBAMs.str() <<  " " <<  output_file_ << "; " 
+      //    <<  get_config<std::string>("samtools_path") << " index " << output_file_ ;
+      cmd << get_config<std::string>("sambamba_path") << " index " << output_file_ << " --threads " get_config<int>("mergebam.nt") << " ";
     }
     break;
   default:

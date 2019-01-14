@@ -211,8 +211,16 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
       library_id = list[i].LibraryID;
 
       parts_dir = temp_dir_map + "/" + sample_id + "/" + read_group ;
-      temp_bam = temp_dir_map + "/" + sample_id  + "/output_" + read_group + ".bam";
-      
+
+      // temp_bam = temp_dir_map + "/" + sample_id  + "/output_" + read_group + ".bam";
+      if (i == list.size()-1) {
+        temp_bam = output_bam_path;
+      } 
+      else {
+        temp_bam = boost::replace_all(output_bam_path, ".bam", "_") + read_group + ".bam";
+      }
+
+
       DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
       Worker_ptr map_worker(new Minimap2Worker(ref_map,
@@ -234,14 +242,14 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 
       // Once the sample reach its last pair of FASTQ files, we proceed to merge and mark duplicates (if requested):
       if (i == list.size()-1) {
-        if (sampleList.empty()) {
+        //if (sampleList.empty()) {
 	  mergeBAM = output_bam_path;
-	} else{
+	  //} else{
           // Sample Sheet : 
-	  mergeBAM = output_bam_path + "/" + sample_id + "/" + sample_id + ".bam";
-        };
+	  //mergeBAM = output_bam_path + "/" + sample_id + "/" + sample_id + ".bam";
+	  //};
         DLOG(INFO) << mergeBAM << "\n";
-        Worker_ptr merger_worker(new SambambaWorker(temp_dir_map + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, ".*/output_*.*", flag_f));
+        Worker_ptr merger_worker(new SambambaWorker(temp_dir_map + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, ".*/"+ sample_id + "*.*", flag_f));
         executor.addTask(merger_worker, sample_id, true); 
       } // i == list.size()-1 completed
 
