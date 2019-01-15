@@ -109,11 +109,16 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   }
 
   // For a single sample: Check if Output BAM Directory exists. If not, create:
+
+  // In case the output_bam_path is not set by user, it will be set here:
   if (output_bam_path.empty()){
-    output_bam_path = conf_temp_dir + "/align/";
-    boost::filesystem::create_directory(output_bam_path);
+    output_bam_path = conf_temp_dir + "/align";
+    if (sampleList.empty()) {
+       output_bam_path = output_bam_path + "/output.bam";
+    }
   }
 
+  // Check the existence of output_bam_path:
   boost::filesystem::path p1(output_bam_path);
   boost::filesystem::path bamdir = p1.parent_path();
   if (boost::filesystem::is_directory(bamdir)==false && !bamdir.string().empty()) {
@@ -178,7 +183,6 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   
   // check available space in temp dir
   namespace fs = boost::filesystem;
-  //Executor executor("germline");
   Executor executor("Falcon Fast Germline", get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
 
   // Going through each line in the Sample Sheet:
@@ -236,7 +240,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 	flag_f)
       );
 
-      executor.addTask(map_worker, sample_id, 0);
+      executor.addTask(map_worker, sample_id, true);
 
       DLOG(INFO) << "Alignment Completed for " << sample_id;
 
@@ -320,6 +324,9 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   
     std::string output_vcf;
     if (!sampleList.empty()) {
+      if (!boost::filesystem::exists(output_vcf_path + "/" + sample_id + "/")) {
+	boost::filesystem::create_directory(output_vcf_path + "/" + sample_id + "/");
+      }
       output_vcf = output_vcf_path + "/" + sample_id + "/" + sample_id + ".vcf";
     }
     else {
