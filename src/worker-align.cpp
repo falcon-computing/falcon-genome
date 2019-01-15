@@ -144,12 +144,17 @@ int align_main(int argc, char** argv,
       library_id = list[i].LibraryID;
 
       parts_dir = temp_dir + "/" + sample_id + "/" + read_group;
-      temp_bam = temp_dir + "/" + sample_id  + "/output_" + read_group + ".bam";
+
+      if (!sampleList.empty()) {
+        temp_bam = output_path + "/" + sample_id  + "/" + sample_id + "_" + read_group + ".bam";
+        if (list.size()==1) temp_bam = output_path + "/" + sample_id  + "/" + sample_id + ".bam";
+      }
+      else {
+        temp_bam = output_path;
+      }
       
       DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
-      //std::string tag=sample_id + " ReadGroup " + read_group;
-      //std::string tag=sample_id;
       Worker_ptr worker(new BWAWorker(ref_path,
            fq1_path, fq2_path,
            parts_dir,
@@ -171,12 +176,21 @@ int align_main(int argc, char** argv,
       if (i == list.size()-1) {
         std::string mergeBAM;
         if (sampleList.empty()) {
-	         mergeBAM = output_path;
-	      } else{
-	         mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
+          mergeBAM = output_path;
+	} else{
+	  // Sample Sheet :
+	  temp_bam = output_path + "/" + sample_id + "/";
+	  mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
         };
 
-        Worker_ptr merger_worker(new SambambaWorker(temp_dir + "/" + sample_id, mergeBAM, SambambaWorker::MERGE, ".*/output_*.*", flag_f));
+	SambambaWorker::Action ActionTag;
+        if (list.size()<2) {
+          ActionTag = SambambaWorker::INDEX;
+        } else {
+          ActionTag = SambambaWorker::MERGE;
+        }
+
+        Worker_ptr merger_worker(new SambambaWorker(temp_bam, mergeBAM, ActionTag, ".*/" + sample_id + "*.*", flag_f));
         executor.addTask(merger_worker, sample_id, true); 
 
       } // i == list.size()-1 completed
