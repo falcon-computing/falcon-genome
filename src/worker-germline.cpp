@@ -110,7 +110,8 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 
   // For a single sample: Check if Output BAM Directory exists. If not, create:
   if (output_bam_path.empty()){
-    output_bam_path = conf_temp_dir + "/align/" ;
+    output_bam_path = conf_temp_dir + "/align/";
+    boost::filesystem::create_directory(output_bam_path);
   }
 
   boost::filesystem::path p1(output_bam_path);
