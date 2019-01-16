@@ -13,12 +13,13 @@ class Minimap2Worker : public Worker {
       std::string fq2_path,
       std::string partdir_path,
       std::string output_path,
+      int num_buckets,
       std::vector<std::string> extra_opts,
       std::string sample_id,
       std::string read_group,
       std::string platform_id,
       std::string library_id,
-      bool flag_align_only,
+      bool flag_merge_bams,
       bool &flag_f);
 
   void check();
@@ -31,12 +32,13 @@ class Minimap2Worker : public Worker {
   std::string partdir_path_;
   std::string output_path_;
 
+  int num_buckets_;
   std::string sample_id_;
   std::string read_group_;
   std::string platform_id_;
   std::string library_id_;
 
-  bool flag_align_only_;
+  bool flag_merge_bams_;
 };
 
 } // namespace fcsgenome

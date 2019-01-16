@@ -10,8 +10,8 @@ namespace fcsgenome {
 class HTCWorker : public Worker {
  public:
   HTCWorker(std::string ref_path,
-      std::string intv_path,
-      std::string input_path,
+      std::vector<std::string> intv_paths,
+      std::vector<std::string> input_paths,
       std::string output_path,
       std::vector<std::string> extra_opts,
       int contig,
@@ -23,11 +23,12 @@ class HTCWorker : public Worker {
   void setup();
 
  private:
-  bool produce_vcf_;
-  bool flag_gatk_;
+  int  contig_;       // which bam parts are we working on in this worker
+  bool produce_vcf_;  // whether we produce vcf of gvcf
+  bool flag_gatk_;    // whether we use GATK4
   std::string ref_path_;
-  std::string intv_path_;
-  std::string input_path_;
+  std::vector<std::string> intv_paths_; 
+  std::vector<std::string> input_paths_;
   std::string output_path_;
 };
 } // namespace fcsgenome

@@ -40,7 +40,7 @@ Stage::Stage(Executor* executor): executor_(executor) {;}
 
 void Stage::add(Worker_ptr worker, std::string sample_id) {
   tasks_labels_ = worker->getTaskName() + " " + sample_id;
-  DLOG(INFO) << "Stage::add " << executor_->get_log_name(tasks_labels_, logs_.size());
+  //DLOG(INFO) << "Stage::add " << executor_->get_log_name(tasks_labels_, logs_.size());
   logs_.push_back(executor_->get_log_name(tasks_labels_, logs_.size()));
   tasks_.push_back(worker);  
 }
@@ -308,7 +308,7 @@ std::string Executor:: get_log_name(std::string job_name, int idx) {
   if (idx >= 0) {
     ss << "." << idx;
   }
-  DLOG(INFO) << "Log File : "  << ss.str();
+  //DLOG(INFO) << "Log File : "  << ss.str();
   return  ss.str();
 }
 
