@@ -42,17 +42,16 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   opt_desc.add_options()
     // Common Options:
     ("ref,r", po::value<std::string>()->required(), "reference genome path")
-    ("sample-id", po::value<std::string>()->implicit_value(""), "sample id for log files")
 
     // Alignment Options:
     ("fastq1,1", po::value<std::string>(), "input pair-end fastq file")
     ("fastq2,2", po::value<std::string>(), "input pair-end fastq file")
 
     arg_decl_string("sample_sheet,F", "Sample Sheet or Folder")   
-    arg_decl_string_w_def("rg,R", "sample",   "read group id ('ID' in BAM header)")
-    arg_decl_string_w_def("sp,S", "sample",   "sample id ('SM' in BAM header)")
-    arg_decl_string_w_def("pl,P", "illumina", "platform id ('PL' in BAM header)")
-    arg_decl_string_w_def("lb,L", "sample",   "library id ('LB' in BAM header)")
+    arg_decl_string_w_def("read-group,R", "sample",   "read group id ('ID' in BAM header)")
+    arg_decl_string_w_def("sample-id,S", "sample",   "sample id ('SM' in BAM header)")
+    arg_decl_string_w_def("platform,P", "illumina", "platform id ('PL' in BAM header)")
+    arg_decl_string_w_def("library,l", "sample",   "library id ('LB' in BAM header)")
     ("produce-bam, b", "select to produce sorted BAM file after alignment")
     //("align-only,l", "skip mark duplicates")
 
@@ -72,7 +71,6 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   // Common Arguments:
   bool flag_f             = get_argument<bool>(cmd_vm, "force", "f");
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
-  std::string sample_id   = get_argument<std::string>(cmd_vm, "sample-id");
 
   // Alignment Arguments :
   //bool flag_align_only = get_argument<bool>(cmd_vm, "align-only", "l");
@@ -80,10 +78,10 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   std::string sampleList  = get_argument<std::string>(cmd_vm, "sample_sheet", "F");
   std::string fq1_path    = get_argument<std::string>(cmd_vm, "fastq1", "1");
   std::string fq2_path    = get_argument<std::string>(cmd_vm, "fastq2", "2");
-  std::string read_group  = get_argument<std::string>(cmd_vm, "rg", "R");
-  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sp", "S");
-  std::string platform_id = get_argument<std::string>(cmd_vm, "pl", "P");
-  std::string library_id  = get_argument<std::string>(cmd_vm, "lb", "L");
+  std::string read_group  = get_argument<std::string>(cmd_vm, "read-group", "R");
+  std::string sample_tag  = get_argument<std::string>(cmd_vm, "sample-id", "S");
+  std::string platform_id = get_argument<std::string>(cmd_vm, "platform", "P");
+  std::string library_id  = get_argument<std::string>(cmd_vm, "library", "l");
   bool flag_produce_bam   = get_argument<bool>(cmd_vm, "produce-bam", "b");
   
   // Extra Options for Aligner:
