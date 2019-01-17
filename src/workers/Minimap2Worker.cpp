@@ -126,7 +126,7 @@ void Minimap2Worker::setup() {
 
   cmd << ref_path_ << " "
       << fq1_path_ << " "
-      << fq2_path_ << ";";
+      << fq2_path_;
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_ << "\n";
