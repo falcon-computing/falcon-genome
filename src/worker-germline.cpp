@@ -59,6 +59,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     ("output,o", po::value<std::string>()->required(), "output GVCF/VCF file")
     ("produce-vcf,v", "produce VCF files from HaplotypeCaller instead of GVCF")
     ("intervalList,L", po::value<std::string>()->implicit_value(""), "interval list file")
+    ("gatk4", "use GATK 4.0 instead of 3.x")
     ("htc-extra-options", po::value<std::vector<std::string> >(), "extra options for HaplotypeCaller");  
 
   // Parse arguments
@@ -93,6 +94,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 
   // HaplotypeCaller Arguments:
   bool flag_vcf           = get_argument<bool>(cmd_vm, "produce-vcf", "v");
+  bool flag_gatk4         = get_argument<bool>(cmd_vm, "gatk4");
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
 
@@ -283,7 +285,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
             output_file,
             htc_extra_opts,
             contig,
-            flag_vcf, flag_f, true));
+            flag_vcf, flag_f, flag_gatk4));
 
       output_files[contig] = output_file;
       executor.addTask(worker, sample_id, contig == 0);
