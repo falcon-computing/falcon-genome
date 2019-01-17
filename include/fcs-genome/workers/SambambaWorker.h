@@ -10,8 +10,10 @@ class SambambaWorker : public Worker {
   typedef enum {
     MARKDUP,
     MERGE,
-    INDEX
+    INDEX,
+    SORT
   } Action;
+
   SambambaWorker(std::string input_path,
       std::string output_path, 
       Action action, 
@@ -22,6 +24,7 @@ class SambambaWorker : public Worker {
   //  std::string getAction();
   void check();
   void setup();
+
  private:
   std::string input_path_;
   std::vector<std::string> input_files_;

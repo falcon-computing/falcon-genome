@@ -213,4 +213,9 @@ bool is_folder_writable(const char* str) {
   }
 }
 
+std::string get_fname_by_ext(std::string fname, std::string ext) {
+  boost::filesystem::path p(fname);
+  return p.parent_path().string() + "/" + p.stem().string() + "." + ext;
+}
+
 } // namespace fcsgenome

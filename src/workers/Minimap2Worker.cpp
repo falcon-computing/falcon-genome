@@ -17,28 +17,28 @@ Minimap2Worker::Minimap2Worker(std::string ref_path,
       std::string fq2_path,
       std::string partdir_path,
       std::string output_path,
+      int         num_buckets,
       std::vector<std::string> extra_opts,
       std::string sample_id,
       std::string read_group,
       std::string platform_id,
       std::string library_id,
-      bool flag_align_only,
+      bool flag_merge_bams,
       bool &flag_f):
-  Worker(get_config<bool>("minimap.scaleout_mode") || 
-         get_config<bool>("latency_mode") 
-         ? conf_host_list.size() : 1, 
-         1, extra_opts, "minimap-flow"),
+  Worker(1, 1, extra_opts, "minimap-flow"),
   ref_path_(ref_path),
   fq1_path_(fq1_path),
   fq2_path_(fq2_path),
+  partdir_path_(partdir_path),
   output_path_(output_path),
+  num_buckets_(num_buckets),
   sample_id_(sample_id),
   read_group_(read_group),
   platform_id_(platform_id),
   library_id_(library_id),
-  flag_align_only_(flag_align_only)
+  flag_merge_bams_(flag_merge_bams)
 {
-  partdir_path_ = check_output(partdir_path, flag_f);
+  //partdir_path_ = check_output(partdir_path);
 
   if (sample_id.empty() ||
       read_group.empty() || 
@@ -49,20 +49,27 @@ Minimap2Worker::Minimap2Worker(std::string ref_path,
 }
 
 void Minimap2Worker::check() {
+  // check reference files
+  std::string mmi_path = get_fname_by_ext(ref_path_, "mmi");
+  if (boost::filesystem::exists(mmi_path)) {
+    ref_path_ = check_input(mmi_path);
+  }
+  else {
+    ref_path_ = check_input(ref_path_);
+  }
 
   // check input files
-  ref_path_ = check_input(ref_path_);
   fq1_path_ = check_input(fq1_path_);
   fq2_path_ = check_input(fq2_path_);
 
   // Checking if Temporal Storage fits with input:                                                                                                                   
-  auto p = boost::filesystem::path(conf_temp_dir);
-  std::string temp_dir = p.parent_path().string();
 
-  uintmax_t fastq_size=0;
+  std::string temp_dir = partdir_path_;
+
+  uintmax_t fastq_size = 0;
   uintmax_t mult=3;
-  if (fs::exists(fq1_path_) && fs::exists(fq2_path_)){
-    fastq_size=mult*(fs::file_size(fq1_path_)+fs::file_size(fq2_path_));
+  if (fs::exists(fq1_path_) && fs::exists(fq2_path_)) {
+    fastq_size = mult*(fs::file_size(fq1_path_)+fs::file_size(fq2_path_));
   }
   else{
     LOG(ERROR) << "FASTQ Files: " << fq1_path_ << " and " << fq2_path_ << " do not exist";
@@ -88,14 +95,12 @@ void Minimap2Worker::setup() {
              "\\tPL:" << platform_id_ << 
              "\\tLB:" << library_id_ << "\" "
       << "--temp_dir=\"" << partdir_path_ << "\" "
-      << "--output=\"" << output_path_ << "\" " ;
+      << "--output=\"" << output_path_ << "\" "
+      << "--num_buckets=" << num_buckets_ << " "
+      << "--merge_bams=" << flag_merge_bams_ << " ";
 
   if (get_config<int>("minimap.nt") > 0) {
     cmd << "--t=" << get_config<int>("minimap.nt") << " ";
-  }
-
-  if (flag_align_only_) {
-    cmd << "--disable_markdup=true ";
   }
 
   if (get_config<bool>("minimap.enforce_order")) {
@@ -121,7 +126,7 @@ void Minimap2Worker::setup() {
 
   cmd << ref_path_ << " "
       << fq1_path_ << " "
-      << fq2_path_ << ";";
+      << fq2_path_;
 
   cmd_ = cmd.str();
   DLOG(INFO) << cmd_ << "\n";

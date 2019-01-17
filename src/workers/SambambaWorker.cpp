@@ -16,6 +16,8 @@ static inline std::string get_task_name(SambambaWorker::Action action) {
       return "Merge BAM";
     case SambambaWorker::INDEX :
       return "Index BAM";
+    case SambambaWorker::SORT :
+      return "Sorting BAM";
     default:
       return "";
   }
@@ -79,6 +81,15 @@ void SambambaWorker::setup() {
     break;
   case INDEX:
     cmd << get_config<std::string>("sambamba_path") << " index " << output_file_ << " -t " << get_config<int>("mergebam.nt") << " ";
+    break;
+  case SORT:
+    cmd << get_config<std::string>("sambamba_path") << " sort " 
+        << input_path_ << ";";
+    // mv bam and bai
+    cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam") 
+        << " " << input_path_ << ";";
+    cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam.bai") 
+        << " " << get_fname_by_ext(input_path_, "bai");
     break;
   default:
     throw internalError("Invalid action");

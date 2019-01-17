@@ -90,12 +90,12 @@ int htc_main(int argc, char** argv,
 
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
 
+  // generate interval folder
+  init_contig_intv(ref_path);
+
   std::vector<std::string> intv_paths;
   if (!intv_list.empty()) {
-    intv_paths = split_by_nprocs(intv_list, "bed");
-  }
-  else {
-    intv_paths = init_contig_intv(ref_path);
+    intv_paths.push_back(intv_list);
   }
 
   // start an executor for NAM
@@ -134,15 +134,14 @@ int htc_main(int argc, char** argv,
 
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new HTCWorker(ref_path,
-        intv_paths[contig], 
-        input_file,
+        intv_paths, 
+        {input_file},
         output_file,
         extra_opts,
         contig,
         flag_vcf,
         flag_htc_f,
-	flag_gatk)
-    );
+        flag_gatk));
 
     output_files[contig] = output_file;
     executor.addTask(worker,sample_id);

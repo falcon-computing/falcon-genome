@@ -70,7 +70,7 @@ void calc_gatk_default_config(
   }
   // first increase memory if necessary
   while (nprocs * (memory+2) < memory_size * (1+memory_margin)
-      && memory < 16)
+      && memory < 8)
   {
     memory += 2;
   }
@@ -377,6 +377,14 @@ static inline void write_contig_intv(std::ofstream& fout,
     std::string chr,
     uint64_t lbound, uint64_t ubound) {
     fout << chr << ":" << lbound << "-" << ubound << std::endl;
+}
+
+std::string contig_intv_dir() {
+  int ncontigs = get_config<int>("gatk.ncontigs");
+
+  std::stringstream ss;
+  ss << conf_temp_dir << "/intv_" << ncontigs;
+  return ss.str();
 }
 
 std::vector<std::string> init_contig_intv(std::string ref_path) {

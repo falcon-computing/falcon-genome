@@ -88,6 +88,7 @@ int check_memory_config(std::string key, int memory_size = global_memory_size);
 int init(char** argv, int argc);
 int init_config(boost::program_options::options_description conf_opt);
 
+std::string contig_intv_dir();
 std::vector<std::string> init_contig_intv(std::string ref_path);
 std::vector<std::string> split_ref_by_nprocs(std::string ref_path);
 std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype);

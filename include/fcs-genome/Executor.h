@@ -25,9 +25,9 @@ class Stage
 : public boost::basic_lockable_adapter<boost::mutex>
 {
  public:
-  Stage(Executor* executor);
+  Stage(Executor* executor, std::string label);
 
-  void add(Worker_ptr worker, std::string sample_id);
+  void add(Worker_ptr worker);
   void run();  
 
  private:
@@ -36,7 +36,7 @@ class Stage
   Executor*                executor_;
   std::vector<Worker_ptr>  tasks_;
   std::vector<std::string> logs_;
-  std::string              tasks_labels_;
+  std::string              label_;
   std::map<int, int>       status_;
 };
 
