@@ -218,6 +218,17 @@ inline bool get_argument<bool>(
   //}
 }
 
+template <>
+  inline bool get_argument<bool>(
+     boost::program_options::variables_map &vm,
+     const char* arg1
+) {
+  return vm.count(arg1);
+ }
+
+
+
+
 inline std::string get_contig_fname(
     std::string base_path,
     int contig,

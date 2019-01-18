@@ -95,6 +95,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   // HaplotypeCaller Arguments:
   bool flag_vcf           = get_argument<bool>(cmd_vm, "produce-vcf", "v");
   bool flag_gatk4         = get_argument<bool>(cmd_vm, "gatk4");
+
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
 
