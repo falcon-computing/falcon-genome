@@ -71,19 +71,24 @@ void SambambaWorker::setup() {
     cmd << get_config<std::string>("sambamba_path") << " markdup "
         << "--overflow-list-size=" << get_config<int>("markdup.overflow-list-size") << " " 
         << inputBAMs.str() << " "
-        << "--tmpdir=" << get_config<std::string>("temp_dir") << " " << output_file_ << " "
+        << "--tmpdir=" << get_config<std::string>("temp_dir") << " " 
+        << output_file_ << " "
         << "-l 1 " << "-t " << get_config<int>("markdup.nt") << " ";
     break;
   case MERGE:
-    cmd << get_config<std::string>("sambamba_path") << " merge "  << output_file_ << " "
+    cmd << get_config<std::string>("sambamba_path") << " merge "  
+        << output_file_ << " "
         << inputBAMs.str() <<    " "
         << "-l 1 " << "-t " << get_config<int>("mergebam.nt") << " ";    
     break;
   case INDEX:
-    cmd << get_config<std::string>("sambamba_path") << " index " << output_file_ << " -t " << get_config<int>("mergebam.nt") << " ";
+    cmd << get_config<std::string>("sambamba_path") << " index " 
+        << output_file_ << " " 
+        << "-t " << get_config<int>("mergebam.nt") << " ";
     break;
   case SORT:
     cmd << get_config<std::string>("sambamba_path") << " sort " 
+        << "--tmpdir=" << get_config<std::string>("temp_dir") << " " 
         << input_path_ << ";";
     // mv bam and bai
     cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam") 

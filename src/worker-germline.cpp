@@ -166,7 +166,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     // Loop through all the pairs of FASTQ files:
     for (int i = 0; i < list.size(); ++i) {
 
-      Executor executor("Falcon Fast Germline", num_buckets);
+      Executor executor("Falcon Fast Germline", get_config<int>("sort.nprocs", "gatk.nprocs"));
 
       std::string fq1_path    = list[i].fastqR1;
       std::string fq2_path    = list[i].fastqR2;
