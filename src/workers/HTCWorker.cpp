@@ -10,7 +10,7 @@ namespace fcsgenome {
 
 HTCWorker::HTCWorker(std::string ref_path,
       std::vector<std::string> intv_paths,
-      std::vector<std::string> input_paths,
+      std::string input_paths,
       std::string output_path,
       std::vector<std::string> extra_opts,
       int contig,
@@ -33,47 +33,10 @@ HTCWorker::HTCWorker(std::string ref_path,
 
 void HTCWorker::check() {
   namespace fs = boost::filesystem;
-
-  ref_path_   = check_input(ref_path_);
-
-  // check user input for intv.bed first
-  for (int i = 0; i < intv_paths_.size(); i++) {
-    intv_paths_[i]  = check_input(intv_paths_[i]);
-  }
-
-  // check input paths
-  bool found_bam_intv = false;
-  for (int i = 0; i < input_paths_.size(); i++) {
-    // check BAM input (*.bam)
-    input_paths_[i] = check_input(input_paths_[i]);
-
-    // check BAM index (*.bai | *.bam.bai)
-    if (!fs::exists(input_paths_[i] + ".bai") &&
-        !fs::exists(get_fname_by_ext(input_paths_[i], "bai"))) {
-      DLOG(INFO) << input_paths_[i] + ".bai" << ": " << fs::exists(input_paths_[i] + ".bai");
-      DLOG(INFO) << get_fname_by_ext(input_paths_[i], "bai") << ": " << fs::exists(get_fname_by_ext(input_paths_[i], "bai"));
-      throw fileNotFound("cannot find BAM index for " + input_paths_[i]);
-    }
-    
-    // check if interval for bam input exists (pre-generated)
-    // here we make the assumption the intv have a pre-determined 
-    // filename pattern, like part-00.bam and part-00.bed
-    std::string intv = get_fname_by_ext(input_paths_[i], "bed");
-    if (fs::exists(intv)) {
-      intv_paths_.push_back(intv);
-      DLOG(INFO) << "Using interval " << intv << " that comes with input "
-                 << input_paths_[i];
-      found_bam_intv = true;
-    }
-  }
-  if (!found_bam_intv) {
-    // if no interval comes with the input, use pre-defined ones
-    std::string intv_dir = contig_intv_dir();
-    std::string intv = get_contig_fname(intv_dir, contig_, "list", "intv");
-    intv = check_input(intv);
-
-    intv_paths_.push_back(intv);
-    DLOG(INFO) << "Using interval " << intv << " generated for contig " << contig_;
+  ref_path_    = check_input(ref_path_);
+  input_paths_ = check_input(input_paths_);
+  for (auto path : intv_paths_){
+    path = check_input(path);
   }
 }
 
@@ -90,15 +53,13 @@ void HTCWorker::setup() {
       cmd << "-jar " << get_config<std::string>("gatk_path") << " -T HaplotypeCaller ";
   }
 
-  cmd << "-R " << ref_path_   << " ";
+  cmd << " -R " << ref_path_    << " "
+      << " -I " << input_paths_ ;
 
-  for (auto path : input_paths_) {
-    cmd << "-I " << path << " ";
+  for (auto path : intv_paths_){
+    cmd <<  " -L " << path << " "; 
   }
-  for (auto path : intv_paths_) {
-    cmd << "-L " << path  << " ";
-  }
-	cmd << " -isr INTERSECTION ";
+  cmd << " -isr INTERSECTION ";
 
   for (auto option : extra_opts_) {
     if (option.second.size() == 0) {

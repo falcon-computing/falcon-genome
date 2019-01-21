@@ -235,7 +235,8 @@ inline std::string get_contig_fname(
     std::string ext = "bam",
     std::string prefix = "part-") 
 {
-  int n_digits = (int)log10((double)get_config<int>("gatk.ncontigs"))+1;
+  //int n_digits = (int)log10((double)get_config<int>("gatk.ncontigs"))+1;
+  int n_digits = 6;
   std::stringstream ss;
   ss << base_path << "/" << prefix
      << std::setw(n_digits) << std::setfill('0') << contig
