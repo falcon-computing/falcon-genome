@@ -12,7 +12,7 @@ agent {label 'merlin'}
                         sh "source /curr/software/util/modules-tcl/init/bash"
                         sh "module load sdx/17.4; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=aws -DDEPLOYMENT_DST=aws -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon2/bin .."
                         sh "make -j 8"
-                        sh "make install"
+//                        sh "make install"
                         sh "make test"
                         }
                      }
@@ -29,7 +29,7 @@ agent {label 'merlin'}
                             sh "source /curr/software/util/modules-tcl/init/bash"
                             sh "module load sdx/17.4; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=hwc -DDEPLOYMENT_DST=hwc -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon-hwc/bin .."
                             sh "make -j 8"
-                            sh "make install"
+ //                           sh "make install"
                             sh "make test"
                             }
                          }
@@ -46,7 +46,7 @@ agent {label 'merlin'}
                           sh "source /curr/software/util/modules-tcl/init/bash"
                           sh "module load xrt; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=Internal -DDEPLOYMENT_DST=Internal -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon-local/bin .."
                           sh "make -j 8"
-                          sh "make install"
+//                          sh "make install"
                           sh "make test"
                         }
                       }
