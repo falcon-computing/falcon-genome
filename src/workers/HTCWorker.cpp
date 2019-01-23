@@ -10,7 +10,7 @@ namespace fcsgenome {
 
 HTCWorker::HTCWorker(std::string ref_path,
       std::vector<std::string> intv_paths,
-      std::string input_paths,
+      std::vector<std::string> input_paths,
       std::string output_path,
       std::vector<std::string> extra_opts,
       int contig,
@@ -25,40 +25,45 @@ HTCWorker::HTCWorker(std::string ref_path,
   flag_gatk_(flag_gatk),
   ref_path_(ref_path),
   intv_paths_(intv_paths),
-  input_paths_(input_paths)
+  input_paths_(input_paths),
+  output_path_(output_path)
 {
-  // check input/output files
   output_path_ = check_output(output_path, flag_f);
 }
 
 void HTCWorker::check() {
   namespace fs = boost::filesystem;
   ref_path_    = check_input(ref_path_);
-  input_paths_ = check_input(input_paths_);
   for (auto path : intv_paths_){
+    path = check_input(path);
+  }
+  for (auto path : input_paths_){
     path = check_input(path);
   }
 }
 
 void HTCWorker::setup() {
-
   // create cmd
   std::stringstream cmd;
   cmd << get_config<std::string>("java_path") << " "
       << "-Xmx" << get_config<int>("gatk.htc.memory", "gatk.memory") << "g ";
 
   if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
-      cmd << "-jar " << get_config<std::string>("gatk4_path") << " HaplotypeCaller ";
+    cmd << "-jar " << get_config<std::string>("gatk4_path") << " HaplotypeCaller ";
   } else {
-      cmd << "-jar " << get_config<std::string>("gatk_path") << " -T HaplotypeCaller ";
+    cmd << "-jar " << get_config<std::string>("gatk_path") << " -T HaplotypeCaller ";
   }
 
-  cmd << " -R " << ref_path_    << " "
-      << " -I " << input_paths_ ;
+  cmd << " -R " << ref_path_    << " ";
 
-  for (auto path : intv_paths_){
-    cmd <<  " -L " << path << " "; 
+  for (auto path1 : input_paths_){
+     cmd << " -I " << path1 ;
   }
+
+  for (auto path2 : intv_paths_){
+    cmd <<  " -L " << path2 << " "; 
+  }
+
   cmd << " -isr INTERSECTION ";
 
   for (auto option : extra_opts_) {
@@ -75,26 +80,26 @@ void HTCWorker::setup() {
   }
 
   if (flag_gatk_ || get_config<bool>("use_gatk4")){
-     cmd << "-O " << output_path_  << " "
-         << " --native-pair-hmm-threads=" << get_config<int>("gatk.htc.nct", "gatk.nct") << " ";
-     if (!produce_vcf_){
-         cmd << "--emit-ref-confidence=GVCF" << " ";
-     } else {
-         // This is the DEFAULT:
-         cmd << "--emit-ref-confidence=NONE" << " " ;
-     }
+    cmd << "-O " << output_path_  << " "
+        << " --native-pair-hmm-threads=" << get_config<int>("gatk.htc.nct", "gatk.nct") << " ";
+    if (!produce_vcf_){
+      cmd << "--emit-ref-confidence=GVCF" << " ";
+    } else {
+     // This is the DEFAULT:
+     cmd << "--emit-ref-confidence=NONE" << " " ;
+    }
   } else{
      if (!produce_vcf_) {
-        if (!extra_opts_.count("--emitRefConfidence") && !extra_opts_.count("-ERC")) {
-        // if the user has not specified the same arg in extra options, use our default values
-           cmd << "--emitRefConfidence GVCF ";
-        }
+       if (!extra_opts_.count("--emitRefConfidence") && !extra_opts_.count("-ERC")) {
+         // if the user has not specified the same arg in extra options, use our default values
+         cmd << "--emitRefConfidence GVCF ";
+       }
      }
      if (!extra_opts_.count("--variant_index_type")) {
-        cmd << "--variant_index_type LINEAR ";
+       cmd << "--variant_index_type LINEAR ";
      }
      if (!extra_opts_.count("--variant_index_parameter")) {
-        cmd << "--variant_index_parameter 128000 ";
+       cmd << "--variant_index_parameter 128000 ";
      }
      cmd << "-nct " << get_config<int>("gatk.htc.nct", "gatk.nct") << " "
          << "-o " << output_path_ << " ";

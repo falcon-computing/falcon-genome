@@ -6,12 +6,11 @@
 #include "fcs-genome/Worker.h"
 
 namespace fcsgenome {
-
 class HTCWorker : public Worker {
  public:
   HTCWorker(std::string ref_path,
       std::vector<std::string> intv_paths,
-      std::string input_paths,
+      std::vector<std::string> input_paths,
       std::string output_path,
       std::vector<std::string> extra_opts,
       int contig,
@@ -28,7 +27,7 @@ class HTCWorker : public Worker {
   bool flag_gatk_;    // whether we use GATK4
   std::string ref_path_;
   std::vector<std::string> intv_paths_; 
-  std::string input_paths_;
+  std::vector<std::string> input_paths_;
 
   std::string output_path_;
 };

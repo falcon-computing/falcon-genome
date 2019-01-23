@@ -10,8 +10,8 @@ class BQSRWorker : public Worker {
  public:
   BQSRWorker(std::string ref_path,
       std::vector<std::string> &known_sites,
-      std::string intv_path,
-      std::string input_path,
+      std::vector<std::string>  intv_path,
+      std::vector<std::string> input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
       int contig,
@@ -24,8 +24,8 @@ class BQSRWorker : public Worker {
  private:
   std::vector<std::string> known_sites_;
   std::string ref_path_;
-  std::string intv_path_;
-  std::string input_path_;
+  std::vector<std::string> intv_path_;
+  std::vector<std::string> input_path_;
   std::string output_path_;
   bool flag_gatk_;
 };
@@ -47,9 +47,9 @@ class BQSRGatherWorker : public Worker {
 class PRWorker : public Worker {
  public:
   PRWorker(std::string ref_path,
-      std::string intv_path,
+      std::vector<std::string> intv_path,
       std::string bqsr_path,
-      std::string input_path,
+      std::vector<std::string> input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
       int contig, bool &flag_f, bool flag_gatk);
@@ -59,9 +59,9 @@ class PRWorker : public Worker {
 
  private:
   std::string ref_path_;
-  std::string intv_path_;
+  std::vector<std::string> intv_path_;
   std::string bqsr_path_;
-  std::string input_path_;
+  std::vector<std::string> input_path_;
   std::string output_path_;
   bool flag_gatk_;
 };

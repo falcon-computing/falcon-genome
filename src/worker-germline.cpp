@@ -17,19 +17,6 @@
 
 namespace fcsgenome {
 
-std::string get_bucket_fname(std::string dir,
-    int contig,
-    std::string stem = "part",
-    std::string ext = ".bam") 
-{
-  std::stringstream ss;
-  ss << dir << "/" << stem << "-"
-    << std::setw(6) << std::setfill('0') << contig
-    << ext;
-
-  return ss.str();
-}
-
 int germline_main(int argc, char** argv, boost::program_options::options_description &opt_desc)
 {
   namespace po = boost::program_options;
@@ -135,6 +122,8 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     }
   }
 
+  int my_num = (int) round(get_config<int>("minimap.num_buckets")/get_config<int>("gatk.ncontigs"));
+
   // start execution
   
   // check available space in temp dir
@@ -162,6 +151,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     std::vector<std::string> output_bams;
 
     // Loop through all the pairs of FASTQ files:
+    std::string read_tag;
     for (int i = 0; i < list.size(); ++i) {
 
       Executor executor("Falcon Fast Germline", get_config<int>("sort.nprocs", "gatk.nprocs"));
@@ -172,7 +162,8 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
       std::string platform_id = list[i].Platform;
       std::string library_id  = list[i].LibraryID;
 
-      std::string parts_dir   = temp_bam_dir + "/" + read_group;
+      read_tag = read_group;
+      std::string parts_dir = temp_bam_dir + "/" + read_group;
       std::string output;
       create_dir(parts_dir);
       //check_output(parts_dir, flag_f);
@@ -202,16 +193,15 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 
       // perform sambamba sort if not producing bam
       if (!flag_produce_bam) {
-        for (int i = 0; i < num_buckets; i++) {
+        for (int i = 0; i < get_config<int>("minimap.num_buckets"); i++) {
           std::string input = get_bucket_fname(parts_dir, i);
           bool flag = true;
           Worker_ptr worker(new SambambaWorker(
                 input, input,
                 SambambaWorker::SORT,
                 "", flag)); 
-
           executor.addTask(worker, sample_id, i == 0);
-        }
+        };
       }
       else {
         bool flag = true;
@@ -223,7 +213,8 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
       }
 
       executor.run();
-    }
+
+    } // END for (int i = 0; i < list.size(); ++i)
 
     DLOG(INFO) << "Alignment Completed for " << sample_id;
 
@@ -254,37 +245,58 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     Executor executor("Falcon Fast Germline", 
         get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
   
+    int first, last;
     for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
+      first=contig*my_num;
+      last=(contig+1)*my_num;
 
+      std::vector<std::string> data;
       std::string output_file = get_contig_fname(temp_vcf_dir, contig, file_ext);    
-      std::string input = get_bucket_fname(
-              temp_bam_dir + "/" + read_group, 
-              contig);
 
-      std::string input_bed = get_fname_by_ext(input, "bed");
-      if (boost::filesystem::exists(input_bed)) {
-        intv_paths.push_back(input_bed);
+      std::string my_name = temp_bam_dir + "/" + read_tag + "/" + 
+                  "part-" + std::to_string(first) + "_" + std::to_string(last-1) + ".bed";
+
+      // If more than 1 pair (BAM, BED) goes to 1 htc process, the BED files need to be merged.  
+      // Otherwise HTC failed due to no overlapping regions.
+      std::ofstream merged_bed;
+      merged_bed.open(my_name,std::ofstream::out | std::ofstream::app);
+      for (int i=first; i<last;++i) {
+         std::string input = get_bucket_fname(temp_bam_dir + "/" + read_tag, i);
+         std::string input_bed = get_fname_by_ext(input, "bed");
+         if (boost::filesystem::exists(input_bed)) {
+           if (abs(first-last)==1) {
+             // for 1 pair of (BAM, BED) per htc process:
+             intv_paths.push_back(input_bed);
+	   } 
+           else {
+             // for multiple pairs of (BAM, BED) per htc process:
+	     std::ifstream single_bed(input_bed);
+             merged_bed << single_bed.rdbuf();	
+	   }
+         }
+         // Pushing BAM files
+         data.push_back(input);
       }
-  
-      LOG(INFO) << "I am here " << input << " " << input_bed ; 
+      merged_bed.close();
 
-       Worker_ptr worker(new HTCWorker(ref_path,
-             intv_paths,
-             input,
-             output_file,
-             htc_extra_opts,
-             contig,
-             flag_vcf, flag_f, flag_gatk4)
-       );
+      // Pushing the merged BED File:      
+      if (abs(first-last)>1) intv_paths.push_back(my_name);
       
-       output_files[contig] = output_file;
-       executor.addTask(worker, sample_id, contig == 0);
-
+      Worker_ptr worker(new HTCWorker(ref_path,
+         intv_paths,
+         data,
+         output_file,
+         htc_extra_opts,
+         contig,
+         flag_vcf, flag_f, flag_gatk4)
+      );
+       
+      output_files[contig] = output_file;
+      executor.addTask(worker, sample_id, contig == 0);
+      
       intv_paths.pop_back();
 
-    }
-
-    //exit(0);
+    } // END of for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++)
   
     bool flag = true;
     bool flag_a = false;
@@ -301,26 +313,26 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   
     { // concat gvcfs
       Worker_ptr worker(new VCFConcatWorker(
-            output_files,
-            temp_vcf_dir + "/output." + file_ext,
-            flag_a,
-            flag_bgzip,
-            flag_f)
-          );
+         output_files,
+         temp_vcf_dir + "/output." + file_ext,
+         flag_a,
+         flag_bgzip,
+         flag_f)
+      );
       executor.addTask(worker, sample_id, true);
     }
     { // bgzip gvcf
       Worker_ptr worker(new ZIPWorker(
-            temp_vcf_dir + "/output." + file_ext,
-            output_vcf + ".gz",
-            flag_f)
-          );
+         temp_vcf_dir + "/output." + file_ext,
+         output_vcf + ".gz",
+         flag_f)
+      );
       executor.addTask(worker, sample_id, true);
     }
     { // tabix gvcf
       Worker_ptr worker(new TabixWorker(
-            output_vcf + ".gz")
-          );
+         output_vcf + ".gz")
+      );
       executor.addTask(worker, sample_id, true);
     }
     executor.run();
