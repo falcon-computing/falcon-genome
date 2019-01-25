@@ -173,7 +173,7 @@ static void prAddWorkers(Executor &executor,
 
     executor.addTask(worker, sample_id, contig == 0);
     // Clean the vector for the next worker:                       
-    if (data.bam_isdir) intv_paths.pop_back();
+    intv_paths.pop_back();
   }
 
 }
