@@ -28,11 +28,6 @@ static void baserecalAddWorkers(Executor &executor,
     )
 {
 
-  init_contig_intv(ref_path);
-
-  std::vector<std::string> intv_paths;                                                                                                                                           
-  if (!intv_list.empty()) intv_paths.push_back(intv_list);  
-
   // temp_dir definition :
   std::string temp_dir = conf_temp_dir + "/bqsr";
 
@@ -53,12 +48,23 @@ static void baserecalAddWorkers(Executor &executor,
     throw std::runtime_error("Number of BAM and bai Files in are inconsistent");
   }
 
+  std::vector<std::string> intv_paths;
+  if (!intv_list.empty()) intv_paths.push_back(intv_list);
+
+  std::vector<std::string> temp_intv;
+  if (!data.bam_isdir){
+    temp_intv=init_contig_intv(ref_path);
+  }
+
   std::vector<std::string> bqsr_paths(get_config<int>("gatk.ncontigs"));
   // compute bqsr for each contigs
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
 
     if (data.bam_isdir) {
       intv_paths.push_back(data.mergedBED[contig]);
+    }
+    else {
+      intv_paths.push_back(temp_intv[contig]);
     }
 
     // output bqsr filename
@@ -81,7 +87,7 @@ static void baserecalAddWorkers(Executor &executor,
 
     executor.addTask(worker, sample_id, contig == 0);
     // Clean the vector for the next worker:
-    if (data.bam_isdir) intv_paths.pop_back();
+    intv_paths.pop_back();
   }
 
   // gather bqsr for contigs
@@ -110,11 +116,6 @@ static void prAddWorkers(Executor &executor,
   bool flag_f, bool flag_gatk)
 {
 
-  init_contig_intv(ref_path);
-
-  std::vector<std::string> intv_paths;
-  if (!intv_list.empty()) intv_paths.push_back(intv_list);
-
   // Counting the number of parts BAM files in directory.                                                                                                                            
   // Currently, the result will be an odd number where the last BAM file                                                                                                             
   // contains the unmapped reads. The number of BAM files for analysis                                                                                                               
@@ -132,11 +133,24 @@ static void prAddWorkers(Executor &executor,
     throw std::runtime_error("Number of BAM and bai Files in are inconsistent");
   }
 
+  std::vector<std::string> intv_paths;
+  if (!intv_list.empty()) {
+    intv_paths.push_back(intv_list);
+  }
+
+  std::vector<std::string> temp_intv;
+  if (!data.bam_isdir){
+    temp_intv=init_contig_intv(ref_path);
+  }
+
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
 
     if (data.bam_isdir) {
       intv_paths.push_back(data.mergedBED[contig]);
     } 
+    else {
+      intv_paths.push_back(temp_intv[contig]);
+    }
 
     std::string gatk_method;
     if (flag_gatk) {

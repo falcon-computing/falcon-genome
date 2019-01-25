@@ -84,14 +84,6 @@ int htc_main(int argc, char** argv,
   create_dir(output_dir);
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
 
-  // generate interval folder
-  init_contig_intv(ref_path);
-
-  std::vector<std::string> intv_paths;
-  if (!intv_list.empty()) {
-    intv_paths.push_back(intv_list);
-  }
-
   // Counting the number of parts BAM files in directory.
   // Currently, the result will be an odd number where the last BAM file
   // contains the unmapped reads. The number of BAM files for analysis 
@@ -108,7 +100,17 @@ int htc_main(int argc, char** argv,
   if (data.bamfiles_number-1 != data.bedfiles_number && data.bamfiles_number-1 != data.baifiles_number) {
     throw std::runtime_error("Number of BAM and bai Files in are inconsistent");
   }
- 
+
+  std::vector<std::string> intv_paths;
+  if (!intv_list.empty()) {
+   intv_paths.push_back(intv_list);
+  }
+
+  std::vector<std::string> temp_intv;
+  if (!data.bam_isdir){
+    temp_intv=init_contig_intv(ref_path);
+  }
+
   // start an executor for NAM
   Worker_ptr blaze_worker(new BlazeWorker(
         get_config<std::string>("blaze.nam_path"),
@@ -137,6 +139,9 @@ int htc_main(int argc, char** argv,
     if (data.bam_isdir) {
       intv_paths.push_back(data.mergedBED[contig]);
     }
+    else {
+      intv_paths.push_back(temp_intv[contig]);
+    }
 
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new HTCWorker(ref_path,
@@ -149,11 +154,11 @@ int htc_main(int argc, char** argv,
        flag_htc_f,
        flag_gatk)
     );
-  
+ 
     output_files[contig] = output_file;
     executor.addTask(worker,sample_id);
     // Clean the vector for the next worker:   
-    if (data.bam_isdir) intv_paths.pop_back();
+    intv_paths.pop_back();
   }
 
   bool flag = true;
