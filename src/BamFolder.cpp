@@ -69,8 +69,9 @@ BamFolderInfo BamFolder::merge_bed(int contig){
        std::vector<std::string> BAMvector;
    
        if (last>data_.bedfiles_number) last=data_.bedfiles_number-1;
-       std::string my_name = data_.bam_name + "/part-" + std::to_string(first) + "_" + std::to_string(last-1) + ".bed" ;
-   
+       //std::string my_name = data_.bam_name + "/part-" + std::to_string(first) + "_" + std::to_string(last-1) + ".bed" ;
+       std::string my_name = conf_temp_dir + "/part-" + std::to_string(first) + "_" + std::to_string(last-1) + ".bed" ;   
+
        // If more than 1 pair (BAM, BED) goes to 1 gatk process, the BED files need to be merged.
        // Otherwise the process will fail due to no overlapping regions.
        std::ofstream merge_bed;
