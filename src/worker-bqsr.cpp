@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <string>
 
+#include "fcs-genome/BamFolder.h"
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
@@ -35,54 +36,30 @@ static void baserecalAddWorkers(Executor &executor,
   // temp_dir definition :
   std::string temp_dir = conf_temp_dir + "/bqsr";
 
-  // Counting the number of parts BAM files in directory.                                                                                                                          
-  // Currently, the result will be an odd number where the last BAM file                                                                                                           
-  // contains the unmapped reads. The number of BAM files for analysis                                                                                                             
-  // should be count-1;                                                                                                                                                            
-  int count;
-  if (boost::filesystem::is_directory(input_path)){
-    count = count_files_in_dir(input_path, ".bam");
-    count = count - 1;
-    DLOG(INFO) << "Number of parts BAM files with mapped reads : " << count;
+  // Counting the number of parts BAM files in directory.                                                                                                                            
+  // Currently, the result will be an odd number where the last BAM file                                                                                                             
+  // contains the unmapped reads. The number of BAM files for analysis                                                                                                               
+  // should be data.bamfiles_number-1 :     
+  BamFolder bamdir(input_path);
+  BamFolderInfo data = bamdir.getInfo();
+  data = bamdir.merge_bed(get_config<int>("gatk.ncontigs"));
+  assert(data.partsBAM.size() == data.mergedBED.size());
+  if (data.bam_isdir) assert(data.partsBAM.size() == data.mergedBED.size());
+  DLOG(INFO) << "BAM Dirname : " << data.bam_name;
+  DLOG(INFO) << "Number of BAM files : " << data.bamfiles_number;
+  DLOG(INFO) << "Number of BAI files : " << data.baifiles_number;
+  DLOG(INFO) << "Number of BED files : " << data.bedfiles_number;
+  if (data.bamfiles_number-1 != data.bedfiles_number && data.bamfiles_number-1 != data.baifiles_number) {
+    throw std::runtime_error("Number of BAM and bai Files in are inconsistent");
   }
 
-  int my_num = (int) count/get_config<int>("gatk.ncontigs");
-
   std::vector<std::string> bqsr_paths(get_config<int>("gatk.ncontigs"));
-  int first, last;
   // compute bqsr for each contigs
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
-    first=contig*my_num;
-    last=(contig+1)*my_num;
 
-    std::vector<std::string> data;
-    std::string my_name = temp_dir + "/part-" + std::to_string(first) + "_" + std::to_string(last-1) + ".bed";
-
-    // If more than 1 pair (BAM, BED) goes to 1 process, the BED files need to be merged.                                                                                      
-    // Otherwise baserecal failed due to no overlapping regions.                                                                                                                          
-    std::ofstream merge_bed;
-    merge_bed.open(my_name,std::ofstream::out | std::ofstream::app);
-    for (int i=first; i<last;++i) {
-      std::string input = get_bucket_fname(input_path, i);
-      std::string input_bed = get_fname_by_ext(input, "bed");
-      if (boost::filesystem::exists(input_bed)) {
-        if (abs(first-last)==1) {
-          // for 1 pair of (BAM, BED) per htc process:                                                                                                                             
-          intv_paths.push_back(input_bed);
-        }
-        else {
-          // for multiple pairs of (BAM, BED) per htc process:                                                                                                                     
-	  std::ifstream single_bed(input_bed);
-          merge_bed << single_bed.rdbuf();
-        }
-      }
-      // Pushing BAM files                                                                                                                                                         
-      data.push_back(input);
+    if (data.bam_isdir) {
+      intv_paths.push_back(data.mergedBED[contig]);
     }
-    merge_bed.close();
-
-    // Pushing the merged BED File:                                                                                                                                                
-    if (abs(first-last)>1) intv_paths.push_back(my_name);
 
     // output bqsr filename
     std::stringstream ss;
@@ -94,7 +71,7 @@ static void baserecalAddWorkers(Executor &executor,
     Worker_ptr worker(new BQSRWorker(ref_path, 
         known_sites,
     	intv_paths,
-    	data, 
+	data.partsBAM[contig],
         bqsr_paths[contig],
     	extra_opts,
     	contig, 
@@ -104,7 +81,7 @@ static void baserecalAddWorkers(Executor &executor,
 
     executor.addTask(worker, sample_id, contig == 0);
     // Clean the vector for the next worker:
-    intv_paths.pop_back();
+    if (data.bam_isdir) intv_paths.pop_back();
   }
 
   // gather bqsr for contigs
@@ -138,79 +115,51 @@ static void prAddWorkers(Executor &executor,
   std::vector<std::string> intv_paths;
   if (!intv_list.empty()) intv_paths.push_back(intv_list);
 
-  // temp_dir definition :                                                                                                                                                         
-  std::string temp_dir = conf_temp_dir + "/printreads";
-  create_dir(temp_dir);
-
-  // Counting the number of parts BAM files in directory.                                                                                                                          
-  // Currently, the result will be an odd number where the last BAM file                                                                                                           
-  // contains the unmapped reads. The number of BAM files for analysis                                                                                                             
-  // should be count-1;                                                                                                                                                            
-  int count;
-  if (boost::filesystem::is_directory(input_path)){
-    count = count_files_in_dir(input_path, ".bam");
-    count = count - 1;
-    DLOG(INFO) << "Number of parts BAM files with mapped reads : " << count;
+  // Counting the number of parts BAM files in directory.                                                                                                                            
+  // Currently, the result will be an odd number where the last BAM file                                                                                                             
+  // contains the unmapped reads. The number of BAM files for analysis                                                                                                               
+  // should be count-1; 
+  BamFolder bamdir(input_path);
+  BamFolderInfo data = bamdir.getInfo();
+  data = bamdir.merge_bed(get_config<int>("gatk.ncontigs"));
+  assert(data.partsBAM.size() == data.mergedBED.size());
+  if (data.bam_isdir) assert(data.partsBAM.size() == data.mergedBED.size());
+  DLOG(INFO) << "BAM Dirname : " << data.bam_name;
+  DLOG(INFO) << "Number of BAM files : " << data.bamfiles_number;
+  DLOG(INFO) << "Number of BAI files : " << data.baifiles_number;
+  DLOG(INFO) << "Number of BED files : " << data.bedfiles_number;
+  if (data.bamfiles_number-1 != data.bedfiles_number && data.bamfiles_number-1 != data.baifiles_number) {
+    throw std::runtime_error("Number of BAM and bai Files in are inconsistent");
   }
 
-  int my_num = (int) count/get_config<int>("gatk.ncontigs");
-
-  int first, last;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
-    first=contig*my_num;
-    last=(contig+1)*my_num;
 
-    std::vector<std::string> data;
-    std::string my_name = temp_dir + "/part-" + std::to_string(first) + "_" + std::to_string(last-1) + ".bed";
+    if (data.bam_isdir) {
+      intv_paths.push_back(data.mergedBED[contig]);
+    } 
 
-    // If more than 1 pair (BAM, BED) goes to 1 process, the BED files need to be merged. 
-    // Otherwise baserecal failed due to no overlapping regions.                                                                                                                    
-
-    std::ofstream merge_bed;
-    merge_bed.open(my_name,std::ofstream::out | std::ofstream::app);
-    for (int i=first; i<last;++i) {
-      std::string input = get_bucket_fname(input_path, i);
-      std::string input_bed = get_fname_by_ext(input, "bed");
-      if (boost::filesystem::exists(input_bed)) {
-        if (abs(first-last)==1) {
-          // for 1 pair of (BAM, BED) per htc process:                                                                                                                               
-          intv_paths.push_back(input_bed);
-        }
-        else {
-          // for multiple pairs of (BAM, BED) per htc process:                                                                                                                       
-	  std::ifstream single_bed(input_bed);
-          merge_bed << single_bed.rdbuf();
-        }
-      }
-      // Pushing BAM files                                                                                                                                                          
-      data.push_back(input);
+    std::string gatk_method;
+    if (flag_gatk) {
+      gatk_method = "ApplyBQSR "+ sample_id ;
     }
-    merge_bed.close();
+    else {
+      gatk_method = "Print Reads " + sample_id ;
+    }
 
-    // Pushing the merged BED File:                                                                                                                                                  
-    if (abs(first-last)>1) intv_paths.push_back(my_name);
-     std::string gatk_method;
-     if (flag_gatk) {
-       gatk_method = "ApplyBQSR "+ sample_id ;
-     }
-     else {
-       gatk_method = "Print Reads " + sample_id ;
-     }
+    Worker_ptr worker(new PRWorker(ref_path,
+    	intv_paths,
+    	bqsr_path,
+    	data.partsBAM[contig],
+    	get_contig_fname(output_path, contig),
+    	extra_opts,
+    	contig,
+    	flag_f,
+       flag_gatk)
+    );
 
-     Worker_ptr worker(new PRWorker(ref_path,
-	intv_paths,
-	bqsr_path,
-	data,
-	get_contig_fname(output_path, contig),
-	extra_opts,
-	contig,
-	flag_f,
-        flag_gatk)
-     );
-
-     executor.addTask(worker, sample_id, contig == 0);
-     // Clean the vector for the next worker:                       
-     intv_paths.pop_back();
+    executor.addTask(worker, sample_id, contig == 0);
+    // Clean the vector for the next worker:                       
+    if (data.bam_isdir) intv_paths.pop_back();
   }
 
 }
@@ -347,7 +296,6 @@ int pr_main(int argc, char** argv, boost::program_options::options_description &
   if (merge_bam_flag) {
     remove_path(output_path);
   }
-
 
 }
 

@@ -4,6 +4,7 @@
 #include <string>
 
 #include "fcs-genome/BackgroundExecutor.h"
+#include "fcs-genome/BamFolder.h"
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
@@ -244,47 +245,32 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 
     Executor executor("Falcon Fast Germline", 
         get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
-  
-    int first, last;
+
+    // Counting the number of parts BAM files in directory.                                                                                                            
+    // Currently, the result will be an odd number where the last BAM file                                                                                                          
+    // contains the unmapped reads. The number of BAM files for analysis                                                                                                            
+    // should be count-1;                                                                                                                                                               
+    BamFolder bamdir(temp_bam_dir + "/" + read_tag);
+    BamFolderInfo data = bamdir.getInfo();
+    data = bamdir.merge_bed(get_config<int>("gatk.ncontigs"));
+    assert(data.partsBAM.size() == data.mergedBED.size());
+    DLOG(INFO) << "BAM Dirname : " << data.bam_name;
+    DLOG(INFO) << "Number of BAM files : " << data.bamfiles_number;
+    DLOG(INFO) << "Number of BAI files : " << data.baifiles_number;
+    DLOG(INFO) << "Number of BED files : " << data.bedfiles_number;
+    if (data.bamfiles_number-1 != data.bedfiles_number && data.bamfiles_number-1 != data.baifiles_number) {
+      LOG(ERROR) << "Number of BAM, bai and BED Files in folder are inconsistent";
+      return 1;
+    }
+
     for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
-      first=contig*my_num;
-      last=(contig+1)*my_num;
 
-      std::vector<std::string> data;
-      std::string output_file = get_contig_fname(temp_vcf_dir, contig, file_ext);    
+      intv_paths.push_back(data.mergedBED[contig]);
 
-      std::string my_name = temp_bam_dir + "/" + read_tag + "/" + 
-                  "part-" + std::to_string(first) + "_" + std::to_string(last-1) + ".bed";
-
-      // If more than 1 pair (BAM, BED) goes to 1 htc process, the BED files need to be merged.  
-      // Otherwise HTC failed due to no overlapping regions.
-      std::ofstream merged_bed;
-      merged_bed.open(my_name,std::ofstream::out | std::ofstream::app);
-      for (int i=first; i<last;++i) {
-         std::string input = get_bucket_fname(temp_bam_dir + "/" + read_tag, i);
-         std::string input_bed = get_fname_by_ext(input, "bed");
-         if (boost::filesystem::exists(input_bed)) {
-           if (abs(first-last)==1) {
-             // for 1 pair of (BAM, BED) per htc process:
-             intv_paths.push_back(input_bed);
-	   } 
-           else {
-             // for multiple pairs of (BAM, BED) per htc process:
-	     std::ifstream single_bed(input_bed);
-             merged_bed << single_bed.rdbuf();	
-	   }
-         }
-         // Pushing BAM files
-         data.push_back(input);
-      }
-      merged_bed.close();
-
-      // Pushing the merged BED File:      
-      if (abs(first-last)>1) intv_paths.push_back(my_name);
-      
+      std::string output_file = get_contig_fname(temp_vcf_dir, contig, file_ext);
       Worker_ptr worker(new HTCWorker(ref_path,
          intv_paths,
-         data,
+         data.partsBAM[contig],
          output_file,
          htc_extra_opts,
          contig,
