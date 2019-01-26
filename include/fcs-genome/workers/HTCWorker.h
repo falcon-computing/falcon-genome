@@ -6,7 +6,6 @@
 #include "fcs-genome/Worker.h"
 
 namespace fcsgenome {
-
 class HTCWorker : public Worker {
  public:
   HTCWorker(std::string ref_path,
@@ -29,6 +28,7 @@ class HTCWorker : public Worker {
   std::string ref_path_;
   std::vector<std::string> intv_paths_; 
   std::vector<std::string> input_paths_;
+
   std::string output_path_;
 };
 } // namespace fcsgenome

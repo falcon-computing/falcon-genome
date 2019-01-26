@@ -90,6 +90,7 @@ int init_config(boost::program_options::options_description conf_opt);
 
 std::string contig_intv_dir();
 std::vector<std::string> init_contig_intv(std::string ref_path);
+int roundUp(int numToRound, int multiple);
 std::vector<std::string> split_ref_by_nprocs(std::string ref_path);
 std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype);
 void check_vcf_index(std::string inputVCF);
