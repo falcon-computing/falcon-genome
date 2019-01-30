@@ -162,11 +162,7 @@ TEST_F(TestWorker, Test_check_output) {
   fcs::create_dir(temp_dir);
   std::string input  = temp_dir + "/";
   std::string outputBAI = temp_dir + "/" + "output.bam.bai";
-  touch(outputBAI);
 
-  std::stringstream command;
-  command << "chmod u-w " << outputBAI;
-  system(command.str().c_str());
   try {
     fcs::check_output(outputBAI, flag_f, flag);
   }
@@ -225,22 +221,15 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   std::vector<std::string> interval;
   interval.push_back(intv);
 
-  //std::vector<std::string> databam;
-  //databam.push_back(input);
-
-  fcs::BQSRWorker worker(ref, known, interval, input, output, std::vector<std::string>(), 0, flag, flag_gatk4);
-
-  // first check will thrown fileNotFound
-  CHECK_EXCEPTION;
-
   // create all files
   touch(ref);
   touch(intv);
   touch(input);
-  touch(output);
   touch(known[0]);
   touch(known[0]+".idx");
 
+  fcs::BQSRWorker worker(ref, known, interval, input, output, std::vector<std::string>(), 0, flag, flag_gatk4);
+  
   // no exception should be thrown
   CHECK_NOEXCEPTION;
 
