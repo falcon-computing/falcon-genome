@@ -225,10 +225,10 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   std::vector<std::string> interval;
   interval.push_back(intv);
 
-  std::vector<std::string> databam;
-  databam.push_back(input);
+  //std::vector<std::string> databam;
+  //databam.push_back(input);
 
-  fcs::BQSRWorker worker(ref, known, interval, databam, output, std::vector<std::string>(), 0, flag, flag_gatk4);
+  fcs::BQSRWorker worker(ref, known, interval, input, output, std::vector<std::string>(), 0, flag, flag_gatk4);
 
   // first check will thrown fileNotFound
   CHECK_EXCEPTION;
@@ -254,7 +254,7 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   known.push_back(temp_dir + "/" + "known2.vcf.gz");
   {
      output = temp_dir + "/" + "output2.bam";
-     fcs::BQSRWorker worker(ref, known, interval, databam, output, std::vector<std::string>(), 0, flag, flag_gatk4);
+     fcs::BQSRWorker worker(ref, known, interval, input, output, std::vector<std::string>(), 0, flag, flag_gatk4);
   
      touch(known[1]);
      CHECK_EXCEPTION;
@@ -268,7 +268,7 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   known.push_back(temp_dir + "/" + "known3.vcf1");
   {
      output = temp_dir + "/" + "output3.bam";
-     fcs::BQSRWorker worker(ref, known, interval, databam, output, std::vector<std::string>(), 0, flag, flag_gatk4);
+     fcs::BQSRWorker worker(ref, known, interval, input, output, std::vector<std::string>(), 0, flag, flag_gatk4);
      CHECK_EXCEPTION;
   }
 

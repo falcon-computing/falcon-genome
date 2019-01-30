@@ -11,7 +11,7 @@ namespace fcsgenome {
 BQSRWorker::BQSRWorker(std::string ref_path,
       std::vector<std::string> &known_sites,
       std::vector<std::string> intv_path,
-      std::vector<std::string> input_path,
+      std::string input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
       int  contig,
@@ -21,6 +21,7 @@ BQSRWorker::BQSRWorker(std::string ref_path,
   ref_path_(ref_path),
   intv_path_(intv_path),
   input_path_(input_path),
+  contig_(contig),
   known_sites_(known_sites),
   flag_gatk_(flag_gatk)
 {
@@ -36,12 +37,14 @@ BQSRWorker::BQSRWorker(std::string ref_path,
 void BQSRWorker::check() {
   namespace fs = boost::filesystem;
   ref_path_   = check_input(ref_path_);
-  for (auto path: intv_path_){
-    path  = check_input(path);
+  if (intv_path_.size()>0){
+    for (auto path : intv_path_){
+      path = check_input(path);
+    }
   }
-  for (auto path: input_path_){
-    path  = check_input(path);
-  }
+  BamInputInfo data_ = input_path_.getInfo();
+  data_ = input_path_.merge_bed(contig_);
+  data_.bam_name = check_input(data_.bam_name);  
   for (int i = 0; i < known_sites_.size(); i++) {
     known_sites_[i] = check_input(known_sites_[i]);
     check_vcf_index(known_sites_[i]);
@@ -62,12 +65,10 @@ void BQSRWorker::setup() {
 
   cmd << "-R " << ref_path_ << " ";
 
-  for (auto path: input_path_){
-    cmd << "-I " << path << " ";
-  }
+  cmd << input_path_.get_gatk_args(contig_);
 
-  for (auto path: intv_path_ ){
-    cmd << "-L " << path << " ";
+  for (auto path: intv_path_) {
+    cmd <<  " -L " << path << " ";
   }
 
   cmd  << " -isr INTERSECTION ";
@@ -149,7 +150,7 @@ void BQSRGatherWorker::setup() {
 PRWorker::PRWorker(std::string ref_path,
       std::vector<std::string> intv_path,
       std::string bqsr_path,
-      std::vector<std::string> input_path,
+      std::string input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
       int  contig,
@@ -159,6 +160,7 @@ PRWorker::PRWorker(std::string ref_path,
   intv_path_(intv_path),
   bqsr_path_(bqsr_path),
   input_path_(input_path),
+  contig_(contig),
   flag_gatk_(flag_gatk)
 {
   LOG_IF_EVERY_N(WARNING,  
@@ -176,13 +178,14 @@ PRWorker::PRWorker(std::string ref_path,
 void PRWorker::check() {
   ref_path_    = check_input(ref_path_);
   bqsr_path_   = check_input(bqsr_path_);
-  for (auto path:intv_path_) {
-     path = check_input(path);
+  if (intv_path_.size()>0){
+    for (auto path : intv_path_){
+      path = check_input(path);
+    }
   }
-  for (auto path:input_path_) {
-    path = check_input(path);
-  }
-  DLOG(INFO) << "output is " << output_path_;
+  BamInputInfo data_ = input_path_.getInfo();
+  data_ = input_path_.merge_bed(contig_);
+  data_.bam_name = check_input(data_.bam_name);
 }
 
 void PRWorker::setup() {
@@ -199,15 +202,12 @@ void PRWorker::setup() {
 
   cmd << "-R " << ref_path_ << " ";
 
-  for (auto path : input_path_){
-   cmd << "-I " << path << " ";
+  cmd << input_path_.get_gatk_args(contig_);
+  for (auto path: intv_path_){
+    cmd <<  " -L " << path << " ";
   }
 
-  for (auto path : intv_path_){
-    cmd << "-L " << path << " ";
-  }
-
-  cmd << "-isr INTERSECTION ";
+  cmd << " -isr INTERSECTION ";
 
   if (flag_gatk_ || get_config<bool>("use_gatk4")) {
      cmd << "-O " << output_path_ << " --bqsr-recal-file " << bqsr_path_ << " ";

@@ -7,7 +7,6 @@
 #include <iomanip>
 #include <string>
 
-#include "fcs-genome/BamFolder.h"
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
@@ -31,28 +30,11 @@ static void baserecalAddWorkers(Executor &executor,
   // temp_dir definition :
   std::string temp_dir = conf_temp_dir + "/bqsr";
 
-  // Counting the number of parts BAM files in directory.                                                                                                                            
-  // Currently, the result will be an odd number where the last BAM file                                                                                                             
-  // contains the unmapped reads. The number of BAM files for analysis                                                                                                               
-  // should be data.bamfiles_number-1 :     
-  BamFolder bamdir(input_path);
-  BamFolderInfo data = bamdir.getInfo();
-  data = bamdir.merge_bed(get_config<int>("gatk.ncontigs"));
-  assert(data.partsBAM.size() == data.mergedBED.size());
-  if (data.bam_isdir) assert(data.partsBAM.size() == data.mergedBED.size());
-  DLOG(INFO) << "BAM Dirname : " << data.bam_name;
-  DLOG(INFO) << "Number of BAM files : " << data.bamfiles_number;
-  DLOG(INFO) << "Number of BAI files : " << data.baifiles_number;
-  DLOG(INFO) << "Number of BED files : " << data.bedfiles_number;
-  if (data.bamfiles_number-1 != data.bedfiles_number && data.bamfiles_number-1 != data.baifiles_number) {
-    throw std::runtime_error("Number of BAM and bai Files in are inconsistent");
-  }
-
   std::vector<std::string> intv_paths;
   if (!intv_list.empty()) intv_paths.push_back(intv_list);
 
   std::vector<std::string> temp_intv;
-  if (!data.bam_isdir){
+  if (boost::filesystem::is_regular_file(input_path)){
     temp_intv=init_contig_intv(ref_path);
   }
 
@@ -60,10 +42,7 @@ static void baserecalAddWorkers(Executor &executor,
   // compute bqsr for each contigs
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
 
-    if (data.bam_isdir) {
-      intv_paths.push_back(data.mergedBED[contig]);
-    }
-    else {
+    if (boost::filesystem::is_regular_file(input_path)){
       intv_paths.push_back(temp_intv[contig]);
     }
 
@@ -77,7 +56,7 @@ static void baserecalAddWorkers(Executor &executor,
     Worker_ptr worker(new BQSRWorker(ref_path, 
         known_sites,
     	intv_paths,
-	data.partsBAM[contig],
+	input_path,
         bqsr_paths[contig],
     	extra_opts,
     	contig, 
@@ -87,12 +66,14 @@ static void baserecalAddWorkers(Executor &executor,
 
     executor.addTask(worker, sample_id, contig == 0);
     // Clean the vector for the next worker:
-    intv_paths.pop_back();
+    if (boost::filesystem::is_regular_file(input_path)){
+      intv_paths.pop_back();
+    }
+
   }
 
   // gather bqsr for contigs
   Worker_ptr worker(new BQSRGatherWorker(bqsr_paths, output_path, flag_f, flag_gatk));
-
   executor.addTask(worker, sample_id, true);
 }
 
@@ -115,40 +96,19 @@ static void prAddWorkers(Executor &executor,
   std::string sample_id,
   bool flag_f, bool flag_gatk)
 {
-
-  // Counting the number of parts BAM files in directory.                                                                                                                            
-  // Currently, the result will be an odd number where the last BAM file                                                                                                             
-  // contains the unmapped reads. The number of BAM files for analysis                                                                                                               
-  // should be count-1; 
-  BamFolder bamdir(input_path);
-  BamFolderInfo data = bamdir.getInfo();
-  data = bamdir.merge_bed(get_config<int>("gatk.ncontigs"));
-  assert(data.partsBAM.size() == data.mergedBED.size());
-  if (data.bam_isdir) assert(data.partsBAM.size() == data.mergedBED.size());
-  DLOG(INFO) << "BAM Dirname : " << data.bam_name;
-  DLOG(INFO) << "Number of BAM files : " << data.bamfiles_number;
-  DLOG(INFO) << "Number of BAI files : " << data.baifiles_number;
-  DLOG(INFO) << "Number of BED files : " << data.bedfiles_number;
-  if (data.bamfiles_number-1 != data.bedfiles_number && data.bamfiles_number-1 != data.baifiles_number) {
-    throw std::runtime_error("Number of BAM and bai Files in are inconsistent");
-  }
-
   std::vector<std::string> intv_paths;
   if (!intv_list.empty()) {
     intv_paths.push_back(intv_list);
   }
 
   std::vector<std::string> temp_intv;
-  if (!data.bam_isdir){
+  if (boost::filesystem::is_regular_file(input_path)){
     temp_intv=init_contig_intv(ref_path);
   }
 
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
 
-    if (data.bam_isdir) {
-      intv_paths.push_back(data.mergedBED[contig]);
-    } 
-    else {
+    if (boost::filesystem::is_regular_file(input_path)){
       intv_paths.push_back(temp_intv[contig]);
     }
 
@@ -163,17 +123,20 @@ static void prAddWorkers(Executor &executor,
     Worker_ptr worker(new PRWorker(ref_path,
     	intv_paths,
     	bqsr_path,
-    	data.partsBAM[contig],
+	input_path,
     	get_contig_fname(output_path, contig),
     	extra_opts,
     	contig,
     	flag_f,
-       flag_gatk)
+        flag_gatk)
     );
 
     executor.addTask(worker, sample_id, contig == 0);
     // Clean the vector for the next worker:                       
-    intv_paths.pop_back();
+    if (boost::filesystem::is_regular_file(input_path)){
+      intv_paths.pop_back();
+    }
+
   }
 
 }
