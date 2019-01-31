@@ -304,7 +304,7 @@ int init(char** argv, int argc) {
 
     arg_decl_int_w_def("minimap.nt",                   -1,    "number of threads for minimap-flow")
     arg_decl_bool_w_def("minimap.enforce_order",       false,  "enforce strict sorting ordering")    
-    arg_decl_int_w_def("minimap.num_buckets", 128,    "number of BAM bucket")
+    arg_decl_int_w_def("minimap.num_buckets", 2048,    "number of BAM bucket")
     //arg_decl_string_w_def("minimap.fpga.bit_path",     conf_root_dir+"/fpga/sw.xclbin", "path to FPGA bitstream for minimap2")
     //arg_decl_string_w_def("minimap.fpga.pac_path",     "",    "(deprecated) path to PAC reference used by FPGA for minimap2")
 
