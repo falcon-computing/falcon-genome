@@ -27,10 +27,14 @@ void create_bamdir(std::string dirname) {
 void create_bamdir_with_data(std::string dirname) {
     create_bamdir(dirname);
     std::ofstream outfile;
-    outfile.open(dirname+"/sampleA_r1.fastq.gz");
-    outfile << "Data" << std::endl;
+    outfile.open(dirname+"/input.bam");
+    outfile << "This is a test" << std::endl;
     outfile.close(); outfile.clear();
-    outfile.open(dirname+"/sampleA_r2.fastq.gz");
+    outfile.open(dirname+"/input.bai");
+    outfile << "This is a test" << std::endl;
+    outfile.close();outfile.clear();
+    outfile.open(dirname+"/input.bed");
+    outfile << "This is a test" << std::endl;
     outfile.close();outfile.clear();
 };
 

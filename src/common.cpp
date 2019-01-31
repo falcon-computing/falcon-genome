@@ -215,7 +215,13 @@ bool is_folder_writable(const char* str) {
 
 std::string get_fname_by_ext(std::string fname, std::string ext) {
   boost::filesystem::path p(fname);
-  return p.parent_path().string() + "/" + p.stem().string() + "." + ext;
+  if (!p.parent_path().string().empty()){
+    return p.parent_path().string() + "/" + p.stem().string() + "." + ext;
+  }
+  else {
+    return p.stem().string() + "." + ext;
+  }
+
 }
 
 std::string get_bucket_fname(std::string dir, int contig, std::string stem, std::string ext) {

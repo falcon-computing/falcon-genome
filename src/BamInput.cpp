@@ -35,7 +35,14 @@ BamInput::BamInput(std::string dir_path) {
         data_.bam_name = dir_path;
         data_.bam_isdir = false;
         data_.bamfiles_number = 1;
-        data_.baifiles_number = 1;
+	std::string bai_path = get_fname_by_ext(dir_path, "bai");
+	if (boost::filesystem::exists(bai_path)) {
+	  data_.baifiles_number = 1;
+	}
+	else {
+          LOG(ERROR) << "Input BAM File " << dir_path  <<  " does not have an index file (bai) " << bai_path ;
+	  throw std::runtime_error("INVALID PATH");
+	}
         data_.bedfiles_number = 0;         
       }
     }

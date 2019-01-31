@@ -212,6 +212,7 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   std::string ref    = temp_dir + "/" + "ref.fasta";
   std::string intv   = temp_dir + "/" + "intv.list";
   std::string input  = temp_dir + "/" + "input.bam";
+  std::string input_bai = temp_dir + "/" + "input.bai";
   std::string output = temp_dir + "/" + "output.bam";
   std::vector<std::string> known;
   known.push_back(temp_dir + "/" + "known1.vcf");
@@ -225,6 +226,7 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   touch(ref);
   touch(intv);
   touch(input);
+  touch(input_bai);
   touch(known[0]);
   touch(known[0]+".idx");
 
