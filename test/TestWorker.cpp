@@ -246,7 +246,6 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   {
      output = temp_dir + "/" + "output2.bam";
      fcs::BQSRWorker worker(ref, known, interval, input, output, std::vector<std::string>(), 0, flag, flag_gatk4);
-  
      touch(known[1]);
      CHECK_EXCEPTION;
      touch(known[1] + ".idx");
