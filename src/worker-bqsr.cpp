@@ -7,7 +7,7 @@
 #include <iomanip>
 #include <string>
 
-#include "fcs-genome/BamFolder.h"
+#include "fcs-genome/BamInput.h"
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
