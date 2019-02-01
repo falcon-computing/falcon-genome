@@ -138,6 +138,7 @@ int htc_main(int argc, char** argv,
  
     output_files[contig] = output_file;
     executor.addTask(worker,sample_id);
+
     if (boost::filesystem::is_regular_file(input_path)){
       intv_paths.pop_back();
     }

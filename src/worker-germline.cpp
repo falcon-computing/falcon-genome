@@ -261,8 +261,6 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
        
       output_files[contig] = output_file;
       executor.addTask(worker, sample_id, contig == 0);
-      
-      intv_paths.pop_back();
 
     } // END of for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++)
   

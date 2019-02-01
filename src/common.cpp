@@ -245,25 +245,4 @@ int count_files_in_dir(std::string directory, std::string ext) {
   return files_with_ext;
 }
 
-std::string get_bucket_fname(std::string dir, int contig, std::string stem, std::string ext) {
-    std::stringstream ss;
-    ss << dir << "/" << stem << "-"
-       << std::setw(6) << std::setfill('0') << contig
-       << ext;
-
-    return ss.str();
-}
-
-int count_files_in_dir(std::string directory, std::string ext) {
-  boost::filesystem::path Path(directory);
-  int files_with_ext = 0;
-  // Default constructor for an iterator is the end iterator
-  boost::filesystem::directory_iterator end_iter;
-  for (boost::filesystem::directory_iterator iter(Path); iter != end_iter; ++iter)
-     if (iter->path().extension() == ext)
-       ++files_with_ext;
-
-  return files_with_ext;
-}
-
 } // namespace fcsgenome

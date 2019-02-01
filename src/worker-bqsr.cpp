@@ -70,6 +70,7 @@ static void baserecalAddWorkers(Executor &executor,
     if (boost::filesystem::is_regular_file(input_path)){
       intv_paths.pop_back();
     }
+
   }
 
   // gather bqsr for contigs
@@ -154,6 +155,7 @@ static void prAddWorkers(Executor &executor,
     if (boost::filesystem::is_regular_file(input_path)){
       intv_paths.pop_back();
     }
+
   }
 
 }
