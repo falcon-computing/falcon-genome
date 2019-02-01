@@ -4,7 +4,7 @@
 #include <string>
 
 #include "fcs-genome/BackgroundExecutor.h"
-#include "fcs-genome/BamInput.h"
+#include "fcs-genome/BamFolder.h"
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
@@ -246,13 +246,31 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     Executor executor("Falcon Fast Germline", 
         get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
 
+    // Counting the number of parts BAM files in directory.                                                                                                            
+    // Currently, the result will be an odd number where the last BAM file                                                                                                          
+    // contains the unmapped reads. The number of BAM files for analysis                                                                                                            
+    // should be count-1;                                                                                                                                                               
+    BamFolder bamdir(temp_bam_dir + "/" + read_tag);
+    BamFolderInfo data = bamdir.getInfo();
+    data = bamdir.merge_bed(get_config<int>("gatk.ncontigs"));
+    assert(data.partsBAM.size() == data.mergedBED.size());
+    DLOG(INFO) << "BAM Dirname : " << data.bam_name;
+    DLOG(INFO) << "Number of BAM files : " << data.bamfiles_number;
+    DLOG(INFO) << "Number of BAI files : " << data.baifiles_number;
+    DLOG(INFO) << "Number of BED files : " << data.bedfiles_number;
+    if (data.bamfiles_number-1 != data.bedfiles_number && data.bamfiles_number-1 != data.baifiles_number) {
+      LOG(ERROR) << "Number of BAM, bai and BED Files in folder are inconsistent";
+      return 1;
+    }
+
     for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
 
-      //intv_paths.push_back(data.mergedBED[contig]);
+      intv_paths.push_back(data.mergedBED[contig]);
+
       std::string output_file = get_contig_fname(temp_vcf_dir, contig, file_ext);
       Worker_ptr worker(new HTCWorker(ref_path,
          intv_paths,
-	       temp_bam_dir + "/" + read_tag,
+         data.partsBAM[contig],
          output_file,
          htc_extra_opts,
          contig,
