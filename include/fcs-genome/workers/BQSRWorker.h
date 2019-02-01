@@ -27,7 +27,6 @@ class BQSRWorker : public Worker {
   std::string ref_path_;
   std::vector<std::string> intv_path_;
   BamInput input_path_;
-  //std::vector<std::string> input_path_;
   std::string output_path_;
   int contig_; 
   bool flag_gatk_;
@@ -52,7 +51,7 @@ class PRWorker : public Worker {
   PRWorker(std::string ref_path,
       std::vector<std::string> intv_path,
       std::string bqsr_path,
-      std::string input_path,
+      std::vector<std::string> input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
       int contig, bool &flag_f, bool flag_gatk);

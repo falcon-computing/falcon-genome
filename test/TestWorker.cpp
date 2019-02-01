@@ -222,6 +222,14 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   std::vector<std::string> interval;
   interval.push_back(intv);
 
+  std::vector<std::string> databam;
+  databam.push_back(input);
+
+  fcs::BQSRWorker worker(ref, known, interval, databam, output, std::vector<std::string>(), 0, flag, flag_gatk4);
+
+  // first check will thrown fileNotFound
+  CHECK_EXCEPTION;
+
   // create all files
   touch(ref);
   touch(intv);
@@ -246,7 +254,6 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   {
      output = temp_dir + "/" + "output2.bam";
      fcs::BQSRWorker worker(ref, known, interval, input, output, std::vector<std::string>(), 0, flag, flag_gatk4);
-  
      touch(known[1]);
      CHECK_EXCEPTION;
      touch(known[1] + ".idx");

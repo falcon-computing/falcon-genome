@@ -123,6 +123,8 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     }
   }
 
+  int my_num = (int) round(get_config<int>("minimap.num_buckets")/get_config<int>("gatk.ncontigs"));
+
   // start execution
   
   // check available space in temp dir
@@ -244,30 +246,13 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     Executor executor("Falcon Fast Germline", 
         get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
 
- // // Counting the number of parts BAM files in directory.                                                                                                            
- // // Currently, the result will be an odd number where the last BAM file                                                                                                          
- // // contains the unmapped reads. The number of BAM files for analysis                                                                                                            
- // // should be count-1;                                                                                                                                                               
- // BamInput bamdir(temp_bam_dir + "/" + read_tag);
- // BamInputInfo data = bamdir.getInfo();
- // data = bamdir.merge_bed(get_config<int>("gatk.ncontigs"));
- // assert(data.partsBAM.size() == data.mergedBED.size());
- // DLOG(INFO) << "BAM Dirname : " << data.bam_name;
- // DLOG(INFO) << "Number of BAM files : " << data.bamfiles_number;
- // DLOG(INFO) << "Number of BAI files : " << data.baifiles_number;
- // DLOG(INFO) << "Number of BED files : " << data.bedfiles_number;
- // if (data.bamfiles_number-1 != data.bedfiles_number && data.bamfiles_number-1 != data.baifiles_number) {
- //   LOG(ERROR) << "Number of BAM, bai and BED Files in folder are inconsistent";
- //   return 1;
- // }
-
     for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
 
       //intv_paths.push_back(data.mergedBED[contig]);
       std::string output_file = get_contig_fname(temp_vcf_dir, contig, file_ext);
       Worker_ptr worker(new HTCWorker(ref_path,
          intv_paths,
-	 temp_bam_dir + "/" + read_tag,
+	       temp_bam_dir + "/" + read_tag,
          output_file,
          htc_extra_opts,
          contig,
@@ -277,7 +262,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
       output_files[contig] = output_file;
       executor.addTask(worker, sample_id, contig == 0);
       
-      //intv_paths.pop_back();
+      intv_paths.pop_back();
 
     } // END of for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++)
   

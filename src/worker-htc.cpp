@@ -8,6 +8,7 @@
 #include <string>
 
 #include "fcs-genome/BackgroundExecutor.h"
+#include "fcs-genome/BamFolder.h"
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
@@ -137,7 +138,6 @@ int htc_main(int argc, char** argv,
  
     output_files[contig] = output_file;
     executor.addTask(worker,sample_id);
-
     if (boost::filesystem::is_regular_file(input_path)){
       intv_paths.pop_back();
     }
