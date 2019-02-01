@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 
+#include "fcs-genome/BamInput.h"
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/workers/HTCWorker.h"
@@ -10,7 +11,8 @@ namespace fcsgenome {
 
 HTCWorker::HTCWorker(std::string ref_path,
       std::vector<std::string> intv_paths,
-      std::vector<std::string> input_paths,
+      //std::vector<std::string> input_paths,
+      std::string input_paths,
       std::string output_path,
       std::vector<std::string> extra_opts,
       int contig,
@@ -32,14 +34,15 @@ HTCWorker::HTCWorker(std::string ref_path,
 }
 
 void HTCWorker::check() {
-  namespace fs = boost::filesystem;
-  ref_path_    = check_input(ref_path_);
-  for (auto path : intv_paths_){
-    path = check_input(path);
+  ref_path_  = check_input(ref_path_);
+  if (intv_paths_.size()>0){  
+    for (auto path : intv_paths_){
+       path = check_input(path);
+    }
   }
-  for (auto path : input_paths_){
-    path = check_input(path);
-  }
+  BamInputInfo data_ = input_paths_.getInfo();
+  data_ = input_paths_.merge_bed(contig_);
+  data_.bam_name = check_input(data_.bam_name); 
 }
 
 void HTCWorker::setup() {
@@ -56,12 +59,10 @@ void HTCWorker::setup() {
 
   cmd << " -R " << ref_path_    << " ";
 
-  for (auto path1 : input_paths_){
-     cmd << " -I " << path1 ;
-  }
+  cmd << input_paths_.get_gatk_args(contig_);
 
-  for (auto path2 : intv_paths_){
-    cmd <<  " -L " << path2 << " "; 
+  for (auto path: intv_paths_){
+    cmd <<  " -L " << path << " ";
   }
 
   cmd << " -isr INTERSECTION ";

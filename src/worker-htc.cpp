@@ -84,30 +84,15 @@ int htc_main(int argc, char** argv,
   create_dir(output_dir);
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
 
-  // Counting the number of parts BAM files in directory.
-  // Currently, the result will be an odd number where the last BAM file
-  // contains the unmapped reads. The number of BAM files for analysis 
-  // should be data.bamfiles_number-1;
-  BamFolder bamdir(input_path);    
-  BamFolderInfo data = bamdir.getInfo();
-  data = bamdir.merge_bed(get_config<int>("gatk.ncontigs"));
-  assert(data.partsBAM.size() == data.mergedBED.size());
-  if (data.bam_isdir) assert(data.partsBAM.size() == data.mergedBED.size());
-  DLOG(INFO) << "BAM Dirname : " << data.bam_name;  
-  DLOG(INFO) << "Number of BAM files : " << data.bamfiles_number;
-  DLOG(INFO) << "Number of BAI files : " << data.baifiles_number;
-  DLOG(INFO) << "Number of BED files : " << data.bedfiles_number;
-  if (data.bamfiles_number-1 != data.bedfiles_number && data.bamfiles_number-1 != data.baifiles_number) {
-    throw std::runtime_error("Number of BAM and bai Files in are inconsistent");
-  }
-
+  // Defining Interval File : 
   std::vector<std::string> intv_paths;
   if (!intv_list.empty()) {
    intv_paths.push_back(intv_list);
   }
 
+  // If BAM input is a regular file, post the intervals from Reference:
   std::vector<std::string> temp_intv;
-  if (!data.bam_isdir){
+  if (boost::filesystem::is_regular_file(input_path)){
     temp_intv=init_contig_intv(ref_path);
   }
 
@@ -128,7 +113,6 @@ int htc_main(int argc, char** argv,
   Executor executor("Haplotype Caller", get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
 
   bool flag_htc_f = flag_f;
-  int first, last;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
 
     std::string file_ext = "vcf";                                                                                                                                                  
@@ -136,17 +120,14 @@ int htc_main(int argc, char** argv,
       file_ext = "g." + file_ext;                                                                                                                                                  
     }                             
 
-    if (data.bam_isdir) {
-      intv_paths.push_back(data.mergedBED[contig]);
-    }
-    else {
+    if (boost::filesystem::is_regular_file(input_path)){
       intv_paths.push_back(temp_intv[contig]);
-    }
+    } 
 
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
     Worker_ptr worker(new HTCWorker(ref_path,
        intv_paths,
-       data.partsBAM[contig],
+       input_path,
        output_file,
        extra_opts,
        contig,
@@ -157,8 +138,10 @@ int htc_main(int argc, char** argv,
  
     output_files[contig] = output_file;
     executor.addTask(worker,sample_id);
-    // Clean the vector for the next worker:   
-    intv_paths.pop_back();
+    if (boost::filesystem::is_regular_file(input_path)){
+      intv_paths.pop_back();
+    }
+
   }
 
   bool flag = true;
