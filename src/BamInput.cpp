@@ -36,7 +36,7 @@ BamInput::BamInput(std::string dir_path) {
         data_.bam_isdir = false;
         data_.bamfiles_number = 1;
 	std::string bai_path = get_fname_by_ext(dir_path, "bai");
-	if (boost::filesystem::exists(bai_path)) {
+	if (boost::filesystem::exists(bai_path) || boost::filesystem::exists(dir_path + ".bai")) {
 	  data_.baifiles_number = 1;
 	}
 	else {
