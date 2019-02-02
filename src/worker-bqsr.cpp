@@ -7,7 +7,8 @@
 #include <iomanip>
 #include <string>
 
-#include "fcs-genome/BamFolder.h"
+#include "fcs-genome/BamInput.h"
+
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
@@ -56,11 +57,11 @@ static void baserecalAddWorkers(Executor &executor,
 
     Worker_ptr worker(new BQSRWorker(ref_path, 
        known_sites,
-    	 intv_paths,
-	     input_path,
+       intv_paths,
+       input_path,
        bqsr_paths[contig],
-    	 extra_opts,
-    	 contig, 
+       extra_opts,
+       contig, 
        flag_f, 
        flag_gatk)
     );
@@ -70,7 +71,6 @@ static void baserecalAddWorkers(Executor &executor,
     if (boost::filesystem::is_regular_file(input_path)){
       intv_paths.pop_back();
     }
-
   }
 
   // gather bqsr for contigs
@@ -97,23 +97,6 @@ static void prAddWorkers(Executor &executor,
   std::string sample_id,
   bool flag_f, bool flag_gatk)
 {
-
-  // Counting the number of parts BAM files in directory.                                                                                                                            
-  // Currently, the result will be an odd number where the last BAM file                                                                                                             
-  // contains the unmapped reads. The number of BAM files for analysis                                                                                                               
-  // should be count-1; 
-  BamFolder bamdir(input_path);
-  BamFolderInfo data = bamdir.getInfo();
-  data = bamdir.merge_bed(get_config<int>("gatk.ncontigs"));
-  assert(data.partsBAM.size() == data.mergedBED.size());
-  if (data.bam_isdir) assert(data.partsBAM.size() == data.mergedBED.size());
-  DLOG(INFO) << "BAM Dirname : " << data.bam_name;
-  DLOG(INFO) << "Number of BAM files : " << data.bamfiles_number;
-  DLOG(INFO) << "Number of BAI files : " << data.baifiles_number;
-  DLOG(INFO) << "Number of BED files : " << data.bedfiles_number;
-  if (data.bamfiles_number-1 != data.bedfiles_number && data.bamfiles_number-1 != data.baifiles_number) {
-    throw std::runtime_error("Number of BAM and bai Files in are inconsistent");
-  }
 
   std::vector<std::string> intv_paths;
   if (!intv_list.empty()) {
@@ -155,7 +138,6 @@ static void prAddWorkers(Executor &executor,
     if (boost::filesystem::is_regular_file(input_path)){
       intv_paths.pop_back();
     }
-
   }
 
 }
