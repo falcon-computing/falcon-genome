@@ -51,7 +51,7 @@ class PRWorker : public Worker {
   PRWorker(std::string ref_path,
       std::vector<std::string> intv_path,
       std::string bqsr_path,
-      std::vector<std::string> input_path,
+      std::string input_path,
       std::string output_path,
       std::vector<std::string> extra_opts,
       int contig, bool &flag_f, bool flag_gatk);
