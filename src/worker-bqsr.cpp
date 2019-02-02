@@ -8,6 +8,7 @@
 #include <string>
 
 #include "fcs-genome/BamInput.h"
+
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
