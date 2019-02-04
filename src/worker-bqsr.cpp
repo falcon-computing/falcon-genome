@@ -116,7 +116,7 @@ static void prAddWorkers(Executor &executor,
 
     std::string gatk_method;
     if (flag_gatk) {
-      gatk_method = "ApplyBQSR "+ sample_id ;
+      gatk_method = "ApplyBQSR " + sample_id ;
     }
     else {
       gatk_method = "Print Reads " + sample_id ;

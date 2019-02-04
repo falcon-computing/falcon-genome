@@ -17,7 +17,7 @@
 namespace fcsgenome {
 
 typedef std::map<int, std::vector<std::string> > BAMset;
-typedef std::vector<std::string> MergedBEDset;
+typedef std::vector<std::string> MergedRegionSet;
 
 struct BamInputInfo {
   std::string bam_name;
@@ -25,14 +25,15 @@ struct BamInputInfo {
   int bamfiles_number;
   int baifiles_number;
   int bedfiles_number;
+  int listfiles_number;
   BAMset partsBAM;
-  MergedBEDset mergedBED;
+  MergedRegionSet mergedREGION;
 };
 
 class BamInput {
  public:
     BamInput(std::string dir_path);
-    BamInputInfo merge_bed(int);
+    BamInputInfo merge_region(int);
     BamInputInfo getInfo();
     std::string get_gatk_args(int);
  private:

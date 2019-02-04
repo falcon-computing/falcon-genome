@@ -221,7 +221,6 @@ std::string get_fname_by_ext(std::string fname, std::string ext) {
   else {
     return p.stem().string() + "." + ext;
   }
-
 }
 
 std::string get_bucket_fname(std::string dir, int contig, std::string stem, std::string ext) {
