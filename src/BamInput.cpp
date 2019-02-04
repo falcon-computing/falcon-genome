@@ -30,6 +30,7 @@ BamInput::BamInput(std::string dir_path) {
       data_.bamfiles_number = files_in_dir(dir_path, ".bam");
       data_.baifiles_number = files_in_dir(dir_path, ".bai");
       data_.bedfiles_number = files_in_dir(dir_path, ".bed");
+      data_.listfiles_number = files_in_dir(dir_path, ".list");
     } else {
       if (boost::filesystem::is_regular_file(dir_path)){
         data_.bam_name = dir_path;
@@ -43,7 +44,8 @@ BamInput::BamInput(std::string dir_path) {
           LOG(ERROR) << "Input BAM File " << dir_path  <<  " does not have an index file (bai) " << bai_path ;
 	  throw std::runtime_error("INVALID PATH");
 	}
-        data_.bedfiles_number = 0;         
+        data_.bedfiles_number = 0; 
+        data_.listfiles_number = 0;        
       }
     }
   } else {
@@ -64,44 +66,74 @@ int BamInput::files_in_dir(std::string dir_path, std::string ext){
   return files_with_ext;
 }
 
-BamInputInfo BamInput::merge_bed(int contig){
+BamInputInfo BamInput::merge_region(int contig){
   if (data_.bam_isdir) {
-    int my_num = (int) data_.bedfiles_number/(get_config<int>("gatk.ncontigs"));  
-    int first,last;
+    // Check the existence of BED or list files:
+    int region_file_number;
+    std::string ext;
+    if (data_.bedfiles_number==0) {
+      if (data_.listfiles_number==0) {
+        throw std::runtime_error("No BED or list files in " + data_.bam_name);
+      }
+      else {
+        if (data_.listfiles_number<get_config<int>("gatk.ncontigs")) {
+	  throw std::runtime_error("Number of List Files less than ncontig");
+	}
+        region_file_number=data_.listfiles_number;
+        ext = "list";
+      }
+    }
+    else {
+      if (data_.bedfiles_number<get_config<int>("gatk.ncontigs")) {
+        throw std::runtime_error("Number of BED Files less than ncontig");
+      }
+      region_file_number=data_.bedfiles_number;
+      ext = "bed";
+    }
 
+    int my_num = (int) region_file_number/get_config<int>("gatk.ncontigs");
+
+    int first,last;
     first=contig*my_num;
     last=(contig+1)*my_num;
-    std::vector<std::string> BAMvector;
-   
-    if (last>data_.bedfiles_number) last=data_.bedfiles_number-1;
+    std::vector<std::string> BAMvector;   
+    if (last>data_.bamfiles_number) {
+      if (data_.bamfiles_number%2==0){
+        last=data_.bamfiles_number;
+      } 
+      else {
+        last=data_.bamfiles_number-1;
+      }
+    }
+
     std::string my_name = conf_temp_dir + "/part-" + std::to_string(first) + "_" + std::to_string(last-1) + ".bed" ;   
 
     // If more than 1 pair (BAM, BED) goes to 1 gatk process, the BED files need to be merged.
     // Otherwise the process will fail due to no overlapping regions.
-    std::ofstream merge_bed;
-    merge_bed.open(my_name,std::ofstream::out | std::ofstream::app);
+    std::ofstream merge_region;
+    merge_region.open(my_name,std::ofstream::out | std::ofstream::app);
     for (int i=first; i<last;++i) {
        std::string input = get_bucket_fname(data_.bam_name, i);
-       std::string input_bed = get_fname_by_ext(input, "bed");
-       if (boost::filesystem::exists(input_bed)) {
+       std::string input_region = get_fname_by_ext(input, ext);
+       if (boost::filesystem::exists(input_region)) {
          if (abs(first-last)==1) {
-    	    // for 1 pair of (BAM, BED) per GATK process:
-    	    data_.mergedBED.push_back(input_bed);
+    	    // for 1 pair of (BAM, REGION) per GATK process:
+    	    data_.mergedREGION.push_back(input_region);
          }
          else {
-    	    // for multiple pairs of (BAM, BED) per GATK process:
-    	    std::ifstream single_bed(input_bed);
-    	    merge_bed << single_bed.rdbuf();
+    	    // for multiple pairs of (BAM, REGION) per GATK process:
+    	    std::ifstream single_region(input_region);
+    	    merge_region << single_region.rdbuf();
          }
        }
        // Pushing BAM files
        BAMvector.push_back(input);
     }
-    merge_bed.close();
+    merge_region.close();
     data_.partsBAM.insert(std::pair<int, std::vector<std::string> >(contig,BAMvector));  
    
-    // Pushing the merged BED File:
-    if (abs(first-last)>1) data_.mergedBED.push_back(my_name);
+    // Pushing the merged REGION File:
+    if (abs(first-last)>1) data_.mergedREGION.push_back(my_name);
 
   }
   else {
@@ -118,12 +150,12 @@ BamInputInfo BamInput::getInfo(){
 
 std::string BamInput::get_gatk_args(int index){
   std::string gatk_command_;
-  for (auto bam : data_.partsBAM[index] ) {
+  for (auto bam : data_.partsBAM[index]) {
     gatk_command_ = gatk_command_ + " -I " + bam;
   }
 
-  for (auto bed : data_.mergedBED ) {
-    gatk_command_ = gatk_command_ + " -L " + bed;
+  for (auto region : data_.mergedREGION) {
+    gatk_command_ = gatk_command_ + " -L " + region;
   }
   return gatk_command_;
 };

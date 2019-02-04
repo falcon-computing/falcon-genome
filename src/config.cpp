@@ -401,7 +401,8 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
   // record the intv paths
   std::vector<std::string> intv_paths(ncontigs);
   for (int i = 0; i < ncontigs; i++) {
-       intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
+    //intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
+    intv_paths[i] = get_contig_fname(intv_dir, i, "list", "part-");
   }
 
   // TODO: temporary to use old partition method, need to check
@@ -411,7 +412,8 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
     DLOG(INFO) << "Use original interval files";
     // copy intv files
     for (int i = 0; i < ncontigs; i++) {
-      std::string org_intv = get_contig_fname(org_intv_dir, i, "list", "intv");
+      //std::string org_intv = get_contig_fname(org_intv_dir, i, "list", "intv");
+      std::string org_intv = get_contig_fname(org_intv_dir, i, "list", "part-");
       if (boost::filesystem::exists(intv_paths[i])) {
         break;
       }

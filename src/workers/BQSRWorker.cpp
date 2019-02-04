@@ -43,7 +43,7 @@ void BQSRWorker::check() {
     }
   }
   BamInputInfo data_ = input_path_.getInfo();
-  data_ = input_path_.merge_bed(contig_);
+  data_ = input_path_.merge_region(contig_);
   data_.bam_name = check_input(data_.bam_name);  
   for (int i = 0; i < known_sites_.size(); i++) {
     known_sites_[i] = check_input(known_sites_[i]);
@@ -181,10 +181,11 @@ void PRWorker::check() {
   if (intv_path_.size()>0){
     for (auto path : intv_path_){
       path = check_input(path);
+      boost::filesystem::copy_file(path, get_fname_by_ext(output_path_, "list"));
     }
   }
   BamInputInfo data_ = input_path_.getInfo();
-  data_ = input_path_.merge_bed(contig_);
+  data_ = input_path_.merge_region(contig_);
   data_.bam_name = check_input(data_.bam_name);
 }
 

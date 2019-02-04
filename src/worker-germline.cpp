@@ -247,12 +247,10 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
         get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
 
     for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
-
-      //intv_paths.push_back(data.mergedBED[contig]);
       std::string output_file = get_contig_fname(temp_vcf_dir, contig, file_ext);
       Worker_ptr worker(new HTCWorker(ref_path,
          intv_paths,
-	       temp_bam_dir + "/" + read_tag,
+	 temp_bam_dir + "/" + read_tag,
          output_file,
          htc_extra_opts,
          contig,

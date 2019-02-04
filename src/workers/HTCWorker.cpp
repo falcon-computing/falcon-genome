@@ -41,7 +41,7 @@ void HTCWorker::check() {
     }
   }
   BamInputInfo data_ = input_paths_.getInfo();
-  data_ = input_paths_.merge_bed(contig_);
+  data_ = input_paths_.merge_region(contig_);
   data_.bam_name = check_input(data_.bam_name); 
 }
 
