@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/regex.hpp>
+
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/workers/BQSRWorker.h"
@@ -178,15 +180,43 @@ PRWorker::PRWorker(std::string ref_path,
 void PRWorker::check() {
   ref_path_    = check_input(ref_path_);
   bqsr_path_   = check_input(bqsr_path_);
-  if (intv_path_.size()>0){
-    for (auto path : intv_path_){
-      path = check_input(path);
-      boost::filesystem::copy_file(path, get_fname_by_ext(output_path_, "list"));
-    }
-  }
+
   BamInputInfo data_ = input_path_.getInfo();
   data_ = input_path_.merge_region(contig_);
   data_.bam_name = check_input(data_.bam_name);
+
+  std::string target_file;
+  std::string ext[2] = {"list", "bed"};
+
+  // Scenarios : 
+  // 1. BAM folder contains files with the format part-XXXX.ext where ext = {bam, bai, bed}
+  // 2. A single BAM file with its respective index:  filename.ext  where ext = {bam. bai}
+  for (auto bamfile: data_.partsBAM[contig_]) {
+    for (int j=0; j<2; j++){
+      target_file = get_fname_by_ext(bamfile, ext[j]);
+      if (boost::filesystem::exists(target_file)) {
+         boost::filesystem::copy_file(target_file, get_fname_by_ext(output_path_, ext[j]), boost::filesystem::copy_option::overwrite_if_exists);
+      }
+      else {
+        // In this approach, these cases are possible: 
+        // 1) Interval file from the splitting of the reference. It has part-XXXXX.list as format. 
+        //    Always present if BAM input is a single file.
+        // 2) If defined Interval capture file defined by user, it will be always element 0, and 
+        //    interval file from reference will be element 1. 
+	for (auto a: intv_path_){
+	  if (boost::filesystem::exists(a)) {
+	    for (int k=0; k<2; k++){
+		target_file = get_fname_by_ext(a, ext[k]);
+		if (target_file.find("part-") && boost::filesystem::exists(target_file)){
+		  boost::filesystem::copy_file(target_file, get_fname_by_ext(output_path_, ext[k]), boost::filesystem::copy_option::overwrite_if_exists);
+		}
+	    }
+	  } // end if the interval file exist
+	} 
+      }
+    }
+  } // end for (auto bamfile: data_.partsBAM[contig_])
+
 }
 
 void PRWorker::setup() {

@@ -97,7 +97,7 @@ static void prAddWorkers(Executor &executor,
   std::string sample_id,
   bool flag_f, bool flag_gatk)
 {
-
+  // If there is an interval list, push back to the vector:
   std::vector<std::string> intv_paths;
   if (!intv_list.empty()) {
     intv_paths.push_back(intv_list);
