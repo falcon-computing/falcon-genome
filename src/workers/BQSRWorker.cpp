@@ -188,29 +188,34 @@ void PRWorker::check() {
   std::string target_file;
   std::string ext[2] = {"list", "bed"};
 
-  // If the interval files are not in the BAM folder:
-  if (intv_path_.size()>0) {
-    for (auto a: intv_path_){
-       if (boost::filesystem::exists(a)) {
-         for (int k=0; k<2; k++){
-       	 target_file = get_fname_by_ext(a, ext[k]);
-            if (target_file.find("part-") && boost::filesystem::exists(target_file)){
-               boost::filesystem::copy_file(target_file, get_fname_by_ext(output_path_, ext[k]), boost::filesystem::copy_option::overwrite_if_exists);
-            } 
-         }
-       }
-    }
-  }
-
-  // If the interval files are in the BAM folder:
+  // Scenarios : 
+  // 1. BAM folder contains files with the format part-XXXX.ext where ext = {bam, bai, bed}
+  // 2. A single BAM file with its respective index:  filename.ext  where ext = {bam. bai}
   for (auto bamfile: data_.partsBAM[contig_]) {
     for (int j=0; j<2; j++){
       target_file = get_fname_by_ext(bamfile, ext[j]);
       if (boost::filesystem::exists(target_file)) {
          boost::filesystem::copy_file(target_file, get_fname_by_ext(output_path_, ext[j]), boost::filesystem::copy_option::overwrite_if_exists);
       }
+      else {
+        // In this approach, these cases are possible: 
+        // 1) Interval file from the splitting of the reference. It has part-XXXXX.list as format. 
+        //    Always present if BAM input is a single file.
+        // 2) If defined Interval capture file defined by user, it will be always element 0, and 
+        //    interval file from reference will be element 1. 
+	for (auto a: intv_path_){
+	  if (boost::filesystem::exists(a)) {
+	    for (int k=0; k<2; k++){
+		target_file = get_fname_by_ext(a, ext[k]);
+		if (target_file.find("part-") && boost::filesystem::exists(target_file)){
+		  boost::filesystem::copy_file(target_file, get_fname_by_ext(output_path_, ext[k]), boost::filesystem::copy_option::overwrite_if_exists);
+		}
+	    }
+	  } // end if the interval file exist
+	} 
+      }
     }
-  }
+  } // end for (auto bamfile: data_.partsBAM[contig_])
 
 }
 
