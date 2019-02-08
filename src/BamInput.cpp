@@ -148,14 +148,20 @@ BamInputInfo BamInput::getInfo(){
   return data_;
 };
 
-std::string BamInput::get_gatk_args(int index){
+  std::string BamInput::get_gatk_args(int index){
   std::string gatk_command_;
+  
   for (auto bam : data_.partsBAM[index]) {
-    gatk_command_ = gatk_command_ + " -I " + bam;
+     
+
+
+     gatk_command_ = gatk_command_ + " -I " + bam;
   }
 
+
+
   for (auto region : data_.mergedREGION) {
-    gatk_command_ = gatk_command_ + " -L " + region;
+     gatk_command_ = gatk_command_ + " -L " + region;
   }
   return gatk_command_;
 };

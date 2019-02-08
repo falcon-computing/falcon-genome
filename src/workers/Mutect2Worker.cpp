@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/algorithm/string.hpp>
+
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/BamInput.h"
@@ -9,26 +11,25 @@
 
 namespace fcsgenome {
 
-bool compareFiles(const std::string& p1, const std::string& p2) {
-  std::ifstream f1(p1, std::ifstream::binary|std::ifstream::ate);
-  std::ifstream f2(p2, std::ifstream::binary|std::ifstream::ate);
-
-  if (f1.fail() || f2.fail()) {
-    return false; //file problem
-  }
-
-  if (f1.tellg() != f2.tellg()) {
-    return false; //size mismatch
-  }
-
-  //seek back to beginning and use std::equal to compare contents
-  f1.seekg(0, std::ifstream::beg);
-  f2.seekg(0, std::ifstream::beg);
-  return std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
-		      std::istreambuf_iterator<char>(),
-		      std::istreambuf_iterator<char>(f2.rdbuf()));
-}
-
+//bool compareFiles(const std::string& p1, const std::string& p2) {
+//  std::ifstream f1(p1, std::ifstream::binary|std::ifstream::ate);
+//  std::ifstream f2(p2, std::ifstream::binary|std::ifstream::ate);
+//
+//  if (f1.fail() || f2.fail()) {
+//    return false; //file problem
+//  }
+//
+//  if (f1.tellg() != f2.tellg()) {
+//    return false; //size mismatch
+//  }
+//
+//  //seek back to beginning and use std::equal to compare contents
+//  f1.seekg(0, std::ifstream::beg);
+//  f2.seekg(0, std::ifstream::beg);
+//  return std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
+//		      std::istreambuf_iterator<char>(),
+//		      std::istreambuf_iterator<char>(f2.rdbuf()));
+//}
 
 Mutect2Worker::Mutect2Worker(std::string ref_path,
       std::vector<std::string> intv_path,
@@ -64,32 +65,27 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
 
 void Mutect2Worker::check() {
   ref_path_    = check_input(ref_path_);
+  for (auto region : intv_path_) {
+     region = check_input(region);
+  }
 
-  // intv_path_   = check_input(intv_path_);
-
-  //normal_path_ = check_input(normal_path_);
-  //tumor_path_  = check_input(tumor_path_);
-
-
-
-// if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
-//   germline_path_     = check_input(germline_path_);
-//   check_vcf_index(germline_path_);
-//   if (!panels_of_normals_.empty()){
-//     panels_of_normals_ = check_input(panels_of_normals_);
-//   }
-//
-//   check_vcf_index(panels_of_normals_);
-// } else {
-//    for (int i = 0; i < dbsnp_path_.size(); i++) {
-//        dbsnp_path_[i] = check_input(dbsnp_path_[i]);
-//        check_vcf_index(dbsnp_path_[i]);
-//    }
-//    for (int j = 0; j < cosmic_path_.size(); j++) {
-//        cosmic_path_[j] = check_input(cosmic_path_[j]);
-//        check_vcf_index(cosmic_path_[j]);
-//    }
-// }
+  if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
+    germline_path_ = check_input(germline_path_);
+    check_vcf_index(germline_path_);
+    if (!panels_of_normals_.empty()){
+      panels_of_normals_ = check_input(panels_of_normals_);
+      check_vcf_index(panels_of_normals_);
+    }
+  } else {
+     for (int i = 0; i < dbsnp_path_.size(); i++) {
+        dbsnp_path_[i] = check_input(dbsnp_path_[i]);
+        check_vcf_index(dbsnp_path_[i]);
+     }
+     for (int j = 0; j < cosmic_path_.size(); j++) {
+        cosmic_path_[j] = check_input(cosmic_path_[j]);
+        check_vcf_index(cosmic_path_[j]);
+     }
+  }
 
   BamInputInfo normal_data_ = normal_path_.getInfo();
   normal_data_ = normal_path_.merge_region(contig_);
@@ -107,17 +103,23 @@ void Mutect2Worker::check() {
     throw std::runtime_error("Normal and Tumor do not have the same number of parts Merged BED files in folders");
   }
 
-  LOG(INFO) << "I am here\n";
   for (int i=0; i<normal_data_.mergedREGION.size(); i++){
-    LOG(INFO) << compareFiles(normal_data_.mergedREGION[i], tumor_data_.mergedREGION[i]) ;
-    if(compareFiles(normal_data_.mergedREGION[i], tumor_data_.mergedREGION[i])) LOG(INFO) << "No problem\n" ;       
+     DLOG(INFO) << compareFiles(normal_data_.mergedREGION[i], tumor_data_.mergedREGION[i]);
+     if (!compareFiles(normal_data_.mergedREGION[i], tumor_data_.mergedREGION[i])) {
+       throw std::runtime_error("Normal and Tumor do not have the same coordinates in the BED files");       
+     }
+     else{
+       std::string ext[2] = {"bed", "list"};
+       for (int k=0; k<2; k++){
+	  std::string from = get_fname_by_ext(normal_data_.mergedREGION[i], ext[k]);
+	  std::string to = get_fname_by_ext(output_path_, ext[k]);
+          if (boost::filesystem::exists(from)){
+             boost::filesystem::copy(from, to);    
+          }
+       };
+     }     
   }
-  LOG(INFO) << "I am done\n";  
-
-
 }
-
-
 
 void Mutect2Worker::setup() {
 
@@ -127,51 +129,69 @@ void Mutect2Worker::setup() {
       << "-Xmx" << get_config<int>("gatk.mutect2.memory", "gatk.memory") << "g ";
 
   if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
-      cmd << "-jar " << get_config<std::string>("gatk4_path") << " Mutect2 ";
+    cmd << "-jar " << get_config<std::string>("gatk4_path") << " Mutect2 ";
   }
   else{
-      cmd << "-jar " << get_config<std::string>("gatk_path") << " -T MuTect2 ";
+    cmd << "-jar " << get_config<std::string>("gatk_path") << " -T MuTect2 ";
   }
 
   cmd << "-R " << ref_path_ << " ";
 
-  if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
-    
+  if (flag_gatk_ || get_config<bool>("use_gatk4")) {
 
-
-    //cmd << "-I " << normal_path_ << " "
-    //     << "-I " << tumor_path_ << " "
+    cmd << normal_path_.get_gatk_args(contig_);
+    cmd << tumor_path_.get_gatk_args(contig_);
    
-      cmd << "-normal " << normal_name_ << " "
-          << "-tumor "  << tumor_name_ << " "
-          << "--germline-resource " << germline_path_  //  << " -pon " << panels_of_normals_  << " "
-          << "--output " << output_path_ << " ";
+    cmd << " -normal " << normal_name_ << " "
+        << " -tumor "  << tumor_name_ << " "
+        << " --germline-resource " << germline_path_  << "  "; 
+    
+    if (!panels_of_normals_.empty()){
+      cmd << " -pon " << panels_of_normals_  << " ";
+    }
+
+    cmd << " --output " << output_path_ << " ";
   }
-  else{
+  else {
     //cmd << "-I:normal " << normal_path_ << " "
     //     << "-I:tumor " << tumor_path_   << " ";
+    
+    //cmd << boost::replace_all(normal_path_.get_gatk_args(contig_).c_str(), "-I", "-I:normal") << " ";
+    //cmd << boost::replace_all(tumor_path_.get_gatk_args(contig_).c_str(), "-I", "-I:tumor") << " ";
+    //std::string n=boost::replace_all(normal_path_.get_gatk_args(contig_), "-I", "-I:normal");
+    //std::string t=boost::replace_all(tumor_path_.get_gatk_args(contig_), "-I", "-I:tumor");
+    //cmd <<  n << " " << t << " "; 
 
-      if (!extra_opts_.count("--variant_index_type")) {
-         cmd << "--variant_index_type LINEAR ";
-      }
+    std::string n=normal_path_.get_gatk_args(contig_);
+    std::string t=tumor_path_.get_gatk_args(contig_);
+    boost::replace_all(n, "-I", "-I:normal");
+    boost::replace_all(t, "-I", "-I:tumor");
 
-      if (!extra_opts_.count("--variant_index_parameter")) {
-         cmd << "--variant_index_parameter 128000 ";
-      }
+    cmd << n << " " << t << " ";
+    
+    if (!extra_opts_.count("--variant_index_type")) {
+       cmd << "--variant_index_type LINEAR ";
+    }
 
-      cmd << "-nct " << get_config<int>("gatk.mutect2.nct", "gatk.nct") << " "
-          << "-o " << output_path_ << " ";
+    if (!extra_opts_.count("--variant_index_parameter")) {
+       cmd << "--variant_index_parameter 128000 ";
+    }
 
-      for (int i = 0; i < dbsnp_path_.size(); i++) {
-          cmd << "--dbsnp " << dbsnp_path_[i] << " ";
-      }
-      for (int j = 0; j < cosmic_path_.size(); j++) {
-          cmd << "--cosmic " << cosmic_path_[j] << " ";
-      }
+    cmd << "-nct " << get_config<int>("gatk.mutect2.nct", "gatk.nct") << " "
+        << "-o " << output_path_ << " ";
+
+    for (int i = 0; i < dbsnp_path_.size(); i++) {
+        cmd << "--dbsnp " << dbsnp_path_[i] << " ";
+    }
+    for (int j = 0; j < cosmic_path_.size(); j++) {
+        cmd << "--cosmic " << cosmic_path_[j] << " ";
+    }
 
   } // End checking GATK version
 
-  // cmd << "-L " << intv_path_ << " -isr INTERSECTION ";
+  for (auto region: intv_path_){
+     cmd << "-L " << region << " -isr INTERSECTION ";
+  }
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
       cmd << it->first << " ";
