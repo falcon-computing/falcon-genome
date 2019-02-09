@@ -11,26 +11,6 @@
 
 namespace fcsgenome {
 
-//bool compareFiles(const std::string& p1, const std::string& p2) {
-//  std::ifstream f1(p1, std::ifstream::binary|std::ifstream::ate);
-//  std::ifstream f2(p2, std::ifstream::binary|std::ifstream::ate);
-//
-//  if (f1.fail() || f2.fail()) {
-//    return false; //file problem
-//  }
-//
-//  if (f1.tellg() != f2.tellg()) {
-//    return false; //size mismatch
-//  }
-//
-//  //seek back to beginning and use std::equal to compare contents
-//  f1.seekg(0, std::ifstream::beg);
-//  f2.seekg(0, std::ifstream::beg);
-//  return std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
-//		      std::istreambuf_iterator<char>(),
-//		      std::istreambuf_iterator<char>(f2.rdbuf()));
-//}
-
 Mutect2Worker::Mutect2Worker(std::string ref_path,
       std::vector<std::string> intv_path,
       std::string normal_path,
@@ -151,16 +131,9 @@ void Mutect2Worker::setup() {
     }
 
     cmd << " --output " << output_path_ << " ";
+
   }
   else {
-    //cmd << "-I:normal " << normal_path_ << " "
-    //     << "-I:tumor " << tumor_path_   << " ";
-    
-    //cmd << boost::replace_all(normal_path_.get_gatk_args(contig_).c_str(), "-I", "-I:normal") << " ";
-    //cmd << boost::replace_all(tumor_path_.get_gatk_args(contig_).c_str(), "-I", "-I:tumor") << " ";
-    //std::string n=boost::replace_all(normal_path_.get_gatk_args(contig_), "-I", "-I:normal");
-    //std::string t=boost::replace_all(tumor_path_.get_gatk_args(contig_), "-I", "-I:tumor");
-    //cmd <<  n << " " << t << " "; 
 
     std::string n=normal_path_.get_gatk_args(contig_);
     std::string t=tumor_path_.get_gatk_args(contig_);
@@ -190,8 +163,10 @@ void Mutect2Worker::setup() {
   } // End checking GATK version
 
   for (auto region: intv_path_){
-     cmd << "-L " << region << " -isr INTERSECTION ";
+    cmd << " -L " << region << " " ;
   }
+
+  cmd << " -isr INTERSECTION ";
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
       cmd << it->first << " ";
@@ -207,8 +182,7 @@ void Mutect2Worker::setup() {
 
   cmd_ = cmd.str();
 
-
-  LOG(INFO) << cmd_;
+  DLOG(INFO) << cmd_;
 }
 
 } // namespace fcsgenome
