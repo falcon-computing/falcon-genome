@@ -96,7 +96,9 @@ void Minimap2Worker::setup() {
              "\\tLB:" << library_id_ << "\" "
       << "--temp_dir=\"" << partdir_path_ << "\" "
       << "--output=\"" << output_path_ << "\" "
-      << "--num_buckets=" << num_buckets_ << " "
+      //<< "--num_buckets=" << num_buckets_ << " "
+      << "--num_buckets=" << get_config<int>("minimap.num_buckets")  << " "
+
       << "--merge_bams=" << flag_merge_bams_ << " ";
 
   if (get_config<int>("minimap.nt") > 0) {

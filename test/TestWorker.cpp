@@ -162,11 +162,7 @@ TEST_F(TestWorker, Test_check_output) {
   fcs::create_dir(temp_dir);
   std::string input  = temp_dir + "/";
   std::string outputBAI = temp_dir + "/" + "output.bam.bai";
-  touch(outputBAI);
 
-  std::stringstream command;
-  command << "chmod u-w " << outputBAI;
-  system(command.str().c_str());
   try {
     fcs::check_output(outputBAI, flag_f, flag);
   }
@@ -216,25 +212,26 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   std::string ref    = temp_dir + "/" + "ref.fasta";
   std::string intv   = temp_dir + "/" + "intv.list";
   std::string input  = temp_dir + "/" + "input.bam";
+  std::string input_bai = temp_dir + "/" + "input.bai";
   std::string output = temp_dir + "/" + "output.bam";
   std::vector<std::string> known;
   known.push_back(temp_dir + "/" + "known1.vcf");
   bool flag = true;
   bool flag_gatk4 = true;
 
-  fcs::BQSRWorker worker(ref, known, intv, input, output, std::vector<std::string>(), 0, flag, flag_gatk4);
-
-  // first check will thrown fileNotFound
-  CHECK_EXCEPTION;
+  std::vector<std::string> interval;
+  interval.push_back(intv);
 
   // create all files
   touch(ref);
   touch(intv);
   touch(input);
-  touch(output);
+  touch(input_bai);
   touch(known[0]);
   touch(known[0]+".idx");
 
+  fcs::BQSRWorker worker(ref, known, interval, input, output, std::vector<std::string>(), 0, flag, flag_gatk4);
+  
   // no exception should be thrown
   CHECK_NOEXCEPTION;
 
@@ -248,8 +245,7 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   known.push_back(temp_dir + "/" + "known2.vcf.gz");
   {
      output = temp_dir + "/" + "output2.bam";
-     fcs::BQSRWorker worker(ref, known, intv, input, output, std::vector<std::string>(), 0, flag, flag_gatk4);
-  
+     fcs::BQSRWorker worker(ref, known, interval, input, output, std::vector<std::string>(), 0, flag, flag_gatk4);
      touch(known[1]);
      CHECK_EXCEPTION;
      touch(known[1] + ".idx");
@@ -262,7 +258,7 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   known.push_back(temp_dir + "/" + "known3.vcf1");
   {
      output = temp_dir + "/" + "output3.bam";
-     fcs::BQSRWorker worker(ref, known, intv, input, output, std::vector<std::string>(), 0, flag, flag_gatk4);
+     fcs::BQSRWorker worker(ref, known, interval, input, output, std::vector<std::string>(), 0, flag, flag_gatk4);
      CHECK_EXCEPTION;
   }
 

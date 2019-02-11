@@ -93,6 +93,7 @@ int ug_main(int argc, char** argv,
   Executor executor("Unified Genotyper",get_config<int>("gatk.ug.nprocs", "gatk.nprocs"));
 
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
+
     std::string input_file;
     if (boost::filesystem::is_directory(input_path)) {
       // if input is a directory, automatically go into contig mode

@@ -4,6 +4,7 @@
 #include <string>
 
 #include "fcs-genome/BackgroundExecutor.h"
+#include "fcs-genome/BamInput.h"
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
@@ -16,19 +17,6 @@
 #include <unistd.h>
 
 namespace fcsgenome {
-
-std::string get_bucket_fname(std::string dir,
-    int contig,
-    std::string stem = "part",
-    std::string ext = ".bam") 
-{
-  std::stringstream ss;
-  ss << dir << "/" << stem << "-"
-    << std::setw(6) << std::setfill('0') << contig
-    << ext;
-
-  return ss.str();
-}
 
 int germline_main(int argc, char** argv, boost::program_options::options_description &opt_desc)
 {
@@ -53,7 +41,6 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     arg_decl_string_w_def("platform,P", "illumina", "platform id ('PL' in BAM header)")
     arg_decl_string_w_def("library,l", "sample",   "library id ('LB' in BAM header)")
     ("produce-bam, b", "select to produce sorted BAM file after alignment")
-    //("align-only,l", "skip mark duplicates")
 
     // HaplotypeCaller Options:
     ("output,o", po::value<std::string>()->required(), "output GVCF/VCF file")
@@ -74,8 +61,6 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
 
   // Alignment Arguments :
-  //bool flag_align_only = get_argument<bool>(cmd_vm, "align-only", "l");
-
   std::string sampleList  = get_argument<std::string>(cmd_vm, "sample_sheet", "F");
   std::string fq1_path    = get_argument<std::string>(cmd_vm, "fastq1", "1");
   std::string fq2_path    = get_argument<std::string>(cmd_vm, "fastq2", "2");
@@ -95,6 +80,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   // HaplotypeCaller Arguments:
   bool flag_vcf           = get_argument<bool>(cmd_vm, "produce-vcf", "v");
   bool flag_gatk4         = get_argument<bool>(cmd_vm, "gatk4");
+
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
 
@@ -137,6 +123,8 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     }
   }
 
+  int my_num = (int) round(get_config<int>("minimap.num_buckets")/get_config<int>("gatk.ncontigs"));
+
   // start execution
   
   // check available space in temp dir
@@ -164,6 +152,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     std::vector<std::string> output_bams;
 
     // Loop through all the pairs of FASTQ files:
+    std::string read_tag;
     for (int i = 0; i < list.size(); ++i) {
 
       Executor executor("Falcon Fast Germline", get_config<int>("sort.nprocs", "gatk.nprocs"));
@@ -174,7 +163,8 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
       std::string platform_id = list[i].Platform;
       std::string library_id  = list[i].LibraryID;
 
-      std::string parts_dir   = temp_bam_dir + "/" + read_group;
+      read_tag = read_group;
+      std::string parts_dir = temp_bam_dir + "/" + read_group;
       std::string output;
       create_dir(parts_dir);
       //check_output(parts_dir, flag_f);
@@ -204,16 +194,15 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 
       // perform sambamba sort if not producing bam
       if (!flag_produce_bam) {
-        for (int i = 0; i < num_buckets; i++) {
+        for (int i = 0; i < get_config<int>("minimap.num_buckets"); i++) {
           std::string input = get_bucket_fname(parts_dir, i);
           bool flag = true;
           Worker_ptr worker(new SambambaWorker(
                 input, input,
                 SambambaWorker::SORT,
                 "", flag)); 
-
           executor.addTask(worker, sample_id, i == 0);
-        }
+        };
       }
       else {
         bool flag = true;
@@ -225,7 +214,8 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
       }
 
       executor.run();
-    }
+
+    } // END for (int i = 0; i < list.size(); ++i)
 
     DLOG(INFO) << "Alignment Completed for " << sample_id;
 
@@ -258,43 +248,24 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 
     for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
       std::string output_file = get_contig_fname(temp_vcf_dir, contig, file_ext);
-
-      std::vector<std::string> input_files;
-      if (flag_produce_bam) {
-        // if produce bam, we will produce a bunch of readgroup.bam
-        // all of which will be passed to a single HTC
-        for (auto o : output_bams) {
-          input_files.push_back(o); 
-        }
-      }
-      else {
-        // if not produce bam, we will pass part.bam to HTC
-        for (auto s : list) {
-          // push all contigs for read_group 
-          std::string input = get_bucket_fname(
-              temp_bam_dir + "/" + s.ReadGroup, 
-              contig);
-
-          input_files.push_back(input);
-        }
-      }
-
       Worker_ptr worker(new HTCWorker(ref_path,
-            intv_paths,
-            input_files,
-            output_file,
-            htc_extra_opts,
-            contig,
-            flag_vcf, flag_f, flag_gatk4));
-
+         intv_paths,
+	 temp_bam_dir + "/" + read_tag,
+         output_file,
+         htc_extra_opts,
+         contig,
+         flag_vcf, flag_f, flag_gatk4)
+      );
+       
       output_files[contig] = output_file;
       executor.addTask(worker, sample_id, contig == 0);
-    }
 
+    } // END of for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++)
+  
     bool flag = true;
     bool flag_a = false;
     bool flag_bgzip = false;
-
+  
     std::string output_vcf;
     if (!sampleList.empty()) {
       output_vcf = output_path + "/" + sample_id + file_ext;
@@ -303,33 +274,33 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
       output_vcf = output_path;
     } 
     DLOG(INFO) << output_vcf << "\n";     
-
+  
     { // concat gvcfs
       Worker_ptr worker(new VCFConcatWorker(
-            output_files,
-            temp_vcf_dir + "/output." + file_ext,
-            flag_a,
-            flag_bgzip,
-            flag_f)
-          );
+         output_files,
+         temp_vcf_dir + "/output." + file_ext,
+         flag_a,
+         flag_bgzip,
+         flag_f)
+      );
       executor.addTask(worker, sample_id, true);
     }
     { // bgzip gvcf
       Worker_ptr worker(new ZIPWorker(
-            temp_vcf_dir + "/output." + file_ext,
-            output_vcf + ".gz",
-            flag_f)
-          );
+         temp_vcf_dir + "/output." + file_ext,
+         output_vcf + ".gz",
+         flag_f)
+      );
       executor.addTask(worker, sample_id, true);
     }
     { // tabix gvcf
       Worker_ptr worker(new TabixWorker(
-            output_vcf + ".gz")
-          );
+         output_vcf + ".gz")
+      );
       executor.addTask(worker, sample_id, true);
     }
     executor.run();
-  }; //for (auto pair : SampleData)
+   }; //for (auto pair : SampleData)
 
   return 0;
 }

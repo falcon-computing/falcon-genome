@@ -218,13 +218,25 @@ inline bool get_argument<bool>(
   //}
 }
 
+template <>
+  inline bool get_argument<bool>(
+     boost::program_options::variables_map &vm,
+     const char* arg1
+) {
+  return vm.count(arg1);
+ }
+
+
+
+
 inline std::string get_contig_fname(
     std::string base_path,
     int contig,
     std::string ext = "bam",
     std::string prefix = "part-") 
 {
-  int n_digits = (int)log10((double)get_config<int>("gatk.ncontigs"))+1;
+  //int n_digits = (int)log10((double)get_config<int>("gatk.ncontigs"))+1;
+  int n_digits = 6;
   std::stringstream ss;
   ss << base_path << "/" << prefix
      << std::setw(n_digits) << std::setfill('0') << contig
@@ -257,6 +269,10 @@ std::vector<std::string> get_lines(std::string fname,
     std::string pattern = ".*");
 
 std::string get_fname_by_ext(std::string fname, std::string ext = "");
+
+std::string get_bucket_fname(std::string dir, int contig, std::string stem = "part", std::string ext = ".bam");
+
+int count_files_in_dir(std::string directory, std::string ext); 
 
 uint32_t getTid();
 

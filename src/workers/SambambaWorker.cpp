@@ -88,7 +88,8 @@ void SambambaWorker::setup() {
     break;
   case SORT:
     cmd << get_config<std::string>("sambamba_path") << " sort " 
-        << "--tmpdir=" << get_config<std::string>("temp_dir") << " " 
+        << "--tmpdir=" << get_config<std::string>("temp_dir") << " "
+        << "-t 1" << " " << "-l 1" << " "
         << input_path_ << ";";
     // mv bam and bai
     cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam") 

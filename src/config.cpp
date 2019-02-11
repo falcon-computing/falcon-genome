@@ -304,6 +304,7 @@ int init(char** argv, int argc) {
 
     arg_decl_int_w_def("minimap.nt",                   -1,    "number of threads for minimap-flow")
     arg_decl_bool_w_def("minimap.enforce_order",       false,  "enforce strict sorting ordering")    
+    arg_decl_int_w_def("minimap.num_buckets", 2048,    "number of BAM bucket")
     //arg_decl_string_w_def("minimap.fpga.bit_path",     conf_root_dir+"/fpga/sw.xclbin", "path to FPGA bitstream for minimap2")
     //arg_decl_string_w_def("minimap.fpga.pac_path",     "",    "(deprecated) path to PAC reference used by FPGA for minimap2")
 
@@ -400,7 +401,8 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
   // record the intv paths
   std::vector<std::string> intv_paths(ncontigs);
   for (int i = 0; i < ncontigs; i++) {
-       intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
+    //intv_paths[i] = get_contig_fname(intv_dir, i, "list", "intv");
+    intv_paths[i] = get_contig_fname(intv_dir, i, "list", "part-");
   }
 
   // TODO: temporary to use old partition method, need to check
@@ -410,7 +412,8 @@ std::vector<std::string> init_contig_intv(std::string ref_path) {
     DLOG(INFO) << "Use original interval files";
     // copy intv files
     for (int i = 0; i < ncontigs; i++) {
-      std::string org_intv = get_contig_fname(org_intv_dir, i, "list", "intv");
+      //std::string org_intv = get_contig_fname(org_intv_dir, i, "list", "intv");
+      std::string org_intv = get_contig_fname(org_intv_dir, i, "list", "part-");
       if (boost::filesystem::exists(intv_paths[i])) {
         break;
       }
