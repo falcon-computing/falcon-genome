@@ -3,6 +3,7 @@
 #include <boost/program_options.hpp>
 #include <cmath>
 #include <iomanip>
+#include <map>
 #include <string>
 
 #include "fcs-genome/BackgroundExecutor.h"
@@ -115,7 +116,7 @@ int mutect2_main(int argc, char** argv,
     if (normal_name.empty())  throw pathEmpty("normal_name");
     if (tumor_name.empty())   throw pathEmpty("tumor_name");
     if (germline_path.empty()) throw pathEmpty("germline_path");
-    if (panels_of_normals.empty()) throw pathEmpty("panels_of_normals");
+    //if (panels_of_normals.empty()) throw pathEmpty("panels_of_normals");
     if (filtered_vcf.empty()) throw pathEmpty("filtered_vcf");
     filtered_dir = check_output(filtered_vcf, flag_f);
     create_dir(filtered_dir);
@@ -138,12 +139,16 @@ int mutect2_main(int argc, char** argv,
   std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
   std::vector<std::string> filtered_files(get_config<int>("gatk.ncontigs"));
 
+  // Defining Interval File :
   std::vector<std::string> intv_paths;
   if (!intv_list.empty()) {
-    intv_paths = split_by_nprocs(intv_list, "bed");
-  }
-  else {
-    intv_paths = init_contig_intv(ref_path);
+    intv_paths.push_back(intv_list);
+  }  
+
+  // If BAM input is a regular file, post the intervals from Reference: 
+  std::vector<std::string> temp_intv;
+  if (boost::filesystem::is_regular_file(normal_path) && boost::filesystem::is_regular_file(tumor_path)){
+    temp_intv=init_contig_intv(ref_path);
   }
 
   // start an executor for NAM
@@ -165,27 +170,18 @@ int mutect2_main(int argc, char** argv,
 
   bool flag_mutect2_f = !flag_skip_concat | flag_f;
   for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
-    std::string normal_file;
-    std::string tumor_file;
-    if (boost::filesystem::is_directory(normal_path)) {
-      // if input is a directory, automatically go into contig mode
-      normal_file = get_contig_fname(normal_path, contig);
+
+    if (boost::filesystem::is_regular_file(normal_path) && boost::filesystem::is_regular_file(tumor_path)){
+      intv_paths.push_back(temp_intv[contig]);
     }
-    else {
-      normal_file = normal_path;
-    }
-    if (boost::filesystem::is_directory(tumor_path)) {
-      tumor_file = get_contig_fname(tumor_path, contig);
-    }
-    else {
-      tumor_file = tumor_path;
-    }
+ 
     std::string file_ext = "vcf";
     std::string output_file = get_contig_fname(output_dir, contig, file_ext);
+
     Worker_ptr mutect2_worker(new Mutect2Worker(ref_path,
-        intv_paths[contig], 
-        normal_file, 
-        tumor_file,
+	intv_paths,
+	normal_path,
+        tumor_path,
         output_file,
         extra_opts,
         dbsnp_path,
@@ -200,6 +196,10 @@ int mutect2_main(int argc, char** argv,
     );
     output_files[contig] = output_file;
     executor.addTask(mutect2_worker, sample_id, contig == 0);
+
+    if (boost::filesystem::is_regular_file(normal_path) && boost::filesystem::is_regular_file(tumor_path)){
+      intv_paths.pop_back();
+    }
   }
 
   if (flag_gatk || get_config<bool>("use_gatk4") ) {
@@ -207,38 +207,53 @@ int mutect2_main(int argc, char** argv,
     for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
        std::string filtered_file = get_contig_fname(filtered_dir, contig, filtered_ext);
        Worker_ptr mutect2Filter_worker(new Mutect2FilterWorker(
-	  intv_paths[contig],
-	  output_files[contig],
-	  tumor_table,
-	  filtered_file,
-	  filtering_extra_opts,
+    	  intv_paths,
+    	  output_files[contig],
+    	  tumor_table,
+    	  filtered_file,
+    	  filtering_extra_opts,
           flag_f,
-	  flag_gatk)
-	);
-        filtered_files[contig] = filtered_file;
-        executor.addTask(mutect2Filter_worker, sample_id, contig == 0);
+    	  flag_gatk)
+       );
+       filtered_files[contig] = filtered_file;
+       executor.addTask(mutect2Filter_worker, sample_id, contig == 0);
     }
   }
+   
+  //std::vector<std::string> target;
+  //std::string final_vcf;
  
-  std::vector<std::string> target;
-  std::string final_vcf;
-  if (flag_gatk || get_config<bool>("use_gatk4")) {
-    target = filtered_files;
-    final_vcf = filtered_vcf;
-  } 
-  else{
-    target = output_files;
-    final_vcf = output_path;
+ //if (flag_gatk || get_config<bool>("use_gatk4")) {
+ //  target = filtered_files;
+ //  final_vcf = filtered_vcf;
+ //} 
+ //else{
+ //  target = output_files;
+ //  final_vcf = output_path;
+ //}
+ 
+  std::map<int, std::vector<std::string> > target_set;
+  std::map<int, std::string> final_set;    
+  if  (flag_gatk || get_config<bool>("use_gatk4")) {
+    target_set = {{0, filtered_files}, {1, output_files}};  
+    final_set  = {{0, filtered_vcf}, {1, output_path} };
   }
+  else {
+    target_set = {{0, output_files}};
+    final_set  = {{0, output_path}};
+  }
+
+  for (int m=0; m<target_set.size(); ++m){
 
   if (!flag_skip_concat) {
     bool flag = true;
     bool flag_a = false;
     bool flag_bgzip = false;
-
+  
     { // concat gvcfs
       Worker_ptr worker(new VCFConcatWorker(
-          target, 
+					    target_set[m],
+					    //target, 
           temp_gvcf_path,
           flag_a, 
           flag_bgzip,
@@ -246,29 +261,32 @@ int mutect2_main(int argc, char** argv,
       );
       executor.addTask(worker, sample_id, true);
     }
-
+  
     { // bgzip gvcf
       Worker_ptr worker(new ZIPWorker(
           temp_gvcf_path, 
-          final_vcf + ".gz",
+          final_set[m] + ".gz",
+          //final_vcf + ".gz",
           flag_f)
       );
       executor.addTask(worker, sample_id, true);
     }
     { // tabix gvcf
-      Worker_ptr worker(new TabixWorker(
-	  final_vcf + ".gz")
+      Worker_ptr worker(new TabixWorker(final_set[m] + ".gz")
+			//  final_vcf + ".gz")
       );
       executor.addTask(worker, sample_id, true);
     }
   }
+
+  };
 
   executor.run();
 
   // Removing temporal data :                                                                                                                                 
   remove_path(output_dir + "/");
   if (flag_gatk || get_config<bool>("use_gatk4")) {
-     remove_path(filtered_dir + "/");
+    remove_path(filtered_dir + "/");
   }
 
   return 0;
