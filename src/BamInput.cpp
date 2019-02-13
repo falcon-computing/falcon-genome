@@ -3,7 +3,6 @@
 #include <boost/filesystem/fstream.hpp>
 #include <dirent.h>
 #include <fstream>
-#include <glog/logging.h>
 #include <iostream>
 #include <map>
 #include <regex>
@@ -14,6 +13,11 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <vector>
+
+#ifdef NDEBUG
+#define LOG_HEADER "fcs-genome"
+#endif
+#include <glog/logging.h>
 
 #include "fcs-genome/config.h"
 #include "fcs-genome/BamInput.h"
