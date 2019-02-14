@@ -46,7 +46,7 @@ BamInput::BamInput(std::string dir_path) {
 	}
 	else {
           LOG(ERROR) << "Input BAM File " << dir_path  <<  " does not have an index file (bai) " << bai_path ;
-	  throw std::runtime_error("INVALID PATH");
+	  throw silentExit();
 	}
         data_.bedfiles_number = 0; 
         data_.listfiles_number = 0;        
