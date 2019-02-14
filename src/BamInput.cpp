@@ -3,7 +3,6 @@
 #include <boost/filesystem/fstream.hpp>
 #include <dirent.h>
 #include <fstream>
-#include <glog/logging.h>
 #include <iostream>
 #include <map>
 #include <regex>
@@ -14,6 +13,11 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <vector>
+
+#ifdef NDEBUG
+#define LOG_HEADER "fcs-genome"
+#endif
+#include <glog/logging.h>
 
 #include "fcs-genome/config.h"
 #include "fcs-genome/BamInput.h"
@@ -42,15 +46,15 @@ BamInput::BamInput(std::string dir_path) {
 	}
 	else {
           LOG(ERROR) << "Input BAM File " << dir_path  <<  " does not have an index file (bai) " << bai_path ;
-	  throw std::runtime_error("INVALID PATH");
+	  throw silentExit();
 	}
         data_.bedfiles_number = 0; 
         data_.listfiles_number = 0;        
       }
     }
   } else {
-      LOG(ERROR) << "Input " << dir_path  <<  " is neither a file nor directory";
-      throw std::runtime_error("INVALID PATH");
+     LOG(ERROR) << "Input BAM " << dir_path << " does not exist";
+     throw silentExit();
   }
 }
 
