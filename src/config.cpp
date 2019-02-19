@@ -722,15 +722,18 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   int chunk = int(n/ncontigs);
   int nearest_multiple = roundUp(chunk,ncontigs);
 
+  DLOG(INFO) << "Nearest Multiple " << nearest_multiple << std::endl;
+
   std::stringstream ss;
   ss << conf_temp_dir << "/intv_" << ncontigs;
   std::string intv_dir = ss.str();
   create_dir(intv_dir);
 
-  std::string inputData[n];
+  std::string *inputData = new std::string[n];  
   std::ifstream in_file(intervalFile);
   std::string str;
   int index=0;
+
   while (std::getline(in_file, str)) {
         inputData[index] = str;
         ++index;
@@ -757,6 +760,7 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
       }
       myfile.close(); myfile.clear();
   }
+  delete [] inputData;
 
   std::string org_intv_dir = get_config<std::string>("gatk.intv.path");
   if (ncontigs == 32 && !org_intv_dir.empty()) {
