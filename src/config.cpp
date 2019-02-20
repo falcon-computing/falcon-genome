@@ -729,14 +729,14 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
   std::string intv_dir = ss.str();
   create_dir(intv_dir);
 
-  std::string *inputData = new std::string[n];  
+  std::string *inputData = new std::string [n];  
   std::ifstream in_file(intervalFile);
   std::string str;
   int index=0;
 
   while (std::getline(in_file, str)) {
-        inputData[index] = str;
-        ++index;
+      inputData[index] = str;
+      ++index;
   }
 
   std::ofstream myfile;
