@@ -1,5 +1,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/algorithm/string.hpp> 
 #include <boost/program_options.hpp>
 #include <string>
 
@@ -47,7 +48,10 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     ("produce-vcf,v", "produce VCF files from HaplotypeCaller instead of GVCF")
     ("intervalList,L", po::value<std::string>()->implicit_value(""), "interval list file")
     ("gatk4", "use GATK 4.0 instead of 3.x")
-    ("htc-extra-options", po::value<std::vector<std::string> >(), "extra options for HaplotypeCaller");  
+    ("htc-extra-options", po::value<std::vector<std::string> >(), "extra options for HaplotypeCaller")
+
+    // Benchmark option: 
+    ("benchmark", "produce VCF files using GATK3.8 and GATK4");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -81,6 +85,9 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   bool flag_vcf           = get_argument<bool>(cmd_vm, "produce-vcf", "v");
   bool flag_gatk4         = get_argument<bool>(cmd_vm, "gatk4");
 
+  // Benchmark option:
+  bool flag_benchmark = get_argument<bool>(cmd_vm, "benchmark");
+
   std::string output_path = get_argument<std::string>(cmd_vm, "output", "o");
   std::string intv_list   = get_argument<std::string>(cmd_vm, "intervalList", "L");
 
@@ -91,6 +98,37 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   po::notify(cmd_vm);
 
   output_path = check_output(output_path, flag_f);
+  std::vector<bool> tag_gatk;
+  std::vector<std::string> outname;
+  std::string temp_string;
+  if (flag_benchmark) {
+    tag_gatk.push_back(false);
+    outname.push_back(output_path);
+
+    tag_gatk.push_back(true);
+    temp_string=output_path;
+    boost::replace_all(temp_string,".vcf", "_gatk4.vcf");
+    outname.push_back(temp_string);
+  }
+  else {
+    if (!flag_gatk4) {
+      tag_gatk.push_back(false); 
+      outname.push_back(output_path);
+    }
+
+    if (flag_gatk4){
+      tag_gatk.push_back(flag_gatk4);
+      temp_string=output_path;
+      boost::replace_all(temp_string,".vcf", "_gatk4.vcf");
+      outname.push_back(temp_string);
+    }
+
+  }
+
+
+
+
+
 
   // Sample Sheet must satisfy the following format:
   // #sample_id,fastq1,fastq2,rg,platform_id,library_id
@@ -246,6 +284,19 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     Executor executor("Falcon Fast Germline", 
         get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
 
+    std::vector<bool> tag_gatk;
+    if (flag_benchmark) {
+      tag_gatk.push_back(false);
+      tag_gatk.push_back(flag_gatk4);
+    }
+    else {
+      if (!flag_gatk4) tag_gatk.push_back(false);
+      if (flag_gatk4) tag_gatk.push_back(flag_gatk4);
+    }
+    
+
+    for (int r=0; r<tag_gatk.size(); ++r){
+
     for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
       std::string output_file = get_contig_fname(temp_vcf_dir, contig, file_ext);
       Worker_ptr worker(new HTCWorker(ref_path,
@@ -254,7 +305,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
          output_file,
          htc_extra_opts,
          contig,
-         flag_vcf, flag_f, flag_gatk4)
+	 flag_vcf, flag_f, tag_gatk[r])   //flag_gatk4)
       );
        
       output_files[contig] = output_file;
@@ -268,10 +319,12 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   
     std::string output_vcf;
     if (!sampleList.empty()) {
-      output_vcf = output_path + "/" + sample_id + file_ext;
+      //output_vcf = output_path + "/" + sample_id + file_ext;
+      output_vcf = outname[r] + "/" + sample_id + file_ext;
     }
     else {
-      output_vcf = output_path;
+      //output_vcf = output_path;
+      output_vcf = outname[r];
     } 
     DLOG(INFO) << output_vcf << "\n";     
   
@@ -299,6 +352,10 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
       );
       executor.addTask(worker, sample_id, true);
     }
+
+    }
+
+
     executor.run();
    }; //for (auto pair : SampleData)
 
