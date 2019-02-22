@@ -50,8 +50,10 @@ void Mutect2Worker::check() {
   }
 
   if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
-    germline_path_ = check_input(germline_path_);
-    check_vcf_index(germline_path_);
+    if (!germline_path_.empty()){
+      germline_path_ = check_input(germline_path_);
+      check_vcf_index(germline_path_);
+    }
     if (!panels_of_normals_.empty()){
       panels_of_normals_ = check_input(panels_of_normals_);
       check_vcf_index(panels_of_normals_);
@@ -77,10 +79,12 @@ void Mutect2Worker::check() {
 
   // Compare if sets of part BED files are the same:
   if (normal_data_.partsBAM.size() != tumor_data_.partsBAM.size()) {
-    throw std::runtime_error("Normal and Tumor do not have the same number of parts BAM files in folders");
+    LOG(ERROR) << "Normal and Tumor do not have the same number of parts BAM files in folders";
+    throw silentExit();
   }
   if (normal_data_.mergedREGION.size() != tumor_data_.mergedREGION.size()) {
-    throw std::runtime_error("Normal and Tumor do not have the same number of parts Merged BED files in folders");
+    LOG(ERROR) << "Normal and Tumor do not have the same number of parts BAM files in folders";
+    throw silentExit();
   }
 
   for (int i=0; i<normal_data_.mergedREGION.size(); i++){
@@ -119,8 +123,8 @@ void Mutect2Worker::setup() {
 
   if (flag_gatk_ || get_config<bool>("use_gatk4")) {
 
-    cmd << normal_path_.get_gatk_args(contig_);
-    cmd << tumor_path_.get_gatk_args(contig_);
+    cmd << normal_path_.get_gatk_args(contig_, BamInput::DEFAULT);
+    cmd << tumor_path_.get_gatk_args(contig_, BamInput::DEFAULT);
    
     cmd << " -normal " << normal_name_ << " "
         << " -tumor "  << tumor_name_ << " "
@@ -135,10 +139,10 @@ void Mutect2Worker::setup() {
   }
   else {
 
-    std::string n=normal_path_.get_gatk_args(contig_);
-    std::string t=tumor_path_.get_gatk_args(contig_);
-    boost::replace_all(n, "-I", "-I:normal");
-    boost::replace_all(t, "-I", "-I:tumor");
+    std::string n=normal_path_.get_gatk_args(contig_, BamInput::NORMAL);
+    std::string t=tumor_path_.get_gatk_args(contig_, BamInput::TUMOR);
+    //boost::replace_all(n, "-I", "-I:normal");
+    //boost::replace_all(t, "-I", "-I:tumor");
 
     cmd << n << " " << t << " ";
     

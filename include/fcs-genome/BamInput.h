@@ -32,10 +32,15 @@ struct BamInputInfo {
 
 class BamInput {
  public:
+    typedef enum {
+      DEFAULT,
+      NORMAL,
+      TUMOR
+    } InputType;
     BamInput(std::string dir_path);
     BamInputInfo merge_region(int);
     BamInputInfo getInfo();
-    std::string get_gatk_args(int);
+    std::string get_gatk_args(int, BamInput::InputType);
  private:
     int files_in_dir(std::string, std::string);
     BamInputInfo data_;

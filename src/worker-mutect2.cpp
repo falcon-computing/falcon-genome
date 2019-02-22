@@ -115,8 +115,6 @@ int mutect2_main(int argc, char** argv,
     if (!dbsnp_path.empty())  LOG(WARNING) << "dbSNP VCF file ignored in GATK4";
     if (normal_name.empty())  throw pathEmpty("normal_name");
     if (tumor_name.empty())   throw pathEmpty("tumor_name");
-    if (germline_path.empty()) throw pathEmpty("germline_path");
-    //if (panels_of_normals.empty()) throw pathEmpty("panels_of_normals");
     if (filtered_vcf.empty()) throw pathEmpty("filtered_vcf");
     filtered_dir = check_output(filtered_vcf, flag_f);
     create_dir(filtered_dir);

@@ -59,7 +59,7 @@ void HTCWorker::setup() {
 
   cmd << " -R " << ref_path_    << " ";
 
-  cmd << input_paths_.get_gatk_args(contig_);
+  cmd << input_paths_.get_gatk_args(contig_, BamInput::DEFAULT);
 
   for (auto path: intv_paths_){
     cmd <<  " -L " << path << " ";
