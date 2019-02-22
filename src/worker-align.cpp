@@ -38,7 +38,8 @@ int align_main(int argc, char** argv,
     arg_decl_string_w_def("sp,S", "sample",   "sample id ('SM' in BAM header)")
     arg_decl_string_w_def("pl,P", "illumina", "platform id ('PL' in BAM header)")
     arg_decl_string_w_def("lb,L", "sample",   "library id ('LB' in BAM header)")
-    ("align-only,l", "skip mark duplicates");
+    ("align-only,l", "skip mark duplicates")
+    ("merge-bams", "give the whole bam instead of bucket bams");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -50,6 +51,7 @@ int align_main(int argc, char** argv,
   // Check if required arguments are presented
   bool flag_f          = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_align_only = get_argument<bool>(cmd_vm, "align-only", "l");
+  bool flag_merge_bams  = get_argument<bool>(cmd_vm, "merge-bams");
 
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string sampleList  = get_argument<std::string>(cmd_vm, "sample_sheet", "F");
@@ -126,7 +128,7 @@ int align_main(int argc, char** argv,
     // If sample sheet is defined, then output_path is the parent dir and for each sample in the sample sheet, 
     // a folder is created in the parent dir. 
     if (!sampleList.empty()) {
-      DLOG(INFO) << "Creating : " + output_path + "/" + sample_id  + ".bam";
+      DLOG(INFO) << "Creating : " + output_path + "/" + sample_id; // before gives "output_path/sample_id.bam"
       create_dir(output_path + "/" + sample_id);
     } 
 
@@ -156,49 +158,43 @@ int align_main(int argc, char** argv,
       DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
       Worker_ptr worker(new BWAWorker(ref_path,
-           fq1_path, fq2_path,
-           parts_dir,
-	   temp_bam,
-           extra_opts,
-           sample_id, 
-           read_group,
-	   platform_id, 
-           library_id, 
-	   flag_align_only,
-	   flag_f)
+          fq1_path, fq2_path,
+          parts_dir,
+	        temp_bam,
+          extra_opts,
+          sample_id, 
+          read_group,
+	        platform_id, 
+          library_id, 
+	        flag_align_only,
+          flag_merge_bams,
+	        flag_f)
       );
 
       executor.addTask(worker, sample_id, 0);
-
-      DLOG(INFO) << "Alignment Completed for " << sample_id;
-
-      // Once the sample reach its last pair of FASTQ files, we proceed to merge and mark duplicates (if requested):
-      if (i == list.size()-1) {
-        std::string mergeBAM;
-        if (sampleList.empty()) {
-          mergeBAM = output_path;
-	} else{
+    } // for (int i = 0; i < list.size(); ++i)  ends
+    
+    std::string mergeBAM;
+    if (sampleList.empty()) {
+      mergeBAM = output_path;
+	  } else{
 	  // Sample Sheet :
-	  temp_bam = output_path + "/" + sample_id + "/";
-	  mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
-        };
+	    temp_bam = output_path + "/" + sample_id + "/";
+	    mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
+    }
 
-	SambambaWorker::Action ActionTag;
-        if (list.size()<2) {
-          ActionTag = SambambaWorker::INDEX;
-        } else {
-          ActionTag = SambambaWorker::MERGE;
-        }
+	  SambambaWorker::Action ActionTag;
+    if (list.size()<2) {
+      ActionTag = SambambaWorker::INDEX;
+    } else {
+      ActionTag = SambambaWorker::MERGE;
+    }
 
-        Worker_ptr merger_worker(new SambambaWorker(temp_bam, mergeBAM, ActionTag, ".*/" + sample_id + "*.*", flag_f));
-        executor.addTask(merger_worker, sample_id, true); 
-
-      } // i == list.size()-1 completed
-
-    }; // for (int i = 0; i < list.size(); ++i)  ends
- 
+    Worker_ptr merger_worker(new SambambaWorker(temp_bam, mergeBAM, ActionTag, ".*/" + sample_id + "*.*", flag_f));
+    executor.addTask(merger_worker, sample_id, true); 
+    
     executor.run();
-  }; //for (auto pair : SampleData)
+  } //for (auto pair : SampleData)
 
   return 0;
 }

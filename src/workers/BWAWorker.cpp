@@ -23,6 +23,7 @@ BWAWorker::BWAWorker(std::string ref_path,
       std::string platform_id,
       std::string library_id,
       bool flag_align_only,
+      bool flag_merge_bams,
       bool &flag_f):
   Worker(get_config<bool>("bwa.scaleout_mode") || 
          get_config<bool>("latency_mode") 
@@ -36,7 +37,8 @@ BWAWorker::BWAWorker(std::string ref_path,
   read_group_(read_group),
   platform_id_(platform_id),
   library_id_(library_id),
-  flag_align_only_(flag_align_only)
+  flag_align_only_(flag_align_only),
+  flag_merge_bams_(flag_merge_bams)
 {
   partdir_path_ = check_output(partdir_path, flag_f);
 
@@ -129,7 +131,8 @@ void BWAWorker::setup() {
       << "--chunk_size=2000 "
       << "--v=" << get_config<int>("bwa.verbose") << " "
       << "--temp_dir=\"" << partdir_path_ << "\" "
-      << "--output=\"" << output_path_ << "\" " ;
+      << "--output=\"" << output_path_ << "\" " 
+      << "--merge_bams=" << flag_merge_bams_ ;
 
   if (get_config<int>("bwa.nt") > 0) {
     cmd << "--t=" << get_config<int>("bwa.nt") << " ";
