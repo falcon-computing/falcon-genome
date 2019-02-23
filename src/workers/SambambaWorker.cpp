@@ -27,9 +27,13 @@ SambambaWorker::SambambaWorker(std::string input_path,
        std::string output_path,  
        Action action,
        std::string common,
-       bool &flag_f): Worker(1, get_config<int>("markdup.nt"), std::vector<std::string>(), get_task_name(action))
+       bool &flag_f,
+       std::vector<std::string> files
+       ): 
+       Worker(1, get_config<int>("markdup.nt"), std::vector<std::string>(), get_task_name(action))
 {
   // check output
+  input_files_ = files;
   output_file_ = check_output(output_path, flag_f, true);
   std::string bai_file = check_output(output_path + ".bai", flag_f, true);
   input_path_ = input_path;
@@ -38,6 +42,7 @@ SambambaWorker::SambambaWorker(std::string input_path,
 }
 
 void SambambaWorker::check() {
+  if (input_path_ == "") return;
   input_path_ = check_input(input_path_);
   get_input_list(input_path_, input_files_, common_, true);
 }
@@ -76,10 +81,19 @@ void SambambaWorker::setup() {
         << "-l 1 " << "-t " << get_config<int>("markdup.nt") << " ";
     break;
   case MERGE:
+    // adding this to avoid sambamba's complain
+    if (input_files_.size() == 1) {
+      cmd << "mv " << boost::filesystem::change_extension(input_files_[0], "").string() 
+          << ".bam " << boost::filesystem::change_extension(output_file_, "").string() << ".bam";
+      cmd << ";";
+      cmd << "mv " << boost::filesystem::change_extension(input_files_[0], "").string() 
+          << ".bai " << boost::filesystem::change_extension(output_file_, "").string() << ".bai";
+    } else {
     cmd << get_config<std::string>("sambamba_path") << " merge "  
         << output_file_ << " "
         << inputBAMs.str() <<    " "
-        << "-l 1 " << "-t " << get_config<int>("mergebam.nt") << " ";    
+        << "-l 1 " << "-t " << get_config<int>("mergebam.nt") << " ";
+    }    
     break;
   case INDEX:
     cmd << get_config<std::string>("sambamba_path") << " index " 
@@ -93,9 +107,9 @@ void SambambaWorker::setup() {
         << input_path_ << ";";
     // mv bam and bai
     cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam") 
-        << " " << input_path_ << ";";
+        << " " << output_file_ << ";";
     cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam.bai") 
-        << " " << get_fname_by_ext(input_path_, "bai");
+        << " " << get_fname_by_ext(output_file_, "bai");
     break;
   default:
     throw internalError("Invalid action");

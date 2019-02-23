@@ -132,7 +132,7 @@ void BWAWorker::setup() {
       << "--v=" << get_config<int>("bwa.verbose") << " "
       << "--temp_dir=\"" << partdir_path_ << "\" "
       << "--output=\"" << output_path_ << "\" " 
-      << "--merge_bams=" << flag_merge_bams_ ;
+      << "--merge_bams=" << flag_merge_bams_ << " ";
 
   if (get_config<int>("bwa.nt") > 0) {
     cmd << "--t=" << get_config<int>("bwa.nt") << " ";

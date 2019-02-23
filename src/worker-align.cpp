@@ -74,7 +74,7 @@ int align_main(int argc, char** argv,
     boost::filesystem::create_directory(dir);   
   }
 
-  if (sampleList.empty()) {
+  if (sampleList.empty() && flag_merge_bams) {
     output_path = check_output(output_path, flag_f, true);
   }
 
@@ -110,8 +110,6 @@ int align_main(int argc, char** argv,
   }
 
   // start execution
-  std::string parts_dir;
-  std::string temp_bam;
   std::string temp_dir = conf_temp_dir + "/align";
   create_dir(temp_dir);
 
@@ -124,18 +122,30 @@ int align_main(int argc, char** argv,
     std::string sample_id = pair.first;
     std::vector<SampleDetails> list = pair.second;
     std::vector<std::string> input_files_ ;
+    std::string parts_dir;
+    std::string temp_bam;
 
     // If sample sheet is defined, then output_path is the parent dir and for each sample in the sample sheet, 
     // a folder is created in the parent dir. 
+    
+    temp_bam = output_path + "/" + sample_id;
+    create_dir(temp_bam);
+    /* see if can remove this
     if (!sampleList.empty()) {
-      DLOG(INFO) << "Creating : " + output_path + "/" + sample_id; // before gives "output_path/sample_id.bam"
+      // DLOG(INFO) << "Creating : " + output_path + "/" + sample_id;
       create_dir(output_path + "/" + sample_id);
-    } 
+      temp_bam = output_path + "/" + sample_id;
+    }
+    else {
+      temp_bam = output_path;
+    }
+    */
 
     // Every sample will have a temporal folder where each pair of FASTQ files will have its own
     // folder using the Read Group as label.
-    DLOG(INFO) << "Creating " << temp_dir + "/" + sample_id;
-    create_dir(temp_dir + "/" + sample_id);
+    // DLOG(INFO) << "Creating " << temp_dir + "/" + sample_id;
+    parts_dir = temp_dir + "/" + sample_id;
+    create_dir(parts_dir);
 
     // Loop through all the pairs of FASTQ files:
     for (int i = 0; i < list.size(); ++i) {
@@ -145,22 +155,27 @@ int align_main(int argc, char** argv,
       platform_id = list[i].Platform;
       library_id = list[i].LibraryID;
 
-      parts_dir = temp_dir + "/" + sample_id + "/" + read_group;
+      std::string parts_dir_rg = parts_dir + "/" + sample_id + "_" + read_group;
+      std::string temp_bam_rg = temp_bam + "/" + sample_id + "_" + read_group + ".bam";
 
+      create_dir(parts_dir_rg);
+      if (!flag_merge_bams) {
+        create_dir(temp_bam_rg);
+      }
+
+      /* see if remove it will work
       if (!sampleList.empty()) {
-        temp_bam = output_path + "/" + sample_id  + "/" + sample_id + "_" + read_group + ".bam";
-        if (list.size()==1) temp_bam = output_path + "/" + sample_id  + "/" + sample_id + ".bam";
+        temp_bam = (list.size()==1)?(temp_bam + "/" + sample_id + ".bam")
+                    :(temp_bam + "/" + sample_id + "_" + read_group + ".bam");
       }
-      else {
-        temp_bam = output_path;
-      }
+      */
       
-      DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
+      // DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
       Worker_ptr worker(new BWAWorker(ref_path,
           fq1_path, fq2_path,
-          parts_dir,
-	        temp_bam,
+          parts_dir_rg,
+	        temp_bam_rg,
           extra_opts,
           sample_id, 
           read_group,
@@ -170,29 +185,68 @@ int align_main(int argc, char** argv,
           flag_merge_bams,
 	        flag_f)
       );
-
       executor.addTask(worker, sample_id, 0);
+
+      if (!flag_merge_bams) {
+        for (int i = 0; i < get_config<int>("bwa.num_buckets"); i++) {
+          std::string samb_input = get_bucket_fname(parts_dir_rg, i);
+          std::string samb_output = get_bucket_fname(temp_bam_rg, i);
+          bool flag = true;
+          Worker_ptr worker(new SambambaWorker(
+            samb_input, samb_output,
+            SambambaWorker::SORT, "", flag));
+          executor.addTask(worker, sample_id, i == 0);
+        }
+      }
     } // for (int i = 0; i < list.size(); ++i)  ends
     
-    std::string mergeBAM;
-    if (sampleList.empty()) {
-      mergeBAM = output_path;
-	  } else{
-	  // Sample Sheet :
-	    temp_bam = output_path + "/" + sample_id + "/";
-	    mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
+    if (flag_merge_bams) {
+      std::string mergeBAM;
+
+      if (sampleList.empty()) {
+        mergeBAM = output_path;
+      } else {
+      // Sample Sheet :
+        mergeBAM = output_path + "/" + sample_id + ".bam";
+      }
+
+      SambambaWorker::Action ActionTag;
+      if (list.size()<2) {
+        ActionTag = SambambaWorker::INDEX;
+      } else {
+        ActionTag = SambambaWorker::MERGE;
+      }
+
+      Worker_ptr merger_worker(new SambambaWorker(
+        temp_bam, mergeBAM,
+        ActionTag, 
+        ".*/" + sample_id + "*.*", flag_f));
+      
+      executor.addTask(merger_worker, sample_id, true); 
+    }
+    else {
+      std::string mergeBAM;
+      for (int i = 0; i < get_config<int>("bwa.num_buckets"); i++) {
+        std::vector<std::string> input_files;
+        for (int j = 0; j < list.size(); j++) {
+          std::string read_group = list[j].ReadGroup;
+          std::string temp_bam_rg = temp_bam + "/" + sample_id + "_" + read_group + ".bam";
+          std::string file_path = get_bucket_fname(temp_bam_rg, i);
+          input_files.push_back(file_path);
+        }
+        std::string output_folder;
+        if (sampleList.empty()) {
+          mergeBAM = output_path;
+        } else {
+          mergeBAM = output_path + "/" + sample_id + ".bam";
+        }
+        Worker_ptr merger_worker(new SambambaWorker(
+          "", get_bucket_fname(mergeBAM, i),
+          SambambaWorker::MERGE, "", flag_f, input_files));
+        executor.addTask(merger_worker, sample_id, true);
+      }
     }
 
-	  SambambaWorker::Action ActionTag;
-    if (list.size()<2) {
-      ActionTag = SambambaWorker::INDEX;
-    } else {
-      ActionTag = SambambaWorker::MERGE;
-    }
-
-    Worker_ptr merger_worker(new SambambaWorker(temp_bam, mergeBAM, ActionTag, ".*/" + sample_id + "*.*", flag_f));
-    executor.addTask(merger_worker, sample_id, true); 
-    
     executor.run();
   } //for (auto pair : SampleData)
 

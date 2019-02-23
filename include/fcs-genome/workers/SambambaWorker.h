@@ -18,7 +18,9 @@ class SambambaWorker : public Worker {
       std::string output_path, 
       Action action, 
       std::string common,
-      bool &flag_f
+      bool &flag_f,
+      std::vector<std::string> files = std::vector<std::string>() /* other files you want to 
+                                                                  add except from files in input_path */
   );
 
   //  std::string getAction();
