@@ -127,9 +127,12 @@ void Mutect2Worker::setup() {
     cmd << tumor_path_.get_gatk_args(contig_, BamInput::DEFAULT);
    
     cmd << " -normal " << normal_name_ << " "
-        << " -tumor "  << tumor_name_ << " "
-        << " --germline-resource " << germline_path_  << "  "; 
+        << " -tumor "  << tumor_name_ << " ";
     
+    if (!germline_path_.empty()){
+      cmd << " --germline-resource " << germline_path_  << "  ";
+    }
+
     if (!panels_of_normals_.empty()){
       cmd << " -pon " << panels_of_normals_  << " ";
     }
