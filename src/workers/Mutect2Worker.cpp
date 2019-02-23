@@ -90,7 +90,8 @@ void Mutect2Worker::check() {
   for (int i=0; i<normal_data_.mergedREGION.size(); i++){
      DLOG(INFO) << compareFiles(normal_data_.mergedREGION[i], tumor_data_.mergedREGION[i]);
      if (!compareFiles(normal_data_.mergedREGION[i], tumor_data_.mergedREGION[i])) {
-       throw std::runtime_error("Normal and Tumor do not have the same coordinates in the BED files");       
+       LOG(ERROR) << "Normal and Tumor do not have the same coordinates in the BED files";
+       throw silentExit();
      }
      else{
        std::string ext[2] = {"bed", "list"};
@@ -144,8 +145,6 @@ void Mutect2Worker::setup() {
 
     std::string n=normal_path_.get_gatk_args(contig_, BamInput::NORMAL);
     std::string t=tumor_path_.get_gatk_args(contig_, BamInput::TUMOR);
-    //boost::replace_all(n, "-I", "-I:normal");
-    //boost::replace_all(t, "-I", "-I:tumor");
 
     cmd << n << " " << t << " ";
     
