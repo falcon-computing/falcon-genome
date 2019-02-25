@@ -77,9 +77,6 @@ std::string check_output(std::string path, bool &f, bool require_file) {
     if (require_file && boost::filesystem::is_directory(path)) {
       throw (fileNotFound("Output path " + path + " is not a file"));
     }
-    if (!require_file && !boost::filesystem::is_directory(path)) {
-      throw (fileNotFound("Output path " + path + " is not a directory"));
-    }
     if (!f) {
       std::string user_input; 
       std::cout << "Output file or directory '" << path

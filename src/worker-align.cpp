@@ -78,10 +78,12 @@ int align_main(int argc, char** argv,
   if (sampleList.empty() && flag_merge_bams) {
     output_path = check_output(output_path, flag_f, true);
   } else {
+    // check when output suppose to be a directory
     output_path = check_output(output_path, flag_f, false);
+    if (!boost::filesystem::is_directory(output_path)) {
+      throw (fileNotFound("Output path " + output_path + " is not a directory"));
+    }
   }
-
-  // check when output suppose to be a directory
 
   // Sample Sheet must satisfy the following format:
   // #sample_id,fastq1,fastq2,rg,platform_id,library_id
@@ -136,16 +138,6 @@ int align_main(int argc, char** argv,
     std::string output_path_dir = boost::filesystem::change_extension(output_path, "").string();
     temp_bam = output_path_dir + "/" + sample_id;
     create_dir(temp_bam);
-    /* see if can remove this
-    if (!sampleList.empty()) {
-      // DLOG(INFO) << "Creating : " + output_path + "/" + sample_id;
-      create_dir(output_path + "/" + sample_id);
-      temp_bam = output_path + "/" + sample_id;
-    }
-    else {
-      temp_bam = output_path;
-    }
-    */
 
     // Every sample will have a temporal folder where each pair of FASTQ files will have its own
     // folder using the Read Group as label.
@@ -163,24 +155,15 @@ int align_main(int argc, char** argv,
 
       std::string parts_dir_rg = parts_dir + "/" + sample_id + "_" + read_group;
       
-      // paths for sambamba index
-      std::string temp_bam_rg = (list.size()==1)?(temp_bam + "/../" + sample_id + ".bam"):
-                                (temp_bam + "/" + sample_id + "_" + read_group + ".bam");
+      std::string temp_bam_rg;
       if (sampleList.empty()) temp_bam_rg = output_path;
+      else temp_bam_rg = (list.size()==1)?(temp_bam + "/../" + sample_id + ".bam"):
+                         (temp_bam + "/" + sample_id + "_" + read_group + ".bam");
 
       create_dir(parts_dir_rg);
       if (!flag_merge_bams) {
         create_dir(temp_bam_rg);
       }
-
-      /* see if remove it will work
-      if (!sampleList.empty()) {
-        temp_bam = (list.size()==1)?(temp_bam + "/" + sample_id + ".bam")
-                    :(temp_bam + "/" + sample_id + "_" + read_group + ".bam");
-      }
-      */
-      
-      // DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
 
       Worker_ptr worker(new BWAWorker(ref_path,
           fq1_path, fq2_path,
@@ -197,6 +180,7 @@ int align_main(int argc, char** argv,
       );
       executor.addTask(worker, sample_id, 1);
 
+      // if no-merge-bams chose, we sort each bucket after bwa of each pair of fastq
       if (!flag_merge_bams) {
         for (int i = 0; i < get_config<int>("bwa.num_buckets"); i++) {
           std::string samb_input = get_bucket_fname(parts_dir_rg, i);
@@ -211,19 +195,20 @@ int align_main(int argc, char** argv,
     } // for (int i = 0; i < list.size(); ++i)  ends
     
     if (flag_merge_bams) {
+      // if bams are merged by bwa, we only merge between RGs or index
       std::string mergeBAM;
 
       if (sampleList.empty()) {
         mergeBAM = output_path;
       } else {
-      // Sample Sheet :
         mergeBAM = output_path + "/" + sample_id + ".bam";
       }
 
       SambambaWorker::Action ActionTag;
       if (list.size()<2) {
         ActionTag = SambambaWorker::INDEX;
-        temp_bam = mergeBAM; // change because sambamba-worker complains temp_bam does not exist
+        temp_bam = mergeBAM; // the Index worker do not use input file 
+                             // but it complains if file does not exist.
       } else {
         ActionTag = SambambaWorker::MERGE;
       }
@@ -236,6 +221,8 @@ int align_main(int argc, char** argv,
       executor.addTask(merger_worker, sample_id, true); 
     }
     else if (list.size() != 1) {
+      // when bams are not merged by bwa, we merge each bucket of all RGs.
+      // when only one pair of fastqs, not merge is needed. Buckets already in output_path/{id}.bam
       std::string mergeBAM;
       if (sampleList.empty()) {
         mergeBAM = output_path;
