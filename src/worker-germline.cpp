@@ -102,33 +102,25 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   std::vector<std::string> outname;
   std::string temp_string;
   if (flag_benchmark) {
-    tag_gatk.push_back(false);
+    tag_gatk.push_back(0);
     outname.push_back(output_path);
-
-    tag_gatk.push_back(true);
+    tag_gatk.push_back(1);
     temp_string=output_path;
     boost::replace_all(temp_string,".vcf", "_gatk4.vcf");
     outname.push_back(temp_string);
   }
   else {
     if (!flag_gatk4) {
-      tag_gatk.push_back(false); 
+      tag_gatk.push_back(0); 
       outname.push_back(output_path);
     }
-
     if (flag_gatk4){
-      tag_gatk.push_back(flag_gatk4);
+      tag_gatk.push_back(1);
       temp_string=output_path;
       boost::replace_all(temp_string,".vcf", "_gatk4.vcf");
       outname.push_back(temp_string);
     }
-
   }
-
-
-
-
-
 
   // Sample Sheet must satisfy the following format:
   // #sample_id,fastq1,fastq2,rg,platform_id,library_id
@@ -284,77 +276,65 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     Executor executor("Falcon Fast Germline", 
         get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
 
-    std::vector<bool> tag_gatk;
-    if (flag_benchmark) {
-      tag_gatk.push_back(false);
-      tag_gatk.push_back(flag_gatk4);
-    }
-    else {
-      if (!flag_gatk4) tag_gatk.push_back(false);
-      if (flag_gatk4) tag_gatk.push_back(flag_gatk4);
-    }
-    
-
     for (int r=0; r<tag_gatk.size(); ++r){
 
-    for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
-      std::string output_file = get_contig_fname(temp_vcf_dir, contig, file_ext);
-      Worker_ptr worker(new HTCWorker(ref_path,
-         intv_paths,
-	 temp_bam_dir + "/" + read_tag,
-         output_file,
-         htc_extra_opts,
-         contig,
-	 flag_vcf, flag_f, tag_gatk[r])   //flag_gatk4)
-      );
-       
-      output_files[contig] = output_file;
-      executor.addTask(worker, sample_id, contig == 0);
+      for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
+        std::string output_file = get_contig_fname(temp_vcf_dir, contig, file_ext);
+        Worker_ptr worker(new HTCWorker(ref_path,
+           intv_paths,
+      	 temp_bam_dir + "/" + read_tag,
+           output_file,
+           htc_extra_opts,
+           contig,
+      	 flag_vcf, flag_f, tag_gatk[r])   //flag_gatk4)
+        );
+         
+        output_files[contig] = output_file;
+        executor.addTask(worker, sample_id, contig == 0);
+      
+      } // END of for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++)
+      
+      bool flag = true;
+      bool flag_a = false;
+      bool flag_bgzip = false;
+      
+      std::string output_vcf;
+      if (!sampleList.empty()) {
+        //output_vcf = output_path + "/" + sample_id + file_ext;
+        output_vcf = outname[r] + "/" + sample_id + file_ext;
+      }
+      else {
+        //output_vcf = output_path;
+        output_vcf = outname[r];
+      } 
+      DLOG(INFO) << output_vcf << "\n";     
+      
+      { // concat gvcfs
+        Worker_ptr worker(new VCFConcatWorker(
+           output_files,
+           temp_vcf_dir + "/output." + file_ext,
+           flag_a,
+           flag_bgzip,
+           flag_f)
+        );
+        executor.addTask(worker, sample_id, true);
+      }
+      { // bgzip gvcf
+        Worker_ptr worker(new ZIPWorker(
+           temp_vcf_dir + "/output." + file_ext,
+           output_vcf + ".gz",
+           flag_f)
+        );
+        executor.addTask(worker, sample_id, true);
+      }
+      { // tabix gvcf
+        Worker_ptr worker(new TabixWorker(
+           output_vcf + ".gz")
+        );
+        executor.addTask(worker, sample_id, true);
+      }
 
-    } // END of for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++)
-  
-    bool flag = true;
-    bool flag_a = false;
-    bool flag_bgzip = false;
-  
-    std::string output_vcf;
-    if (!sampleList.empty()) {
-      //output_vcf = output_path + "/" + sample_id + file_ext;
-      output_vcf = outname[r] + "/" + sample_id + file_ext;
-    }
-    else {
-      //output_vcf = output_path;
-      output_vcf = outname[r];
-    } 
-    DLOG(INFO) << output_vcf << "\n";     
-  
-    { // concat gvcfs
-      Worker_ptr worker(new VCFConcatWorker(
-         output_files,
-         temp_vcf_dir + "/output." + file_ext,
-         flag_a,
-         flag_bgzip,
-         flag_f)
-      );
-      executor.addTask(worker, sample_id, true);
-    }
-    { // bgzip gvcf
-      Worker_ptr worker(new ZIPWorker(
-         temp_vcf_dir + "/output." + file_ext,
-         output_vcf + ".gz",
-         flag_f)
-      );
-      executor.addTask(worker, sample_id, true);
-    }
-    { // tabix gvcf
-      Worker_ptr worker(new TabixWorker(
-         output_vcf + ".gz")
-      );
-      executor.addTask(worker, sample_id, true);
-    }
-
-    }
-
+    }  // END int r=0; r<tag_gatk.size(); ++r
 
     executor.run();
    }; //for (auto pair : SampleData)
