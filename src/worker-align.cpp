@@ -39,7 +39,7 @@ int align_main(int argc, char** argv,
     arg_decl_string_w_def("pl,P", "illumina", "platform id ('PL' in BAM header)")
     arg_decl_string_w_def("lb,L", "sample",   "library id ('LB' in BAM header)")
     ("align-only,l", "skip mark duplicates")
-    ("merge-bams", "give the whole bam instead of bucket bams");
+    ("no-merge-bams", "give the whole bam instead of bucket bams");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -51,7 +51,8 @@ int align_main(int argc, char** argv,
   // Check if required arguments are presented
   bool flag_f          = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_align_only = get_argument<bool>(cmd_vm, "align-only", "l");
-  bool flag_merge_bams  = get_argument<bool>(cmd_vm, "merge-bams");
+  bool flag_merge_bams  = get_argument<bool>(cmd_vm, "no-merge-bams");
+  flag_merge_bams = !flag_merge_bams;
 
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string sampleList  = get_argument<std::string>(cmd_vm, "sample_sheet", "F");
@@ -76,7 +77,11 @@ int align_main(int argc, char** argv,
 
   if (sampleList.empty() && flag_merge_bams) {
     output_path = check_output(output_path, flag_f, true);
+  } else {
+    output_path = check_output(output_path, flag_f, false);
   }
+
+  // check when output suppose to be a directory
 
   // Sample Sheet must satisfy the following format:
   // #sample_id,fastq1,fastq2,rg,platform_id,library_id
@@ -115,7 +120,7 @@ int align_main(int argc, char** argv,
 
   // check available space in temp dir
   namespace fs = boost::filesystem;
-  Executor executor("align");
+  Executor executor("align", get_config<int>("sort.nprocs", "gatk.nprocs"));
 
   // Going through each line in the Sample Sheet:
   for (auto pair : sample_data) {
@@ -127,8 +132,9 @@ int align_main(int argc, char** argv,
 
     // If sample sheet is defined, then output_path is the parent dir and for each sample in the sample sheet, 
     // a folder is created in the parent dir. 
-    
-    temp_bam = output_path + "/" + sample_id;
+
+    std::string output_path_dir = boost::filesystem::change_extension(output_path, "").string();
+    temp_bam = output_path_dir + "/" + sample_id;
     create_dir(temp_bam);
     /* see if can remove this
     if (!sampleList.empty()) {
@@ -156,7 +162,11 @@ int align_main(int argc, char** argv,
       library_id = list[i].LibraryID;
 
       std::string parts_dir_rg = parts_dir + "/" + sample_id + "_" + read_group;
-      std::string temp_bam_rg = temp_bam + "/" + sample_id + "_" + read_group + ".bam";
+      
+      // paths for sambamba index
+      std::string temp_bam_rg = (list.size()==1)?(temp_bam + "/../" + sample_id + ".bam"):
+                                (temp_bam + "/" + sample_id + "_" + read_group + ".bam");
+      if (sampleList.empty()) temp_bam_rg = output_path;
 
       create_dir(parts_dir_rg);
       if (!flag_merge_bams) {
@@ -185,7 +195,7 @@ int align_main(int argc, char** argv,
           flag_merge_bams,
 	        flag_f)
       );
-      executor.addTask(worker, sample_id, 0);
+      executor.addTask(worker, sample_id, 1);
 
       if (!flag_merge_bams) {
         for (int i = 0; i < get_config<int>("bwa.num_buckets"); i++) {
@@ -213,6 +223,7 @@ int align_main(int argc, char** argv,
       SambambaWorker::Action ActionTag;
       if (list.size()<2) {
         ActionTag = SambambaWorker::INDEX;
+        temp_bam = mergeBAM; // change because sambamba-worker complains temp_bam does not exist
       } else {
         ActionTag = SambambaWorker::MERGE;
       }
@@ -224,8 +235,14 @@ int align_main(int argc, char** argv,
       
       executor.addTask(merger_worker, sample_id, true); 
     }
-    else {
+    else if (list.size() != 1) {
       std::string mergeBAM;
+      if (sampleList.empty()) {
+        mergeBAM = output_path;
+      } else {
+        mergeBAM = output_path + "/" + sample_id + ".bam";
+      }
+      create_dir(mergeBAM);
       for (int i = 0; i < get_config<int>("bwa.num_buckets"); i++) {
         std::vector<std::string> input_files;
         for (int j = 0; j < list.size(); j++) {
@@ -235,15 +252,10 @@ int align_main(int argc, char** argv,
           input_files.push_back(file_path);
         }
         std::string output_folder;
-        if (sampleList.empty()) {
-          mergeBAM = output_path;
-        } else {
-          mergeBAM = output_path + "/" + sample_id + ".bam";
-        }
         Worker_ptr merger_worker(new SambambaWorker(
           "", get_bucket_fname(mergeBAM, i),
           SambambaWorker::MERGE, "", flag_f, input_files));
-        executor.addTask(merger_worker, sample_id, true);
+        executor.addTask(merger_worker, sample_id, i == 0);
       }
     }
 

@@ -81,19 +81,10 @@ void SambambaWorker::setup() {
         << "-l 1 " << "-t " << get_config<int>("markdup.nt") << " ";
     break;
   case MERGE:
-    // adding this to avoid sambamba's complain
-    if (input_files_.size() == 1) {
-      cmd << "mv " << boost::filesystem::change_extension(input_files_[0], "").string() 
-          << ".bam " << boost::filesystem::change_extension(output_file_, "").string() << ".bam";
-      cmd << ";";
-      cmd << "mv " << boost::filesystem::change_extension(input_files_[0], "").string() 
-          << ".bai " << boost::filesystem::change_extension(output_file_, "").string() << ".bai";
-    } else {
     cmd << get_config<std::string>("sambamba_path") << " merge "  
         << output_file_ << " "
         << inputBAMs.str() <<    " "
         << "-l 1 " << "-t " << get_config<int>("mergebam.nt") << " ";
-    }    
     break;
   case INDEX:
     cmd << get_config<std::string>("sambamba_path") << " index " 
