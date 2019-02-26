@@ -79,8 +79,8 @@ int align_main(int argc, char** argv,
     output_path = check_output(output_path, flag_f, true);
   } else {
     // check when output suppose to be a directory
-    output_path = check_output(output_path, flag_f, false);
-    if (!boost::filesystem::is_directory(output_path)) {
+    if (boost::filesystem::exists(output_path) && 
+        !boost::filesystem::is_directory(output_path)) {
       throw (fileNotFound("Output path " + output_path + " is not a directory"));
     }
   }

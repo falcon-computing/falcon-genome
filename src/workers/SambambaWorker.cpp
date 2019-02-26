@@ -62,17 +62,18 @@ void SambambaWorker::setup() {
     throw internalError("Failed to update limit");
   }
 
-  // create cmd:  
+  // create cmd:
   std::stringstream inputBAMs;
   for (int i = 0; i < input_files_.size(); i++) {
-    if (boost::filesystem::extension(input_files_[i]) == ".bam" || boost::filesystem::extension(input_files_[i]) == ""){
+    if (boost::filesystem::extension(input_files_[i]) == ".bam" 
+        || boost::filesystem::extension(input_files_[i]) == ""){
       inputBAMs << input_files_[i] << " ";
     }
   }
 
   std::stringstream cmd;
   switch (action_) {
-  case MARKDUP: 
+  case MARKDUP:
     cmd << get_config<std::string>("sambamba_path") << " markdup "
         << "--overflow-list-size=" << get_config<int>("markdup.overflow-list-size") << " " 
         << inputBAMs.str() << " "
@@ -83,8 +84,18 @@ void SambambaWorker::setup() {
   case MERGE:
     cmd << get_config<std::string>("sambamba_path") << " merge "  
         << output_file_ << " "
-        << inputBAMs.str() <<    " "
-        << "-l 1 " << "-t " << get_config<int>("mergebam.nt") << " ";
+        << inputBAMs.str() << " "
+        << "-l 1 " << "-t " << get_config<int>("mergebam.nt") << " ;";
+    // move corresponding bed files if exist
+    { // giving this '{}' space to make "bed_path" only locally available
+      std::string bed_path;
+      while (inputBAMs >> bed_path) {
+        if (boost::filesystem::exists(get_fname_by_ext(bed_path, "bed"))) {
+          cmd << "mv " << get_fname_by_ext(bed_path, "bed") 
+              << " " << get_fname_by_ext(output_file_, "bed") << ";";
+        }
+      }
+    }
     break;
   case INDEX:
     cmd << get_config<std::string>("sambamba_path") << " index " 
@@ -100,7 +111,12 @@ void SambambaWorker::setup() {
     cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam") 
         << " " << output_file_ << ";";
     cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam.bai") 
-        << " " << get_fname_by_ext(output_file_, "bai");
+        << " " << get_fname_by_ext(output_file_, "bai") << ";";
+    // mv corresponding bed file if exists
+    if (boost::filesystem::exists(get_fname_by_ext(input_path_, "bed"))) {
+      cmd << "mv " << get_fname_by_ext(input_path_, "bed")
+          << " " << get_fname_by_ext(output_file_, "bed");
+    }
     break;
   default:
     throw internalError("Invalid action");
