@@ -239,7 +239,7 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   boost::this_thread::sleep_for(boost::chrono::seconds(1));
   
   touch(known[0]); // now known will be older than idx
-  CHECK_EXCEPTION;
+  CHECK_NOEXCEPTION;
   
   // test no index exception
   known.push_back(temp_dir + "/" + "known2.vcf.gz");
