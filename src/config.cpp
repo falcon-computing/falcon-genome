@@ -806,8 +806,8 @@ void check_vcf_index(std::string inputVCF){
       throw silentExit();
     }
     else {
-      VLOG(1) << "Successfully updated stat for " << idx_file;
-      throw silentExit();
+      LOG(INFO) << "VCF File Index outdated : " << idx_file;
+      LOG(INFO) << "Successfully updated stat for " << idx_file;
     }
   }
 
