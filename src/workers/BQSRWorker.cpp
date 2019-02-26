@@ -233,7 +233,7 @@ void PRWorker::setup() {
 
   cmd << "-R " << ref_path_ << " ";
 
-  cmd << input_path_.get_gatk_args(contig_, BamInput::DEFAULT);
+  cmd << input_path_.get_gatk_args(contig);
   for (auto path: intv_path_){
     cmd <<  " -L " << path << " ";
   }
