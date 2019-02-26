@@ -217,19 +217,7 @@ int mutect2_main(int argc, char** argv,
        executor.addTask(mutect2Filter_worker, sample_id, contig == 0);
     }
   }
-   
-  //std::vector<std::string> target;
-  //std::string final_vcf;
- 
- //if (flag_gatk || get_config<bool>("use_gatk4")) {
- //  target = filtered_files;
- //  final_vcf = filtered_vcf;
- //} 
- //else{
- //  target = output_files;
- //  final_vcf = output_path;
- //}
- 
+
   std::map<int, std::vector<std::string> > target_set;
   std::map<int, std::string> final_set;    
   if  (flag_gatk || get_config<bool>("use_gatk4")) {
@@ -250,8 +238,7 @@ int mutect2_main(int argc, char** argv,
   
     { // concat gvcfs
       Worker_ptr worker(new VCFConcatWorker(
-					    target_set[m],
-					    //target, 
+	  target_set[m],
           temp_gvcf_path,
           flag_a, 
           flag_bgzip,
@@ -264,14 +251,12 @@ int mutect2_main(int argc, char** argv,
       Worker_ptr worker(new ZIPWorker(
           temp_gvcf_path, 
           final_set[m] + ".gz",
-          //final_vcf + ".gz",
           flag_f)
       );
       executor.addTask(worker, sample_id, true);
     }
     { // tabix gvcf
       Worker_ptr worker(new TabixWorker(final_set[m] + ".gz")
-			//  final_vcf + ".gz")
       );
       executor.addTask(worker, sample_id, true);
     }

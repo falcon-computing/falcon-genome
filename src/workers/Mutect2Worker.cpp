@@ -124,8 +124,8 @@ void Mutect2Worker::setup() {
 
   if (flag_gatk_ || get_config<bool>("use_gatk4")) {
 
-    cmd << normal_path_.get_gatk_args(contig_, BamInput::DEFAULT);
-    cmd << tumor_path_.get_gatk_args(contig_, BamInput::DEFAULT);
+    cmd << normal_path_.get_gatk_args(contig_);
+    cmd << tumor_path_.get_gatk_args(contig_);
    
     cmd << " -normal " << normal_name_ << " "
         << " -tumor "  << tumor_name_ << " ";

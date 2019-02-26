@@ -24,20 +24,6 @@
 
 namespace fcsgenome {
 
-static inline std::string get_input_type(BamInput::InputType input) {
-  switch (input) {
-  case BamInput::DEFAULT:
-    return " -I ";
-  case BamInput::NORMAL :
-    return " -I:normal ";
-  case BamInput::TUMOR :
-    return " -I:tumor ";
-  default:
-    LOG(ERROR) << "InputType not available";
-    throw silentExit();
-  }
-}
-
 BamInput::BamInput(std::string dir_path) {
   DLOG(INFO) << "Initializing ReadBamInput Class for " << dir_path;
   DLOG(INFO) << "BAM FOLDER PATH : " << dir_path;
@@ -170,9 +156,7 @@ std::string BamInput::get_gatk_args(int index, BamInput::InputType input){
   std::string gatk_command_;
 
   for (auto bam : data_.partsBAM[index]) {
-    //gatk_command_ = gatk_command_ + " -I " + bam;
     gatk_command_ = gatk_command_ + get_input_type(input) + bam;
-
   }
 
   for (auto region : data_.mergedREGION) {
@@ -180,5 +164,21 @@ std::string BamInput::get_gatk_args(int index, BamInput::InputType input){
   }
   return gatk_command_;
 };
+
+
+std::string BamInput::get_input_type(BamInput::InputType input) {
+  switch (input) {
+  case BamInput::DEFAULT:
+    return " -I ";
+  case BamInput::NORMAL :
+    return " -I:normal ";
+  case BamInput::TUMOR :
+    return " -I:tumor ";
+  default:
+    LOG(ERROR) << "InputType not available";
+    throw silentExit();
+  }
+}
+
 
 } // namespace fcsgenome
