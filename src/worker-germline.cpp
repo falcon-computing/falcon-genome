@@ -199,8 +199,6 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
       if (!flag_produce_bam) {
         for (int i = 0; i < get_config<int>("minimap.num_buckets"); i++) {
           std::string input = get_bucket_fname(parts_dir, i);
-          LOG(INFO) << "I am here " << input;
-
           bool flag = true;
           Worker_ptr worker(new SambambaWorker(
                 input, input,
