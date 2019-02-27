@@ -39,7 +39,7 @@ int align_main(int argc, char** argv,
     arg_decl_string_w_def("pl,P", "illumina", "platform id ('PL' in BAM header)")
     arg_decl_string_w_def("lb,L", "sample",   "library id ('LB' in BAM header)")
     ("align-only,l", "skip mark duplicates")
-    ("no-merge-bams", "give the whole bam instead of bucket bams");
+    ("disable-merge", "give bucket bams instead of the whole bam");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -51,8 +51,7 @@ int align_main(int argc, char** argv,
   // Check if required arguments are presented
   bool flag_f          = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_align_only = get_argument<bool>(cmd_vm, "align-only", "l");
-  bool flag_merge_bams  = get_argument<bool>(cmd_vm, "no-merge-bams");
-  flag_merge_bams = !flag_merge_bams;
+  bool flag_disable_merge  = get_argument<bool>(cmd_vm, "disable-merge");
 
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string sampleList  = get_argument<std::string>(cmd_vm, "sample_sheet", "F");
@@ -75,7 +74,7 @@ int align_main(int argc, char** argv,
     boost::filesystem::create_directory(dir);   
   }
 
-  if (sampleList.empty() && flag_merge_bams) {
+  if (sampleList.empty() && !flag_disable_merge) {
     output_path = check_output(output_path, flag_f, true);
   } else {
     // check when output suppose to be a directory
@@ -161,27 +160,29 @@ int align_main(int argc, char** argv,
                          (temp_bam + "/" + sample_id + "_" + read_group + ".bam");
 
       create_dir(parts_dir_rg);
-      if (!flag_merge_bams) {
+      if (flag_disable_merge) {
         create_dir(temp_bam_rg);
       }
 
-      Worker_ptr worker(new BWAWorker(ref_path,
-          fq1_path, fq2_path,
-          parts_dir_rg,
-	        temp_bam_rg,
-          extra_opts,
-          sample_id, 
-          read_group,
-	        platform_id, 
-          library_id, 
-	        flag_align_only,
-          flag_merge_bams,
-	        flag_f)
+      Worker_ptr worker(new BWAWorker(
+        ref_path, 
+        fq1_path, 
+        fq2_path, 
+        parts_dir_rg, 
+        temp_bam_rg, 
+        extra_opts, 
+        sample_id, 
+        read_group, 
+        platform_id, 
+        library_id, 
+        flag_align_only, 
+        !flag_disable_merge, 
+        flag_f)
       );
       executor.addTask(worker, sample_id, 1);
 
       // if no-merge-bams chose, we sort each bucket after bwa of each pair of fastq
-      if (!flag_merge_bams) {
+      if (flag_disable_merge) {
         for (int i = 0; i < get_config<int>("bwa.num_buckets"); i++) {
           std::string samb_input = get_bucket_fname(parts_dir_rg, i);
           std::string samb_output = get_bucket_fname(temp_bam_rg, i);
@@ -194,7 +195,7 @@ int align_main(int argc, char** argv,
       }
     } // for (int i = 0; i < list.size(); ++i)  ends
     
-    if (flag_merge_bams) {
+    if (!flag_disable_merge) {
       // if bams are merged by bwa, we only merge between RGs or index
       std::string mergeBAM;
 
