@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <unistd.h>
 #include <unordered_set>
 #include <gtest/gtest.h>
 
@@ -62,6 +63,7 @@ TEST_F(TestWorker, Testing_check_vcf_index) {
   std::string inputVCF   = temp_dir + "/input.vcf.gz";
   std::string inputIndex = temp_dir + "/input.vcf.gz.tbi";
   touch(inputIndex);
+  sleep(1);
   touch(inputVCF);  
   try {
     fcs::check_vcf_index(inputVCF);
@@ -73,9 +75,10 @@ TEST_F(TestWorker, Testing_check_vcf_index) {
   std::string inputVCF2   = temp_dir + "/input.vcf";
   std::string inputIndex2 = temp_dir + "/input.vcf.idx";
   touch(inputVCF2);
+  sleep(1);
   touch(inputIndex2);
   try {
-    fcs::check_vcf_index(inputVCF);
+    fcs::check_vcf_index(inputVCF2);
   }
   catch ( ... ){
     FAIL() << "VCF index was not checked";
@@ -239,7 +242,7 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   boost::this_thread::sleep_for(boost::chrono::seconds(1));
   
   touch(known[0]); // now known will be older than idx
-  CHECK_EXCEPTION;
+  CHECK_NOEXCEPTION;
   
   // test no index exception
   known.push_back(temp_dir + "/" + "known2.vcf.gz");
