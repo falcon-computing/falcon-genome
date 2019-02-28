@@ -89,13 +89,13 @@ TEST_F(TestWorker, Testing_check_vcf_index) {
 
   // When VCF index file does not exist
   std::string inputVCF3   = temp_dir + "/input3.vcf";
-  std::string inputIndex3;
-  touch(inputVCF2);
+  std::string inputIndex3 = temp_dir + "/input3.vcf.idx";
+  touch(inputVCF3);
   try {
     fcs::check_vcf_index(inputVCF3);
   }
-  catch ( ... ){
-    FAIL() << "VCF index was not checked";
+  catch (fcs::fileNotFound &e){
+    EXPECT_EQ(e.what(), "VCF index file " + inputIndex3 + " does not exist");
   }
 
   fcs::remove_path(temp_dir);

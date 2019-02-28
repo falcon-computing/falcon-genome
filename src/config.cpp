@@ -813,8 +813,7 @@ void check_vcf_index(std::string inputVCF){
     }
   }
   else {
-    LOG(INFO) << "Index file " << idx_file << " does not exist.\n";
-    throw silentExit();
+    throw fileNotFound("VCF index file " + idx_file.string() + " does not exist");
   }
 
 }
