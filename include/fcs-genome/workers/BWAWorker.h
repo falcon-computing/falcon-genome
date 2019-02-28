@@ -39,6 +39,7 @@ class BWAWorker : public Worker {
 
   bool flag_align_only_;
   bool flag_merge_bams_;
+  bool flag_f_;
 };
 
 } // namespace fcsgenome

@@ -12,6 +12,7 @@
 #include "fcs-genome/config.h"
 #include "fcs-genome/common.h"
 #include "fcs-genome/Executor.h"
+#include "fcs-genome/workers/BWAWorker.h"
 #include "fcs-genome/workers/BQSRWorker.h"
 #include "fcs-genome/workers/SambambaWorker.h"
 
@@ -263,4 +264,210 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   }
 
   fcs::remove_path(temp_dir);
+}
+
+TEST_F(TestWorker, TestBWAWorker_check) {
+  std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
+  fcs::create_dir(temp_dir);
+  std::string ref_path = temp_dir + "/" + "ref.fasta";
+  std::string fq1_path = temp_dir + "/" + "fastq_1.gz";
+  std::string fq2_path = temp_dir + "/" + "fastq_2.gz";
+  std::string partdir_path = temp_dir + "/" + "part_dir";
+  std::string output_path = temp_dir + "/" + "output";
+  std::vector<std::string> extra_opts;
+  std::string sample_id = "id";
+  std::string read_group = "rg";
+  std::string platform_id = "pl";
+  std::string library_id = "lb";
+  bool flag_align_only = false;
+  bool flag_merge_bams = false;
+  bool flag_f = false;
+  
+  bool flag_true = true;
+
+  {
+    fcs::BWAWorker worker(ref_path, fq1_path, fq2_path, 
+      partdir_path, output_path, extra_opts, sample_id, 
+      read_group, platform_id, library_id, flag_align_only,
+      flag_merge_bams, flag_f);
+    CHECK_EXCEPTION;
+  }
+
+  {
+    touch(ref_path);
+    touch(fq1_path);
+    touch(fq2_path);
+    fcs::BWAWorker worker(ref_path, fq1_path, fq2_path, 
+      partdir_path, output_path, extra_opts, sample_id, 
+      read_group, platform_id, library_id, flag_align_only,
+      flag_merge_bams, flag_f);
+    CHECK_NOEXCEPTION;
+  }
+
+  // check for partdir_path
+  
+  touch(partdir_path);
+  {
+    fcs::BWAWorker worker(ref_path, fq1_path, fq2_path, 
+      partdir_path, output_path, extra_opts, sample_id, 
+      read_group, platform_id, library_id, flag_align_only,
+      flag_merge_bams, flag_true);
+    CHECK_NOEXCEPTION;
+  }
+  fcs::remove_path(partdir_path);
+
+  // check for output_path
+  touch(output_path);
+  {
+    fcs::BWAWorker worker(ref_path, fq1_path, fq2_path, 
+      partdir_path, output_path, extra_opts, sample_id, 
+      read_group, platform_id, library_id, flag_align_only,
+      flag_merge_bams, flag_f);
+    CHECK_NOEXCEPTION;
+  }
+  {
+    fcs::BWAWorker worker(ref_path, fq1_path, fq2_path, 
+      partdir_path, output_path, extra_opts, sample_id, 
+      read_group, platform_id, library_id, flag_align_only,
+      flag_true, flag_true);
+    CHECK_NOEXCEPTION;
+  }
+  fcs::remove_path(output_path);
+
+  // check for bam header values
+  sample_id = "";
+  {
+    fcs::BWAWorker worker(ref_path, fq1_path, fq2_path, 
+      partdir_path, output_path, extra_opts, sample_id, 
+      read_group, platform_id, library_id, flag_align_only,
+      flag_merge_bams, flag_f);
+    CHECK_EXCEPTION;
+  }
+  sample_id = "id";
+
+  read_group = "";
+  {
+    fcs::BWAWorker worker(ref_path, fq1_path, fq2_path, 
+      partdir_path, output_path, extra_opts, sample_id, 
+      read_group, platform_id, library_id, flag_align_only,
+      flag_merge_bams, flag_f);
+    CHECK_EXCEPTION;
+  }
+  read_group = "rg";
+
+  platform_id = "";
+  {
+    fcs::BWAWorker worker(ref_path, fq1_path, fq2_path, 
+      partdir_path, output_path, extra_opts, sample_id, 
+      read_group, platform_id, library_id, flag_align_only,
+      flag_merge_bams, flag_f);
+    CHECK_EXCEPTION;
+  }
+  platform_id = "pl";
+
+  library_id = "";
+  {
+    fcs::BWAWorker worker(ref_path, fq1_path, fq2_path, 
+      partdir_path, output_path, extra_opts, sample_id, 
+      read_group, platform_id, library_id, flag_align_only,
+      flag_merge_bams, flag_f);
+    CHECK_EXCEPTION;
+  }
+  library_id = "lb";
+}
+
+TEST_F(TestWorker, TestBWAWorker_setup) {
+  std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
+  fcs::create_dir(temp_dir);
+  std::string ref_path = temp_dir + "/" + "ref.fasta";
+  std::string fq1_path = temp_dir + "/" + "fastq_1.gz";
+  std::string fq2_path = temp_dir + "/" + "fastq_2.gz";
+  std::string partdir_path = temp_dir + "/" + "part_dir";
+  std::string output_path = temp_dir + "/" + "output";
+  std::vector<std::string> extra_opts;
+  std::string sample_id = "id";
+  std::string read_group = "rg";
+  std::string platform_id = "pl";
+  std::string library_id = "lb";
+  bool flag_align_only = false;
+  bool flag_merge_bams = false;
+  bool flag_f = false;
+/*
+  // only do test on non-scaleout and non-latency mode
+  if (!fcs::get_config<bool>("bwa.scaleout_mode") &&
+      !fcs::get_config<bool>("latency_mode")) {
+    return;
+  }
+
+  fcs::BWAWorker worker(ref_path, fq1_path, fq2_path, 
+    partdir_path, output_path, extra_opts, sample_id, 
+    read_group, platform_id, library_id, flag_align_only,
+    flag_merge_bams, flag_f);
+
+  CHECK_NOEXCEPTION
+  CHECK_SETUP_NOEXCEPTION
+
+  std::stringstream ss;
+  ss << "bwa-fow mem " 
+     << "-R \"@RG\\tID:" << "rg" << 
+                "\\tSM:" << "id" << 
+                "\\tPL:" << "pl" << 
+                "\\tLB:" << "lb" << "\" "
+     << "--logtostderr "
+     << "--offload "
+     << "--output_flag=1 "
+     << "--chunk_size=2000 "
+     << "--v=" << fcs::get_config<int>("bwa.verbose") << " "
+     << "--temp_dir=\"" << temp_dir << "/" << "part_dir" << "\" "
+     << "--output=\"" << temp_dir << "/" << "output" << "\" " 
+     << "--merge_bams=" << "0" << " "; 
+ 
+  ASSERT_THAT(worker.getCommand(), HasSubstr(ss.str()));
+
+  if (fcs::get_config<int>("bwa.nt") > 0) {
+    ss.str("");
+    ss << "--t=" << fcs::get_config<int>("bwa.nt");
+    ASSERT_THAT(worker.getCommand(), HasSubstr(ss.str()));
+  }
+
+  ss.str("");
+  ss << "--disable_markdup=true"
+  ASSERT_THAT(worker.getCommand(), Not(HasSubstr(ss.str())));
+ 
+  if (fcs::get_config<bool>("bwa.enforce_order")) {
+    ss.str(""); 
+    ss << "--inorder_output";
+    ASSERT_THAT(worker.getCommand(), Not(HasSubstr(ss.str())));
+  }
+
+  if (fcs::get_config<bool>("bwa.use_fpga") &&
+      !fcs::get_config<std::string>("bwa.fpga.bit_path").empty())
+  {
+    ss("");
+    ss  << "--use_fpga "
+        << "--fpga_path=" << fcs::get_config<std::string>("bwa.fpga.bit_path") << " ";
+    ASSERT_THAT(worker.getCommand(), HasSubstr(ss.str()));
+  }
+
+  ss.str("");
+  ss << temp_dir << "/" << "ref.fasta"
+     << temp_dir << "/" << "fastq_1.gz"
+     << temp_dir << "/" << "fastq_2.gz";
+  ASSERT_THAT(worker.getCommand(), Not(HasSubstr(ss.str())));
+*/
+}
+
+TEST_F(TestWorker, TestSambambaWorker_check) {
+  std::string input_path;
+  std::string output_path;
+  fcs::SambambaWorker::Action action;
+  std::string common;
+  bool flag_f;
+  std::vector<std::string> files;
+
+
+}
+
+TEST_F(TestWorker, TestSambambaWorker_setup) {
+
 }
