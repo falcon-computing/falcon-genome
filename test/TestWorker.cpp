@@ -377,6 +377,7 @@ TEST_F(TestWorker, TestBWAWorker_check) {
 }
 
 TEST_F(TestWorker, TestBWAWorker_setup) {
+  //std::cout << "doing TestBWAWorker_setup tests" << std::endl;
   std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
   fcs::create_dir(temp_dir);
   std::string ref_path = temp_dir + "/" + "ref.fasta";
@@ -392,7 +393,9 @@ TEST_F(TestWorker, TestBWAWorker_setup) {
   bool flag_align_only = false;
   bool flag_merge_bams = false;
   bool flag_f = false;
-/*
+
+  bool for_assert;
+
   // only do test on non-scaleout and non-latency mode
   if (!fcs::get_config<bool>("bwa.scaleout_mode") &&
       !fcs::get_config<bool>("latency_mode")) {
@@ -421,40 +424,45 @@ TEST_F(TestWorker, TestBWAWorker_setup) {
      << "--temp_dir=\"" << temp_dir << "/" << "part_dir" << "\" "
      << "--output=\"" << temp_dir << "/" << "output" << "\" " 
      << "--merge_bams=" << "0" << " "; 
- 
-  ASSERT_THAT(worker.getCommand(), HasSubstr(ss.str()));
+  
+  for_assert = worker.getCommand().find(ss.str()) != std::string::npos;
+  ASSERT_TRUE(for_assert);
 
   if (fcs::get_config<int>("bwa.nt") > 0) {
     ss.str("");
     ss << "--t=" << fcs::get_config<int>("bwa.nt");
-    ASSERT_THAT(worker.getCommand(), HasSubstr(ss.str()));
+    for_assert = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(for_assert);
   }
 
   ss.str("");
-  ss << "--disable_markdup=true"
-  ASSERT_THAT(worker.getCommand(), Not(HasSubstr(ss.str())));
+  ss << "--disable_markdup=true";
+  for_assert = worker.getCommand().find(ss.str()) == std::string::npos;
+  ASSERT_TRUE(for_assert);
  
   if (fcs::get_config<bool>("bwa.enforce_order")) {
     ss.str(""); 
     ss << "--inorder_output";
-    ASSERT_THAT(worker.getCommand(), Not(HasSubstr(ss.str())));
+    for_assert = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(for_assert);
   }
 
   if (fcs::get_config<bool>("bwa.use_fpga") &&
       !fcs::get_config<std::string>("bwa.fpga.bit_path").empty())
   {
-    ss("");
+    ss.str("");
     ss  << "--use_fpga "
         << "--fpga_path=" << fcs::get_config<std::string>("bwa.fpga.bit_path") << " ";
-    ASSERT_THAT(worker.getCommand(), HasSubstr(ss.str()));
+    for_assert = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(for_assert);
   }
 
   ss.str("");
   ss << temp_dir << "/" << "ref.fasta"
      << temp_dir << "/" << "fastq_1.gz"
      << temp_dir << "/" << "fastq_2.gz";
-  ASSERT_THAT(worker.getCommand(), Not(HasSubstr(ss.str())));
-*/
+  for_assert = worker.getCommand().find(ss.str()) != std::string::npos;
+  ASSERT_TRUE(for_assert);
 }
 
 TEST_F(TestWorker, TestSambambaWorker_check) {
