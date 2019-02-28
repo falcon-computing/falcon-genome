@@ -60,6 +60,8 @@ void touch(std::string path) {
 TEST_F(TestWorker, Testing_check_vcf_index) {
   std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
   fcs::create_dir(temp_dir);
+
+  // When VCF index file is older than VCF file: 
   std::string inputVCF   = temp_dir + "/input.vcf.gz";
   std::string inputIndex = temp_dir + "/input.vcf.gz.tbi";
   touch(inputIndex);
@@ -72,6 +74,7 @@ TEST_F(TestWorker, Testing_check_vcf_index) {
     FAIL() << "VCF index was not checked";
   }  
 
+  // When VCF file is older than VCF index file:
   std::string inputVCF2   = temp_dir + "/input.vcf";
   std::string inputIndex2 = temp_dir + "/input.vcf.idx";
   touch(inputVCF2);
@@ -83,6 +86,18 @@ TEST_F(TestWorker, Testing_check_vcf_index) {
   catch ( ... ){
     FAIL() << "VCF index was not checked";
   }
+
+  // When VCF index file does not exist
+  std::string inputVCF3   = temp_dir + "/input3.vcf";
+  std::string inputIndex3;
+  touch(inputVCF2);
+  try {
+    fcs::check_vcf_index(inputVCF3);
+  }
+  catch ( ... ){
+    FAIL() << "VCF index was not checked";
+  }
+
   fcs::remove_path(temp_dir);
 }
 
