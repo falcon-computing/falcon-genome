@@ -814,7 +814,7 @@ void check_vcf_index(std::string inputVCF){
   }
   else {
     LOG(INFO) << "Index file " << idx_file << " does not exist.\n";
-    LOG(INFO) << "GATK Performance will slow down significantly\n";
+    throw silentExit();
   }
 
 }
