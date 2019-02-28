@@ -795,20 +795,26 @@ void check_vcf_index(std::string inputVCF){
   auto vcf_file = fs::path(site);
   auto idx_file = fs::path(site + idx_ext);
 
-  if (std::difftime(fs::last_write_time(vcf_file), fs::last_write_time(idx_file)) > 0) {
-    boost::system::error_code err;
-    fs::last_write_time(idx_file, std::time(NULL), err);
-    if (err != 0) {
-      LOG(ERROR) << "Attempting to update the last modified time for " << idx_file
-                 << ", but failed.";
-      LOG(ERROR) << "Please fix it manually before running this command again, "
-                 << "otherwise GATK will be slowed down significantly.";
-      throw silentExit();
+  if (boost::filesystem::exists(idx_file)) {
+    if (std::difftime(fs::last_write_time(vcf_file), fs::last_write_time(idx_file)) > 0) {
+      boost::system::error_code err;
+      fs::last_write_time(idx_file, std::time(NULL), err);
+      if (err != 0) {
+        LOG(ERROR) << "Attempting to update the last modified time for " << idx_file
+                   << ", but failed.";
+        LOG(ERROR) << "Please fix it manually before running this command again, "
+                   << "otherwise GATK will be slowed down significantly.";
+        throw silentExit();
+      }
+      else {
+        LOG(INFO) << "VCF File Index outdated : " << idx_file;
+        LOG(INFO) << "Successfully updated stat for " << idx_file;
+      }
     }
-    else {
-      LOG(INFO) << "VCF File Index outdated : " << idx_file;
-      LOG(INFO) << "Successfully updated stat for " << idx_file;
-    }
+  }
+  else {
+    LOG(INFO) << "Index file " << idx_file << " does not exist.\n";
+    throw silentExit();
   }
 
 }
