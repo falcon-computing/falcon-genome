@@ -811,6 +811,7 @@ void check_vcf_index(std::string inputVCF){
         LOG(INFO) << "Successfully updated stat for " << idx_file;
       }
     }
+  }
   else {
     LOG(INFO) << "Index file " << idx_file << " does not exist.\n";
     LOG(INFO) << "GATK Performance will slow down significantly\n";
