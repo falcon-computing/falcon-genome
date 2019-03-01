@@ -30,21 +30,30 @@ SambambaWorker::SambambaWorker(std::string input_path,
        bool &flag_f,
        std::vector<std::string> files
        ): 
-       Worker(1, get_config<int>("markdup.nt"), std::vector<std::string>(), get_task_name(action))
+       Worker(1, get_config<int>("markdup.nt"), 
+              std::vector<std::string>(), get_task_name(action)), 
+       flag_f_(flag_f), input_files_(files), output_file_(output_path),
+       input_path_(input_path), action_(action), common_(common)
 {
-  // check output
-  input_files_ = files;
-  output_file_ = check_output(output_path, flag_f, true);
-  std::string bai_file = check_output(output_path + ".bai", flag_f, true);
-  input_path_ = input_path;
-  action_ = action;
-  common_ = common;
+  ;
 }
 
 void SambambaWorker::check() {
-  if (input_path_ == "") return;
-  input_path_ = check_input(input_path_);
-  get_input_list(input_path_, input_files_, common_, true);
+  if (input_files_.size() == 0) {
+    input_path_ = check_input(input_path_);
+  }
+  if (boost::filesystem::exists(input_path_)) { // when input_files_ is not empty,
+                                                // we don't want get_input_list() error out
+                                                // because input_path_ does not exist.
+    get_input_list(input_path_, input_files_, common_, true);
+  }
+  for (auto & it : input_files_) {
+    it = check_input(it);
+  }
+  if (output_file_.length() != 0) {
+    output_file_ = check_output(output_file_, flag_f_, true);
+    std::string bai_file = check_output(output_file_ + ".bai", flag_f_, true);
+  }
 }
 
 void SambambaWorker::setup() {
@@ -99,7 +108,7 @@ void SambambaWorker::setup() {
     break;
   case INDEX:
     cmd << get_config<std::string>("sambamba_path") << " index " 
-        << output_file_ << " " 
+        << input_path_ << " " 
         << "-t " << get_config<int>("mergebam.nt") << " ";
     break;
   case SORT:

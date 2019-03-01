@@ -208,18 +208,18 @@ int align_main(int argc, char** argv,
       SambambaWorker::Action ActionTag;
       if (list.size()<2) {
         ActionTag = SambambaWorker::INDEX;
-        temp_bam = mergeBAM; // the Index worker do not use input file 
-                             // but it complains if file does not exist.
+        Worker_ptr index_worker(new SambambaWorker(mergeBAM, "",
+                                ActionTag, ".*/" + sample_id + ".*\\..*",
+                                flag_f));
+        executor.addTask(index_worker, sample_id, true); 
       } else {
         ActionTag = SambambaWorker::MERGE;
-      }
-
-      Worker_ptr merger_worker(new SambambaWorker(
-        temp_bam, mergeBAM,
-        ActionTag, 
-        ".*/" + sample_id + "*.*", flag_f));
-      
-      executor.addTask(merger_worker, sample_id, true); 
+        Worker_ptr merger_worker(new SambambaWorker(
+                                temp_bam, mergeBAM,
+                                ActionTag, 
+                                ".*/" + sample_id + ".*", flag_f));
+        executor.addTask(merger_worker, sample_id, true);
+      } 
     }
     else if (list.size() != 1) {
       // when bams are not merged by bwa, we merge each bucket of all RGs.

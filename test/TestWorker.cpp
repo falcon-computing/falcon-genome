@@ -394,7 +394,7 @@ TEST_F(TestWorker, TestBWAWorker_setup) {
   bool flag_merge_bams = false;
   bool flag_f = false;
 
-  bool for_assert;
+  bool flag_c;
 
   // only do test on non-scaleout and non-latency mode
   if (!fcs::get_config<bool>("bwa.scaleout_mode") &&
@@ -411,6 +411,7 @@ TEST_F(TestWorker, TestBWAWorker_setup) {
   CHECK_SETUP_NOEXCEPTION
 
   std::stringstream ss;
+  ss.str("");
   ss << "bwa-fow mem " 
      << "-R \"@RG\\tID:" << "rg" << 
                 "\\tSM:" << "id" << 
@@ -425,26 +426,26 @@ TEST_F(TestWorker, TestBWAWorker_setup) {
      << "--output=\"" << temp_dir << "/" << "output" << "\" " 
      << "--merge_bams=" << "0" << " "; 
   
-  for_assert = worker.getCommand().find(ss.str()) != std::string::npos;
-  ASSERT_TRUE(for_assert);
+  flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+  ASSERT_TRUE(flag_c);
 
   if (fcs::get_config<int>("bwa.nt") > 0) {
     ss.str("");
     ss << "--t=" << fcs::get_config<int>("bwa.nt");
-    for_assert = worker.getCommand().find(ss.str()) != std::string::npos;
-    ASSERT_TRUE(for_assert);
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
   }
 
   ss.str("");
   ss << "--disable_markdup=true";
-  for_assert = worker.getCommand().find(ss.str()) == std::string::npos;
-  ASSERT_TRUE(for_assert);
+  flag_c = worker.getCommand().find(ss.str()) == std::string::npos;
+  ASSERT_TRUE(flag_c);
  
   if (fcs::get_config<bool>("bwa.enforce_order")) {
     ss.str(""); 
     ss << "--inorder_output";
-    for_assert = worker.getCommand().find(ss.str()) != std::string::npos;
-    ASSERT_TRUE(for_assert);
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
   }
 
   if (fcs::get_config<bool>("bwa.use_fpga") &&
@@ -453,29 +454,133 @@ TEST_F(TestWorker, TestBWAWorker_setup) {
     ss.str("");
     ss  << "--use_fpga "
         << "--fpga_path=" << fcs::get_config<std::string>("bwa.fpga.bit_path") << " ";
-    for_assert = worker.getCommand().find(ss.str()) != std::string::npos;
-    ASSERT_TRUE(for_assert);
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
   }
 
   ss.str("");
   ss << temp_dir << "/" << "ref.fasta"
      << temp_dir << "/" << "fastq_1.gz"
      << temp_dir << "/" << "fastq_2.gz";
-  for_assert = worker.getCommand().find(ss.str()) != std::string::npos;
-  ASSERT_TRUE(for_assert);
+  flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+  ASSERT_TRUE(flag_c);
+
+  ss.str("");
 }
 
 TEST_F(TestWorker, TestSambambaWorker_check) {
-  std::string input_path;
-  std::string output_path;
-  fcs::SambambaWorker::Action action;
-  std::string common;
+  std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
+  fcs::create_dir(temp_dir);
+  std::string input_path = temp_dir + "/" + "input.bam";
+  std::string output_path = temp_dir + "/" + "output.bam";
+  fcs::SambambaWorker::Action action = fcs::SambambaWorker::INDEX;
+  std::string common = ".*";
   bool flag_f;
   std::vector<std::string> files;
 
+  // check if input file path exits
+  {
+    fcs::SambambaWorker worker(input_path, output_path, action,
+                              common, flag_f, files);
+    CHECK_EXCEPTION
+  }
+  touch(input_path);
+  {
+    fcs::SambambaWorker worker(input_path, output_path, action,
+                              common, flag_f, files);
+    CHECK_NOEXCEPTION
+  }  
+  fcs::remove_path(input_path);
 
+  // check files vector
+  std::string input1 = temp_dir + "/" + "input1.bam";
+  std::string input2 = temp_dir + "/" + "input2.bam";
+  std::string input3 = temp_dir + "/" + "input3.bam";
+  files.push_back(input1);
+  files.push_back(input2);
+  files.push_back(input3);
+  {
+    fcs::SambambaWorker worker(input_path, output_path, action,
+                              common, flag_f, files);
+    CHECK_EXCEPTION
+  }
+  touch(input1);
+  touch(input2);
+  touch(input3);
+  {
+    fcs::SambambaWorker worker(input_path, output_path, action,
+                              common, flag_f, files);
+    
+    CHECK_NOEXCEPTION
+  }
+  std::vector<std::string>().swap(files); // for clear vector
+
+  // test the common regex
+  input_path = temp_dir + "/" + "input";
+  std::string temp1 = temp_dir + "/" + "input/" + "dododododotest1ppp.bbb.bam";
+  std::string temp2 = temp_dir + "/" + "input/" + "skyskyskyskytest1lklk...klk.bam";
+  std::string temp3 = temp_dir + "/" + "input/" + "WahahaWWExited...test1.In.tere.s.ting.bam";
+  std::string temp4 = temp_dir + "/" + "input/" + "WahahaWWExited...test1.In.tere.s.ting";
+  std::string temp5 = temp_dir + "/" + "input/" + "test1.bam";
+  std::string temp6 = temp_dir + "/" + "input/" + "test2.bam";
+  std::string temp7 = temp_dir + "/" + "input/" + "skyskyskyskytest2lklk...klk.bam";
+  std::string temp8 = temp_dir + "/" + "input/" + "sdasdshshtest1sdaksdtest1dasda....";
+  common = ".*/.*test1.*\\.bam";
+  fcs::create_dir(input_path);
+  touch(temp1);
+  touch(temp2);
+  touch(temp3);
+  touch(temp4);
+  touch(temp5);
+  touch(temp6);
+  touch(temp7);
+  touch(temp8);
+  {
+    fcs::SambambaWorker worker(input_path, output_path, action,
+                              common, flag_f, files);
+    CHECK_NOEXCEPTION
+    ASSERT_EQ(4, worker.get_files().size());
+  }
+  files.push_back(input1);
+  {
+    fcs::SambambaWorker worker(input_path, output_path, action,
+                              common, flag_f, files);
+    CHECK_NOEXCEPTION
+    ASSERT_EQ(5, worker.get_files().size());
+  }
+  fcs::remove_path(temp3);
+  {
+    fcs::SambambaWorker worker(input_path, output_path, action,
+                              common, flag_f, files);
+    CHECK_NOEXCEPTION
+    ASSERT_EQ(4, worker.get_files().size());
+  } 
+  fcs::remove_path(temp6);
+  {
+    fcs::SambambaWorker worker(input_path, output_path, action,
+                              common, flag_f, files);
+    CHECK_NOEXCEPTION
+    ASSERT_EQ(4, worker.get_files().size());
+  }
 }
 
 TEST_F(TestWorker, TestSambambaWorker_setup) {
+  std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
+  fcs::create_dir(temp_dir);
+  std::string input_path = temp_dir + "/" + "input.bam";
+  std::string output_path = temp_dir + "/" + "output.bam";
+  fcs::SambambaWorker::Action action;
+  std::string common = ".*";
+  bool flag_f;
+  std::vector<std::string> files;
+
+  // check for Markdup
+  action = fcs::SambambaWorker::MARKDUP;
+
+  // check for MERGE
+
+  // check for INDEX
+
+  // check for SORT
 
 }
