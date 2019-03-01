@@ -130,11 +130,14 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   // check available space in temp dir
   namespace fs = boost::filesystem;
 
-  // generate interval folder
-  init_contig_intv(ref_path);
+  // generate interval folder. This vector will be used if input_htc is a regular merged BAM:
+  std::vector<std::string> temp_intv=init_contig_intv(ref_path);
 
   // TODO: number can be tuned
   int num_buckets =  get_config<int>("gatk.ncontigs");
+
+  // The BAM file used for HTC:
+  std::string input_htc;
 
   // Going through each line in the Sample Sheet:
   for (auto pair : sample_data) {
@@ -194,6 +197,9 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 
       // perform sambamba sort if not producing bam
       if (!flag_produce_bam) {
+
+        input_htc = temp_bam_dir + "/" + read_tag;
+
         for (int i = 0; i < get_config<int>("minimap.num_buckets"); i++) {
           std::string input = get_bucket_fname(parts_dir, i);
           bool flag = true;
@@ -211,6 +217,8 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
               SambambaWorker::INDEX,
               "", flag)); 
         executor.addTask(worker, sample_id, true);
+        // The single BAM used for HTC:
+        input_htc=output;
       }
 
       executor.run();
@@ -218,24 +226,24 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     } // END for (int i = 0; i < list.size(); ++i)
 
     DLOG(INFO) << "Alignment Completed for " << sample_id;
-
+ 
     // TODO: merge bam if --generate-bam is selected
     // ============================
-
+ 
     // Proceed to compute VCF file:
     // ============================
-
+ 
     DLOG(INFO) << " VCF dir : " << temp_vcf_dir;
-
+ 
     // start an executor for NAM
     Worker_ptr blaze_worker(new BlazeWorker(
           get_config<std::string>("blaze.nam_path"),
           get_config<std::string>("blaze.conf_path")));
-
+ 
     BackgroundExecutor bg_executor(
           sample_id.empty() ? "blaze-nam" : "blaze-nam-" + sample_id,
           blaze_worker);
-
+ 
     std::string file_ext = flag_vcf ? "vcf" : "g.vcf";
     std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
     std::vector<std::string> intv_paths;
@@ -245,27 +253,40 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 
     Executor executor("Falcon Fast Germline", 
         get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
-
+ 
     for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
       std::string output_file = get_contig_fname(temp_vcf_dir, contig, file_ext);
+
+      // If interval list is defined, it will be the first element.
+      // If input BAM is a regular file and not a folder, then each java process will use 
+      // the corresponding region from the reference genome.  The folder BAM has the parts BAM with their
+      // corresponding region list
+      if (boost::filesystem::is_regular_file(input_htc)){
+        intv_paths.push_back(temp_intv[contig]);
+      }
+
       Worker_ptr worker(new HTCWorker(ref_path,
-         intv_paths,
-	 temp_bam_dir + "/" + read_tag,
+	 intv_paths,
+	 input_htc,
          output_file,
          htc_extra_opts,
          contig,
          flag_vcf, flag_f, flag_gatk4)
       );
        
+      if (boost::filesystem::is_regular_file(input_htc)){
+        intv_paths.pop_back();
+      }
+
       output_files[contig] = output_file;
       executor.addTask(worker, sample_id, contig == 0);
-
+ 
     } // END of for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++)
-  
+   
     bool flag = true;
     bool flag_a = false;
     bool flag_bgzip = false;
-  
+   
     std::string output_vcf;
     if (!sampleList.empty()) {
       output_vcf = output_path + "/" + sample_id + file_ext;
@@ -274,7 +295,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
       output_vcf = output_path;
     } 
     DLOG(INFO) << output_vcf << "\n";     
-  
+   
     { // concat gvcfs
       Worker_ptr worker(new VCFConcatWorker(
          output_files,
