@@ -48,13 +48,22 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     ("produce-vcf,v", "produce VCF files from HaplotypeCaller instead of GVCF")
     ("intervalList,L", po::value<std::string>()->implicit_value(""), "interval list file")
     ("gatk4", "use GATK 4.0 instead of 3.x")
-    ("htc-extra-options", po::value<std::vector<std::string> >(), "extra options for HaplotypeCaller")
+    ("htc-extra-options", po::value<std::vector<std::string> >(), "extra options for HaplotypeCaller");
 
-    // Benchmark option: 
+  // Benchmark option: 
+  boost::program_options::options_description backend("Backend options");
+  backend.add_options()
     ("benchmark", "produce VCF files using GATK3.8 and GATK4");
 
+  // Add all options:
+  boost::program_options::options_description all("All options");
+  all.add(opt_desc).add(backend);
+
+  boost::program_options::options_description visible("All options");
+  visible.add(opt_desc);
+
   // Parse arguments
-  po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
+  po::store(po::parse_command_line(argc, argv, all), cmd_vm);
 
   if (cmd_vm.count("help")) {
     throw helpRequest();
