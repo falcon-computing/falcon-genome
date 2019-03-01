@@ -135,14 +135,15 @@ int align_main(int argc, char** argv,
     // a folder is created in the parent dir. 
 
     std::string output_path_dir = boost::filesystem::change_extension(output_path, "").string();
+    create_dir(output_path_dir);
     temp_bam = output_path_dir + "/" + sample_id;
-    create_dir(temp_bam);
-
     // Every sample will have a temporal folder where each pair of FASTQ files will have its own
     // folder using the Read Group as label.
     // DLOG(INFO) << "Creating " << temp_dir + "/" + sample_id;
     parts_dir = temp_dir + "/" + sample_id;
     create_dir(parts_dir);
+    std::string parts_dir2 = temp_dir + "/" + sample_id + "merge";
+    create_dir(parts_dir2);
 
     // Loop through all the pairs of FASTQ files:
     for (int i = 0; i < list.size(); ++i) {
@@ -156,8 +157,8 @@ int align_main(int argc, char** argv,
       
       std::string temp_bam_rg;
       if (sampleList.empty()) temp_bam_rg = output_path;
-      else temp_bam_rg = (list.size()==1)?(temp_bam + "/../" + sample_id + ".bam"):
-                         (temp_bam + "/" + sample_id + "_" + read_group + ".bam");
+      else temp_bam_rg = (list.size()==1)?(output_path_dir + "/" + sample_id + ".bam"):
+                         (parts_dir2 + "/" + sample_id + "_" + read_group + ".bam");
 
       create_dir(parts_dir_rg);
       if (flag_disable_merge) {
@@ -215,7 +216,7 @@ int align_main(int argc, char** argv,
       } else {
         ActionTag = SambambaWorker::MERGE;
         Worker_ptr merger_worker(new SambambaWorker(
-                                temp_bam, mergeBAM,
+                                parts_dir2, mergeBAM,
                                 ActionTag, 
                                 ".*/" + sample_id + ".*", flag_f));
         executor.addTask(merger_worker, sample_id, true);
@@ -235,8 +236,8 @@ int align_main(int argc, char** argv,
         std::vector<std::string> input_files;
         for (int j = 0; j < list.size(); j++) {
           std::string read_group = list[j].ReadGroup;
-          std::string temp_bam_rg = temp_bam + "/" + sample_id + "_" + read_group + ".bam";
-          std::string file_path = get_bucket_fname(temp_bam_rg, i);
+          std::string parts_dir_rg = parts_dir2 + "/" + sample_id + "_" + read_group + ".bam";
+          std::string file_path = get_bucket_fname(parts_dir_rg, i);
           input_files.push_back(file_path);
         }
         std::string output_folder;
