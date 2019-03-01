@@ -525,7 +525,7 @@ TEST_F(TestWorker, TestSambambaWorker_check) {
   std::string temp6 = temp_dir + "/" + "input/" + "test2.bam";
   std::string temp7 = temp_dir + "/" + "input/" + "skyskyskyskytest2lklk...klk.bam";
   std::string temp8 = temp_dir + "/" + "input/" + "sdasdshshtest1sdaksdtest1dasda....";
-  common = ".*/.*test1.*\\.bam";
+  common = ".*/.*test1.*\\.bam$";
   fcs::create_dir(input_path);
   touch(temp1);
   touch(temp2);
@@ -562,25 +562,279 @@ TEST_F(TestWorker, TestSambambaWorker_check) {
     CHECK_NOEXCEPTION
     ASSERT_EQ(4, worker.get_files().size());
   }
+
+  fcs::remove_path(temp1);
+  fcs::remove_path(temp2);
+  fcs::remove_path(temp3);
+  fcs::remove_path(temp4);
+  fcs::remove_path(temp5);
+  fcs::remove_path(temp6);
+  fcs::remove_path(temp7);
+  fcs::remove_path(temp8);
+  fcs::remove_path(input1);
+  fcs::remove_path(input2);
+  fcs::remove_path(input3);
 }
 
 TEST_F(TestWorker, TestSambambaWorker_setup) {
   std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
   fcs::create_dir(temp_dir);
-  std::string input_path = temp_dir + "/" + "input.bam";
-  std::string output_path = temp_dir + "/" + "output.bam";
+  std::string input_path;
+  std::string output_path;
   fcs::SambambaWorker::Action action;
-  std::string common = ".*";
+  std::string common = ".*\\.bam$";
   bool flag_f;
   std::vector<std::string> files;
+  bool flag_c;
 
   // check for Markdup
-  action = fcs::SambambaWorker::MARKDUP;
+  {
+    action = fcs::SambambaWorker::MARKDUP;
+    input_path = temp_dir + "/" + "input.bam";
+    output_path = temp_dir + "/" + "output.bam";
+    flag_f = true;
+    files.clear();
+    touch(input_path);
+    touch(output_path);
+    fcs::SambambaWorker worker(input_path, output_path, action,
+                              common, flag_f, files);
+    CHECK_NOEXCEPTION
+    CHECK_SETUP_NOEXCEPTION
+
+    std::stringstream ss;
+    ss.str("");
+    ss << input_path;
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
+    ss.str("");
+
+    ss << output_path;
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
+    ss.str("");
+
+    ss << "--overflow-list-size=" << fcs::get_config<int>("markdup.overflow-list-size");
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
+    ss.str("");
+
+    ss << "--tmpdir=" << fcs::get_config<std::string>("temp_dir");
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
+    ss.str("");    
+
+    ss << "-l 1 " << "-t " << fcs::get_config<int>("markdup.nt");
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
+    ss.str("");
+
+    fcs::remove_path(input_path);
+    fcs::remove_path(output_path);
+  }
+
+  {
+    action = fcs::SambambaWorker::MARKDUP;
+    input_path = temp_dir + "/" + "input";
+    output_path = temp_dir + "/" + "output.bam";
+    std::string temp1 = input_path + "/test1.bam";
+    std::string temp2 = input_path + "/test2.bam";
+    std::string temp3 = input_path + "/skdksjaksdlajsdkjalsd.bam.bai";
+    std::string temp4 = input_path + "/sk.dk.sj.ak.sd.laj.sdbam";
+    fcs::create_dir(input_path);
+    touch(output_path);
+    touch(temp1);
+    touch(temp2);
+    touch(temp3);
+    touch(temp4);
+    flag_f = true;
+    files.clear();
+
+    {
+      fcs::SambambaWorker worker(input_path, output_path, action,
+                                common, flag_f, files);
+      CHECK_NOEXCEPTION
+      CHECK_SETUP_NOEXCEPTION
+
+      ASSERT_EQ(2, worker.get_files().size());
+    }
+    {
+      fcs::remove_path(temp1);
+      fcs::SambambaWorker worker(input_path, output_path, action,
+                                common, flag_f, files);
+      CHECK_NOEXCEPTION
+      CHECK_SETUP_NOEXCEPTION 
+
+      ASSERT_EQ(1, worker.get_files().size());
+    }
+    {
+      fcs::remove_path(temp3);
+      fcs::SambambaWorker worker(input_path, output_path, action,
+                                common, flag_f, files);
+      CHECK_NOEXCEPTION
+      CHECK_SETUP_NOEXCEPTION 
+
+      ASSERT_EQ(1, worker.get_files().size());
+    }
+    {
+      fcs::remove_path(temp4);
+      fcs::SambambaWorker worker(input_path, output_path, action,
+                                common, flag_f, files);
+      CHECK_NOEXCEPTION
+      CHECK_SETUP_NOEXCEPTION 
+
+      ASSERT_EQ(1, worker.get_files().size());
+    }
+    {
+      fcs::remove_path(temp2);
+      fcs::SambambaWorker worker(input_path, output_path, action,
+                                common, flag_f, files);
+      CHECK_EXCEPTION // no input files, give error
+
+    }
+
+    fcs::remove_path(input_path);
+    fcs::remove_path(output_path);
+  }
 
   // check for MERGE
+  {
+    action = fcs::SambambaWorker::MERGE;
+    input_path = temp_dir + "/" + "input";
+    output_path = temp_dir + "/" + "output.bam";
+    flag_f = true;
+    files.clear();
+    fcs::create_dir(input_path);
+    touch(output_path);
+    std::string temp1 = input_path + "/test1.bam";
+    std::string temp2 = input_path + "/test2.bam";
+    touch(temp1);
+    touch(temp2);
+    fcs::SambambaWorker worker(input_path, output_path, action,
+                                common, flag_f, files);
+    CHECK_NOEXCEPTION
+    CHECK_SETUP_NOEXCEPTION
+
+    std::stringstream ss;
+    ss.str("");
+    ss << temp1;
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
+    ss.str("");
+
+    ss << temp2;
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
+    ss.str("");
+
+    ss << output_path;
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
+    ss.str("");
+
+    ss << "-l 1 " << "-t " << fcs::get_config<int>("mergebam.nt");
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
+    ss.str("");
+    
+    fcs::remove_path(temp1);
+    fcs::remove_path(temp2);
+    fcs::remove_path(input_path);
+    fcs::remove_path(output_path);
+  }
+
+  {
+    action = fcs::SambambaWorker::MERGE;
+    input_path = temp_dir + "/" + "input";
+    output_path = temp_dir + "/" + "output.bam";
+    flag_f = true;
+    files.clear();
+    fcs::create_dir(input_path);
+    fcs::create_dir(temp_dir + "/" + "input2");
+    touch(output_path);
+    std::string temp1 = temp_dir + "/" + "input2" + "/test1.bam";
+    std::string temp2 = temp_dir + "/" + "input2" + "/test2.bam";
+    std::string temp3 = temp_dir + "/" + "input2" + "/test3.bam";
+    std::string temp4 = temp_dir + "/" + "input" + "/test1.bam";
+    std::string temp5 = temp_dir + "/" + "input" + "/test2.bam";
+    touch(temp1);
+    touch(temp2);
+    touch(temp3);
+    touch(temp4);
+    touch(temp5);
+    files.push_back(temp1);
+    files.push_back(temp2);
+    {
+      fcs::SambambaWorker worker(input_path, output_path, action,
+                                  common, flag_f, files);
+      CHECK_NOEXCEPTION
+      CHECK_SETUP_NOEXCEPTION
+      ASSERT_EQ(4, worker.get_files().size());
+    }
+
+    fcs::remove_path(temp1);
+    {
+      fcs::SambambaWorker worker(input_path, output_path, action,
+                                  common, flag_f, files);
+      CHECK_EXCEPTION // one input file in files is missing
+    }
+
+    fcs::remove_path(temp2);
+    fcs::remove_path(temp3);
+    fcs::remove_path(temp4);
+    fcs::remove_path(temp5);
+    fcs::remove_path(input_path);
+    fcs::remove_path(output_path);
+  }
 
   // check for INDEX
+  {
+    action = fcs::SambambaWorker::INDEX;
+    input_path = temp_dir + "/" + "input.bam";
+    output_path = "";
+    flag_f = true;
+    files.clear();
+    touch(input_path);
+    touch(output_path);
+
+    fcs::SambambaWorker worker(input_path, output_path, action,
+                                  common, flag_f, files);
+    CHECK_NOEXCEPTION
+    CHECK_SETUP_NOEXCEPTION
+
+    std::stringstream ss;
+    ss.str("");
+    ss << input_path;
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
+    ss.str("");
+  }
 
   // check for SORT
+  {
+    action = fcs::SambambaWorker::SORT;
+    input_path = temp_dir + "/" + "input.bam";
+    output_path = temp_dir + "/" + "output.bam";
+    flag_f = true;
+    files.clear();
+    touch(input_path);
+    touch(output_path);
+
+    fcs::SambambaWorker worker(input_path, output_path, action,
+                                  common, flag_f, files);
+    CHECK_NOEXCEPTION
+    CHECK_SETUP_NOEXCEPTION
+
+    std::stringstream ss;
+    ss.str("");
+    ss << input_path;
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
+    ss.str("");
+
+    ss << output_path;
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
+    ss.str("");
+  }
 
 }
