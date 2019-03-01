@@ -130,14 +130,14 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   // check available space in temp dir
   namespace fs = boost::filesystem;
 
-  // generate interval folder
-  init_contig_intv(ref_path);
+  // generate interval folder. This vector will be used if input_htc is a regular merged BAM:
+  std::vector<std::string> temp_intv=init_contig_intv(ref_path);
 
   // TODO: number can be tuned
   int num_buckets =  get_config<int>("gatk.ncontigs");
 
   // The BAM file used for HTC:
-  std::string my_bam;
+  std::string input_htc;
 
   // Going through each line in the Sample Sheet:
   for (auto pair : sample_data) {
@@ -197,6 +197,9 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 
       // perform sambamba sort if not producing bam
       if (!flag_produce_bam) {
+
+        input_htc = temp_bam_dir + "/" + read_tag;
+
         for (int i = 0; i < get_config<int>("minimap.num_buckets"); i++) {
           std::string input = get_bucket_fname(parts_dir, i);
           bool flag = true;
@@ -215,7 +218,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
               "", flag)); 
         executor.addTask(worker, sample_id, true);
         // The single BAM used for HTC:
-        my_bam=output;
+        input_htc=output;
       }
 
       executor.run();
@@ -248,38 +251,32 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
       intv_paths.push_back(intv_list);
     }
 
-
-    std::vector<std::string> temp_intv;
-    if (!flag_produce_bam) {
-      my_bam = temp_bam_dir + "/" + read_tag;
-    }
-    else {
-      // Single BAM already defined above (my_bam = output;):
-      temp_intv=init_contig_intv(ref_path);
-    }
- 
     Executor executor("Falcon Fast Germline", 
         get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
  
     for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
       std::string output_file = get_contig_fname(temp_vcf_dir, contig, file_ext);
 
-      if (boost::filesystem::is_regular_file(my_bam)){
+      // If interval list is defined, it will be the first element.
+      // If input BAM is a regular file and not a folder, then each java process will use 
+      // the corresponding region from the reference genome.  The folder BAM has the parts BAM with their
+      // corresponding region list
+      if (boost::filesystem::is_regular_file(input_htc)){
         intv_paths.push_back(temp_intv[contig]);
       }
 
       Worker_ptr worker(new HTCWorker(ref_path,
 	 intv_paths,
-	 my_bam,
+	 input_htc,
          output_file,
          htc_extra_opts,
          contig,
          flag_vcf, flag_f, flag_gatk4)
       );
        
-      if (boost::filesystem::is_regular_file(my_bam)){
+      if (boost::filesystem::is_regular_file(input_htc)){
         intv_paths.pop_back();
-      };
+      }
 
       output_files[contig] = output_file;
       executor.addTask(worker, sample_id, contig == 0);
