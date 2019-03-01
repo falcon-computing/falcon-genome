@@ -16,7 +16,7 @@
     << std::endl;
 
 int print_help() {
-  std::cout << "Falcon Genome Analysis Toolkit " << RELEASE_VERSION << std::endl;
+  std::cout << "Falcon Genome Analysis Toolkit "  << std::endl;
   std::cout << "Usage: fcs-genome [command] <options>" << std::endl;
   std::cout << std::endl;
   std::cout << "Commands: " << std::endl;
