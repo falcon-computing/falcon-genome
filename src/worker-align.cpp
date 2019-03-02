@@ -82,6 +82,7 @@ int align_main(int argc, char** argv,
         !boost::filesystem::is_directory(output_path)) {
       throw (fileNotFound("Output path " + output_path + " is not a directory"));
     }
+    output_path = check_output(output_path, flag_f, false);
   }
 
   // Sample Sheet must satisfy the following format:
@@ -160,7 +161,6 @@ int align_main(int argc, char** argv,
       else temp_bam_rg = (list.size()==1)?(output_path_dir + "/" + sample_id + ".bam"):
                          (parts_dir2 + "/" + sample_id + "_" + read_group + ".bam");
 
-      create_dir(parts_dir_rg);
       if (flag_disable_merge) {
         create_dir(temp_bam_rg);
       }
