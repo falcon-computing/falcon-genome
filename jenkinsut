@@ -4,7 +4,7 @@ pipeline {
     stage ("check-commit") {
       steps {
         dir("ws-falcon-genome") {                      
-          sh "[ git rev-list --count release..${env.BRANCH_NAME} -eq 0 ]"
+          sh "[ $(git rev-list --count release..${env.BRANCH_NAME}) -eq 0 ]"
         }
       }
     }
