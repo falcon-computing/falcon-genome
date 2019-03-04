@@ -4,7 +4,11 @@ pipeline {
     stage ("check-commit") {
       steps {
         dir("ws-falcon-genome") {                      
-          sh "[ $(git rev-list --count release..${env.BRANCH_NAME}) -eq 0 ]"
+          NUM_COMMIT_BEHIND = sh (
+              script: 'git rev-list --count release..${env.BRANCH_NAME}',
+              returnStdout: true
+              ).trim()
+          sh "[ ${env.NUM_COMMIT_BEHIND} -eq 0 ]"
         }
       }
     }
@@ -15,24 +19,13 @@ pipeline {
           sh "mkdir release"
           script { 
             dir("release"){
-              sh "source /curr/software/util/modules-tcl/init/bash"
-              sh "module load xrt; cmake -DCMAKE_BUILD_TYPE=Release -DRELEASE_VERSION=Internal -DDEPLOYMENT_DST=Internal -DCMAKE_INSTALL_PREFIX=/curr/limark/falcon-local/bin .."
+              sh "cmake3 -DCMAKE_BUILD_TYPE=Release -DDEPLOYMENT_DST=local .."
               sh "make -j 8"
-              sh "make install"
               sh "make test"
             }
           }
         }
       }    
     }  
-  }
-  post {
-    always {
-      emailext attachLog: true, body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}console",
-               recipientProviders: [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider']],
-               subject: "Jenkins Build ${currentBuild.currentResult}: Job ${env.JOB_NAME}",
-               to: 'allwu@falcon-computing.com, roshantha@limarktech.com'
-  
-    }
   }
 }
