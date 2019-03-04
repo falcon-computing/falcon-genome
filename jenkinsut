@@ -4,11 +4,7 @@ pipeline {
     stage ("check-commit") {
       steps {
         dir("ws-falcon-genome") {                      
-          NUM_COMMIT_BEHIND = sh (
-              script: 'git rev-list --count release..${env.BRANCH_NAME}',
-              returnStdout: true
-              ).trim()
-          sh "[ ${NUM_COMMIT_BEHIND} -eq 0 ]"
+          sh "[ `git rev-list --count release..${env.BRANCH_NAME}` -eq 0 ]"
         }
       }
     }
