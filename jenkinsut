@@ -8,8 +8,7 @@ pipeline {
     stage ("check-commit") {
       steps {
         dir("ws-falcon-genome") {                      
-          sh "printenv"
-          sh "[ `git rev-list --count release..${env.GIT_BRANCH}` -eq 0 ]"
+          sh "[ `git rev-list --left-right --count release..${env.CHANGE_BRANCH} | cut -f1` -eq 0 ]"
         }
       }
     }
