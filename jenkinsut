@@ -1,9 +1,5 @@
 pipeline {
   agent {label 'merlin'}
-  environment {
-    DISABLE_AUTH = 'true'
-    DB_ENGINE    = 'sqlite'
-  }
   stages {
     stage ("check-commit") {
       steps {
@@ -12,16 +8,13 @@ pipeline {
     }
     stage ("build-local") {
       steps {
-        dir("ws-falcon-genome") {
-          checkout scm
-          sh "rm -rf release"
-          sh "mkdir release"
-          script { 
-            dir("release"){
-              sh "cmake3 -DCMAKE_BUILD_TYPE=Release -DDEPLOYMENT_DST=local .."
-              sh "make -j 8"
-              sh "make test"
-            }
+        sh "rm -rf release"
+        sh "mkdir release"
+        script { 
+          dir("release"){
+            sh "cmake3 -DCMAKE_BUILD_TYPE=Release -DDEPLOYMENT_DST=local .."
+            sh "make -j 8"
+            sh "make test"
           }
         }
       }    
