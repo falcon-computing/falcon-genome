@@ -14,7 +14,7 @@ pipeline {
           dir("release"){
             sh "cmake3 -DCMAKE_BUILD_TYPE=Release -DDEPLOYMENT_DST=local .."
             sh "make -j 8"
-            sh "make test"
+            sh "ctest --verbose"
           }
         }
       }    
