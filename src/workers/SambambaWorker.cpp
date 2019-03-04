@@ -24,36 +24,47 @@ static inline std::string get_task_name(SambambaWorker::Action action) {
 }
 
 SambambaWorker::SambambaWorker(std::string input_path,
-       std::string output_path,  
-       Action action,
-       std::string common,
-       bool &flag_f,
-       std::vector<std::string> files
-       ): 
-       Worker(1, get_config<int>("markdup.nt"), 
-              std::vector<std::string>(), get_task_name(action)), 
-       flag_f_(flag_f), input_files_(files), output_file_(output_path),
-       input_path_(input_path), action_(action), common_(common)
+   std::string output_path,  
+   Action action,
+   std::string common,
+   bool &flag_f,
+   std::vector<std::string> files
+   ): 
+   Worker(1, get_config<int>("markdup.nt"), 
+          std::vector<std::string>(), get_task_name(action)), 
+   flag_f_(flag_f), input_files_(files), output_file_(output_path),
+   input_path_(input_path), action_(action), common_(common)
 {
   ;
 }
 
 void SambambaWorker::check() {
-  if (input_files_.size() == 0) {
-    input_path_ = check_input(input_path_);
-  }
-  if (boost::filesystem::exists(input_path_)) { // when input_files_ is not empty,
-                                                // we don't want get_input_list() error out
-                                                // because input_path_ does not exist.
-    get_input_list(input_path_, input_files_, common_, true);
-  }
-  for (auto & it : input_files_) {
-    it = check_input(it);
-  }
-  if (output_file_.length() != 0) {
-    output_file_ = check_output(output_file_, flag_f_, true);
-    std::string bai_file = check_output(output_file_ + ".bai", flag_f_, true);
-  }
+//   if (input_files_.size() == 0) {
+//     input_path_ = check_input(input_path_);
+//   }
+//   if (boost::filesystem::exists(input_path_)) { // when input_files_ is not empty,
+//                                                 // we don't want get_input_list() error out
+//                                                 // because input_path_ does not exist.
+//     get_input_list(input_path_, input_files_, common_, true);
+//   }
+//   for (auto & it : input_files_) {
+//     it = check_input(it);
+//   }
+//   if (output_file_.length() != 0) {
+//     output_file_ = check_output(output_file_, flag_f_, true);
+//     std::string bai_file = check_output(output_file_ + ".bai", flag_f_, true);
+//   }
+//   input_path_ = check_input(input_path_);
+//   if (boost::filesystem::is_directory(input_path_)){
+//     get_input_list(input_path_, input_files_, common_, true);
+//     for (auto & it : input_files_) {                                                                                                                                                   
+//	it = check_input(it);                                                                                                                                                            
+//     }                        
+//     if (output_file_.length() != 0) {                                                                                                                                             
+//       output_file_ = check_output(output_file_, flag_f_, true);
+//       std::string bai_file = check_output(output_file_ + ".bai", flag_f_, true);                                                                                                  
+//     }        
+//   } 
 }
 
 void SambambaWorker::setup() {
@@ -112,26 +123,32 @@ void SambambaWorker::setup() {
         << "-t " << get_config<int>("mergebam.nt") << " ";
     break;
   case SORT:
-    cmd << get_config<std::string>("sambamba_path") << " sort " 
-        << "--tmpdir=" << get_config<std::string>("temp_dir") << " "
-        << "-t 1" << " " << "-l 1" << " "
-        << input_path_ << ";";
-    // mv bam and bai
-    cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam") 
-        << " " << output_file_ << ";";
-    cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam.bai") 
-        << " " << get_fname_by_ext(output_file_, "bai") << ";";
-    // mv corresponding bed file if exists
-    if (boost::filesystem::exists(get_fname_by_ext(input_path_, "bed"))) {
-      cmd << "mv " << get_fname_by_ext(input_path_, "bed")
-          << " " << get_fname_by_ext(output_file_, "bed");
-    }
+     cmd << get_config<std::string>("sambamba_path") << " sort " 
+         << "--tmpdir=" << get_config<std::string>("temp_dir") << " "
+         << "-t 1" << " " << "-l 1" << " "
+         << input_path_ << " ; ";
+
+     // mv bam and bai
+     cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam") 
+         << " " << output_file_ << "; ";
+     cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam.bai") 
+         << " " << get_fname_by_ext(output_file_, "bai") << "; ";
+
+     // mv corresponding bed file if exists
+     if (boost::filesystem::exists(get_fname_by_ext(input_path_, "bed"))) {
+       boost::replace_all(input_path_, "//", "/"); 
+       boost::replace_all(output_file_, "//", "/");
+       if (get_fname_by_ext(input_path_, "bed").compare(get_fname_by_ext(output_file_, "bed")) != 0 ){     
+          cmd << "mv " << get_fname_by_ext(input_path_, "bed")                                                                                                                          
+	      << " " << get_fname_by_ext(output_file_, "bed");  
+       }
+     }
     break;
   default:
     throw internalError("Invalid action");
   }
 
   cmd_ = cmd.str();
-  DLOG(INFO) << cmd_;
+  LOG(INFO) << cmd_;
 }
 } // namespace fcsgenome

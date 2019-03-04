@@ -206,6 +206,8 @@ int align_main(int argc, char** argv,
         mergeBAM = output_path + "/" + sample_id + ".bam";
       }
 
+      LOG(INFO) << "I am merging " << mergeBAM ;
+
       SambambaWorker::Action ActionTag;
       if (list.size()<2) {
         ActionTag = SambambaWorker::INDEX;
