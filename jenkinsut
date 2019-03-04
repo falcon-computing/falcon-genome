@@ -7,14 +7,13 @@ pipeline {
   stages {
     stage ("check-commit") {
       steps {
-        dir("ws-falcon-genome") {                      
-          sh "[ `git rev-list --left-right --count remotes/origin/release..remotes/origin/${env.BRANCH_NAME} | cut -f1` -eq 0 ]"
-        }
+        sh "[ `git rev-list --left-right --count remotes/origin/release..remotes/origin/${env.BRANCH_NAME} | cut -f1` -eq 0 ]"
       }
     }
     stage ("build-local") {
       steps {
-        dir("ws-falcon-genome") {                      
+        dir("ws-falcon-genome") {
+          checkout scm
           sh "rm -rf release"
           sh "mkdir release"
           script { 
