@@ -8,7 +8,7 @@ pipeline {
               script: 'git rev-list --count release..${env.BRANCH_NAME}',
               returnStdout: true
               ).trim()
-          sh "[ ${env.NUM_COMMIT_BEHIND} -eq 0 ]"
+          sh "[ ${NUM_COMMIT_BEHIND} -eq 0 ]"
         }
       }
     }
