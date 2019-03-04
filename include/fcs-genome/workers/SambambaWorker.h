@@ -18,12 +18,18 @@ class SambambaWorker : public Worker {
       std::string output_path, 
       Action action, 
       std::string common,
-      bool &flag_f
+      bool &flag_f,
+      std::vector<std::string> files = std::vector<std::string>() /* other files you want to 
+                                                                  add except from files in input_path */
   );
 
   //  std::string getAction();
   void check();
   void setup();
+
+  std::vector<std::string> get_files() {
+    return input_files_;
+  }
 
  private:
   std::string input_path_;
@@ -31,6 +37,7 @@ class SambambaWorker : public Worker {
   std::string output_file_;
   Action action_;
   std::string common_;
+  bool flag_f_;
 };
 
 } // namespace fcsgenome

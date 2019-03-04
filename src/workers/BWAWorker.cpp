@@ -23,6 +23,7 @@ BWAWorker::BWAWorker(std::string ref_path,
       std::string platform_id,
       std::string library_id,
       bool flag_align_only,
+      bool flag_merge_bams,
       bool &flag_f):
   Worker(get_config<bool>("bwa.scaleout_mode") || 
          get_config<bool>("latency_mode") 
@@ -31,24 +32,36 @@ BWAWorker::BWAWorker(std::string ref_path,
   ref_path_(ref_path),
   fq1_path_(fq1_path),
   fq2_path_(fq2_path),
+  partdir_path_(partdir_path),
   output_path_(output_path),
   sample_id_(sample_id),
   read_group_(read_group),
   platform_id_(platform_id),
   library_id_(library_id),
-  flag_align_only_(flag_align_only)
+  flag_align_only_(flag_align_only),
+  flag_merge_bams_(flag_merge_bams),
+  flag_f_(flag_f)
 {
-  partdir_path_ = check_output(partdir_path, flag_f);
-
-  if (sample_id.empty() ||
-      read_group.empty() || 
-      platform_id.empty() ||
-      library_id.empty()) {
-    throw invalidParam("Invalid @RG info");
-  }
+  ;
 }
 
 void BWAWorker::check() {
+
+  // check partdir_path
+  partdir_path_ = check_output(partdir_path_, flag_f_);
+
+  // check output_path
+  if (flag_merge_bams_) {
+    check_output(output_path_, flag_f_);
+  }
+
+  // check the header args
+  if (sample_id_.empty() ||
+      read_group_.empty() || 
+      platform_id_.empty() ||
+      library_id_.empty()) {
+    throw invalidParam("Invalid @RG info");
+  }
 
   // check input files
   ref_path_ = check_input(ref_path_);
@@ -129,7 +142,8 @@ void BWAWorker::setup() {
       << "--chunk_size=2000 "
       << "--v=" << get_config<int>("bwa.verbose") << " "
       << "--temp_dir=\"" << partdir_path_ << "\" "
-      << "--output=\"" << output_path_ << "\" " ;
+      << "--output=\"" << output_path_ << "\" " 
+      << "--merge_bams=" << flag_merge_bams_ << " ";
 
   if (get_config<int>("bwa.nt") > 0) {
     cmd << "--t=" << get_config<int>("bwa.nt") << " ";

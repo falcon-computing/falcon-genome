@@ -1,5 +1,6 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
+#include <boost/tokenizer.hpp>
 #include <fstream>
 #include <json/json.h>
 #include <string>
@@ -281,6 +282,38 @@ void CombineGVCFsWorker::check() {
  
 void CombineGVCFsWorker::setup() {
 
+  boost::filesystem::wpath path(ref_path_);
+  path = path.replace_extension(".dict");
+  std::string dict_path = check_input(path.string());
+
+  // parse ref.dict files
+  std::vector<std::string> dict_lines = get_lines(dict_path, "@SQ.*");
+  std::vector<std::pair<std::string, uint64_t>> dict;
+
+  std::string chr_name[25];
+  for (int i = 0; i < dict_lines.size(); i++) {
+    if (get_config<bool>("gatk.skip_pseudo_chr") && i >= 25) {
+      break;
+    }
+    typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
+    boost::char_separator<char> space_sep(" \t");
+    boost::char_separator<char> colon_sep(":");
+
+    std::string line = dict_lines[i];
+    tokenizer tok_space{line, space_sep};
+
+    int idx = 0;
+    for (tokenizer::iterator it = tok_space.begin(); it != tok_space.end(); ++it) {
+      // [0] @SQ, [1] SN:contig, [2] LN:length
+      if (idx == 1) {
+        tokenizer tok{*it, colon_sep};
+	tokenizer::iterator field_it = tok.begin();
+        chr_name[i] = *(++field_it);
+      }
+      idx ++;
+    }
+  }
+
   // create cmd
   std::stringstream cmd;
   if (flag_gatk_ || get_config<bool>("use_gatk4")) {
@@ -292,10 +325,11 @@ void CombineGVCFsWorker::setup() {
        cmd << " -V " << file; 
     }
     cmd << " --genomicsdb-workspace-path " << database_name_ << " " ;
-    for (int i=1; i<23; i++){
-      cmd << " --intervals " << i << " ";    
+
+    for (int i=0; i<25; i++){
+      //cmd << " --intervals " << i << " ";    
+      cmd << " --intervals " << chr_name[i] << " ";
     }
-    cmd << " --intervals  X --intervals Y ";
     // Not working well according to GATK forum:
     //<< " --reader-threads " << get_config<int>("gatk.joint.ncontigs") << " "
     //<< " --max-num-intervals-to-import-in-parallel " << get_config<int>("gatk.joint.ncontigs") << " ";
