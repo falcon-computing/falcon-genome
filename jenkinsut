@@ -1,10 +1,15 @@
 pipeline {
   agent {label 'merlin'}
+  environment {
+    DISABLE_AUTH = 'true'
+    DB_ENGINE    = 'sqlite'
+  }
   stages {
     stage ("check-commit") {
       steps {
         dir("ws-falcon-genome") {                      
-          sh "[ `git rev-list --count release..${env.BRANCH_NAME}` -eq 0 ]"
+          sh "printenv"
+          sh "[ `git rev-list --count release..${env.GIT_BRANCH}` -eq 0 ]"
         }
       }
     }
