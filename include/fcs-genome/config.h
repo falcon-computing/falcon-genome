@@ -94,6 +94,7 @@ int roundUp(int numToRound, int multiple);
 std::vector<std::string> split_ref_by_nprocs(std::string ref_path);
 std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string filetype);
 void check_vcf_index(std::string inputVCF);
+bool compareFiles(const std::string& p1, const std::string& p2);
 
 template <typename T>
 std::vector<T> operator+(const std::vector<T>& a, const std::vector<T>& b){
