@@ -15,7 +15,7 @@
 namespace fcs = fcsgenome;
 
 class TestExecutor : public ::testing::Test {
-  ; 
+  ;
 };
 
 TEST_F(TestExecutor, TestBackgroundExecutor) {
@@ -66,7 +66,7 @@ TEST_F(TestExecutor, TestBackgroundExecutor) {
     ASSERT_TRUE(setup_done);
 
     // check if file is removed after a while
-    boost::this_thread::sleep_for(boost::chrono::milliseconds(10)); 
+    boost::this_thread::sleep_for(boost::chrono::milliseconds(100)); 
 
     ASSERT_FALSE(boost::filesystem::exists(fname.str()));
   }
