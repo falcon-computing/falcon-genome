@@ -49,7 +49,7 @@ void sigint_handler(int s){
     delete fcsgenome::g_executor;
   }
 #ifndef NDEBUG
-  //fcsgenome::remove_path(fcsgenome::conf_temp_dir);
+  fcsgenome::remove_path(fcsgenome::conf_temp_dir);
 #endif
 
 }
@@ -178,7 +178,7 @@ int main(int argc, char** argv) {
 
 #ifdef NDEBUG
     // delete temp dir
-    //remove_path(conf_temp_dir);
+    remove_path(conf_temp_dir);
 #endif
   }
   catch (helpRequest &e) {
@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
     std::cerr << opt_desc << std::endl;
 
     // delete temp dir
-    //remove_path(conf_temp_dir);
+    remove_path(conf_temp_dir);
 
     ret = 0;
   }
