@@ -116,15 +116,23 @@ void SambambaWorker::setup() {
         << "--tmpdir=" << get_config<std::string>("temp_dir") << " "
         << "-t 1" << " " << "-l 1" << " "
         << input_path_ << ";";
-    // mv bam and bai
-    cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam") 
-        << " " << output_file_ << ";";
-    cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam.bai") 
-        << " " << get_fname_by_ext(output_file_, "bai") << ";";
-    // mv corresponding bed file if exists
-    if (boost::filesystem::exists(get_fname_by_ext(input_path_, "bed"))) {
-      cmd << "mv " << get_fname_by_ext(input_path_, "bed")
-          << " " << get_fname_by_ext(output_file_, "bed");
+    // mv to the output_file_ path if it is not empty
+    {    
+      // mv bam and bai
+      std::string mv_output_path = input_path_;
+      if (output_file_ != "") {
+        mv_output_path = output_file_;
+      }  
+      cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam") 
+          << " " << mv_output_path << ";";
+      cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam.bai") 
+          << " " << get_fname_by_ext(mv_output_path, "bai") << ";";
+      // mv corresponding bed file if exists
+      if (boost::filesystem::exists(get_fname_by_ext(input_path_, "bed"))
+          && input_path_.compare(mv_output_path) != 0) {
+        cmd << "mv " << get_fname_by_ext(input_path_, "bed")
+            << " " << get_fname_by_ext(mv_output_path, "bed");
+      }
     }
     break;
   default:

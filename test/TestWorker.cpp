@@ -574,6 +574,7 @@ TEST_F(TestWorker, TestSambambaWorker_check) {
   fcs::remove_path(input1);
   fcs::remove_path(input2);
   fcs::remove_path(input3);
+
 }
 
 TEST_F(TestWorker, TestSambambaWorker_setup) {
@@ -807,6 +808,8 @@ TEST_F(TestWorker, TestSambambaWorker_setup) {
     flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
     ASSERT_TRUE(flag_c);
     ss.str("");
+    fcs::remove_path(input_path);
+    fcs::remove_path(output_path);
   }
 
   // check for SORT
@@ -814,10 +817,12 @@ TEST_F(TestWorker, TestSambambaWorker_setup) {
     action = fcs::SambambaWorker::SORT;
     input_path = temp_dir + "/" + "input.bam";
     output_path = temp_dir + "/" + "output.bam";
+    std::string bed_file = temp_dir + "/" + "input.bed";
     flag_f = true;
     files.clear();
     touch(input_path);
     touch(output_path);
+    touch(bed_file);
 
     fcs::SambambaWorker worker(input_path, output_path, action,
                                   common, flag_f, files);
@@ -835,6 +840,88 @@ TEST_F(TestWorker, TestSambambaWorker_setup) {
     flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
     ASSERT_TRUE(flag_c);
     ss.str("");
+
+    ss << "bed";
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
+    ss.str("");
+    
+    fcs::remove_path(input_path);
+    fcs::remove_path(output_path);
+    fcs::remove_path(bed_file);
+  }
+
+  { // test when output path is set empty
+    action = fcs::SambambaWorker::SORT;
+    input_path = temp_dir + "/" + "input.bam";
+    output_path = temp_dir + "/" + "output.bam";
+    std::string bed_file = temp_dir + "/" + "input.bed";
+    flag_f = true;
+    files.clear();
+    touch(input_path);
+    touch(output_path);
+    touch(bed_file);
+
+    fcs::SambambaWorker worker(input_path, "", action,
+                                  common, flag_f, files);
+    CHECK_NOEXCEPTION
+    CHECK_SETUP_NOEXCEPTION
+
+    std::stringstream ss;
+    ss.str("");
+    ss << input_path;
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
+    ss.str("");
+
+    ss << output_path;
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_FALSE(flag_c);
+    ss.str("");
+
+    ss << "bed";
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_FALSE(flag_c);
+    ss.str("");
+
+    fcs::remove_path(input_path);
+    fcs::remove_path(output_path);
+    fcs::remove_path(bed_file);
+  }
+
+  { // test when outout path is same as input path, should not move bed files
+    action = fcs::SambambaWorker::SORT;
+    input_path = temp_dir + "/" + "input.bam";
+    output_path = temp_dir + "/" + "input.bam";
+    std::string bed_file = temp_dir + "/" + "input.bed";
+    flag_f = true;
+    files.clear();
+    touch(input_path);
+    touch(bed_file);
+
+    fcs::SambambaWorker worker(input_path, output_path, action,
+                                  common, flag_f, files);
+    CHECK_NOEXCEPTION
+    CHECK_SETUP_NOEXCEPTION
+
+    std::stringstream ss;
+    ss.str("");
+    ss << input_path;
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
+    ss.str("");
+
+    ss << output_path;
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_TRUE(flag_c);
+    ss.str("");
+
+    ss << "bed";
+    flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
+    ASSERT_FALSE(flag_c);
+    ss.str("");
+
+    fcs::remove_path(input_path);
   }
 
 }
