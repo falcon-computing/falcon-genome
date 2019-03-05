@@ -207,7 +207,7 @@ void PRWorker::check() {
 	  if (boost::filesystem::exists(a)) {
 	    for (int k=0; k<2; k++){
 		target_file = get_fname_by_ext(a, ext[k]);
-		if (target_file.find("part-") && boost::filesystem::exists(target_file)){
+		if (target_file.find("part-") != std::string::npos && boost::filesystem::exists(target_file)){
 		  boost::filesystem::copy_file(target_file, get_fname_by_ext(output_path_, ext[k]), boost::filesystem::copy_option::overwrite_if_exists);
 		}
 	    }
