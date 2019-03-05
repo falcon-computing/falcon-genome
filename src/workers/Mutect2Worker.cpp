@@ -2,14 +2,17 @@
 #include <string>
 #include <vector>
 
+#include <boost/algorithm/string.hpp>
+
 #include "fcs-genome/common.h"
 #include "fcs-genome/config.h"
+#include "fcs-genome/BamInput.h"
 #include "fcs-genome/workers/Mutect2Worker.h"
 
 namespace fcsgenome {
 
 Mutect2Worker::Mutect2Worker(std::string ref_path,
-      std::string intv_path,
+      std::vector<std::string> intv_path,
       std::string normal_path,
       std::string tumor_path,
       std::string output_path,
@@ -33,6 +36,7 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
   panels_of_normals_(panels_of_normals),
   normal_name_(normal_name),
   tumor_name_(tumor_name),
+  contig_(contig),
   flag_gatk_(flag_gatk)
 {
   // check input/output files
@@ -41,25 +45,65 @@ Mutect2Worker::Mutect2Worker(std::string ref_path,
 
 void Mutect2Worker::check() {
   ref_path_    = check_input(ref_path_);
-  intv_path_   = check_input(intv_path_);
-  normal_path_ = check_input(normal_path_);
-  tumor_path_  = check_input(tumor_path_);
+  for (auto region : intv_path_) {
+     region = check_input(region);
+  }
+
   if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
-    germline_path_     = check_input(germline_path_);
-    check_vcf_index(germline_path_);
-    panels_of_normals_ = check_input(panels_of_normals_);
-    check_vcf_index(panels_of_normals_);
+    if (!germline_path_.empty()){
+      germline_path_ = check_input(germline_path_);
+      check_vcf_index(germline_path_);
+    }
+    if (!panels_of_normals_.empty()){
+      panels_of_normals_ = check_input(panels_of_normals_);
+      check_vcf_index(panels_of_normals_);
+    }
   } else {
      for (int i = 0; i < dbsnp_path_.size(); i++) {
-         dbsnp_path_[i] = check_input(dbsnp_path_[i]);
-         check_vcf_index(dbsnp_path_[i]);
+        dbsnp_path_[i] = check_input(dbsnp_path_[i]);
+        check_vcf_index(dbsnp_path_[i]);
      }
      for (int j = 0; j < cosmic_path_.size(); j++) {
-         cosmic_path_[j] = check_input(cosmic_path_[j]);
-         check_vcf_index(cosmic_path_[j]);
+        cosmic_path_[j] = check_input(cosmic_path_[j]);
+        check_vcf_index(cosmic_path_[j]);
      }
   }
 
+  BamInputInfo normal_data_ = normal_path_.getInfo();
+  normal_data_ = normal_path_.merge_region(contig_);
+  normal_data_.bam_name = check_input(normal_data_.bam_name);
+
+  BamInputInfo tumor_data_ = tumor_path_.getInfo();
+  tumor_data_ = tumor_path_.merge_region(contig_);
+  tumor_data_.bam_name = check_input(tumor_data_.bam_name);
+
+  // Compare if sets of part BED files are the same:
+  if (normal_data_.partsBAM.size() != tumor_data_.partsBAM.size()) {
+    LOG(ERROR) << "Normal and Tumor do not have the same number of parts BAM files in folders";
+    throw silentExit();
+  }
+  if (normal_data_.mergedREGION.size() != tumor_data_.mergedREGION.size()) {
+    LOG(ERROR) << "Normal and Tumor do not have the same number of parts BAM files in folders";
+    throw silentExit();
+  }
+
+  for (int i=0; i<normal_data_.mergedREGION.size(); i++){
+     DLOG(INFO) << compareFiles(normal_data_.mergedREGION[i], tumor_data_.mergedREGION[i]);
+     if (!compareFiles(normal_data_.mergedREGION[i], tumor_data_.mergedREGION[i])) {
+       LOG(ERROR) << "Normal and Tumor do not have the same coordinates in the BED files";
+       throw silentExit();
+     }
+     else{
+       std::string ext[2] = {"bed", "list"};
+       for (int k=0; k<2; k++){
+	  std::string from = get_fname_by_ext(normal_data_.mergedREGION[i], ext[k]);
+	  std::string to = get_fname_by_ext(output_path_, ext[k]);
+          if (boost::filesystem::exists(from)){
+             boost::filesystem::copy(from, to);    
+          }
+       };
+     }     
+  }
 }
 
 void Mutect2Worker::setup() {
@@ -70,47 +114,65 @@ void Mutect2Worker::setup() {
       << "-Xmx" << get_config<int>("gatk.mutect2.memory", "gatk.memory") << "g ";
 
   if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
-      cmd << "-jar " << get_config<std::string>("gatk4_path") << " Mutect2 ";
+    cmd << "-jar " << get_config<std::string>("gatk4_path") << " Mutect2 ";
   }
   else{
-      cmd << "-jar " << get_config<std::string>("gatk_path") << " -T MuTect2 ";
+    cmd << "-jar " << get_config<std::string>("gatk_path") << " -T MuTect2 ";
   }
 
   cmd << "-R " << ref_path_ << " ";
 
-  if (flag_gatk_ || get_config<bool>("use_gatk4") ) {
-      cmd << "-I " << normal_path_ << " "
-          << "-I " << tumor_path_ << " "
-          << "-normal " << normal_name_ << " "
-          << "-tumor "  << tumor_name_ << " "
-          << "--germline-resource " << germline_path_  << " -pon " << panels_of_normals_  << " "
-          << "--output " << output_path_ << " ";
+  if (flag_gatk_ || get_config<bool>("use_gatk4")) {
+
+    cmd << normal_path_.get_gatk_args(contig_);
+    cmd << tumor_path_.get_gatk_args(contig_);
+   
+    cmd << " -normal " << normal_name_ << " "
+        << " -tumor "  << tumor_name_ << " ";
+    
+    if (!germline_path_.empty()){
+      cmd << " --germline-resource " << germline_path_  << "  ";
+    }
+
+    if (!panels_of_normals_.empty()){
+      cmd << " -pon " << panels_of_normals_  << " ";
+    }
+
+    cmd << " --output " << output_path_ << " ";
+
   }
-  else{
-      cmd << "-I:normal " << normal_path_ << " "
-          << "-I:tumor " << tumor_path_   << " ";
+  else {
 
-      if (!extra_opts_.count("--variant_index_type")) {
-         cmd << "--variant_index_type LINEAR ";
-      }
+    std::string n=normal_path_.get_gatk_args(contig_, BamInput::NORMAL);
+    std::string t=tumor_path_.get_gatk_args(contig_, BamInput::TUMOR);
 
-      if (!extra_opts_.count("--variant_index_parameter")) {
-         cmd << "--variant_index_parameter 128000 ";
-      }
+    cmd << n << " " << t << " ";
+    
+    if (!extra_opts_.count("--variant_index_type")) {
+       cmd << "--variant_index_type LINEAR ";
+    }
 
-      cmd << "-nct " << get_config<int>("gatk.mutect2.nct", "gatk.nct") << " "
-          << "-o " << output_path_ << " ";
+    if (!extra_opts_.count("--variant_index_parameter")) {
+       cmd << "--variant_index_parameter 128000 ";
+    }
 
-      for (int i = 0; i < dbsnp_path_.size(); i++) {
-          cmd << "--dbsnp " << dbsnp_path_[i] << " ";
-      }
-      for (int j = 0; j < cosmic_path_.size(); j++) {
-          cmd << "--cosmic " << cosmic_path_[j] << " ";
-      }
+    cmd << "-nct " << get_config<int>("gatk.mutect2.nct", "gatk.nct") << " "
+        << "-o " << output_path_ << " ";
+
+    for (int i = 0; i < dbsnp_path_.size(); i++) {
+        cmd << "--dbsnp " << dbsnp_path_[i] << " ";
+    }
+    for (int j = 0; j < cosmic_path_.size(); j++) {
+        cmd << "--cosmic " << cosmic_path_[j] << " ";
+    }
 
   } // End checking GATK version
 
-  cmd << "-L " << intv_path_ << " -isr INTERSECTION ";
+  for (auto region: intv_path_){
+    cmd << " -L " << region << " " ;
+  }
+
+  cmd << " -isr INTERSECTION ";
 
   for (auto it = extra_opts_.begin(); it != extra_opts_.end(); it++) {
       cmd << it->first << " ";
@@ -125,6 +187,7 @@ void Mutect2Worker::setup() {
   }
 
   cmd_ = cmd.str();
+
   DLOG(INFO) << cmd_;
 }
 
