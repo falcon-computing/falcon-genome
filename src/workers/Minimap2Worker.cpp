@@ -131,7 +131,7 @@ void Minimap2Worker::setup() {
       << fq2_path_;
 
   cmd_ = cmd.str();
-  LOG(INFO) << cmd_ << "\n";
+  DLOG(INFO) << cmd_ << "\n";
 
 }
 } // namespace fcsgenome

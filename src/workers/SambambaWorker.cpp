@@ -39,32 +39,17 @@ SambambaWorker::SambambaWorker(std::string input_path,
 }
 
 void SambambaWorker::check() {
-//   if (input_files_.size() == 0) {
-//     input_path_ = check_input(input_path_);
-//   }
-//   if (boost::filesystem::exists(input_path_)) { // when input_files_ is not empty,
-//                                                 // we don't want get_input_list() error out
-//                                                 // because input_path_ does not exist.
-//     get_input_list(input_path_, input_files_, common_, true);
-//   }
-//   for (auto & it : input_files_) {
-//     it = check_input(it);
-//   }
-//   if (output_file_.length() != 0) {
-//     output_file_ = check_output(output_file_, flag_f_, true);
-//     std::string bai_file = check_output(output_file_ + ".bai", flag_f_, true);
-//   }
-//   input_path_ = check_input(input_path_);
-//   if (boost::filesystem::is_directory(input_path_)){
-//     get_input_list(input_path_, input_files_, common_, true);
-//     for (auto & it : input_files_) {                                                                                                                                                   
-//	it = check_input(it);                                                                                                                                                            
-//     }                        
-//     if (output_file_.length() != 0) {                                                                                                                                             
-//       output_file_ = check_output(output_file_, flag_f_, true);
-//       std::string bai_file = check_output(output_file_ + ".bai", flag_f_, true);                                                                                                  
-//     }        
-//   } 
+   input_path_ = check_input(input_path_);
+   if (boost::filesystem::is_directory(input_path_)){
+     get_input_list(input_path_, input_files_, common_, true);
+     for (auto & it : input_files_) {                                                                                                                                                   
+   	it = check_input(it);                                                                                                                                                            
+     }                        
+     if (output_file_.length() != 0) {                                                                                                                                             
+       output_file_ = check_output(output_file_, flag_f_, true);
+       std::string bai_file = check_output(output_file_ + ".bai", flag_f_, true);                                                                                                  
+     }        
+   } 
 }
 
 void SambambaWorker::setup() {
@@ -134,14 +119,11 @@ void SambambaWorker::setup() {
      cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam.bai") 
          << " " << get_fname_by_ext(output_file_, "bai") << "; ";
 
-     // mv corresponding bed file if exists
-     if (boost::filesystem::exists(get_fname_by_ext(input_path_, "bed"))) {
-       boost::replace_all(input_path_, "//", "/"); 
-       boost::replace_all(output_file_, "//", "/");
-       if (get_fname_by_ext(input_path_, "bed").compare(get_fname_by_ext(output_file_, "bed")) != 0 ){     
-          cmd << "mv " << get_fname_by_ext(input_path_, "bed")                                                                                                                          
-	      << " " << get_fname_by_ext(output_file_, "bed");  
-       }
+     // mv corresponding bed file if exists. If destination is the same as the origin, no need to move.
+     if (boost::filesystem::exists(get_fname_by_ext(input_path_, "bed")) 
+       && !boost::filesystem::exists(get_fname_by_ext(output_file_, "bed"))) {
+       cmd << "mv " << get_fname_by_ext(input_path_, "bed")                                                                                                                          
+	   << " " << get_fname_by_ext(output_file_, "bed");  
      }
     break;
   default:
@@ -149,6 +131,6 @@ void SambambaWorker::setup() {
   }
 
   cmd_ = cmd.str();
-  LOG(INFO) << cmd_;
+  DLOG(INFO) << cmd_;
 }
 } // namespace fcsgenome
