@@ -144,7 +144,8 @@ void SambambaWorker::setup() {
           << " " << get_fname_by_ext(mv_output_path, "bai") << ";";
       // mv corresponding bed file if exists
       if (boost::filesystem::exists(get_fname_by_ext(input_path_, "bed"))
-          && input_path_.compare(mv_output_path) != 0) {
+          //&& input_path_.compare(mv_output_path) != 0) {
+	  && !boost::filesystem::exists(get_fname_by_ext(output_file_, "bed"))) {
         cmd << "mv " << get_fname_by_ext(input_path_, "bed")
             << " " << get_fname_by_ext(mv_output_path, "bed");
       }
