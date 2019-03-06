@@ -108,25 +108,6 @@ void SambambaWorker::setup() {
         << "-t " << get_config<int>("mergebam.nt") << " ";
     break;
   case SORT:
-//<<<<<<< HEAD
-//     cmd << get_config<std::string>("sambamba_path") << " sort " 
-//         << "--tmpdir=" << get_config<std::string>("temp_dir") << " "
-//         << "-t 1" << " " << "-l 1" << " "
-//         << input_path_ << " ; ";
-//
-//     // mv bam and bai
-//     cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam") 
-//         << " " << output_file_ << "; ";
-//     cmd << "mv " << get_fname_by_ext(input_path_, "sorted.bam.bai") 
-//         << " " << get_fname_by_ext(output_file_, "bai") << "; ";
-//
-//     // mv corresponding bed file if exists. If destination is the same as the origin, no need to move.
-//     if (boost::filesystem::exists(get_fname_by_ext(input_path_, "bed")) 
-//       && !boost::filesystem::exists(get_fname_by_ext(output_file_, "bed"))) {
-//       cmd << "mv " << get_fname_by_ext(input_path_, "bed")                                                                                                                          
-//	   << " " << get_fname_by_ext(output_file_, "bed");  
-//     }
-//=======
     cmd << get_config<std::string>("sambamba_path") << " sort " 
         << "--tmpdir=" << get_config<std::string>("temp_dir") << " "
         << "-t 1" << " " << "-l 1" << " "
@@ -144,13 +125,11 @@ void SambambaWorker::setup() {
           << " " << get_fname_by_ext(mv_output_path, "bai") << ";";
       // mv corresponding bed file if exists
       if (boost::filesystem::exists(get_fname_by_ext(input_path_, "bed"))
-          //&& input_path_.compare(mv_output_path) != 0) {
 	  && !boost::filesystem::exists(get_fname_by_ext(output_file_, "bed"))) {
         cmd << "mv " << get_fname_by_ext(input_path_, "bed")
             << " " << get_fname_by_ext(mv_output_path, "bed");
       }
     }
-    //>>>>>>> 0573b085228ea5981a0afc49485d170142b62a1e
     break;
   default:
     throw internalError("Invalid action");
