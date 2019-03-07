@@ -9,7 +9,7 @@ namespace fcsgenome {
 class Mutect2FilterWorker : public Worker {
  public:
   Mutect2FilterWorker(
-     std::string intv_path,
+     std::vector<std::string> intv_path,
      std::string input_path,
      std::string tumor_table,
      std::string output_path,
@@ -21,7 +21,7 @@ class Mutect2FilterWorker : public Worker {
   void setup();
 
  private:
-  std::string intv_path_;
+  std::vector<std::string> intv_path_;
   std::string input_path_;
   std::string tumor_table_;
   std::string output_path_;

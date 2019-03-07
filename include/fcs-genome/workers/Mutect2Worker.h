@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "fcs-genome/BamInput.h"
 #include "fcs-genome/Worker.h"
 
 namespace fcsgenome {
@@ -10,7 +11,8 @@ namespace fcsgenome {
 class Mutect2Worker : public Worker {
  public:
   Mutect2Worker(std::string ref_path,
-      std::string intv_path,
+      std::vector<std::string> intv_path,
+		//std::string intv_path,
       std::string normal_path,
       std::string tumor_path,
       std::string output_path,
@@ -29,9 +31,10 @@ class Mutect2Worker : public Worker {
 
  private:
   std::string ref_path_;
-  std::string intv_path_;
-  std::string normal_path_;
-  std::string tumor_path_;
+  std::vector<std::string> intv_path_;
+  //std::string intv_path_;
+  BamInput normal_path_;
+  BamInput tumor_path_;
   std::string output_path_;
   std::vector<std::string> &dbsnp_path_;
   std::vector<std::string> &cosmic_path_;
@@ -39,6 +42,7 @@ class Mutect2Worker : public Worker {
   std::string &panels_of_normals_;
   std::string &normal_name_;
   std::string &tumor_name_;
+  int contig_;
   bool flag_gatk_;
 };
 } // namespace fcsgenome

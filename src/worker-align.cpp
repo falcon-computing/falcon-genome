@@ -38,7 +38,8 @@ int align_main(int argc, char** argv,
     arg_decl_string_w_def("sp,S", "sample",   "sample id ('SM' in BAM header)")
     arg_decl_string_w_def("pl,P", "illumina", "platform id ('PL' in BAM header)")
     arg_decl_string_w_def("lb,L", "sample",   "library id ('LB' in BAM header)")
-    ("align-only,l", "skip mark duplicates");
+    ("align-only,l", "skip mark duplicates")
+    ("disable-merge", "give bucket bams instead of the whole bam");
 
   // Parse arguments
   po::store(po::parse_command_line(argc, argv, opt_desc), cmd_vm);
@@ -50,6 +51,7 @@ int align_main(int argc, char** argv,
   // Check if required arguments are presented
   bool flag_f          = get_argument<bool>(cmd_vm, "force", "f");
   bool flag_align_only = get_argument<bool>(cmd_vm, "align-only", "l");
+  bool flag_disable_merge  = get_argument<bool>(cmd_vm, "disable-merge");
 
   std::string ref_path    = get_argument<std::string>(cmd_vm, "ref", "r");
   std::string sampleList  = get_argument<std::string>(cmd_vm, "sample_sheet", "F");
@@ -72,8 +74,15 @@ int align_main(int argc, char** argv,
     boost::filesystem::create_directory(dir);   
   }
 
-  if (sampleList.empty()) {
+  if (sampleList.empty() && !flag_disable_merge) {
     output_path = check_output(output_path, flag_f, true);
+  } else {
+    // check when output suppose to be a directory
+    if (boost::filesystem::exists(output_path) && 
+        !boost::filesystem::is_directory(output_path)) {
+      throw (fileNotFound("Output path " + output_path + " is not a directory"));
+    }
+    output_path = check_output(output_path, flag_f, false);
   }
 
   // Sample Sheet must satisfy the following format:
@@ -108,32 +117,34 @@ int align_main(int argc, char** argv,
   }
 
   // start execution
-  std::string parts_dir;
-  std::string temp_bam;
   std::string temp_dir = conf_temp_dir + "/align";
   create_dir(temp_dir);
 
   // check available space in temp dir
   namespace fs = boost::filesystem;
-  Executor executor("align");
+  Executor executor("align", get_config<int>("sort.nprocs", "gatk.nprocs"));
 
   // Going through each line in the Sample Sheet:
   for (auto pair : sample_data) {
     std::string sample_id = pair.first;
     std::vector<SampleDetails> list = pair.second;
     std::vector<std::string> input_files_ ;
+    std::string parts_dir;
+    std::string temp_bam;
 
     // If sample sheet is defined, then output_path is the parent dir and for each sample in the sample sheet, 
     // a folder is created in the parent dir. 
-    if (!sampleList.empty()) {
-      DLOG(INFO) << "Creating : " + output_path + "/" + sample_id  + ".bam";
-      create_dir(output_path + "/" + sample_id);
-    } 
 
+    std::string output_path_dir = boost::filesystem::change_extension(output_path, "").string();
+    create_dir(output_path_dir);
+    temp_bam = output_path_dir + "/" + sample_id;
     // Every sample will have a temporal folder where each pair of FASTQ files will have its own
     // folder using the Read Group as label.
-    DLOG(INFO) << "Creating " << temp_dir + "/" + sample_id;
-    create_dir(temp_dir + "/" + sample_id);
+    // DLOG(INFO) << "Creating " << temp_dir + "/" + sample_id;
+    parts_dir = temp_dir + "/" + sample_id;
+    create_dir(parts_dir);
+    std::string parts_dir2 = temp_dir + "/" + sample_id + "merge";
+    create_dir(parts_dir2);
 
     // Loop through all the pairs of FASTQ files:
     for (int i = 0; i < list.size(); ++i) {
@@ -143,62 +154,102 @@ int align_main(int argc, char** argv,
       platform_id = list[i].Platform;
       library_id = list[i].LibraryID;
 
-      parts_dir = temp_dir + "/" + sample_id + "/" + read_group;
-
-      if (!sampleList.empty()) {
-        temp_bam = output_path + "/" + sample_id  + "/" + sample_id + "_" + read_group + ".bam";
-        if (list.size()==1) temp_bam = output_path + "/" + sample_id  + "/" + sample_id + ".bam";
-      }
-      else {
-        temp_bam = output_path;
-      }
+      std::string parts_dir_rg = parts_dir + "/" + sample_id + "_" + read_group;
       
-      DLOG(INFO) << "Putting sorted BAM parts in '" << parts_dir << "'";
+      std::string temp_bam_rg;
+      if (sampleList.empty()) temp_bam_rg = output_path;
+      else temp_bam_rg = (list.size()==1)?(output_path_dir + "/" + sample_id + ".bam"):
+                         (parts_dir2 + "/" + sample_id + "_" + read_group + ".bam");
 
-      Worker_ptr worker(new BWAWorker(ref_path,
-           fq1_path, fq2_path,
-           parts_dir,
-	   temp_bam,
-           extra_opts,
-           sample_id, 
-           read_group,
-	   platform_id, 
-           library_id, 
-	   flag_align_only,
-	   flag_f)
+      if (flag_disable_merge) {
+        create_dir(temp_bam_rg);
+      }
+
+      Worker_ptr worker(new BWAWorker(
+        ref_path, 
+        fq1_path, 
+        fq2_path, 
+        parts_dir_rg, 
+        temp_bam_rg, 
+        extra_opts, 
+        sample_id, 
+        read_group, 
+        platform_id, 
+        library_id, 
+        flag_align_only, 
+        !flag_disable_merge, 
+        flag_f)
       );
+      executor.addTask(worker, sample_id, 1);
 
-      executor.addTask(worker, sample_id, 0);
-
-      DLOG(INFO) << "Alignment Completed for " << sample_id;
-
-      // Once the sample reach its last pair of FASTQ files, we proceed to merge and mark duplicates (if requested):
-      if (i == list.size()-1) {
-        std::string mergeBAM;
-        if (sampleList.empty()) {
-          mergeBAM = output_path;
-	} else{
-	  // Sample Sheet :
-	  temp_bam = output_path + "/" + sample_id + "/";
-	  mergeBAM = output_path + "/" + sample_id + "/" + sample_id + ".bam";
-        };
-
-	SambambaWorker::Action ActionTag;
-        if (list.size()<2) {
-          ActionTag = SambambaWorker::INDEX;
-        } else {
-          ActionTag = SambambaWorker::MERGE;
+      // if no-merge-bams chose, we sort each bucket after bwa of each pair of fastq
+      if (flag_disable_merge) {
+        for (int i = 0; i < get_config<int>("bwa.num_buckets"); i++) {
+          std::string samb_input = get_bucket_fname(parts_dir_rg, i);
+          std::string samb_output = get_bucket_fname(temp_bam_rg, i);
+          bool flag = true;
+          Worker_ptr worker(new SambambaWorker(
+            samb_input, samb_output,
+            SambambaWorker::SORT, "", flag));
+          executor.addTask(worker, sample_id, i == 0);
         }
+      }
+    } // for (int i = 0; i < list.size(); ++i)  ends
+    
+    if (!flag_disable_merge) {
+      // if bams are merged by bwa, we only merge between RGs or index
+      std::string mergeBAM;
 
-        Worker_ptr merger_worker(new SambambaWorker(temp_bam, mergeBAM, ActionTag, ".*/" + sample_id + "*.*", flag_f));
-        executor.addTask(merger_worker, sample_id, true); 
+      if (sampleList.empty()) {
+        mergeBAM = output_path;
+      } else {
+        mergeBAM = output_path + "/" + sample_id + ".bam";
+      }
 
-      } // i == list.size()-1 completed
+      SambambaWorker::Action ActionTag;
+      if (list.size()<2) {
+        ActionTag = SambambaWorker::INDEX;
+        Worker_ptr index_worker(new SambambaWorker(mergeBAM, "",
+                                ActionTag, ".*/" + sample_id + ".*\\..*",
+                                flag_f));
+        executor.addTask(index_worker, sample_id, true); 
+      } else {
+        ActionTag = SambambaWorker::MERGE;
+        Worker_ptr merger_worker(new SambambaWorker(
+                                parts_dir2, mergeBAM,
+                                ActionTag, 
+                                ".*/" + sample_id + ".*", flag_f));
+        executor.addTask(merger_worker, sample_id, true);
+      } 
+    }
+    else if (list.size() != 1) {
+      // when bams are not merged by bwa, we merge each bucket of all RGs.
+      // when only one pair of fastqs, not merge is needed. Buckets already in output_path/{id}.bam
+      std::string mergeBAM;
+      if (sampleList.empty()) {
+        mergeBAM = output_path;
+      } else {
+        mergeBAM = output_path + "/" + sample_id + ".bam";
+      }
+      create_dir(mergeBAM);
+      for (int i = 0; i < get_config<int>("bwa.num_buckets"); i++) {
+        std::vector<std::string> input_files;
+        for (int j = 0; j < list.size(); j++) {
+          std::string read_group = list[j].ReadGroup;
+          std::string parts_dir_rg = parts_dir2 + "/" + sample_id + "_" + read_group + ".bam";
+          std::string file_path = get_bucket_fname(parts_dir_rg, i);
+          input_files.push_back(file_path);
+        }
+        std::string output_folder;
+        Worker_ptr merger_worker(new SambambaWorker(
+          "", get_bucket_fname(mergeBAM, i),
+          SambambaWorker::MERGE, "", flag_f, input_files));
+        executor.addTask(merger_worker, sample_id, i == 0);
+      }
+    }
 
-    }; // for (int i = 0; i < list.size(); ++i)  ends
- 
     executor.run();
-  }; //for (auto pair : SampleData)
+  } //for (auto pair : SampleData)
 
   return 0;
 }

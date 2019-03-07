@@ -293,7 +293,7 @@ int init(char** argv, int argc) {
     arg_decl_int_w_def("bwa.verbose",              0,     "verbose level of bwa output")
     arg_decl_int_w_def("bwa.nt",                   -1,    "number of threads for bwa-mem")
     //arg_decl_int_w_def("bwa.num_batches_per_part", 40,    "max num records in each BAM file")
-    //arg_decl_int_w_def("bwa.num_buckets", 1024,    "number of BAM bucket")
+    arg_decl_int_w_def("bwa.num_buckets", 1024,    "number of BAM bucket")
     arg_decl_bool_w_def("bwa.use_fpga",            true,  "option to enable FPGA for bwa-mem")
     //arg_decl_bool_w_def("bwa.use_sort",            true,  "enable sorting in bwa-mem")
     arg_decl_bool_w_def("bwa.enforce_order",       false,  "enforce strict sorting ordering")
@@ -816,6 +816,28 @@ void check_vcf_index(std::string inputVCF){
     throw fileNotFound("VCF index file " + idx_file.string() + " does not exist");
   }
 
+}
+
+bool compareFiles(const std::string& p1, const std::string& p2) {
+  std::ifstream f1(p1, std::ifstream::binary|std::ifstream::ate);
+  std::ifstream f2(p2, std::ifstream::binary|std::ifstream::ate);
+
+  // Check if files have no problems:
+  if (f1.fail() || f2.fail()) {
+    return false;                                                                                                                                              
+  }
+
+  // Check Size:
+  if (f1.tellg() != f2.tellg()) {
+    return false; 
+  }
+
+  //seek back to beginning and use std::equal to compare contents                                                                                                                    
+  f1.seekg(0, std::ifstream::beg);
+  f2.seekg(0, std::ifstream::beg);
+  return std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
+                    std::istreambuf_iterator<char>(),
+                    std::istreambuf_iterator<char>(f2.rdbuf()));
 }
 
 } // namespace fcsgenome
