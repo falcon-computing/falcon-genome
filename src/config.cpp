@@ -796,9 +796,9 @@ void check_vcf_index(std::string inputVCF){
   auto idx_file = fs::path(site + idx_ext);
 
   if (boost::filesystem::exists(idx_file)) {
-    if (std::difftime(fs::last_write_time(vcf_file), fs::last_write_time(idx_file)) > 0) {
+    if (std::difftime(boost::filesystem::last_write_time(vcf_file), boost::filesystem::last_write_time(idx_file)) > 0) {
       boost::system::error_code err;
-      fs::last_write_time(idx_file, std::time(NULL), err);
+      boost::filesystem::last_write_time(idx_file, std::time(NULL), err);
       if (err != 0) {
         LOG(ERROR) << "Attempting to update the last modified time for " << idx_file
                    << ", but failed.";
@@ -809,9 +809,9 @@ void check_vcf_index(std::string inputVCF){
       else {
         LOG(INFO) << "VCF File Index outdated : " << idx_file;
         LOG(INFO) << "Successfully updated stat for " << idx_file;
-	std::time_t t1 = fs::last_write_time(vcf_file);
+	std::time_t t1 = boost::filesystem::last_write_time(vcf_file);
 	LOG(INFO) << vcf_file << " date : " << std::ctime(&t1);
-	std::time_t t2 = fs::last_write_time(idx_file);
+	std::time_t t2 = boost::filesystem::last_write_time(idx_file);
 	LOG(INFO) << idx_file << " date : " << std::ctime(&t2);
       }
     }
