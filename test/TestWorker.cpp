@@ -68,8 +68,10 @@ TEST_F(TestWorker, Testing_check_vcf_index) {
   touch(inputIndex);
   sleep(1);
   touch(inputVCF);  
+  ASSERT_LT(0,std::difftime(fs::last_write_time(inputVCF), fs::last_write_time(inputIndex)));
   try {
     fcs::check_vcf_index(inputVCF);
+    ASSERT_EQ(0,std::difftime(fs::last_write_time(inputVCF), fs::last_write_time(inputIndex)));
   }
   catch ( ... ){
     FAIL() << "VCF index was not checked";
@@ -81,8 +83,10 @@ TEST_F(TestWorker, Testing_check_vcf_index) {
   touch(inputVCF2);
   sleep(1);
   touch(inputIndex2);
+  ASSERT_GT(0,std::difftime(fs::last_write_time(inputVCF2), fs::last_write_time(inputIndex2)));
   try {
     fcs::check_vcf_index(inputVCF2);
+    ASSERT_GT(0,std::difftime(fs::last_write_time(inputVCF2), fs::last_write_time(inputIndex2)));
   }
   catch ( ... ){
     FAIL() << "VCF index was not checked";

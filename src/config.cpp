@@ -809,8 +809,13 @@ void check_vcf_index(std::string inputVCF){
       else {
         LOG(INFO) << "VCF File Index outdated : " << idx_file;
         LOG(INFO) << "Successfully updated stat for " << idx_file;
+	std::time_t t1 = fs::last_write_time(vcf_file);
+	LOG(INFO) << vcf_file << " date : " << std::ctime(&t1);
+	std::time_t t2 = fs::last_write_time(idx_file);
+	LOG(INFO) << idx_file << " date : " << std::ctime(&t2);
       }
     }
+
   }
   else {
     throw fileNotFound("VCF index file " + idx_file.string() + " does not exist");
