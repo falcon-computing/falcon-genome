@@ -774,9 +774,10 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
 }
 
 void check_vcf_index(std::string inputVCF){
+  namespace fs = boost::filesystem;
   int check=0;
   std::string site = inputVCF;
-  std::string ext  = boost::filesystem::extension(site);
+  std::string ext  = fs::extension(site);
   std::string idx_ext;
 
   // check for '.idx' suffix
@@ -791,13 +792,13 @@ void check_vcf_index(std::string inputVCF){
     throw silentExit();
   }
 
-  auto vcf_file = boost::filesystem::path(site);
-  auto idx_file = boost::filesystem::path(site + idx_ext);
+  auto vcf_file = fs::path(site);
+  auto idx_file = fs::path(site + idx_ext);
 
-  if (boost::filesystem::exists(idx_file)) {
-    if (std::difftime(boost::filesystem::last_write_time(vcf_file), boost::filesystem::last_write_time(idx_file)) > 0) {
+  if (fs::exists(idx_file)) {
+    if (std::difftime(fs::last_write_time(vcf_file), fs::last_write_time(idx_file)) > 0) {
       boost::system::error_code err;
-      boost::filesystem::last_write_time(idx_file, std::time(NULL), err);
+      fs::last_write_time(idx_file, std::time(NULL), err);
       if (err != 0) {
         LOG(ERROR) << "Attempting to update the last modified time for " << idx_file
                    << ", but failed.";
@@ -806,12 +807,12 @@ void check_vcf_index(std::string inputVCF){
         throw silentExit();
       }
       else {
-        LOG(INFO) << "VCF File Index outdated : " << idx_file;
-        LOG(INFO) << "Successfully updated stat for " << idx_file;
-	std::time_t t1 = boost::filesystem::last_write_time(vcf_file);
-	LOG(INFO) << vcf_file << " date : " << std::ctime(&t1);
-	std::time_t t2 = boost::filesystem::last_write_time(idx_file);
-	LOG(INFO) << idx_file << " date : " << std::ctime(&t2);
+        VLOG(1) << "VCF File Index outdated : " << idx_file;
+        VLOG(1) << "Successfully updated stat for " << idx_file;
+	std::time_t t1 = fs::last_write_time(vcf_file);
+	VLOG(1) << vcf_file << " date : " << std::ctime(&t1);
+	std::time_t t2 = fs::last_write_time(idx_file);
+	VLOG(1) << idx_file << " date : " << std::ctime(&t2);
       }
     }
 

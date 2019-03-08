@@ -71,7 +71,7 @@ TEST_F(TestWorker, Testing_check_vcf_index) {
   ASSERT_LT(0,std::difftime(fs::last_write_time(inputVCF), fs::last_write_time(inputIndex)));
   try {
     fcs::check_vcf_index(inputVCF);
-    ASSERT_EQ(0,std::difftime(fs::last_write_time(inputVCF), fs::last_write_time(inputIndex)));
+    ASSERT_LE(0,std::difftime(fs::last_write_time(inputVCF), fs::last_write_time(inputIndex)));
   }
   catch ( ... ){
     FAIL() << "VCF index was not checked";
