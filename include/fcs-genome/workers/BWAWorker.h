@@ -18,6 +18,7 @@ class BWAWorker : public Worker {
       std::string read_group,
       std::string platform_id,
       std::string library_id,
+      bool flag_merge_bams,
       bool flag_align_only,
       bool &flag_f);
 
@@ -37,6 +38,8 @@ class BWAWorker : public Worker {
   std::string library_id_;
 
   bool flag_align_only_;
+  bool flag_merge_bams_;
+  bool flag_f_;
 };
 
 } // namespace fcsgenome
