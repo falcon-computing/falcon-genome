@@ -39,17 +39,18 @@ SambambaWorker::SambambaWorker(std::string input_path,
 }
 
 void SambambaWorker::check() {
-   input_path_ = check_input(input_path_);
-   if (boost::filesystem::is_directory(input_path_)){
-     get_input_list(input_path_, input_files_, common_, true);
-     for (auto & it : input_files_) {                                                                                                                                                   
-   	it = check_input(it);                                                                                                                                                            
-     }                        
-     if (output_file_.length() != 0) {                                                                                                                                             
-       output_file_ = check_output(output_file_, flag_f_, true);
-       std::string bai_file = check_output(output_file_ + ".bai", flag_f_, true);                                                                                                  
-     }        
-   } 
+  input_path_ = check_input(input_path_);
+  if (boost::filesystem::is_directory(input_path_)){
+    // Extracting all parts BAM filename:
+    get_input_list(input_path_, input_files_, common_, true);
+    for (auto & it : input_files_) {                                                                                                                                                   
+  	it = check_input(it);                                                                                                                                                            
+    }                      
+    if (output_file_.length() != 0) {                                                                                                                                             
+      output_file_ = check_output(output_file_, flag_f_, true);
+      std::string bai_file = check_output(output_file_ + ".bai", flag_f_, true);                                                                                                  
+    }        
+  } 
 }
 
 void SambambaWorker::setup() {

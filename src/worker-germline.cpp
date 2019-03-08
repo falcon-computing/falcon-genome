@@ -195,7 +195,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 
       executor.addTask(worker, sample_id, true);
 
-      // perform sambamba sort if not producing bam
+      // perform sambamba sort for each part BAM if not producing bam
       if (!flag_produce_bam) {
 
         input_htc = temp_bam_dir + "/" + read_tag;
@@ -211,6 +211,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
         };
       }
       else {
+        // Produce Merged BAM is required, then 
         bool flag = true;
         Worker_ptr worker(new SambambaWorker(
               output, output,
@@ -247,6 +248,8 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     std::string file_ext = flag_vcf ? "vcf" : "g.vcf";
     std::vector<std::string> output_files(get_config<int>("gatk.ncontigs"));
     std::vector<std::string> intv_paths;
+    // If user defines an interval list, then that list will be the first 
+    // element of intv_paths and will be a common file for all HTC process.
     if (!intv_list.empty()) {
       intv_paths.push_back(intv_list);
     }
@@ -257,7 +260,6 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
     for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
       std::string output_file = get_contig_fname(temp_vcf_dir, contig, file_ext);
 
-      // If interval list is defined, it will be the first element.
       // If input BAM is a regular file and not a folder, then each java process will use 
       // the corresponding region from the reference genome.  The folder BAM has the parts BAM with their
       // corresponding region list
@@ -273,7 +275,13 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
          contig,
          flag_vcf, flag_f, flag_gatk4)
       );
-       
+
+      // For the next java process, we need to delete the previous part reference list
+      // since each java process is using the same BAM file if input is a regular BAM file.
+      // If interval list is defined, it will be kept unaltered since it is posted as element 0, i.e., intv_paths
+      // will have two elements (0: interval list and 1: part reference list) in this case.  If interval list not
+      // not defined, then intv_paths has 1 element (part reference list). 
+      // In the case of a BAM folder, the BAMInput Class will use the parts list from its component (check HTCWorker.cpp):       
       if (boost::filesystem::is_regular_file(input_htc)){
         intv_paths.pop_back();
       }
