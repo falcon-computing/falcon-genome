@@ -775,9 +775,8 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
 
 void check_vcf_index(std::string inputVCF){
   int check=0;
-  namespace fs = boost::filesystem;
   std::string site = inputVCF;
-  std::string ext  = fs::extension(site);
+  std::string ext  = boost::filesystem::extension(site);
   std::string idx_ext;
 
   // check for '.idx' suffix
@@ -792,8 +791,8 @@ void check_vcf_index(std::string inputVCF){
     throw silentExit();
   }
 
-  auto vcf_file = fs::path(site);
-  auto idx_file = fs::path(site + idx_ext);
+  auto vcf_file = boost::filesystem::path(site);
+  auto idx_file = boost::filesystem::path(site + idx_ext);
 
   if (boost::filesystem::exists(idx_file)) {
     if (std::difftime(boost::filesystem::last_write_time(vcf_file), boost::filesystem::last_write_time(idx_file)) > 0) {
