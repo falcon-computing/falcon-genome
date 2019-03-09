@@ -774,8 +774,8 @@ std::vector<std::string> split_by_nprocs(std::string intervalFile, std::string f
 }
 
 void check_vcf_index(std::string inputVCF){
-  int check=0;
   namespace fs = boost::filesystem;
+  int check=0;
   std::string site = inputVCF;
   std::string ext  = fs::extension(site);
   std::string idx_ext;
@@ -795,20 +795,30 @@ void check_vcf_index(std::string inputVCF){
   auto vcf_file = fs::path(site);
   auto idx_file = fs::path(site + idx_ext);
 
-  if (std::difftime(fs::last_write_time(vcf_file), fs::last_write_time(idx_file)) > 0) {
-    boost::system::error_code err;
-    fs::last_write_time(idx_file, std::time(NULL), err);
-    if (err != 0) {
-      LOG(ERROR) << "Attempting to update the last modified time for " << idx_file
-                 << ", but failed.";
-      LOG(ERROR) << "Please fix it manually before running this command again, "
-                 << "otherwise GATK will be slowed down significantly.";
-      throw silentExit();
+  if (fs::exists(idx_file)) {
+    if (std::difftime(fs::last_write_time(vcf_file), fs::last_write_time(idx_file)) > 0) {
+      boost::system::error_code err;
+      fs::last_write_time(idx_file, std::time(NULL), err);
+      if (err != 0) {
+        LOG(ERROR) << "Attempting to update the last modified time for " << idx_file
+                   << ", but failed.";
+        LOG(ERROR) << "Please fix it manually before running this command again, "
+                   << "otherwise GATK will be slowed down significantly.";
+        throw silentExit();
+      }
+      else {
+        VLOG(1) << "VCF File Index outdated : " << idx_file;
+        VLOG(1) << "Successfully updated stat for " << idx_file;
+	std::time_t t1 = fs::last_write_time(vcf_file);
+	VLOG(1) << vcf_file << " date : " << std::ctime(&t1);
+	std::time_t t2 = fs::last_write_time(idx_file);
+	VLOG(1) << idx_file << " date : " << std::ctime(&t2);
+      }
     }
-    else {
-      VLOG(1) << "Successfully updated stat for " << idx_file;
-      throw silentExit();
-    }
+
+  }
+  else {
+    throw fileNotFound("VCF index file " + idx_file.string() + " does not exist");
   }
 
 }
