@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <unistd.h>
 #include <unordered_set>
 #include <gtest/gtest.h>
 
@@ -60,27 +61,48 @@ void touch(std::string path) {
 TEST_F(TestWorker, Testing_check_vcf_index) {
   std::string temp_dir = "/tmp/fcs-genome-test-" +  std::to_string((long long)fcs::getTid());
   fcs::create_dir(temp_dir);
+
+  // When VCF index file is older than VCF file: 
   std::string inputVCF   = temp_dir + "/input.vcf.gz";
   std::string inputIndex = temp_dir + "/input.vcf.gz.tbi";
   touch(inputIndex);
+  sleep(1);
   touch(inputVCF);  
+  ASSERT_LT(0,std::difftime(fs::last_write_time(inputVCF), fs::last_write_time(inputIndex)));
   try {
     fcs::check_vcf_index(inputVCF);
+    ASSERT_LE(0,std::difftime(fs::last_write_time(inputVCF), fs::last_write_time(inputIndex)));
   }
   catch ( ... ){
     FAIL() << "VCF index was not checked";
   }  
 
+  // When VCF file is older than VCF index file:
   std::string inputVCF2   = temp_dir + "/input.vcf";
   std::string inputIndex2 = temp_dir + "/input.vcf.idx";
   touch(inputVCF2);
+  sleep(1);
   touch(inputIndex2);
+  ASSERT_GT(0,std::difftime(fs::last_write_time(inputVCF2), fs::last_write_time(inputIndex2)));
   try {
-    fcs::check_vcf_index(inputVCF);
+    fcs::check_vcf_index(inputVCF2);
+    ASSERT_GT(0,std::difftime(fs::last_write_time(inputVCF2), fs::last_write_time(inputIndex2)));
   }
   catch ( ... ){
     FAIL() << "VCF index was not checked";
   }
+
+  // When VCF index file does not exist
+  std::string inputVCF3   = temp_dir + "/input3.vcf";
+  std::string inputIndex3 = temp_dir + "/input3.vcf.idx";
+  touch(inputVCF3);
+  try {
+    fcs::check_vcf_index(inputVCF3);
+  }
+  catch (fcs::fileNotFound &e){
+    EXPECT_EQ(e.what(), "VCF index file " + inputIndex3 + " does not exist");
+  }
+
   fcs::remove_path(temp_dir);
 }
 
@@ -240,7 +262,7 @@ TEST_F(TestWorker, TestBQSRWorker_check) {
   boost::this_thread::sleep_for(boost::chrono::seconds(1));
   
   touch(known[0]); // now known will be older than idx
-  CHECK_EXCEPTION;
+  CHECK_NOEXCEPTION;
   
   // test no index exception
   known.push_back(temp_dir + "/" + "known2.vcf.gz");
@@ -511,7 +533,7 @@ TEST_F(TestWorker, TestSambambaWorker_check) {
     fcs::SambambaWorker worker(input_path, output_path, action,
                               common, flag_f, files);
     
-    CHECK_NOEXCEPTION
+    CHECK_EXCEPTION
   }
   std::vector<std::string>().swap(files); // for clear vector
 
@@ -606,7 +628,7 @@ TEST_F(TestWorker, TestSambambaWorker_setup) {
     ss.str("");
     ss << input_path;
     flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
-    ASSERT_TRUE(flag_c);
+    ASSERT_FALSE(flag_c);
     ss.str("");
 
     ss << output_path;
@@ -881,7 +903,7 @@ TEST_F(TestWorker, TestSambambaWorker_setup) {
 
     ss << "bed";
     flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
-    ASSERT_FALSE(flag_c);
+    ASSERT_TRUE(flag_c);
     ss.str("");
 
     fcs::remove_path(input_path);
