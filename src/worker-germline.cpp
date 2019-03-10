@@ -252,6 +252,10 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
       else {
         // Produce Merged BAM is required, then 
         bool flag = true;
+
+        LOG(INFO) << "I am right " << output;
+        
+
         Worker_ptr worker(new SambambaWorker(
               output, output,
               SambambaWorker::INDEX,
@@ -259,6 +263,8 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
         executor.addTask(worker, sample_id, true);
         // The single BAM used for HTC:
         input_htc=output;
+
+
       }
 
       executor.run();
@@ -295,142 +301,80 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
 
     Executor executor("Falcon Fast Germline", 
         get_config<int>("gatk.htc.nprocs", "gatk.nprocs"));
-    //<<<<<<< HEAD
-
+ 
     for (int r=0; r<tag_gatk.size(); ++r){
+       for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
+         std::string output_file = get_contig_fname(temp_vcf_dir, contig, file_ext);
+   
+         // If input BAM is a regular file and not a folder, then each java process will use 
+         // the corresponding region from the reference genome.  The folder BAM has the parts BAM with their
+         // corresponding region list
+         if (boost::filesystem::is_regular_file(input_htc)){
+           intv_paths.push_back(temp_intv[contig]);
+         }
+   
+         Worker_ptr worker(new HTCWorker(ref_path,
+   	 intv_paths,
+   	 input_htc,
+            output_file,
+            htc_extra_opts,
+            contig,
+            flag_vcf, flag_f, flag_gatk4)
+         );
+   
+         // For the next java process, we need to delete the previous part reference list
+         // since each java process is using the same BAM file if input is a regular BAM file.
+         // If interval list is defined, it will be kept unaltered since it is posted as element 0, i.e., intv_paths
+         // will have two elements (0: interval list and 1: part reference list) in this case.  If interval list not
+         // not defined, then intv_paths has 1 element (part reference list). 
+         // In the case of a BAM folder, the BAMInput Class will use the parts list from its component (check HTCWorker.cpp):       
+         if (boost::filesystem::is_regular_file(input_htc)){
+           intv_paths.pop_back();
+         }
+   
+         output_files[contig] = output_file;
+         executor.addTask(worker, sample_id, contig == 0);
+    
+       } // END of for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++)
+      
+       bool flag = true;
+       bool flag_a = false;
+       bool flag_bgzip = false;
 
-      for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
-        std::string output_file = get_contig_fname(temp_vcf_dir, contig, file_ext);
-        Worker_ptr worker(new HTCWorker(ref_path,
-           intv_paths,
-      	 temp_bam_dir + "/" + read_tag,
-           output_file,
-           htc_extra_opts,
-           contig,
-      	 flag_vcf, flag_f, tag_gatk[r])   //flag_gatk4)
-        );
-         
-        output_files[contig] = output_file;
-        executor.addTask(worker, sample_id, contig == 0);
+       std::string output_vcf;
+       if (!sampleList.empty()) {
+         output_vcf = outname[r] + "/" + sample_id + file_ext;
+       }
+       else {
+         output_vcf = outname[r];
+       }
       
-      } // END of for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++)
-      
-      bool flag = true;
-      bool flag_a = false;
-      bool flag_bgzip = false;
-      
-      std::string output_vcf;
-      if (!sampleList.empty()) {
-        //output_vcf = output_path + "/" + sample_id + file_ext;
-        output_vcf = outname[r] + "/" + sample_id + file_ext;
-      }
-      else {
-        //output_vcf = output_path;
-        output_vcf = outname[r];
-      } 
-      DLOG(INFO) << output_vcf << "\n";     
-      
-      { // concat gvcfs
-        Worker_ptr worker(new VCFConcatWorker(
-           output_files,
-           temp_vcf_dir + "/output." + file_ext,
-           flag_a,
-           flag_bgzip,
-           flag_f)
-        );
-        executor.addTask(worker, sample_id, true);
-      }
-      { // bgzip gvcf
-        Worker_ptr worker(new ZIPWorker(
-           temp_vcf_dir + "/output." + file_ext,
-           output_vcf + ".gz",
-           flag_f)
-        );
-        executor.addTask(worker, sample_id, true);
-      }
-      { // tabix gvcf
-        Worker_ptr worker(new TabixWorker(
-           output_vcf + ".gz")
-        );
-        executor.addTask(worker, sample_id, true);
-      }
+       { // concat gvcfs
+         Worker_ptr worker(new VCFConcatWorker(
+            output_files,
+            temp_vcf_dir + "/output." + file_ext,
+            flag_a,
+            flag_bgzip,
+            flag_f)
+         );
+         executor.addTask(worker, sample_id, true);
+       }
+       { // bgzip gvcf
+         Worker_ptr worker(new ZIPWorker(
+            temp_vcf_dir + "/output." + file_ext,
+            output_vcf + ".gz",
+            flag_f)
+         );
+         executor.addTask(worker, sample_id, true);
+       }
+       { // tabix gvcf
+         Worker_ptr worker(new TabixWorker(
+            output_vcf + ".gz")
+         );
+         executor.addTask(worker, sample_id, true);
+       }
 
-    }  // END int r=0; r<tag_gatk.size(); ++r
-
-// =======
-//  
-//     for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++) {
-//       std::string output_file = get_contig_fname(temp_vcf_dir, contig, file_ext);
-// 
-//       // If input BAM is a regular file and not a folder, then each java process will use 
-//       // the corresponding region from the reference genome.  The folder BAM has the parts BAM with their
-//       // corresponding region list
-//       if (boost::filesystem::is_regular_file(input_htc)){
-//         intv_paths.push_back(temp_intv[contig]);
-//       }
-// 
-//       Worker_ptr worker(new HTCWorker(ref_path,
-// 	 intv_paths,
-// 	 input_htc,
-//          output_file,
-//          htc_extra_opts,
-//          contig,
-//          flag_vcf, flag_f, flag_gatk4)
-//       );
-// 
-//       // For the next java process, we need to delete the previous part reference list
-//       // since each java process is using the same BAM file if input is a regular BAM file.
-//       // If interval list is defined, it will be kept unaltered since it is posted as element 0, i.e., intv_paths
-//       // will have two elements (0: interval list and 1: part reference list) in this case.  If interval list not
-//       // not defined, then intv_paths has 1 element (part reference list). 
-//       // In the case of a BAM folder, the BAMInput Class will use the parts list from its component (check HTCWorker.cpp):       
-//       if (boost::filesystem::is_regular_file(input_htc)){
-//         intv_paths.pop_back();
-//       }
-// 
-//       output_files[contig] = output_file;
-//       executor.addTask(worker, sample_id, contig == 0);
-//  
-//     } // END of for (int contig = 0; contig < get_config<int>("gatk.ncontigs"); contig++)
-//    
-//     bool flag = true;
-//     bool flag_a = false;
-//     bool flag_bgzip = false;
-//    
-//     std::string output_vcf;
-//     if (!sampleList.empty()) {
-//       output_vcf = output_path + "/" + sample_id + file_ext;
-//     }
-//     else {
-//       output_vcf = output_path;
-//     } 
-//     DLOG(INFO) << output_vcf << "\n";     
-//    
-//     { // concat gvcfs
-//       Worker_ptr worker(new VCFConcatWorker(
-//          output_files,
-//          temp_vcf_dir + "/output." + file_ext,
-//          flag_a,
-//          flag_bgzip,
-//          flag_f)
-//       );
-//       executor.addTask(worker, sample_id, true);
-//     }
-//     { // bgzip gvcf
-//       Worker_ptr worker(new ZIPWorker(
-//          temp_vcf_dir + "/output." + file_ext,
-//          output_vcf + ".gz",
-//          flag_f)
-//       );
-//       executor.addTask(worker, sample_id, true);
-//     }
-//     { // tabix gvcf
-//       Worker_ptr worker(new TabixWorker(
-//          output_vcf + ".gz")
-//       );
-//       executor.addTask(worker, sample_id, true);
-//     }
-// >>>>>>> e91b2d462802b3ad2d405f271bdd474008bad2b0
+    } // END  for (int r=0; r<tag_gatk.size(); ++r)
     executor.run();
    }; //for (auto pair : SampleData)
 
