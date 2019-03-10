@@ -252,10 +252,6 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
       else {
         // Produce Merged BAM is required, then 
         bool flag = true;
-
-        LOG(INFO) << "I am right " << output;
-        
-
         Worker_ptr worker(new SambambaWorker(
               output, output,
               SambambaWorker::INDEX,
@@ -263,10 +259,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
         executor.addTask(worker, sample_id, true);
         // The single BAM used for HTC:
         input_htc=output;
-
-
       }
-
       executor.run();
 
     } // END for (int i = 0; i < list.size(); ++i)
