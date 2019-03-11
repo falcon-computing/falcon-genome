@@ -511,7 +511,7 @@ TEST_F(TestWorker, TestSambambaWorker_check) {
     fcs::SambambaWorker worker(input_path, output_path, action,
                               common, flag_f, files);
     
-    CHECK_EXCEPTION
+    CHECK_NOEXCEPTION
   }
   std::vector<std::string>().swap(files); // for clear vector
 
@@ -606,7 +606,7 @@ TEST_F(TestWorker, TestSambambaWorker_setup) {
     ss.str("");
     ss << input_path;
     flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
-    ASSERT_FALSE(flag_c);
+    ASSERT_TRUE(flag_c);
     ss.str("");
 
     ss << output_path;
