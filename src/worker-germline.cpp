@@ -204,7 +204,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
           std::string input = get_bucket_fname(parts_dir, i);
           bool flag = true;
           Worker_ptr worker(new SambambaWorker(
-                input, input,
+                input, "",
                 SambambaWorker::SORT,
                 "", flag)); 
           executor.addTask(worker, sample_id, i == 0);
@@ -214,7 +214,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
         // Produce Merged BAM is required, then 
         bool flag = true;
         Worker_ptr worker(new SambambaWorker(
-              output, output,
+              output, "",
               SambambaWorker::INDEX,
               "", flag)); 
         executor.addTask(worker, sample_id, true);
