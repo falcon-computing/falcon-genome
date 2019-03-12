@@ -24,33 +24,36 @@ static inline std::string get_task_name(SambambaWorker::Action action) {
 }
 
 SambambaWorker::SambambaWorker(std::string input_path,
-   std::string output_path,  
-   Action action,
-   std::string common,
-   bool &flag_f,
-   std::vector<std::string> files
-   ): 
-   Worker(1, get_config<int>("markdup.nt"), 
-          std::vector<std::string>(), get_task_name(action)), 
-   flag_f_(flag_f), input_files_(files), output_file_(output_path),
-   input_path_(input_path), action_(action), common_(common)
+       std::string output_path,  
+       Action action,
+       std::string common,
+       bool &flag_f,
+       std::vector<std::string> files
+       ): 
+       Worker(1, get_config<int>("markdup.nt"), 
+              std::vector<std::string>(), get_task_name(action)), 
+       flag_f_(flag_f), input_files_(files), output_file_(output_path),
+       input_path_(input_path), action_(action), common_(common)
 {
   ;
 }
 
 void SambambaWorker::check() {
-  input_path_ = check_input(input_path_);
-  if (boost::filesystem::is_directory(input_path_)){
-    // Extracting all parts BAM filename:
+  if (input_files_.size() == 0) {
+    input_path_ = check_input(input_path_);
+  }
+  if (boost::filesystem::exists(input_path_)) { // when input_files_ is not empty,
+                                                // we don't want get_input_list() error out
+                                                // because input_path_ does not exist.
     get_input_list(input_path_, input_files_, common_, true);
-    for (auto & it : input_files_) {                                                                                                                                                   
-  	it = check_input(it);                                                                                                                                                            
-    }                      
-    if (output_file_.length() != 0) {                                                                                                                                             
-      output_file_ = check_output(output_file_, flag_f_, true);
-      std::string bai_file = check_output(output_file_ + ".bai", flag_f_, true);                                                                                                  
-    }        
-  } 
+  }
+  for (auto & it : input_files_) {
+    it = check_input(it);
+  }
+  if (output_file_.length() != 0) {
+    output_file_ = check_output(output_file_, flag_f_, true);
+    std::string bai_file = check_output(output_file_ + ".bai", flag_f_, true);
+  }
 }
 
 void SambambaWorker::setup() {
