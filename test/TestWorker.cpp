@@ -903,7 +903,7 @@ TEST_F(TestWorker, TestSambambaWorker_setup) {
 
     ss << "bed";
     flag_c = worker.getCommand().find(ss.str()) != std::string::npos;
-    ASSERT_TRUE(flag_c);
+    ASSERT_FALSE(flag_c);
     ss.str("");
 
     fcs::remove_path(input_path);
