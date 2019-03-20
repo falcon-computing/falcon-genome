@@ -90,7 +90,7 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
   // finalize argument parsing
   po::notify(cmd_vm);
 
-  output_path = check_output(output_path, flag_f);
+  //output_path = check_output(output_path, flag_f);
 
   // Sample Sheet must satisfy the following format:
   // #sample_id,fastq1,fastq2,rg,platform_id,library_id
@@ -183,7 +183,9 @@ int germline_main(int argc, char** argv, boost::program_options::options_descrip
       else {
         output = get_fname_by_ext(output_path, "bam");
       }
-      check_output(output, flag_f);
+      if (flag_produce_bam) {
+        check_output(output, flag_f);
+      }
       output_bams.push_back(output);
 
       Worker_ptr worker(new Minimap2Worker(ref_path, fq1_path, fq2_path,
