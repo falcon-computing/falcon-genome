@@ -197,8 +197,8 @@ void PRWorker::check() {
       if (boost::filesystem::exists(target_file)) {
          boost::filesystem::copy_file(target_file, get_fname_by_ext(output_path_, ext[j]), 
                                       boost::filesystem::copy_option::overwrite_if_exists);
-        // target file should be replace to a merged bed file.
-        // but add here to avoid breaking other things accidently.
+        // $target_file should be replaced to a merged bed file.
+        // But add here to avoid breaking other things accidently.(GEN-908)
         if (boost::filesystem::exists(input_path_.getInfo().mergedREGION[0])) {
           boost::filesystem::copy_file(input_path_.getInfo().mergedREGION[0], 
                                       get_fname_by_ext(output_path_, ext[j]),
