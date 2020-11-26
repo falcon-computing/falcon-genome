@@ -1,6 +1,6 @@
 ExternalProject_Add(jsoncpp-download
     PREFIX "jsoncpp"
-    URL https://s3.amazonaws.com/fcs-build-public/jsoncpp-1.7.7.tar.gz
+    URL ${CMAKE_SOURCE_DIR}/deps/jsoncpp-1.7.7.tar.gz
     URL_MD5 10df83654beb3477ecd4082763bce311
     SOURCE_DIR "${CMAKE_BINARY_DIR}/jsoncpp/install"
     CONFIGURE_COMMAND ""
