@@ -1,7 +1,6 @@
 ExternalProject_Add(jsoncpp-download
     PREFIX "jsoncpp"
-    URL ${CMAKE_SOURCE_DIR}/deps/jsoncpp-1.7.7.tar.gz
-    URL_MD5 10df83654beb3477ecd4082763bce311
+    URL ${DEPS}/jsoncpp-1.7.7.tar.gz
     SOURCE_DIR "${CMAKE_BINARY_DIR}/jsoncpp/install"
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
