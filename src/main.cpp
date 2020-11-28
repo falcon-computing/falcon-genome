@@ -8,7 +8,6 @@
 #include "fcs-genome/config.h"
 #include "fcs-genome/Executor.h"
 
-#include "falcon-lic/genome.h"
 
 #define print_cmd_col(str1, str2) std::cout \
     << "  " << std::left << std::setw(16) << str1 \
@@ -101,13 +100,6 @@ int main(int argc, char** argv) {
   std::string cmd(argv[1]);
   // transform all cmd to lower-case
   std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
-
-  int licret = license_verify();
-  if (licret != 0) {
-    LOG(ERROR) << "Cannot authorize software usage: " << licret;
-    LOG(ERROR) << "Please contact support@falcon-computing.com for details.";
-    return licret;
-  }
 
   signal(SIGINT, sigint_handler);
 
