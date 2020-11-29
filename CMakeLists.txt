@@ -15,7 +15,6 @@ find_package(Threads)
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(Google REQUIRED)
 find_package(JsonCPP REQUIRED)
-find_package(FalconLM REQUIRED)
 
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to Release")
@@ -65,13 +64,11 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${Google_INCLUDE_DIRS}
     ${JsonCPP_INCLUDE_DIRS}
-    ${FalconLM_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS})
 
 link_directories(
     ${Google_LIBRARY_DIRS}
     ${JsonCPP_LIBRARY_DIRS}
-    ${FalconLM_LIBRARY_DIRS}
     ${Boost_LIBRARY_DIRS})
 
 # find source files
@@ -82,7 +79,7 @@ add_library(fcs-genome-objs ${SRC_LIST})
 
 # this is required to force downloading all 
 # packages before the compilation starts
-add_dependencies(fcs-genome-objs Google JsonCPP FalconLM)
+add_dependencies(fcs-genome-objs Google JsonCPP)
 
 add_executable(fcs-genome ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
@@ -93,7 +90,6 @@ target_link_libraries(fcs-genome
     fcs-genome-objs
     ${Google_LIBRARIES}
     ${JsonCPP_LIBRARIES}
-    ${FalconLM_LIBRARIES}
     ${CMAKE_DL_LIBS} 
     ${Boost_LIBRARIES} 
     ${ZLIB_LIBRARIES}
